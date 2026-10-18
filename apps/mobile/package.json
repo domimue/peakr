@@ -4,6 +4,7 @@
   "main": "expo-router/entry",
   "dependencies": {
     "@expo/ui": "~58.0.20",
+    "@peakr/engine": "workspace:*",
     "@tanstack/react-query": "^5.104.3",
     "drizzle-orm": "^0.45.4",
     "expo": "~58.0.14",
