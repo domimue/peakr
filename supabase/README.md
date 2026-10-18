@@ -6,14 +6,18 @@ Minimal setup for the website waitlist (Phase 1b). Auth, sync and Edge Functions
 
 1. Create a project at <https://supabase.com/dashboard> (free plan is enough; pick an EU region,
    e.g. Frankfurt or Zurich, to keep personal data in Europe).
-2. Apply the migration – either paste `migrations/20261018000000_waitlist.sql` into
-   **SQL Editor → New query** and run it, or use the CLI:
+2. Link this repo and apply the migrations with the Supabase CLI (a dev dependency of the
+   workspace root, config in `supabase/config.toml`). The project ref is the part before
+   `.supabase.co` in the project URL (also under **Project Settings → General → Project ID**):
 
    ```bash
-   npx supabase init        # once, creates supabase/config.toml
-   npx supabase link --project-ref <your-project-ref>
-   npx supabase db push
+   pnpm exec supabase login
+   pnpm exec supabase link --project-ref <your-project-ref>
+   pnpm exec supabase db push
    ```
+
+   New schema changes go into a new file: `pnpm exec supabase migration new <name>`. Never edit
+   a migration that has already been pushed.
 
 3. In **Project Settings → API keys** copy the project URL and the **publishable** (anon) key into
    `apps/web/.env.local` (see `apps/web/.env.example`) and into the Vercel project settings.

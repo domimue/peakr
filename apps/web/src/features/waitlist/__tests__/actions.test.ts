@@ -24,11 +24,14 @@ describe('joinWaitlist', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
   });
 
-  it('stores the email with the consent text', async () => {
+  it('stores the email with consent, consent text and source', async () => {
+    // The mocked insert result has no `.select()`, so this also fails if the row is requested back.
     expect(await joinWaitlist(idle, form(valid))).toEqual({ status: 'success' });
     expect(insert).toHaveBeenCalledWith({
       email: 'ana@example.com',
+      consent: true,
       consent_text: expect.stringContaining('I agree'),
+      source: 'home',
       locale: 'en',
     });
   });
