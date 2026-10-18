@@ -6,6 +6,220 @@
   "home": {
     "title": "Peakr",
     "tagline": "One plan for running, cycling, swimming and strength.",
-    "comingSoon": "Coming soon."
+    "comingSoon": "Coming soon.",
+    "toolsLink": "Try the free calculators"
+  },
+  "nav": {
+    "home": "Peakr",
+    "tools": "All tools",
+    "label": "Main navigation"
+  },
+  "common": {
+    "estimate": "Estimate"
+  },
+  "cta": {
+    "title": "Train by these numbers – automatically",
+    "body": "Peakr turns your zones into a personal plan for running, cycling, swimming and strength that fits your week and your terrain.",
+    "button": "Build your personal plan"
+  },
+  "tools": {
+    "index": {
+      "metaTitle": "Free training calculators – heart rate zones, Zone 2, pace & swim CSS | Peakr",
+      "metaDescription": "Free calculators for heart rate zones, Zone 2, running pace and race prediction, and swim CSS. No account needed.",
+      "title": "Free training calculators",
+      "subtitle": "Heart rate zones, Zone 2, race predictions and swim pace – free, no account needed.",
+      "open": "Open calculator"
+    },
+    "hrZones": {
+      "metaTitle": "Heart rate zone calculator (%HRmax, Karvonen, LTHR) | Peakr",
+      "metaDescription": "Calculate your five heart rate training zones with the %HRmax, Karvonen (heart rate reserve) or LTHR method. Free, no account needed.",
+      "title": "Heart rate zones",
+      "description": "Your five training zones from max, resting or threshold heart rate.",
+      "lead": "Calculate your five training zones with the method that fits what you know about your heart rate.",
+      "methodLabel": "Method",
+      "methods": {
+        "percentMax": "% HRmax",
+        "karvonen": "Karvonen",
+        "lthr": "LTHR"
+      },
+      "methodInfo": {
+        "percentMax": "Zones as a percentage of your maximum heart rate. Simple and a good start.",
+        "karvonen": "Uses your heart rate reserve (max minus resting). More personal, because it reflects your fitness.",
+        "lthr": "Zones from your lactate threshold heart rate (Joe Friel). The most precise if you know your threshold."
+      },
+      "autoMethod": "Chosen automatically: Karvonen as soon as you enter your resting heart rate.",
+      "hrMaxUsed": "Max heart rate used",
+      "hrMaxEstimateNote": "Estimated from your age (208 − 0.7 × age). A measured value makes your zones more accurate.",
+      "lthrUsed": "Threshold heart rate used",
+      "resultTitle": "Your zones",
+      "seo": [
+        {
+          "heading": "What are heart rate zones?",
+          "body": "Heart rate zones split your effort into five ranges, from very easy recovery (Zone 1) to all-out efforts (Zone 5). Training in the right zone makes sure easy days stay easy and hard days are hard enough to make you faster."
+        },
+        {
+          "heading": "Which method should I use?",
+          "body": "%HRmax only needs your maximum heart rate (or your age for an estimate). Karvonen also uses your resting heart rate, so the zones reflect your fitness. LTHR, based on your lactate threshold heart rate from a 30-minute time trial, is the most precise for trained athletes."
+        },
+        {
+          "heading": "How accurate is the age formula?",
+          "body": "The formula 208 − 0.7 × age is a population average – your real maximum can be 10–15 beats higher or lower. If you have seen a higher value at the end of an all-out effort, enter it as your max heart rate."
+        }
+      ]
+    },
+    "zone2": {
+      "metaTitle": "Zone 2 heart rate calculator | Peakr",
+      "metaDescription": "Find your Zone 2 heart rate range for easy aerobic training – with or without resting heart rate. Free, no account needed.",
+      "title": "Zone 2 calculator",
+      "description": "Find your easy aerobic range – and why it matters.",
+      "lead": "Find the heart rate range for easy aerobic training – the foundation of every endurance plan.",
+      "whyTitle": "Why Zone 2 matters",
+      "benefits": {
+        "base": "Builds your aerobic base: more mitochondria and capillaries, so you get faster at the same heart rate.",
+        "fat": "Trains your body to burn fat efficiently, which saves carbohydrates for hard efforts.",
+        "recovery": "Easy enough to recover from quickly, so you can train more often without getting injured.",
+        "volume": "Most endurance athletes do around 80 % of their training at this easy intensity."
+      },
+      "restingHint": "With resting heart rate the Karvonen method is used – more personal.",
+      "resultLabel": "Your Zone 2",
+      "methodNote": {
+        "percentMax": "60–70 % of your max heart rate ({{hrMax}} bpm).",
+        "karvonen": "60–70 % of your heart rate reserve (Karvonen, max {{hrMax}} bpm).",
+        "lthr": "Based on your threshold heart rate."
+      },
+      "talkTest": "Check: you can still talk in full sentences. If not, slow down.",
+      "zonesTitle": "All zones",
+      "seo": [
+        {
+          "heading": "What is Zone 2 training?",
+          "body": "Zone 2 is the easy, conversational intensity where your body mainly uses fat for fuel. It feels almost too easy – and that is the point: you can do a lot of it and still recover for your harder sessions."
+        },
+        {
+          "heading": "Why does my Zone 2 pace feel so slow?",
+          "body": "When you start training by heart rate, Zone 2 often means slowing down a lot, especially on hills or in the heat. After a few weeks of consistent easy training your pace at the same heart rate gets faster – that is your aerobic base improving."
+        }
+      ]
+    },
+    "pace": {
+      "metaTitle": "Running pace calculator & race time predictor | Peakr",
+      "metaDescription": "Predict your 5 km, 10 km, half marathon and marathon times and get your training pace zones from one recent race. Free, no account needed.",
+      "title": "Pace & race predictor",
+      "description": "Training paces and predicted race times from a recent race.",
+      "lead": "Get your training pace zones and predicted race times from one recent result.",
+      "intro": "Enter a recent race or all-out time trial. The more recent, the better.",
+      "distanceLabel": "Race distance",
+      "timeLabel": "Your {{distance}} time",
+      "racePace": "Race pace",
+      "thresholdPace": "Threshold pace",
+      "thresholdNote": "About the pace you could hold for one hour.",
+      "predictionsTitle": "Predicted race times",
+      "predictionsDistance": "Distance",
+      "predictionsTime": "Time",
+      "predictionsPace": "Pace",
+      "predictionsNote": "Riegel formula. Assumes you train for the distance – longer races, especially the marathon, are often slower than predicted.",
+      "zonesTitle": "Your pace zones",
+      "seo": [
+        {
+          "heading": "How are race times predicted?",
+          "body": "The calculator uses the Riegel formula, which scales a known race time to another distance with a fatigue factor. It works best between similar distances and assumes you have trained for the longer race."
+        },
+        {
+          "heading": "What are pace zones for?",
+          "body": "Pace zones translate your current fitness into concrete training paces – from easy runs to threshold and interval sessions. On hilly routes or hot days, heart rate is the better guide for easy runs."
+        }
+      ]
+    },
+    "swim": {
+      "metaTitle": "Swim CSS calculator – Critical Swim Speed & pace zones | Peakr",
+      "metaDescription": "Calculate your Critical Swim Speed (CSS) and swim pace zones per 100 m from a 400 m and 200 m time trial. Free, no account needed.",
+      "title": "Swim pace (CSS)",
+      "description": "Critical Swim Speed and swim zones per 100 m from a simple test.",
+      "lead": "Calculate your Critical Swim Speed and swim pace zones per 100 m from two time trials.",
+      "guideTitle": "How to do the CSS test",
+      "guide": {
+        "warmUp": "Warm up for 10–15 minutes with easy swimming and a few short pick-ups.",
+        "swim400": "Swim 400 m as fast as you can at an even pace. Note the time.",
+        "recover": "Recover for 5–10 minutes with very easy swimming.",
+        "swim200": "Swim 200 m all-out. Note the time.",
+        "record": "Use the same pool and push-off starts for both efforts, then enter both times below."
+      },
+      "time400": "400 m time",
+      "time200": "200 m time",
+      "cssLabel": "Your CSS pace",
+      "cssNote": "Roughly the pace you can sustain for about 30 minutes.",
+      "zonesTitle": "Your swim zones",
+      "seo": [
+        {
+          "heading": "What is Critical Swim Speed?",
+          "body": "CSS is the fastest pace you can hold for a long time without tiring rapidly – similar to the threshold pace in running. It is calculated from the difference between your 400 m and 200 m times."
+        },
+        {
+          "heading": "Why pace instead of heart rate in the pool?",
+          "body": "Heart rate reads about 10–15 beats lower in water and wrist sensors are unreliable while swimming. Pace per 100 m from your CSS is a much more dependable target for swim sets."
+        }
+      ]
+    }
+  },
+  "fields": {
+    "age": "Age",
+    "ageHint": "Used to estimate your max heart rate if you don't know it.",
+    "hrMaxOptional": "Max heart rate (optional)",
+    "hrMaxHint": "Highest heart rate you have measured, e.g. at the end of an all-out effort.",
+    "hrMaxLthrHint": "Sets the top of zone 5. Leave empty if unknown.",
+    "restingHr": "Resting heart rate",
+    "restingHrOptional": "Resting heart rate (optional)",
+    "restingHrHint": "Measure in the morning before getting up.",
+    "lthr": "Threshold heart rate (LTHR)",
+    "lthrHint": "Average heart rate over the last 20 minutes of a 30-minute all-out solo run."
+  },
+  "races": {
+    "5k": "5 km",
+    "10k": "10 km",
+    "half": "Half marathon",
+    "marathon": "Marathon"
+  },
+  "zones": {
+    "label": "Z{{zone}}",
+    "zone": "Zone",
+    "range": "Range",
+    "names": {
+      "1": "Recovery",
+      "2": "Endurance",
+      "3": "Tempo",
+      "4": "Threshold",
+      "5": "VO₂max"
+    }
+  },
+  "units": {
+    "bpm": "bpm",
+    "years": "years",
+    "h": "h",
+    "min": "min",
+    "s": "s",
+    "hours": "hours",
+    "minutes": "minutes",
+    "seconds": "seconds",
+    "perKm": "/km",
+    "per100m": "/100 m",
+    "bpmValue": "{{value}} bpm",
+    "bpmRange": "{{min}}–{{max}} bpm",
+    "bpmUpTo": "up to {{value}} bpm",
+    "bpmFrom": "{{value}}+ bpm",
+    "paceValue": "{{pace}} {{unit}}",
+    "paceRange": "{{slow}}–{{fast}} {{unit}}",
+    "paceOrSlower": "{{pace}} {{unit}} or slower",
+    "paceOrFaster": "{{pace}} {{unit}} or faster"
+  },
+  "validation": {
+    "invalidNumber": "Enter a whole number.",
+    "invalidDuration": "Minutes and seconds must be below 60.",
+    "required": "Please fill in this field.",
+    "ageOrHrMaxRequired": "Enter your age or your max heart rate.",
+    "outOfRange": "Enter a value between {{min}} and {{max}}.",
+    "restingHrNotBelowHrMax": "Resting heart rate must be below your max heart rate ({{hrMax}} bpm).",
+    "lthrNotBelowHrMax": "Threshold heart rate must be below your max heart rate ({{hrMax}} bpm).",
+    "unrealisticRaceTime": "This time looks unrealistic for the distance. Enter a time between {{min}} and {{max}}.",
+    "swim400NotSlowerThan200": "Your 400 m pace must be slower than your 200 m pace. Please check both times.",
+    "swimTimesInconsistent": "These times are very far apart. Were both swims all-out efforts?"
   }
 }
