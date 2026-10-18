@@ -288,5 +288,26 @@
         }
       ]
     }
+  },
+  "brand": {
+    "metaTitle": "Brand – Peakr",
+    "metaDescription": "Peakr logo, colours, heart-rate zone scale and type – the design tokens shared by app and website.",
+    "title": "Brand",
+    "lead": "Logo, colours and type, rendered from the same tokens the app uses.",
+    "logo": "Logo",
+    "onDark": "On dark (Ink)",
+    "onLight": "On light",
+    "onAccent": "On Volt",
+    "variants": "Lockup, mark and wordmark",
+    "colors": "Colours",
+    "light": "Light",
+    "dark": "Dark",
+    "zones": "Heart-rate zones",
+    "zonesNote": "Zones are always labelled – never rely on colour alone.",
+    "type": "Type scale",
+    "numbers": "Numbers use tabular figures: 4:05 /km · 152 bpm · 1:45 /100 m",
+    "buttons": "Buttons",
+    "primary": "Primary action",
+    "secondary": "Secondary action"
   }
 }

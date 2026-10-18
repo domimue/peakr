@@ -355,7 +355,7 @@ function DateInput({ question, value, onAnswer, onClear }: InputProps) {
 function ErrorText({ text }: { text: string }) {
   const { colors } = useTheme();
   return (
-    <Text variant="caption" style={{ color: colors.danger }} accessibilityLiveRegion="polite">
+    <Text variant="caption" style={{ color: colors.errorText }} accessibilityLiveRegion="polite">
       {text}
     </Text>
   );

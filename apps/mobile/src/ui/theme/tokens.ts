@@ -1,23 +1,35 @@
-export const spacing = {
-  xs: 4,
-  sm: 8,
-  md: 16,
-  lg: 24,
-  xl: 32,
-} as const;
+import {
+  buttonTokens,
+  fontFamilies,
+  letterSpacing,
+  radii,
+  spacing,
+  typography as typeScale,
+  type TypographyVariant,
+} from '@peakr/theme';
+import type { TextStyle } from 'react-native';
 
-export const radius = {
-  sm: 6,
-  md: 12,
-  lg: 20,
-  pill: 999,
-} as const;
+export { buttonTokens, fontFamilies, spacing };
+export type { TypographyVariant };
 
-export const typography = {
-  title: { fontSize: 28, fontWeight: '700', lineHeight: 34 },
-  heading: { fontSize: 20, fontWeight: '600', lineHeight: 26 },
-  body: { fontSize: 16, fontWeight: '400', lineHeight: 22 },
-  caption: { fontSize: 13, fontWeight: '400', lineHeight: 18 },
-} as const;
+/** Kept as `radius` for the existing components; values come from @peakr/theme. */
+export const radius = radii;
 
-export type TypographyVariant = keyof typeof typography;
+function toTextStyle(variant: TypographyVariant): TextStyle {
+  const { fontSize, lineHeight, family } = typeScale[variant];
+  return {
+    fontSize,
+    lineHeight,
+    fontFamily: fontFamilies[family],
+    // Headlines use the display instance with −0.02em tracking (RN takes px).
+    ...(family === 'display' ? { letterSpacing: letterSpacing.display * fontSize } : null),
+  };
+}
+
+/** React Native text styles for every type role (12 / 14 / 16 / 20 / 24 / 32 / 44 scale). */
+export const typography = Object.fromEntries(
+  (Object.keys(typeScale) as TypographyVariant[]).map((variant) => [variant, toTextStyle(variant)]),
+) as Record<TypographyVariant, TextStyle>;
+
+/** Numbers in training data (pace, HR, times). */
+export const numeric: TextStyle = { fontVariant: ['tabular-nums'] };

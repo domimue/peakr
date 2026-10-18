@@ -8,6 +8,7 @@ export default function DevLayout() {
   return (
     <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
       <Stack.Screen name="plan" options={{ title: t('dev.planPreview.title') }} />
+      <Stack.Screen name="brand" options={{ title: t('dev.brand.title') }} />
     </Stack>
   );
 }

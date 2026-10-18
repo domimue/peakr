@@ -3,13 +3,14 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
-import { Button, Card, Screen, spacing, Text } from '@/ui';
+import { Button, Card, PeakrLogo, Screen, spacing, Text, useTheme } from '@/ui';
 
 import { hasProgress, useQuizStore } from '../quiz-store';
 
 /** Start of the onboarding quiz: what to expect, that the quiz is free, and resume. */
 export function IntroScreen() {
   const { t } = useTranslation();
+  const { scheme } = useTheme();
   const { hydrated, hydrate, answers, finished, reset } = useQuizStore();
 
   useEffect(() => {
@@ -19,7 +20,10 @@ export function IntroScreen() {
   const resume = hydrated && hasProgress(answers);
 
   return (
-    <Screen title={t('quiz.intro.title')}>
+    <Screen
+      title={t('quiz.intro.title')}
+      header={<PeakrLogo tone={scheme === 'dark' ? 'onDark' : 'onLight'} height={36} />}
+    >
       <Text tone="secondary">{t('quiz.intro.text')}</Text>
       <View style={styles.points}>
         {(['zones', 'week', 'forecast'] as const).map((p) => (

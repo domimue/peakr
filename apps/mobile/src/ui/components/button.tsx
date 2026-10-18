@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, type PressableProps } from 'react-native';
 
-import { radius, spacing, useTheme } from '../theme';
+import { buttonTokens, radius, spacing, useTheme } from '../theme';
 import { Text } from './text';
 
 export interface ButtonProps extends Omit<PressableProps, 'children' | 'style'> {
@@ -10,11 +10,13 @@ export interface ButtonProps extends Omit<PressableProps, 'children' | 'style'> 
   small?: boolean;
 }
 
+/**
+ * Primary: Volt fill, Ink text – one per screen. Secondary / danger: transparent with a 1.5 border.
+ */
 export function Button({ label, variant = 'primary', small, disabled, ...rest }: ButtonProps) {
   const { colors } = useTheme();
-  const background = variant === 'primary' ? colors.primary : colors.surface;
-  const color =
-    variant === 'primary' ? colors.onPrimary : variant === 'danger' ? colors.danger : colors.text;
+  const primary = variant === 'primary';
+  const color = primary ? colors.onAccent : variant === 'danger' ? colors.errorText : colors.text;
   return (
     <Pressable
       accessibilityRole="button"
@@ -22,16 +24,18 @@ export function Button({ label, variant = 'primary', small, disabled, ...rest }:
       disabled={disabled}
       style={({ pressed }) => [
         small ? styles.small : styles.button,
-        { backgroundColor: pressed ? colors.surfaceSelected : background },
-        variant !== 'primary' && {
-          borderColor: colors.border,
-          borderWidth: StyleSheet.hairlineWidth,
-        },
+        primary
+          ? { backgroundColor: pressed ? colors.accentPressed : colors.accent }
+          : {
+              backgroundColor: pressed ? colors.surface2 : 'transparent',
+              borderColor: colors.border,
+              borderWidth: buttonTokens.secondaryBorderWidth,
+            },
         disabled && styles.disabled,
       ]}
       {...rest}
     >
-      <Text variant={small ? 'caption' : 'body'} style={[styles.label, { color }]}>
+      <Text variant={small ? 'caption' : 'label'} style={{ color }}>
         {label}
       </Text>
     </Pressable>
@@ -40,19 +44,18 @@ export function Button({ label, variant = 'primary', small, disabled, ...rest }:
 
 const styles = StyleSheet.create({
   button: {
-    minHeight: 48,
-    borderRadius: radius.md,
+    minHeight: buttonTokens.minHeight,
+    borderRadius: buttonTokens.radius,
     paddingHorizontal: spacing.md,
     alignItems: 'center',
     justifyContent: 'center',
   },
   small: {
     minHeight: 32,
-    borderRadius: radius.sm,
+    borderRadius: radius.md,
     paddingHorizontal: spacing.sm,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  label: { fontWeight: '600' },
   disabled: { opacity: 0.5 },
 });

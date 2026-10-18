@@ -1,6 +1,7 @@
 packages:
   - apps/*
   - packages/*
+  - tools/*
 
 # React Native / Metro needs a flat node_modules layout
 nodeLinker: hoisted

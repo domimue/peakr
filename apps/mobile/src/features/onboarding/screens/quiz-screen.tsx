@@ -71,8 +71,7 @@ export function QuizScreen() {
     }, []),
   );
 
-  if (!hydrated || !step)
-    return <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }} />;
+  if (!hydrated || !step) return <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} />;
 
   const questions = stepQuestions(step, answers);
   const issues = stepIssues(step, answers, today);
@@ -90,7 +89,7 @@ export function QuizScreen() {
   const entering = (direction > 0 ? FadeInRight : FadeInLeft).duration(250);
 
   return (
-    <SafeAreaView style={[styles.root, { backgroundColor: colors.background }]}>
+    <SafeAreaView style={[styles.root, { backgroundColor: colors.bg }]}>
       <View style={styles.header}>
         <Pressable
           accessibilityRole="button"
@@ -159,8 +158,8 @@ function InsightCard({ insight }: { insight: QuizInsight }) {
   const { colors } = useTheme();
   return (
     <Card>
-      <View style={[styles.badge, { backgroundColor: colors.surfaceSelected }]}>
-        <Text variant="caption" style={{ color: colors.primary, fontWeight: '700' }}>
+      <View style={[styles.badge, { backgroundColor: colors.surface2 }]}>
+        <Text variant="caption" style={{ color: colors.accentLine, fontWeight: '700' }}>
           {t('quiz.insights.title')}
         </Text>
       </View>

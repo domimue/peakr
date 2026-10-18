@@ -6,10 +6,10 @@ import type { DurationParts } from '../form';
 
 const inputClass =
   'rounded-lg border bg-background px-3 py-2 text-base tabular-nums outline-none ' +
-  'focus:ring-2 focus:ring-primary/40';
+  'focus:ring-2 focus:ring-accent-line/40';
 
 function borderClass(error: string | undefined) {
-  return error ? 'border-danger' : 'border-border focus:border-primary';
+  return error ? 'border-error-text' : 'border-border focus:border-accent-line';
 }
 
 function FieldMessages({
@@ -26,7 +26,7 @@ function FieldMessages({
   return (
     <>
       {error ? (
-        <p id={errorId} role="alert" className="text-sm text-danger">
+        <p id={errorId} role="alert" className="text-sm text-error-text">
           {error}
         </p>
       ) : null}

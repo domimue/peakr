@@ -37,8 +37,8 @@ export function ChoiceList<T extends string>({
             style={[
               styles.choice,
               {
-                backgroundColor: selected ? colors.surfaceSelected : colors.surface,
-                borderColor: selected ? colors.primary : colors.border,
+                backgroundColor: selected ? colors.surface2 : colors.surface,
+                borderColor: selected ? colors.accentLine : colors.border,
               },
             ]}
           >

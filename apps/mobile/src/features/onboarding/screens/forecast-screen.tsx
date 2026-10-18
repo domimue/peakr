@@ -7,7 +7,18 @@ import { StyleSheet, View } from 'react-native';
 
 import { useSaveStrengthSetup } from '@/features/strength/queries';
 import { setupFromAnswers } from '@/features/strength/setup-form';
-import { Badge, Button, Card, LinkRow, Reveal, Screen, spacing, Text, useTheme } from '@/ui';
+import {
+  Badge,
+  Button,
+  Card,
+  LinkRow,
+  numeric,
+  Reveal,
+  Screen,
+  spacing,
+  Text,
+  useTheme,
+} from '@/ui';
 
 import { LoadChart, PhaseStrip } from '../components/load-chart';
 import { localToday, useQuizStore } from '../quiz-store';
@@ -160,7 +171,9 @@ export function ForecastScreen() {
 function Stat({ value, label }: { value: string; label: string }) {
   return (
     <Card style={styles.stat}>
-      <Text variant="title">{value}</Text>
+      <Text variant="title" style={numeric}>
+        {value}
+      </Text>
       <Text variant="caption" tone="secondary">
         {label}
       </Text>

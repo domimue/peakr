@@ -7,7 +7,7 @@ const t = messages.footer;
 
 export function SiteFooter() {
   return (
-    <footer className="mt-auto border-t border-border">
+    <footer className="theme-dark mt-auto border-t border-border bg-background">
       <div className="mx-auto flex w-full max-w-5xl flex-col gap-4 px-4 py-8 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
         <p>{t.tagline}</p>
         <nav aria-label={t.label} className="flex flex-wrap gap-x-5 gap-y-2">

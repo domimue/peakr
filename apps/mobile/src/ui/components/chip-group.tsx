@@ -43,8 +43,8 @@ export function ChipGroup<T extends string>({
               style={[
                 styles.chip,
                 {
-                  backgroundColor: on ? colors.surfaceSelected : colors.surface,
-                  borderColor: on ? colors.primary : colors.border,
+                  backgroundColor: on ? colors.surface2 : colors.surface,
+                  borderColor: on ? colors.accentLine : colors.border,
                 },
               ]}
             >

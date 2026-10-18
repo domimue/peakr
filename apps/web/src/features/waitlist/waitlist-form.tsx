@@ -44,10 +44,10 @@ export function WaitlistForm() {
           placeholder={t.emailPlaceholder}
           aria-invalid={emailError}
           aria-describedby={emailError ? 'waitlist-email-error' : undefined}
-          className="min-h-12 rounded-xl border border-border bg-background px-4 text-base outline-none focus:border-primary aria-invalid:border-danger"
+          className="min-h-12 rounded-xl border border-border bg-background px-4 text-base outline-none focus:border-accent-line aria-invalid:border-error-text"
         />
         {emailError ? (
-          <p id="waitlist-email-error" className="text-sm text-danger">
+          <p id="waitlist-email-error" className="text-sm text-error-text">
             {t.errors.invalidEmail}
           </p>
         ) : null}
@@ -75,7 +75,7 @@ export function WaitlistForm() {
             defaultChecked={state.status === 'error' && state.consent}
             aria-invalid={consentError}
             aria-describedby={consentError ? 'waitlist-consent-error' : undefined}
-            className="mt-1 size-5 shrink-0 accent-primary"
+            className="mt-1 size-5 shrink-0 accent-accent-line"
           />
           <span>
             {t.consent}{' '}
@@ -85,14 +85,14 @@ export function WaitlistForm() {
           </span>
         </label>
         {consentError ? (
-          <p id="waitlist-consent-error" className="text-sm text-danger">
+          <p id="waitlist-consent-error" className="text-sm text-error-text">
             {t.errors.consentRequired}
           </p>
         ) : null}
       </div>
 
       {error === 'unavailable' ? (
-        <p role="alert" className="text-sm text-danger">
+        <p role="alert" className="text-sm text-error-text">
           {t.errors.unavailable}
         </p>
       ) : null}
@@ -100,7 +100,7 @@ export function WaitlistForm() {
       <button
         type="submit"
         disabled={pending}
-        className="min-h-12 rounded-full bg-primary px-6 font-semibold text-on-primary transition-opacity hover:opacity-90 disabled:opacity-60"
+        className="min-h-12 rounded-button bg-accent px-6 font-semibold text-on-accent transition-colors hover:bg-accent-pressed disabled:opacity-60"
       >
         {pending ? t.submitting : t.submit}
       </button>

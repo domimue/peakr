@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { radius, spacing, useTheme } from '../theme';
+import { numeric, radius, spacing, useTheme } from '../theme';
 import { Text } from './text';
 
 export interface StepperProps {
@@ -39,7 +39,7 @@ export function Stepper({
       onPress={() => onChange(next)}
       style={[styles.button, { backgroundColor: colors.surface, borderColor: colors.border }]}
     >
-      <Text style={[styles.sign, disabled && { color: colors.textSecondary }]}>{text}</Text>
+      <Text style={[styles.sign, disabled && { color: colors.textMuted }]}>{text}</Text>
     </Pressable>
   );
   return (
@@ -76,5 +76,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sign: { fontSize: 20, fontWeight: '600' },
-  value: { minWidth: 56, textAlign: 'center', fontWeight: '600' },
+  value: { ...numeric, minWidth: 56, textAlign: 'center', fontWeight: '500' },
 });

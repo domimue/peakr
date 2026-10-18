@@ -19,15 +19,7 @@ const ZONE_BAR: Record<ZoneNumber, string> = {
   5: 'bg-zone-5',
 };
 
-const ZONE_TEXT: Record<ZoneNumber, string> = {
-  1: 'text-zone-1',
-  2: 'text-zone-2',
-  3: 'text-zone-3',
-  4: 'text-zone-4',
-  5: 'text-zone-5',
-};
-
-/** Colour-coded table of training zones (Z1 grey-blue … Z5 red). */
+/** Training zones with a colour bar per zone; labels are text-coloured so they never rely on colour alone. */
 export function ZoneTable({ rows, caption }: { rows: readonly ZoneRow[]; caption?: string }) {
   return (
     <div className="overflow-hidden rounded-xl border border-border">
@@ -46,7 +38,7 @@ export function ZoneTable({ rows, caption }: { rows: readonly ZoneRow[]; caption
               data-zone={row.zone}
               aria-current={row.highlighted ? 'true' : undefined}
               className={`border-t border-border first:border-t-0 ${
-                row.highlighted ? 'bg-surface-selected' : ''
+                row.highlighted ? 'bg-surface-2' : ''
               }`}
             >
               <th scope="row" className="relative py-3 pr-4 pl-5 font-normal">
@@ -54,9 +46,7 @@ export function ZoneTable({ rows, caption }: { rows: readonly ZoneRow[]; caption
                   aria-hidden
                   className={`absolute inset-y-0 left-0 w-1.5 ${ZONE_BAR[row.zone]}`}
                 />
-                <span className={`block text-xs font-bold ${ZONE_TEXT[row.zone]}`}>
-                  {row.label}
-                </span>
+                <span className="block text-xs font-semibold text-muted">{row.label}</span>
                 <span className="block">{row.name}</span>
               </th>
               <td className="py-3 pr-4 text-right font-semibold tabular-nums">{row.range}</td>

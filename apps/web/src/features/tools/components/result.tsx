@@ -31,7 +31,7 @@ export function ResultHeader({ label, value, isEstimate, note }: ResultHeaderPro
     <div className="flex flex-col gap-1">
       <p className="text-sm text-muted">{label}</p>
       <div className="flex flex-wrap items-center gap-2">
-        <p className="text-2xl font-bold tabular-nums">{value}</p>
+        <p className="text-xl font-bold tabular-nums">{value}</p>
         {isEstimate ? <EstimateBadge /> : null}
       </div>
       {note ? <p className="text-sm text-muted">{note}</p> : null}
@@ -49,5 +49,5 @@ export function Results({ children }: { children: ReactNode }) {
 }
 
 export function SectionHeading({ children }: { children: ReactNode }) {
-  return <h2 className="text-xl font-semibold">{children}</h2>;
+  return <h2 className="text-lg font-semibold">{children}</h2>;
 }
