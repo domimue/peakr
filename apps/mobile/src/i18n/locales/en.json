@@ -140,7 +140,14 @@
     "lthrNotBelowHrMax": "Threshold heart rate must be below your max heart rate ({{hrMax}} bpm).",
     "unrealisticRaceTime": "This time looks unrealistic for the distance. Enter a time between {{min}} and {{max}}.",
     "swim400NotSlowerThan200": "Your 400 m pace must be slower than your 200 m pace. Please check both times.",
-    "swimTimesInconsistent": "These times are very far apart. Were both swims all-out efforts?"
+    "swimTimesInconsistent": "These times are very far apart. Were both swims all-out efforts?",
+    "invalidDate": "Enter a valid date.",
+    "targetNotAfterStart": "The target date must be after the start date.",
+    "planTooLong": "Plans can be at most {{max}} weeks long. Choose an earlier target date.",
+    "sportsRequired": "Choose at least one sport.",
+    "goalNeedsSports": "This goal needs all of its disciplines – for a triathlon swim, bike and run.",
+    "notEnoughAvailability": "Plan at least 2 days with 20 minutes or more.",
+    "underageWeightLoss": "The weight-loss goal is only available from age {{min}}."
   },
   "profile": {
     "title": "Profile",
@@ -148,5 +155,132 @@
     "themeSystem": "System",
     "themeLight": "Light",
     "themeDark": "Dark"
+  },
+  "why": {
+    "run": {
+      "recovery": "Very easy running helps your legs recover from the last hard session.",
+      "easy": "Easy Zone 2 running builds your aerobic engine – the base of every plan.",
+      "easyStrides": "An easy run with a few short, relaxed strides keeps your legs quick without tiring you.",
+      "long": "The long run builds endurance and teaches your body to run efficiently for longer.",
+      "uphillHike": "Steep hiking and running builds the climbing strength mountain events demand.",
+      "progression": "Starting easy and finishing faster teaches pacing and builds fitness without a hard interval session.",
+      "fartlek": "Playful surges by feel – a gentle introduction to faster running that works on any terrain.",
+      "hillsShort": "Short hill sprints build power and running economy with low injury risk.",
+      "hillsLong": "Longer hill repeats build strength endurance at threshold effort.",
+      "tempo": "Threshold running raises the pace you can hold for a long time.",
+      "vo2": "Intervals at VO2max pace raise your aerobic ceiling.",
+      "racePace": "Running at goal race pace makes that pace feel familiar and controlled on race day.",
+      "downhill": "Controlled descents prepare your legs for the eccentric load of downhill racing."
+    },
+    "bike": {
+      "recovery": "An easy spin with high cadence flushes your legs after hard days.",
+      "endurance": "Steady Zone 2 riding builds aerobic fitness with little fatigue.",
+      "long": "The long ride builds the endurance you need for long days in the saddle.",
+      "commute": "Your commute counts as easy training – it is part of the plan.",
+      "tempo": "Steady tempo efforts build muscular endurance.",
+      "sweetspot": "Sweet-spot intervals give a lot of fitness for the time invested.",
+      "threshold": "Threshold intervals raise the power you can sustain for an hour.",
+      "vo2": "Short, hard intervals raise your maximum aerobic power.",
+      "climb": "Climbing efforts build strength on the bike and prepare you for hilly routes.",
+      "cadence": "Cadence drills improve pedalling efficiency inside an easy ride."
+    },
+    "swim": {
+      "technique": "Drills improve your stroke – in swimming, technique is the fastest way to get faster.",
+      "aerobic": "Steady aerobic swimming builds endurance in the water.",
+      "easy": "Easy continuous swimming keeps the feel for the water without extra fatigue.",
+      "css": "Repeats at your Critical Swim Speed raise the pace you can hold over distance.",
+      "speed": "Short fast repeats with long rest build speed and a strong stroke.",
+      "openwater": "Sighting and continuous swimming prepare you for open-water racing."
+    },
+    "brick": "Running straight off the bike teaches your legs the transition you will feel on race day.",
+    "winter": {
+      "xcski": "Cross-country skiing builds the same aerobic fitness – with less impact on your legs.",
+      "xcskiIntervals": "Intervals on skis train your threshold while giving your running legs a break.",
+      "skitour": "Ski touring builds climbing endurance; the ascent is the training.",
+      "snowshoe": "Snowshoeing is a low-impact, full-body endurance session."
+    },
+    "benchmark": {
+      "run5k": "A 5 km time trial updates your pace zones and race prediction.",
+      "run30": "A 30-minute solo effort measures your threshold heart rate (average of the last 20 minutes).",
+      "swimCss": "A 400 m and 200 m time trial updates your Critical Swim Speed.",
+      "bikeFtp": "A 20-minute test estimates your FTP (about 95 % of the average power)."
+    },
+    "strength": {
+      "peakrBase": "General strength now makes you more robust for the harder endurance weeks ahead.",
+      "peakrBuild": "Heavy, low-rep strength and jumps make you more economical and powerful.",
+      "peakrPeak": "A short maintenance session keeps your strength while the endurance work peaks.",
+      "coreMobility": "Core and mobility work keeps you moving well without tiring your legs.",
+      "fullBody": "A full-body session from your split.",
+      "upper": "Upper-body work from your split – it does not tire your legs for running or riding.",
+      "legs": "Leg day from your split, placed so it does not hurt your key endurance sessions.",
+      "runners": "Runner-specific strength for hips, calves and single-leg stability.",
+      "routine": "Your own routine, placed so it fits around the endurance sessions."
+    }
+  },
+  "notes": {
+    "benchmark": "Test week: this session updates your zones.",
+    "downgraded": "Planned {{type}} session made easy – it did not fit your available time without two hard days in a row.",
+    "intensityBalance": "Planned {{type}} session made easy to keep about 80 % of your training easy.",
+    "loadCap": "Shortened so this week does not increase the training load by more than 10 %.",
+    "loadCapEasy": "Planned {{type}} session made shorter and easy so this week does not increase the load by more than 10 %.",
+    "recoveryWeek": "Recovery week – less load so your body can absorb the training.",
+    "taperWeek": "Taper – less volume, some sharpness, fresh legs for race day.",
+    "shortPreparation": "Only {{weeks}} weeks until your race – {{recommended}} weeks are recommended, so the plan is compressed.",
+    "strengthMerged": "Not enough free days for your split: sessions are combined into {{sessions}}.",
+    "strengthNoDay": "No free day for strength this week.",
+    "strengthSkipped": "The {{type}} strength session did not fit this week without hurting a key session."
+  },
+  "steps": {
+    "continuous": "Continuous easy swimming",
+    "descent": "Controlled descent",
+    "drafting": "Practise drafting behind another swimmer",
+    "drill": "Drill (catch-up, side kick)",
+    "highCadence": "High cadence",
+    "kickBoard": "Kick with board",
+    "lowCadence": "Low cadence, seated",
+    "lthrWindow": "Average heart rate of this part = threshold heart rate",
+    "pullBuoy": "Pull buoy",
+    "raceEffort": "Race effort",
+    "racePace": "Race pace",
+    "seatedStanding": "Alternate seated and standing",
+    "sighting": "Sight every 6–8 strokes",
+    "standingEvery4": "Stand for 1 minute every 4 minutes",
+    "strides": "Stride – fast and relaxed",
+    "timeTrial": "Time trial – all out, evenly paced"
+  },
+  "dev": {
+    "planPreview": {
+      "title": "Plan preview (dev)",
+      "entryHint": "Development builds only: renders a generated 12-week plan.",
+      "week": "Week {{week}} · {{date}}",
+      "recovery": "Recovery",
+      "partial": "Partial week",
+      "summary": "Load {{load}} (target {{target}}) · {{minutes}} min · {{share}} % Z3+",
+      "hard": "Hard",
+      "error": "The plan could not be generated: {{issues}}",
+      "rest": "Rest week",
+      "weekdays": {
+        "0": "Mon",
+        "1": "Tue",
+        "2": "Wed",
+        "3": "Thu",
+        "4": "Fri",
+        "5": "Sat",
+        "6": "Sun"
+      },
+      "phases": {
+        "base": "Base",
+        "build": "Build",
+        "peak": "Peak",
+        "taper": "Taper",
+        "maintain": "Maintain"
+      },
+      "presets": {
+        "half": "Half marathon",
+        "tri": "70.3 triathlon",
+        "weightloss": "Lose weight",
+        "granfondo": "Gran fondo"
+      }
+    }
   }
 }
