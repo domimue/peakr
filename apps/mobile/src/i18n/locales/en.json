@@ -63,7 +63,8 @@
     "paceRange": "{{slow}}–{{fast}} {{unit}}",
     "paceOrSlower": "{{pace}} {{unit}} or slower",
     "paceOrFaster": "{{pace}} {{unit}} or faster",
-    "kg": "kg"
+    "kg": "kg",
+    "cm": "cm"
   },
   "validation": {
     "invalidNumber": "Enter a whole number.",
@@ -82,7 +83,12 @@
     "sportsRequired": "Choose at least one sport.",
     "goalNeedsSports": "This goal needs all of its disciplines – for a triathlon swim, bike and run.",
     "notEnoughAvailability": "Plan at least 2 days with 20 minutes or more.",
-    "underageWeightLoss": "The weight-loss goal is only available from age {{min}}."
+    "underageWeightLoss": "The weight-loss goal is only available from age {{min}}.",
+    "tooFewSelected": "Choose at least {{min}}.",
+    "tooLong": "Use at most {{max}} characters.",
+    "mustConfirm": "Please confirm to continue.",
+    "invalidOption": "Please choose one of the options.",
+    "dateOutOfRange": "Choose a date between {{min}} and {{max}} weeks from today."
   },
   "profile": {
     "title": "Profile",
@@ -164,7 +170,8 @@
     "shortPreparation": "Only {{weeks}} weeks until your race – {{recommended}} weeks are recommended, so the plan is compressed.",
     "strengthMerged": "Not enough free days for your split: sessions are combined into {{sessions}}.",
     "strengthNoDay": "No free day for strength this week.",
-    "strengthSkipped": "The {{type}} strength session did not fit this week without hurting a key session."
+    "strengthSkipped": "The {{type}} strength session did not fit this week without hurting a key session.",
+    "noRaceDate": "No race date yet – your plan runs the recommended {{weeks}} weeks. Add the date anytime and the plan adapts."
   },
   "steps": {
     "continuous": "Continuous easy swimming",
@@ -221,7 +228,7 @@
     }
   },
   "quiz": {
-    "progress": "Question {{current}} of {{total}}",
+    "progress": "Step {{current}} of {{total}}",
     "back": "Back",
     "next": "Next",
     "finish": "Finish",
@@ -335,6 +342,410 @@
             "description": "Strength volume stays; the endurance plan adapts."
           }
         }
+      }
+    },
+    "continue": "Continue",
+    "seeForecast": "See my forecast",
+    "intro": {
+      "title": "Build your personal plan",
+      "text": "Answer a few questions about your goal, your week and your body. It takes about 3 minutes.",
+      "points": {
+        "zones": "Your heart-rate and pace zones, calculated for you",
+        "week": "A plan that fits the time you really have",
+        "forecast": "A forecast of your plan and your first week in full"
+      },
+      "free": "The quiz is free. Your full plan comes with a 7-day free trial.",
+      "start": "Start the quiz",
+      "resume": "Continue where I stopped",
+      "restart": "Start over"
+    },
+    "goal": {
+      "title": "What’s your goal?",
+      "options": {
+        "5k": {
+          "label": "5 km race",
+          "description": "Run a fast 5 km or your first one."
+        },
+        "10k": {
+          "label": "10 km race",
+          "description": "Build speed and endurance for 10 km."
+        },
+        "half": {
+          "label": "Half marathon",
+          "description": "21.1 km – endurance with some pace."
+        },
+        "marathon": {
+          "label": "Marathon",
+          "description": "42.2 km – the long game."
+        },
+        "fitness": {
+          "label": "Get fitter",
+          "description": "More energy and endurance, no race needed."
+        },
+        "weightloss": {
+          "label": "Lose weight",
+          "description": "Training that supports a healthy calorie deficit."
+        },
+        "granfondo": {
+          "label": "Cycling fitness / gran fondo",
+          "description": "Long rides and climbing."
+        },
+        "swim": {
+          "label": "Swim fitness / open-water event",
+          "description": "Technique, endurance and open water."
+        },
+        "tri_sprint": {
+          "label": "Sprint triathlon",
+          "description": "750 m swim · 20 km bike · 5 km run"
+        },
+        "tri_olympic": {
+          "label": "Olympic triathlon",
+          "description": "1.5 km swim · 40 km bike · 10 km run"
+        },
+        "tri_70_3": {
+          "label": "70.3 / half distance",
+          "description": "1.9 km swim · 90 km bike · 21.1 km run"
+        },
+        "tri_full": {
+          "label": "Full distance",
+          "description": "3.8 km swim · 180 km bike · 42.2 km run"
+        },
+        "duathlon": {
+          "label": "Duathlon",
+          "description": "Run · bike · run"
+        }
+      }
+    },
+    "sports": {
+      "title": "Which sports do you want to train?",
+      "hint": "Pick any combination – they all count towards one training load.",
+      "options": {
+        "run": {
+          "label": "Running"
+        },
+        "bike": {
+          "label": "Cycling"
+        },
+        "swim": {
+          "label": "Swimming"
+        }
+      }
+    },
+    "experience": {
+      "title": "How experienced are you with endurance training?",
+      "options": {
+        "beginner": {
+          "label": "Beginner",
+          "description": "New to structured training or returning after a long break."
+        },
+        "intermediate": {
+          "label": "Intermediate",
+          "description": "Training regularly for a year or more."
+        },
+        "advanced": {
+          "label": "Advanced",
+          "description": "Years of consistent training, races done."
+        }
+      }
+    },
+    "run": {
+      "reference": {
+        "title": "How fast do you run right now?",
+        "hint": "A recent race result gives the most accurate pace zones.",
+        "options": {
+          "5k": {
+            "label": "I know my 5 km time"
+          },
+          "10k": {
+            "label": "I know my 10 km time"
+          },
+          "half": {
+            "label": "I know my half-marathon time"
+          },
+          "easyPace": {
+            "label": "I know my easy pace"
+          },
+          "none": {
+            "label": "I don’t know yet"
+          }
+        }
+      },
+      "raceTime": {
+        "title": "Your race time"
+      },
+      "easyPace": {
+        "title": "Your easy pace",
+        "hint": "The pace you can run while still talking in full sentences."
+      }
+    },
+    "bike": {
+      "hoursPerWeek": {
+        "title": "How many hours do you ride per week?",
+        "hint": "On average over the last months, including commuting.",
+        "unit_one": "{{count}} h",
+        "unit_other": "{{count}} h"
+      },
+      "powerMeter": {
+        "title": "Do you ride with a power meter or smart trainer?"
+      }
+    },
+    "swim": {
+      "ability": {
+        "title": "How well do you swim?",
+        "options": {
+          "learning": {
+            "label": "I can’t swim 100 m without a break",
+            "description": "We start with technique and short sets."
+          },
+          "can100": {
+            "label": "I can swim 100 m without a break",
+            "description": "Technique and endurance together."
+          },
+          "comfortable": {
+            "label": "I swim comfortably",
+            "description": "400 m and more without a break."
+          }
+        }
+      },
+      "time400": {
+        "title": "400 m time (optional)",
+        "hint": "Your best recent all-out 400 m. Together with a 200 m time it sets your swim zones (CSS)."
+      },
+      "time200": {
+        "title": "200 m time (optional)",
+        "hint": "All-out 200 m, swum after a recovery. Leave it empty if you don’t know – a test session follows in the plan."
+      },
+      "water": {
+        "title": "Where do you swim?",
+        "options": {
+          "pool25": {
+            "label": "25 m pool"
+          },
+          "pool50": {
+            "label": "50 m pool"
+          },
+          "openwater": {
+            "label": "Open water"
+          }
+        }
+      }
+    },
+    "hr": {
+      "resting": {
+        "title": "Resting heart rate (optional)",
+        "hint": "Measure in the morning before getting up: count your pulse for 60 seconds, or use your watch’s resting value. It makes your zones more personal."
+      },
+      "max": {
+        "title": "Max heart rate (optional)",
+        "hint": "The highest value your watch showed at the end of an all-out effort, e.g. a hill sprint. If you leave it empty, we estimate it from your age."
+      }
+    },
+    "availability": {
+      "title": "How much time do you have each day?",
+      "hint": "Set a typical week. You can change single weeks later, e.g. when travelling.",
+      "weekdays": {
+        "0": "Monday",
+        "1": "Tuesday",
+        "2": "Wednesday",
+        "3": "Thursday",
+        "4": "Friday",
+        "5": "Saturday",
+        "6": "Sunday"
+      },
+      "rest": "Rest",
+      "minutes_one": "{{count}} min",
+      "minutes_other": "{{count}} min",
+      "total": "Up to {{hours}} h per week",
+      "doubles": {
+        "title": "Can you train twice on one day?",
+        "hint": "E.g. a swim in the morning and a run in the evening. Never two hard sessions."
+      }
+    },
+    "terrain": {
+      "title": "What is the terrain like where you train?",
+      "options": {
+        "flat": {
+          "label": "Flat",
+          "description": "Hardly any hills."
+        },
+        "rolling": {
+          "label": "Rolling",
+          "description": "Some short climbs."
+        },
+        "hilly": {
+          "label": "Hilly",
+          "description": "Regular climbs on most routes."
+        },
+        "mountainous": {
+          "label": "Mountainous",
+          "description": "Long, steep climbs."
+        }
+      }
+    },
+    "targetDate": {
+      "title": "When is your race?",
+      "hint": "The plan ends on race day with a taper before it. No date yet? Skip this – Peakr uses the recommended preparation length.",
+      "pick": "Choose race day",
+      "clear": "I don’t have a date yet",
+      "none": "No date chosen – your plan uses the recommended length."
+    },
+    "motivation": {
+      "why": {
+        "title": "Why do you want to train?",
+        "options": {
+          "health": {
+            "label": "Stay healthy"
+          },
+          "weight": {
+            "label": "Lose weight"
+          },
+          "race": {
+            "label": "Finish or improve at a race"
+          },
+          "energy": {
+            "label": "More energy in everyday life"
+          },
+          "challenge": {
+            "label": "A new challenge"
+          },
+          "stress": {
+            "label": "Reduce stress"
+          }
+        }
+      },
+      "barriers": {
+        "title": "What stopped you before?",
+        "options": {
+          "time": {
+            "label": "Not enough time"
+          },
+          "motivation": {
+            "label": "Losing motivation"
+          },
+          "injury": {
+            "label": "Injuries or pain"
+          },
+          "knowledge": {
+            "label": "Not knowing what to do"
+          },
+          "rigid": {
+            "label": "Plans that did not fit my life"
+          },
+          "boredom": {
+            "label": "Boredom"
+          }
+        }
+      },
+      "note": {
+        "title": "Anything else you want to tell us?",
+        "hint": "E.g. what you want to be able to do in a year."
+      }
+    },
+    "body": {
+      "age": {
+        "title": "Age"
+      },
+      "sex": {
+        "title": "Sex",
+        "hint": "Used for the energy formulas of the nutrition add-on.",
+        "options": {
+          "female": {
+            "label": "Female"
+          },
+          "male": {
+            "label": "Male"
+          }
+        }
+      },
+      "heightCm": {
+        "title": "Height"
+      },
+      "weightKg": {
+        "title": "Weight"
+      }
+    },
+    "disclaimer": {
+      "title": "Before you start",
+      "text": "Peakr gives general training guidance and is not medical advice. If you have a heart condition, high blood pressure, are pregnant, take medication or have any other health concern, talk to your doctor before starting. Stop training and get help if you feel chest pain, dizziness or unusual shortness of breath.",
+      "confirm": "I have read this and train at my own responsibility."
+    },
+    "insights": {
+      "title": "Good to know",
+      "zone2": "Your Zone 2 is {{min}}–{{max}} bpm. Most of your training happens here – easy enough to talk, hard enough to build your engine.",
+      "zone2Estimate": "Your Zone 2 is about {{min}}–{{max}} bpm (estimated from your age). Most of your training happens here. You can refine it anytime in Profile → Training zones.",
+      "goal": {
+        "triathlon": "Triathlon plans start with roughly {{swim}} % swim, {{bike}} % bike and {{run}} % run – adjusted to your week.",
+        "race": "For this race at least {{weeks}} weeks of preparation are recommended. Your plan builds up in phases and tapers before race day.",
+        "weightloss": "Training supports weight loss best together with nutrition: easy sessions you can keep up, plus strength to keep muscle.",
+        "fitness": "Your plan loops build and recovery blocks, so you keep getting fitter without burning out."
+      },
+      "run": {
+        "threshold": "Your threshold pace is about {{pace}} /km – the pace you could hold for about an hour. Your pace zones are based on it.",
+        "thresholdFromEasy": "From your easy pace we estimate a threshold pace of about {{pace}} /km. A test run in the plan will make it precise.",
+        "noReference": "No problem – your runs are guided by heart rate, and a short test run in the plan sets your pace zones."
+      },
+      "swim": {
+        "css": "Your Critical Swim Speed is {{pace}} /100 m. Swim sets are prescribed relative to it.",
+        "noTimes": "Your swim sets start with standard paces; a CSS test in the plan makes them personal.",
+        "technique": "We start with technique and short intervals, so you can swim longer without a break soon."
+      },
+      "availability": "You have {{days}} training days and up to {{hours}} hours per week. The plan uses less at the start and builds up gradually – never more than 10 % per week.",
+      "targetDate": {
+        "ok": "{{weeks}} weeks until race day – enough for a full build-up ({{recommended}} weeks recommended).",
+        "short": "Only {{weeks}} weeks until race day – {{recommended}} are recommended, so your plan is compressed. Getting to the start healthy comes first.",
+        "none": "No race date yet: your plan runs {{weeks}} weeks – the recommended preparation – and ends with a taper. Add the date later and the plan adapts."
+      },
+      "barriers": {
+        "time": "Busy weeks happen: you can rebuild a single week in seconds and the plan keeps your training load.",
+        "motivation": "Each session tells you why it matters, and you see your progress week by week.",
+        "injury": "Your load grows at most 10 % per week, with a recovery week every 3–4 weeks and never two hard days in a row.",
+        "knowledge": "Every session comes with clear targets – heart-rate zone, duration and structure.",
+        "rigid": "Move sessions anytime: the week rebalances itself and warns you if two hard days end up back to back.",
+        "boredom": "Your plan mixes sports, terrain and session types – and winter sports count too.",
+        "none": "Great starting point. Let’s build a plan that keeps it that way."
+      },
+      "weightloss": "A safe pace is at most {{kg}} kg per week (1 % of your body weight). Your training plan supports it; nutrition tracking comes with the Training + Nutrition plan."
+    },
+    "forecast": {
+      "title": "Your plan is ready",
+      "error": "Your plan could not be built from these answers. Please check them.",
+      "editAnswers": "Edit my answers",
+      "weeks": "weeks",
+      "sessions": "sessions",
+      "recoveryWeeks": "recovery weeks",
+      "dates": "{{start}} – {{end}}",
+      "loadTitle": "Weekly training load",
+      "loadHint": "Every sport and strength count towards one load. Lighter bars are recovery weeks.",
+      "chartLabel": "Weekly training load over {{weeks}} weeks, from {{from}} in week 1 up to {{max}}.",
+      "weekShort": "Wk {{week}}",
+      "phaseWeeks_one": "{{phase}} · {{count}} week",
+      "phaseWeeks_other": "{{phase}} · {{count}} weeks",
+      "phases": {
+        "base": "Base",
+        "build": "Build",
+        "peak": "Peak",
+        "taper": "Taper",
+        "maintain": "Maintain"
+      },
+      "outcomeTitle": "What to expect",
+      "basis": "Calculated by the Peakr training engine from your answers – no guesses.",
+      "week1Title": "Your first week",
+      "hard": "Hard",
+      "buildRoutines": "Build your own routines",
+      "buildRoutinesHint": "Strength is scheduled once you have built a routine.",
+      "lockedTitle": "{{weeks}} more weeks are ready for you",
+      "trial": "Start your 7-day free trial and use everything right away: the full plan, workout tracking and feedback, and all integrations. You pay only after 7 days – cancel anytime before.",
+      "unlock": "Unlock full plan",
+      "outcome": {
+        "volume": "Your weekly training time grows from {{from}} h to {{to}} h over {{weeks}} weeks.",
+        "racePrediction": "Your {{reference}} time predicts {{time}} for the {{distance}} today – your plan builds from there.",
+        "raceCurrent": "Your current {{distance}} time is {{time}} – your plan builds from there.",
+        "threshold": "Your runs are paced from a threshold pace of {{pace}} /km.",
+        "css": "Your swim sets are paced from a CSS of {{pace}} /100 m.",
+        "easyShare": "About {{percent}} % of your endurance time is easy – the 80/20 rule that builds fitness without burnout.",
+        "oneLoad": "All your sports share one load budget: a hard ride makes the next run easier automatically.",
+        "weightloss": "Safe weight-loss pace: at most {{kg}} kg per week.",
+        "routinesPending": "Strength from your own routines is added once you have built one."
       }
     }
   },
@@ -753,5 +1164,101 @@
       "name": "Hamstring floss",
       "howTo": "Lie on your back holding one leg behind the thigh. Straighten and bend the knee slowly while pointing and flexing the foot."
     }
+  },
+  "workoutText": {
+    "hrZone": "Zone {{zone}}",
+    "hrZoneRange": "Zone {{zone}} · {{min}}–{{max}} bpm",
+    "pace": {
+      "E": "easy pace",
+      "MP": "marathon pace",
+      "HMP": "half-marathon pace",
+      "T": "threshold pace",
+      "I": "interval pace",
+      "R": "fast, relaxed pace"
+    },
+    "css": "CSS {{offset}} s/100 m",
+    "rpe": "effort {{value}}/10",
+    "meters": "{{value}} m",
+    "minutes_one": "{{count}} min",
+    "minutes_other": "{{count}} min",
+    "rest": "easy",
+    "warmup_one": "Warm-up {{count}} min",
+    "warmup_other": "Warm-up {{count}} min",
+    "cooldown_one": "Cool-down {{count}} min",
+    "cooldown_other": "Cool-down {{count}} min",
+    "exercise": "{{sets}} × {{reps}} {{name}}"
+  },
+  "workouts": {
+    "run": {
+      "recovery": "Recovery run",
+      "easy": "Easy run",
+      "easy_strides": "Easy run with strides",
+      "long": "Long run",
+      "uphill_hike": "Uphill hike & run",
+      "progression": "Progression run",
+      "fartlek": "Fartlek",
+      "hills_short": "Short hill repeats",
+      "hills_long": "Long hill repeats",
+      "tempo": "Tempo run",
+      "vo2_intervals": "VO₂max intervals",
+      "vo2_intervals_time": "VO₂max intervals",
+      "race_pace_hm": "Half-marathon pace run",
+      "race_pace_m": "Marathon pace run",
+      "downhill": "Downhill technique run"
+    },
+    "bike": {
+      "recovery": "Recovery ride",
+      "endurance": "Endurance ride",
+      "long": "Long ride",
+      "commute": "Bike commute",
+      "tempo": "Tempo ride",
+      "sweetspot": "Sweet spot ride",
+      "threshold": "Threshold ride",
+      "vo2": "VO₂max ride",
+      "climb": "Climbing ride",
+      "cadence": "Cadence drills"
+    },
+    "swim": {
+      "technique": "Technique swim",
+      "aerobic": "Aerobic swim",
+      "easy": "Easy swim",
+      "css": "CSS swim",
+      "speed": "Speed swim",
+      "openwater": "Open-water swim"
+    },
+    "brick": "Brick: bike → run",
+    "xcski": {
+      "easy": "Easy cross-country ski",
+      "intervals": "Cross-country ski intervals"
+    },
+    "skitour": {
+      "ascent": "Ski tour"
+    },
+    "snowshoe": {
+      "easy": "Snowshoe hike"
+    },
+    "bench": {
+      "run_5k": "5 km test run",
+      "run_30min": "30-minute test run",
+      "swim_css": "CSS swim test",
+      "bike_ftp20": "20-minute FTP test"
+    }
+  },
+  "paywall": {
+    "title": "Unlock your full plan",
+    "trial": "7 days free with full access to everything. You enter your payment details now; the first charge is only after the trial. Cancel anytime before it ends.",
+    "tiers": {
+      "training": {
+        "name": "Training",
+        "description": "Full plan, calendar editing, routes, integrations and exports."
+      },
+      "plus": {
+        "name": "Training + Nutrition",
+        "description": "Everything in Training plus nutrition tracking, energy balance and body tracking."
+      }
+    },
+    "comingSoon": "Coming soon",
+    "placeholder": "Subscriptions are not available in this build yet. In-app purchase follows in a later version.",
+    "back": "Back to my forecast"
   }
 }

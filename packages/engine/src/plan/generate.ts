@@ -94,7 +94,8 @@ function validate(
  * Generates a periodised plan (CLAUDE.md "Training engine rules", WORKOUTS.md §9–11).
  * Weeks run Monday–Sunday from the week of `startDate`; days before the start are empty. With
  * `targetDate` the plan ends there (race goals: race day, no training on it); without it the plan
- * runs `planConfig.plan.defaultWeeks` weeks. Deterministic: same input → same plan.
+ * runs `planConfig.plan.defaultWeeks` weeks – race goals the recommended preparation
+ * (`minRaceWeeks`) if longer, ending with the taper. Deterministic: same input → same plan.
  *
  * The +10 % rule compares each week with the previous full loading week (recovery and taper weeks
  * and partial weeks are not used as reference, so returning to normal after a recovery week is fine).
@@ -110,9 +111,11 @@ export function generatePlan(
   if (issues.length > 0) return { ok: false, issues };
 
   const raceGoal = isRaceGoal(goal.kind);
+  const minWeeks = isRaceGoal(goal.kind) ? cfg.plan.minRaceWeeks[goal.kind] : 0;
+  // A race goal without a date gets the recommended preparation (at least the default length).
+  const openWeeks = Math.max(cfg.plan.defaultWeeks, minWeeks);
   const monday = start - weekdayOf(start);
-  const lastDay =
-    target === null ? monday + cfg.plan.defaultWeeks * 7 - 1 : raceGoal ? target - 1 : target;
+  const lastDay = target === null ? monday + openWeeks * 7 - 1 : raceGoal ? target - 1 : target;
   const weekCount = Math.floor((lastDay - monday) / 7) + 1;
   const skeleton = buildSkeleton(weekCount, goal.kind, profile.age);
 
@@ -122,7 +125,9 @@ export function generatePlan(
   const startLoad = capacity * cfg.progression.startFraction[profile.experience];
 
   const notes: PlanNote[] = [];
-  const minWeeks = isRaceGoal(goal.kind) ? cfg.plan.minRaceWeeks[goal.kind] : 0;
+  if (raceGoal && target === null) {
+    notes.push({ key: 'notes.noRaceDate', params: { weeks: weekCount } });
+  }
   if (weekCount < minWeeks)
     notes.push({
       key: 'notes.shortPreparation',

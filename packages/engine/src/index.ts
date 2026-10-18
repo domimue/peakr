@@ -67,6 +67,8 @@ export {
 export { planStrengthWeek, routineSession, type StrengthSlot } from './plan/strength-plan';
 export { defaultRestSec, parseReps, type RepRange } from './plan/strength-reps';
 export { isHardEndurance, isHardOnItsOwn } from './plan/classify';
+export { requiredSports } from './plan/composition';
+export { isRaceGoal } from './plan/periodisation';
 export { hardShare, strengthLoad, stepLoad } from './plan/load';
 export {
   deloadSets,

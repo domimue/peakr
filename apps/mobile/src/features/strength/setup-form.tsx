@@ -5,15 +5,16 @@ import {
   withDefaults,
   strengthQuestions,
   type QuizAnswers,
+  type QuizAnswerValue,
   type QuizContext,
   type QuizQuestion,
 } from '@peakr/quiz';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
 
 import type { StoredStrengthSetup } from '@/data/repositories/strength-repository';
-import { Button, ChoiceList, Stepper, spacing, Text } from '@/ui';
+import { QuestionInput } from '@/features/onboarding/question-input';
+import { Button } from '@/ui';
 
 /**
  * The goal question group is not built yet; until it is, defaults assume a non-race goal
@@ -34,69 +35,23 @@ export function QuestionView({
 }: {
   question: QuizQuestion;
   answers: QuizAnswers;
-  onAnswer: (value: string | number) => void;
+  onAnswer: (value: QuizAnswerValue) => void;
 }) {
-  const { t } = useTranslation();
-  const title = t(question.titleKey as never) as string;
-  const hint = question.hintKey ? (t(question.hintKey as never) as string) : undefined;
+  // Strength questions always have a value (defaults), so there is nothing to clear.
   return (
-    <View style={styles.question}>
-      <Text variant="heading" accessibilityRole="header">
-        {title}
-      </Text>
-      {hint ? <Text tone="secondary">{hint}</Text> : null}
-      {question.kind === 'single' ? (
-        <ChoiceList
-          label={title}
-          value={answers[question.id] as string | undefined}
-          onChange={onAnswer}
-          choices={question.options.map((o) => ({
-            value: o.value,
-            label: t(o.labelKey as never) as string,
-            description: o.descriptionKey ? (t(o.descriptionKey as never) as string) : undefined,
-          }))}
-        />
-      ) : (
-        <NumberQuestion question={question} answers={answers} onAnswer={onAnswer} label={title} />
-      )}
-    </View>
-  );
-}
-
-function NumberQuestion({
-  question,
-  answers,
-  onAnswer,
-  label,
-}: {
-  question: Extract<QuizQuestion, { kind: 'number' }>;
-  answers: QuizAnswers;
-  onAnswer: (value: number) => void;
-  label: string;
-}) {
-  const { t } = useTranslation();
-  const range = question.range(answers);
-  const raw = answers[question.id];
-  const value = typeof raw === 'number' ? raw : range.min;
-  return (
-    <Stepper
-      label={label}
-      value={value}
-      min={range.min}
-      max={range.max}
-      onChange={onAnswer}
-      format={(n) =>
-        question.unitKey ? (t(question.unitKey as never, { count: n }) as string) : String(n)
-      }
-      decreaseLabel={t('common.decrease')}
-      increaseLabel={t('common.increase')}
+    <QuestionInput
+      question={question}
+      answers={answers}
+      issues={[]}
+      onAnswer={onAnswer}
+      onClear={() => undefined}
     />
   );
 }
 
 /** Keeps e.g. the days per week inside a newly picked split's range. */
 function clampNumbers(answers: QuizAnswers): QuizAnswers {
-  const out: Record<string, string | number> = { ...answers } as Record<string, string | number>;
+  const out: Record<string, QuizAnswerValue> = { ...answers } as Record<string, QuizAnswerValue>;
   for (const q of visibleQuestions(strengthQuestions, answers)) {
     const v = out[q.id];
     if (q.kind !== 'number' || typeof v !== 'number') continue;
@@ -115,7 +70,7 @@ export function useStrengthAnswers(initial: QuizAnswers) {
   );
   const questions = visibleQuestions(strengthQuestions, answers);
   const issues = validateAnswers(strengthQuestions, answers);
-  const answer = (id: string, value: string | number) => setGiven({ ...answers, [id]: value });
+  const answer = (id: string, value: QuizAnswerValue) => setGiven({ ...answers, [id]: value });
   return { answers, questions, issues, answer };
 }
 
@@ -144,7 +99,3 @@ export function StrengthSetupForm({
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  question: { gap: spacing.sm },
-});

@@ -280,11 +280,17 @@ class WeekScheduler {
   /** Tries the item on every day, highest level first; commits the best day. */
   private place(item: Item): boolean {
     const levels = item.level === null ? [null] : range(item.level, 1);
+    // Strength first tries days that keep the same muscles apart (see strengthClash).
+    const passes = item.strength === null ? [true] : [false, true];
+    return passes.some((relaxed) => this.placeOn(item, levels, relaxed));
+  }
+
+  private placeOn(item: Item, levels: (number | null)[], relaxed: boolean): boolean {
     for (const level of levels) {
       let best: { day: number; score: number } | null = null;
       for (let d = 0; d < 7; d++) {
         const trial = this.trial(item, level, d);
-        if (!trial || !this.canPlace(trial, d)) continue;
+        if (!trial || !this.canPlace(trial, d) || this.strengthClash(trial, d, relaxed)) continue;
         const score = this.score(trial, d);
         if (!best || score > best.score) best = { day: d, score };
       }
@@ -427,6 +433,23 @@ class WeekScheduler {
 
   private dayLongOrKey(d: number): boolean {
     return this.itemsOn(d).some((i) => isLongOrKey(i.role));
+  }
+
+  /**
+   * Strength on consecutive days must train different muscles: never the same session (e.g. the
+   * Peakr programme twice), and – unless nothing else fits – not legs on both days.
+   */
+  private strengthClash(item: Item, d: number, relaxed: boolean): boolean {
+    const s = item.strength;
+    if (s === null) return false;
+    return [d - 1, d + 1].some((o) =>
+      this.itemsOn(o).some(
+        (i) =>
+          i.strength !== null &&
+          (i.strength.templateId === s.templateId ||
+            (!relaxed && i.legLoad !== 'none' && item.legLoad !== 'none')),
+      ),
+    );
   }
 
   private canPlace(item: Item, d: number): boolean {

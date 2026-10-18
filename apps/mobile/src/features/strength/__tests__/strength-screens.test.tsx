@@ -8,7 +8,6 @@ import { renderWithQuery } from '@/test-utils/render-with-query';
 import { QuickLogScreen } from '../screens/quick-log-screen';
 import { RoutineBuilderScreen } from '../screens/routine-builder-screen';
 import { RoutineListScreen } from '../screens/routine-list-screen';
-import { StrengthOnboardingScreen } from '../screens/strength-onboarding-screen';
 import { StrengthSetupScreen } from '../screens/strength-setup-screen';
 import { StrengthWorkoutScreen } from '../screens/strength-workout-screen';
 
@@ -25,57 +24,6 @@ beforeEach(() => {
 });
 
 afterEach(() => jest.restoreAllMocks());
-
-describe('strength onboarding', () => {
-  it('walks through the split branch and saves the setup', async () => {
-    await renderWithQuery(<StrengthOnboardingScreen />);
-    expect(screen.getByText('Question 1 of 1')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByText('My split'));
-    expect(screen.getByText('Question 1 of 5')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByText('Next'));
-    expect(screen.getByText('Which split?')).toBeOnTheScreen();
-    // No split picked yet: cannot continue.
-    expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
-    await fireEvent.press(screen.getByText('Push / Pull / Legs'));
-    await fireEvent.press(screen.getByText('Next'));
-    await fireEvent.press(screen.getByText('Home'));
-    await fireEvent.press(screen.getByText('Next'));
-    expect(screen.getByLabelText('How many strength days per week?: 3 days')).toBeOnTheScreen();
-    // 3 is the minimum for push/pull/legs.
-    expect(screen.getByLabelText('How many strength days per week?, Decrease')).toBeDisabled();
-    await fireEvent.press(screen.getByLabelText('How many strength days per week?, Increase'));
-    await fireEvent.press(screen.getByText('Next'));
-    await fireEvent.press(screen.getByText('Strength first'));
-    await fireEvent.press(screen.getByText('Finish'));
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith('/plan'));
-    expect(mock.store.setup).toEqual({
-      mode: 'split',
-      split: 'pushPullLegs',
-      equipment: 'home',
-      daysPerWeek: 4,
-      priority: 'strengthFirst',
-    });
-  });
-
-  it('own routines continue to the routine builder; log only needs one question', async () => {
-    await renderWithQuery(<StrengthOnboardingScreen />);
-    await fireEvent.press(screen.getByText('My own routines'));
-    await fireEvent.press(screen.getByText('Next'));
-    await fireEvent.press(screen.getByText('Back'));
-    await fireEvent.press(screen.getByText('Free / log only'));
-    await fireEvent.press(screen.getByText('Finish'));
-    await waitFor(() => expect(mock.store.setup).toEqual({ mode: 'log' }));
-
-    mock.resetStore();
-    await renderWithQuery(<StrengthOnboardingScreen />);
-    await fireEvent.press(screen.getByText('My own routines'));
-    await fireEvent.press(screen.getByText('Next'));
-    await fireEvent.press(screen.getByText('Next'));
-    await fireEvent.press(screen.getByText('Finish'));
-    await waitFor(() => expect(router.replace).toHaveBeenCalledWith('/strength/routines/new'));
-    expect(mock.store.setup).toEqual({ mode: 'routines', daysPerWeek: 2, priority: 'balanced' });
-  });
-});
 
 describe('Profile → Strength setup', () => {
   it('edits the saved setup; switching split keeps the days in range', async () => {

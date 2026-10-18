@@ -1,13 +1,19 @@
 /**
  * Shared quiz definition (questions, validation, branching, insights) rendered by web and app.
- * No UI code lives here. The full onboarding quiz is assembled from question groups; strength is
- * the first group.
+ * No UI code lives here. The onboarding quiz is assembled from question groups (strength is its
+ * own group, also used by Profile → Strength) and maps its answers to `generatePlan` input.
  */
 
 export {
+  dayToIso,
+  isoToDay,
   validateAnswers,
   visibleQuestions,
   withDefaults,
+  type ConfirmQuestion,
+  type DateQuestion,
+  type DurationQuestion,
+  type MultiChoiceQuestion,
   type NumberQuestion,
   type QuizAnswers,
   type QuizAnswerValue,
@@ -18,6 +24,8 @@ export {
   type QuizQuestion,
   type QuizQuestionId,
   type SingleChoiceQuestion,
+  type TextQuestion,
+  type WeekMinutesQuestion,
 } from './model';
 export {
   SPLIT_IDS,
@@ -29,3 +37,48 @@ export {
   strengthQuestions,
   toStrengthSetup,
 } from './strength';
+export {
+  BARRIERS,
+  clearAnswer,
+  cssPaceOf,
+  EXPERIENCES,
+  goalOf,
+  GOALS,
+  MAX_LOSS_PER_WEEK,
+  MOTIVATIONS,
+  ONBOARDING_STEPS,
+  onboardingContext,
+  onboardingQuestions,
+  planStartDate,
+  prepareAnswers,
+  QUESTION_IDS,
+  RUN_REFERENCES,
+  setAnswer,
+  SEXES,
+  sportsOf,
+  stepInsight,
+  stepIssues,
+  stepQuestions,
+  SWIM_ABILITIES,
+  SWIM_WATERS,
+  TERRAINS,
+  thresholdPaceOf,
+  toPlanInput,
+  validateOnboarding,
+  visibleSteps,
+  zone2Range,
+  type OnboardingMapping,
+  type OnboardingResult,
+  type QuizInsight,
+  type QuizStep,
+  type RunReference,
+  type Sex,
+  type SwimAbility,
+} from './onboarding';
+export {
+  buildForecast,
+  type Forecast,
+  type ForecastLine,
+  type ForecastWeek,
+  type PhaseSegment,
+} from './forecast';
