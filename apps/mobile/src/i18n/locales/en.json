@@ -1,0 +1,22 @@
+{
+  "tabs": {
+    "plan": "Plan",
+    "tools": "Tools",
+    "profile": "Profile"
+  },
+  "plan": {
+    "title": "Your plan",
+    "empty": "No plan yet. Take the quiz to build your personal training plan."
+  },
+  "tools": {
+    "title": "Tools",
+    "empty": "Calculators for heart-rate zones, pace and more are coming soon."
+  },
+  "profile": {
+    "title": "Profile",
+    "appearance": "Appearance",
+    "themeSystem": "System",
+    "themeLight": "Light",
+    "themeDark": "Dark"
+  }
+}
