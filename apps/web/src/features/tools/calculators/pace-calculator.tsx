@@ -84,7 +84,7 @@ export function PaceCalculator() {
                       key={p.distance}
                       aria-current={p.isInput ? 'true' : undefined}
                       className={`border-t border-border first:border-t-0 ${
-                        p.isInput ? 'bg-surface-selected' : ''
+                        p.isInput ? 'bg-surface-2' : ''
                       }`}
                     >
                       <th scope="row" className="px-4 py-3 font-normal">

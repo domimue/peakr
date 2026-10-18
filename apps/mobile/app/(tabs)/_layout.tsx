@@ -9,9 +9,9 @@ export default function TabsLayout() {
 
   return (
     <NativeTabs
-      backgroundColor={colors.background}
-      indicatorColor={colors.surfaceSelected}
-      tintColor={colors.primary}
+      backgroundColor={colors.bg}
+      indicatorColor={colors.surface2}
+      tintColor={colors.accentLine}
       labelStyle={{ selected: { color: colors.text } }}
     >
       <NativeTabs.Trigger name="plan">

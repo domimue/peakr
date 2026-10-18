@@ -127,7 +127,7 @@ function ExerciseRow({
       onPress={onPress}
       style={({ pressed }) => [
         styles.row,
-        { backgroundColor: pressed ? colors.surfaceSelected : colors.surface },
+        { backgroundColor: pressed ? colors.surface2 : colors.surface },
       ]}
     >
       <Text style={styles.rowTitle}>{name}</Text>

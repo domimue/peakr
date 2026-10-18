@@ -14,7 +14,7 @@ export default function SwimCssPage() {
       toolKey="swim"
       intro={
         <Card>
-          <h2 className="text-xl font-semibold">{t.guideTitle}</h2>
+          <h2 className="text-lg font-semibold">{t.guideTitle}</h2>
           <ol className="flex list-decimal flex-col gap-2 pl-5">
             {GUIDE_STEPS.map((step) => (
               <li key={step}>{t.guide[step]}</li>

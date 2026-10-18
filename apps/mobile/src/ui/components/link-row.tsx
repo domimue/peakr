@@ -19,7 +19,7 @@ export function LinkRow({ title, hint, onPress }: LinkRowProps) {
       style={({ pressed }) => [
         styles.item,
         {
-          backgroundColor: pressed ? colors.surfaceSelected : colors.surface,
+          backgroundColor: pressed ? colors.surface2 : colors.surface,
           borderColor: colors.border,
         },
       ]}

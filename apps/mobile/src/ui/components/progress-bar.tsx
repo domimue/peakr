@@ -26,9 +26,9 @@ export function ProgressBar({ progress, accessibilityLabel }: ProgressBarProps) 
       accessibilityRole="progressbar"
       accessibilityLabel={accessibilityLabel}
       accessibilityValue={{ min: 0, max: 100, now: Math.round(progress * 100) }}
-      style={[styles.track, { backgroundColor: colors.surfaceSelected }]}
+      style={[styles.track, { backgroundColor: colors.surface2 }]}
     >
-      <Animated.View style={[styles.fill, { backgroundColor: colors.primary }, fill]} />
+      <Animated.View style={[styles.fill, { backgroundColor: colors.accentLine }, fill]} />
     </View>
   );
 }

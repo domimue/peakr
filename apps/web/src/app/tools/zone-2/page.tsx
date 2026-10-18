@@ -14,7 +14,7 @@ export default function Zone2Page() {
       toolKey="zone2"
       intro={
         <Card>
-          <h2 className="text-xl font-semibold">{t.whyTitle}</h2>
+          <h2 className="text-lg font-semibold">{t.whyTitle}</h2>
           <ul className="flex list-disc flex-col gap-2 pl-5">
             {BENEFITS.map((key) => (
               <li key={key}>{t.benefits[key]}</li>

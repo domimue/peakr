@@ -16,22 +16,23 @@ export const metadata = pageMetadata({
 export default function Home() {
   return (
     <main className="flex flex-col">
-      <section className="mx-auto grid w-full max-w-5xl gap-10 px-4 py-12 sm:py-20 lg:grid-cols-[1.2fr_1fr] lg:items-center">
-        <div className="flex flex-col gap-5">
-          <p className="text-sm font-semibold uppercase tracking-wide text-primary">
-            {t.hero.eyebrow}
-          </p>
-          <h1 className="text-4xl font-bold leading-tight tracking-tight sm:text-5xl">
-            {t.hero.title}
-          </h1>
-          <p className="text-lg leading-relaxed text-muted">{t.hero.lead}</p>
-        </div>
-        <WaitlistCard />
-      </section>
+      {/* Hero: dark with Volt; the rest of the page is light. */}
+      <div className="theme-dark bg-background text-foreground">
+        <section className="mx-auto grid w-full max-w-5xl gap-10 px-4 py-12 sm:py-20 lg:grid-cols-[1.2fr_1fr] lg:items-center">
+          <div className="flex flex-col gap-5">
+            <p className="text-sm font-semibold uppercase tracking-wide text-muted">
+              {t.hero.eyebrow}
+            </p>
+            <h1 className="text-2xl leading-tight sm:text-3xl">{t.hero.title}</h1>
+            <p className="text-lg leading-relaxed text-muted">{t.hero.lead}</p>
+          </div>
+          <WaitlistCard />
+        </section>
+      </div>
 
       <section aria-labelledby="usps" className="bg-surface">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-14">
-          <h2 id="usps" className="text-3xl font-bold tracking-tight">
+          <h2 id="usps" className="text-xl">
             {t.usps.title}
           </h2>
           <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -49,7 +50,7 @@ export default function Home() {
         aria-labelledby="how"
         className="mx-auto flex w-full max-w-5xl flex-col gap-8 px-4 py-14"
       >
-        <h2 id="how" className="text-3xl font-bold tracking-tight">
+        <h2 id="how" className="text-xl">
           {t.how.title}
         </h2>
         <ol className="grid gap-6 sm:grid-cols-3">
@@ -57,7 +58,7 @@ export default function Home() {
             <li key={step.title} className="flex flex-col gap-2">
               <span
                 aria-hidden="true"
-                className="flex size-9 items-center justify-center rounded-full bg-primary font-bold text-on-primary"
+                className="flex size-9 items-center justify-center rounded-full bg-surface font-semibold tabular-nums"
               >
                 {index + 1}
               </span>
@@ -71,7 +72,7 @@ export default function Home() {
       <section aria-labelledby="tools" className="bg-surface">
         <div className="mx-auto flex w-full max-w-5xl flex-col gap-6 px-4 py-14">
           <div className="flex flex-col gap-2">
-            <h2 id="tools" className="text-3xl font-bold tracking-tight">
+            <h2 id="tools" className="text-xl">
               {t.toolsTeaser.title}
             </h2>
             <p className="text-lg text-muted">{t.toolsTeaser.body}</p>
@@ -81,7 +82,7 @@ export default function Home() {
               <li key={tool.key}>
                 <Link
                   href={tool.href}
-                  className="flex h-full flex-col gap-1 rounded-2xl bg-background p-5 transition-colors hover:bg-surface-selected"
+                  className="flex h-full flex-col gap-1 rounded-2xl bg-background p-5 transition-colors hover:bg-surface-2"
                 >
                   <span className="font-semibold">{messages.tools[tool.key].title}</span>
                   <span className="text-sm text-muted">{messages.tools[tool.key].description}</span>
@@ -101,10 +102,10 @@ function WaitlistCard() {
     <section
       id="waitlist"
       aria-labelledby="waitlist-title"
-      className="flex scroll-mt-6 flex-col gap-4 rounded-3xl border border-border bg-background p-6 shadow-sm sm:p-8"
+      className="flex scroll-mt-6 flex-col gap-4 rounded-3xl border border-border bg-surface p-6 sm:p-8"
     >
       <div className="flex flex-col gap-2">
-        <h2 id="waitlist-title" className="text-2xl font-bold tracking-tight">
+        <h2 id="waitlist-title" className="text-xl">
           {w.title}
         </h2>
         <p className="text-muted">{w.body}</p>

@@ -6,13 +6,15 @@
     "node": ">=22"
   },
   "scripts": {
-    "lint": "pnpm -r --no-bail lint",
+    "lint": "pnpm -r --no-bail lint && pnpm lint:colors",
     "typecheck": "pnpm -r --no-bail typecheck",
     "test": "pnpm -r --no-bail test",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "mobile": "pnpm --filter @peakr/mobile start",
-    "web": "pnpm --filter @peakr/web dev"
+    "web": "pnpm --filter @peakr/web dev",
+    "brand:assets": "pnpm --filter @peakr/brand-assets generate",
+    "lint:colors": "node scripts/check-hex-colors.mjs"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

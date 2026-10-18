@@ -8,9 +8,9 @@ export function toNavigationTheme({ scheme, colors }: Theme): NavigationTheme {
     ...base,
     colors: {
       ...base.colors,
-      primary: colors.primary,
-      background: colors.background,
-      card: colors.background,
+      primary: colors.accentLine,
+      background: colors.bg,
+      card: colors.bg,
       text: colors.text,
       border: colors.border,
     },

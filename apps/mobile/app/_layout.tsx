@@ -1,6 +1,8 @@
 import '@/i18n';
 
+import { Archivo_400Regular, Archivo_500Medium } from '@expo-google-fonts/archivo';
 import { QueryClientProvider } from '@tanstack/react-query';
+import { useFonts } from 'expo-font';
 import { Stack, ThemeProvider } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
@@ -9,19 +11,26 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useDatabaseMigrations } from '@/data/db/use-database-migrations';
 import { queryClient } from '@/data/query-client';
-import { toNavigationTheme, useTheme } from '@/ui';
+import { fontFamilies, toNavigationTheme, useTheme } from '@/ui';
 
 void SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const theme = useTheme();
   const { success, error } = useDatabaseMigrations();
-  const ready = success || error !== undefined;
+  // Archivo 400/500 for body and UI, the static Peakr-Display instance (800 / width 112) for headlines.
+  const [fontsLoaded, fontError] = useFonts({
+    [fontFamilies.display]: require('@peakr/theme/fonts/Peakr-Display.ttf'),
+    [fontFamilies.body]: Archivo_400Regular,
+    [fontFamilies.bodyMedium]: Archivo_500Medium,
+  });
+  const ready = (success || error !== undefined) && (fontsLoaded || fontError !== null);
 
   useEffect(() => {
     if (error) console.error('Database migration failed', error);
+    if (fontError) console.error('Font loading failed', fontError);
     if (ready) void SplashScreen.hideAsync();
-  }, [ready, error]);
+  }, [ready, error, fontError]);
 
   if (!ready) return null;
 

@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, TextInput, View, type TextInputProps } from 'react-native';
 
-import { radius, spacing, typography, useTheme } from '../theme';
+import { numeric, radius, spacing, typography, useTheme } from '../theme';
 import { Text } from './text';
 
 export interface FieldShellProps {
@@ -21,7 +21,11 @@ export function FieldShell({ label, hint, error, children }: FieldShellProps) {
       </Text>
       {children}
       {error ? (
-        <Text variant="caption" style={{ color: colors.danger }} accessibilityLiveRegion="polite">
+        <Text
+          variant="caption"
+          style={{ color: colors.errorText }}
+          accessibilityLiveRegion="polite"
+        >
           {error}
         </Text>
       ) : hint ? (
@@ -46,13 +50,13 @@ export function Input({ suffix, invalid, style, ...rest }: InputProps) {
         styles.inputRow,
         {
           backgroundColor: colors.surface,
-          borderColor: invalid ? colors.danger : colors.border,
+          borderColor: invalid ? colors.errorText : colors.border,
         },
       ]}
     >
       <TextInput
-        placeholderTextColor={colors.textSecondary}
-        style={[styles.input, typography.body, { color: colors.text }, style]}
+        placeholderTextColor={colors.textMuted}
+        style={[styles.input, typography.body, numeric, { color: colors.text }, style]}
         {...rest}
       />
       {suffix ? (

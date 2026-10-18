@@ -96,7 +96,10 @@
     "themeSystem": "System",
     "themeLight": "Light",
     "themeDark": "Dark",
-    "strength": "Strength"
+    "strength": "Strength",
+    "about": "About",
+    "licenses": "Third-party notices",
+    "licensesHint": "Fonts and open-source licences"
   },
   "why": {
     "run": {
@@ -225,6 +228,21 @@
         "granfondo": "Gran fondo"
       },
       "openStrength": "Open workout"
+    },
+    "brand": {
+      "title": "Brand (dev)",
+      "entryHint": "Development builds only: logo variants, colours, type scale.",
+      "logo": "Logo",
+      "onDark": "On dark",
+      "onLight": "On light",
+      "onAccent": "On Volt",
+      "colors": "Colours",
+      "zones": "Heart-rate zones",
+      "type": "Type scale",
+      "buttons": "Buttons",
+      "primary": "Primary action",
+      "secondary": "Secondary action",
+      "numbers": "Numbers use tabular figures: 4:05 /km · 152 bpm"
     }
   },
   "quiz": {
@@ -1260,5 +1278,15 @@
     "comingSoon": "Coming soon",
     "placeholder": "Subscriptions are not available in this build yet. In-app purchase follows in a later version.",
     "back": "Back to my forecast"
+  },
+  "licenses": {
+    "title": "Third-party notices",
+    "intro": "Peakr uses the following third-party software and fonts.",
+    "archivo": {
+      "name": "Archivo",
+      "description": "Typeface by the Archivo Project Authors (Omnibus-Type). The Peakr wordmark and headlines use a static instance (weight 800, width 112 %).",
+      "license": "Licensed under the SIL Open Font License, Version 1.1."
+    },
+    "openFoodFacts": "More notices (e.g. Open Food Facts) are added here when those features ship."
   }
 }

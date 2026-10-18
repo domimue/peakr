@@ -30,7 +30,7 @@ export function SegmentedControl<T extends string>({
             accessibilityRole="radio"
             accessibilityState={{ selected }}
             onPress={() => onChange(option.value)}
-            style={[styles.segment, selected && { backgroundColor: colors.surfaceSelected }]}
+            style={[styles.segment, selected && { backgroundColor: colors.surface2 }]}
           >
             <Text style={selected && styles.selectedLabel}>{option.label}</Text>
           </Pressable>

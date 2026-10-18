@@ -12,7 +12,9 @@ describe('tab screens', () => {
 
   it('switches the theme preference on the profile screen', async () => {
     await render(<ProfileScreen />);
-    await fireEvent.press(screen.getByText('Dark'));
+    // Dark is the default; light mode is optional.
     expect(useSettingsStore.getState().themePreference).toBe('dark');
+    await fireEvent.press(screen.getByText('Light'));
+    expect(useSettingsStore.getState().themePreference).toBe('light');
   });
 });

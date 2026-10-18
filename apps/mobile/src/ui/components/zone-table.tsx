@@ -15,7 +15,7 @@ export interface ZoneTableProps {
   rows: readonly ZoneRow[];
 }
 
-/** Colour-coded list of training zones (Z1 grey-blue … Z5 red). */
+/** Training zones with a colour bar per zone; labels are text-coloured so they never rely on colour alone. */
 export function ZoneTable({ rows }: ZoneTableProps) {
   const { colors } = useTheme();
   return (
@@ -30,12 +30,12 @@ export function ZoneTable({ rows }: ZoneTableProps) {
             style={[
               styles.row,
               index > 0 && { borderTopWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
-              row.highlighted && { backgroundColor: colors.surfaceSelected },
+              row.highlighted && { backgroundColor: colors.surface2 },
             ]}
           >
             <View style={[styles.bar, { backgroundColor: zoneColor }]} />
             <View style={styles.name}>
-              <Text variant="caption" style={[styles.zoneLabel, { color: zoneColor }]}>
+              <Text variant="caption" tone="secondary" style={styles.zoneLabel}>
                 {row.label}
               </Text>
               <Text>{row.name}</Text>
@@ -65,5 +65,5 @@ const styles = StyleSheet.create({
   bar: { width: 6, alignSelf: 'stretch' },
   name: { flex: 1 },
   zoneLabel: { fontWeight: '700' },
-  range: { fontVariant: ['tabular-nums'], fontWeight: '600' },
+  range: { fontVariant: ['tabular-nums'], fontWeight: '500' },
 });

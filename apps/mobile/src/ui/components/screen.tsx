@@ -8,16 +8,18 @@ import { Text } from './text';
 export interface ScreenProps {
   /** Large in-content title. Omit on screens that have a navigation header. */
   title?: string;
+  /** Content above the title, e.g. the logo on the onboarding intro. */
+  header?: ReactNode;
   children?: ReactNode;
 }
 
-export function Screen({ title, children }: ScreenProps) {
+export function Screen({ title, header, children }: ScreenProps) {
   const { colors } = useTheme();
   return (
     <SafeAreaView
       // With a navigation header the header already handles the top inset.
-      edges={title ? ['top'] : []}
-      style={[styles.root, { backgroundColor: colors.background }]}
+      edges={title || header ? ['top'] : []}
+      style={[styles.root, { backgroundColor: colors.bg }]}
     >
       <ScrollView
         contentContainerStyle={styles.content}
@@ -25,6 +27,7 @@ export function Screen({ title, children }: ScreenProps) {
         keyboardDismissMode="on-drag"
         contentInsetAdjustmentBehavior="automatic"
       >
+        {header}
         {title ? (
           <Text variant="title" accessibilityRole="header">
             {title}

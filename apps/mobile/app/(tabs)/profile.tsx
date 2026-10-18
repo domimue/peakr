@@ -37,13 +37,27 @@ export default function ProfileScreen() {
       <Text variant="heading">{t('profile.appearance')}</Text>
       <SegmentedControl options={options} value={themePreference} onChange={setThemePreference} />
 
+      <Text variant="heading">{t('profile.about')}</Text>
+      <LinkRow
+        title={t('profile.licenses')}
+        hint={t('profile.licensesHint')}
+        onPress={() => router.push('/licenses')}
+      />
+
       {/* Developer tools: development builds only. */}
       {__DEV__ ? (
-        <LinkRow
-          title={t('dev.planPreview.title')}
-          hint={t('dev.planPreview.entryHint')}
-          onPress={() => router.push('/dev/plan')}
-        />
+        <>
+          <LinkRow
+            title={t('dev.planPreview.title')}
+            hint={t('dev.planPreview.entryHint')}
+            onPress={() => router.push('/dev/plan')}
+          />
+          <LinkRow
+            title={t('dev.brand.title')}
+            hint={t('dev.brand.entryHint')}
+            onPress={() => router.push('/dev/brand')}
+          />
+        </>
       ) : null}
     </Screen>
   );

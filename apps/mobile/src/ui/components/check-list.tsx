@@ -33,8 +33,8 @@ export function CheckList<T extends string>({
             style={[
               styles.choice,
               {
-                backgroundColor: on ? colors.surfaceSelected : colors.surface,
-                borderColor: on ? colors.primary : colors.border,
+                backgroundColor: on ? colors.surface2 : colors.surface,
+                borderColor: on ? colors.accentLine : colors.border,
               },
             ]}
           >
@@ -83,12 +83,12 @@ function CheckBox({ checked }: { checked: boolean }) {
       style={[
         styles.box,
         {
-          borderColor: checked ? colors.primary : colors.border,
-          backgroundColor: checked ? colors.primary : 'transparent',
+          borderColor: checked ? colors.accentLine : colors.border,
+          backgroundColor: checked ? colors.accent : 'transparent',
         },
       ]}
     >
-      {checked ? <Text style={[styles.tick, { color: colors.onPrimary }]}>✓</Text> : null}
+      {checked ? <Text style={[styles.tick, { color: colors.onAccent }]}>✓</Text> : null}
     </View>
   );
 }

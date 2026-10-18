@@ -17,11 +17,11 @@ export function QuizCta() {
   const t = messages.cta;
   return (
     <aside className="flex flex-col items-start gap-3 rounded-2xl bg-surface p-6">
-      <h2 className="text-xl font-semibold">{t.title}</h2>
+      <h2 className="text-lg font-semibold">{t.title}</h2>
       <p className="text-muted">{t.body}</p>
       <Link
         href={QUIZ_HREF}
-        className="rounded-full bg-primary px-6 py-3 font-semibold text-on-primary transition-opacity hover:opacity-90"
+        className="inline-flex min-h-12 items-center rounded-button bg-accent px-6 font-semibold text-on-accent transition-colors hover:bg-accent-pressed"
       >
         {t.button}
       </Link>
@@ -42,7 +42,7 @@ export function ToolPage({ toolKey, intro, children }: ToolPageProps) {
   return (
     <main className="mx-auto flex w-full max-w-2xl flex-col gap-10 px-4 py-10">
       <header className="flex flex-col gap-3">
-        <h1 className="text-4xl font-bold tracking-tight">{t.title}</h1>
+        <h1 className="text-2xl">{t.title}</h1>
         <p className="text-lg text-muted">{t.lead}</p>
       </header>
 
@@ -55,7 +55,7 @@ export function ToolPage({ toolKey, intro, children }: ToolPageProps) {
       <article className="flex flex-col gap-6">
         {t.seo.map((section) => (
           <section key={section.heading} className="flex flex-col gap-2">
-            <h2 className="text-xl font-semibold">{section.heading}</h2>
+            <h2 className="text-lg font-semibold">{section.heading}</h2>
             <p className="leading-relaxed text-muted">{section.body}</p>
           </section>
         ))}

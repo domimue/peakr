@@ -265,7 +265,7 @@ function ExerciseCard({
       {howTo ? (
         <>
           <Pressable accessibilityRole="button" onPress={() => setShowHowTo(!showHowTo)}>
-            <Text style={{ color: colors.primary }}>
+            <Text style={{ color: colors.accentLine }}>
               {showHowTo ? t('strength.workout.hideHowTo') : t('strength.workout.howTo')}
             </Text>
           </Pressable>
@@ -310,12 +310,12 @@ function ExerciseCard({
             style={[
               styles.check,
               {
-                borderColor: s.done ? colors.primary : colors.border,
-                backgroundColor: s.done ? colors.primary : colors.surface,
+                borderColor: s.done ? colors.accentLine : colors.border,
+                backgroundColor: s.done ? colors.accent : colors.surface,
               },
             ]}
           >
-            <Text style={{ color: s.done ? colors.onPrimary : colors.textSecondary }}>✓</Text>
+            <Text style={{ color: s.done ? colors.onAccent : colors.textMuted }}>✓</Text>
           </Pressable>
         </View>
       ))}

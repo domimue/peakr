@@ -13,6 +13,7 @@
   "dependencies": {
     "@peakr/engine": "workspace:*",
     "@peakr/i18n": "workspace:*",
+    "@peakr/theme": "workspace:*",
     "@supabase/supabase-js": "^2.118.0",
     "next": "16.4.2",
     "react": "19.3.0",
