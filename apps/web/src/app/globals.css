@@ -3,11 +3,36 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --surface: #f4f4f6;
+  --surface-selected: #e4e4e9;
+  --muted: #5f616b;
+  --border: #dcdce2;
+  --primary: #e8553d;
+  --on-primary: #ffffff;
+  --danger: #c62828;
+  /* Training zones: Z1 grey-blue … Z5 red (same palette as the app). */
+  --zone-1: #8fa3b8;
+  --zone-2: #3e9e5b;
+  --zone-3: #d9a400;
+  --zone-4: #ee7d22;
+  --zone-5: #d7263d;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-selected: var(--surface-selected);
+  --color-muted: var(--muted);
+  --color-border: var(--border);
+  --color-primary: var(--primary);
+  --color-on-primary: var(--on-primary);
+  --color-danger: var(--danger);
+  --color-zone-1: var(--zone-1);
+  --color-zone-2: var(--zone-2);
+  --color-zone-3: var(--zone-3);
+  --color-zone-4: var(--zone-4);
+  --color-zone-5: var(--zone-5);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
@@ -16,6 +41,18 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --surface: #1b1b1f;
+    --surface-selected: #2a2a30;
+    --muted: #a6a8b2;
+    --border: #2e2e35;
+    --primary: #ff7a5c;
+    --on-primary: #0b0b0d;
+    --danger: #ff6b6b;
+    --zone-1: #9db2c8;
+    --zone-2: #54c177;
+    --zone-3: #f2c230;
+    --zone-4: #ff9445;
+    --zone-5: #ff5468;
   }
 }
 

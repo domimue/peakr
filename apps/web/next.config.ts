@@ -1,7 +1,8 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Workspace packages ship TypeScript source.
+  transpilePackages: ['@peakr/engine'],
   cacheComponents: true,
   partialPrefetching: true,
   turbopack: {
