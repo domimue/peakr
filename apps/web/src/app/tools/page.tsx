@@ -4,13 +4,15 @@ import Link from 'next/link';
 import { QuizCta } from '@/features/tools/tool-page';
 import { TOOLS } from '@/features/tools/tools';
 import { messages } from '@/i18n';
+import { pageMetadata } from '@/lib/metadata';
 
 const t = messages.tools;
 
-export const metadata: Metadata = {
+export const metadata: Metadata = pageMetadata({
   title: t.index.metaTitle,
   description: t.index.metaDescription,
-};
+  path: '/tools',
+});
 
 export default function ToolsIndexPage() {
   return (

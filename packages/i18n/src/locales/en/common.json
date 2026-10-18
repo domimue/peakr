@@ -1,0 +1,67 @@
+{
+  "common": {
+    "estimate": "Estimate"
+  },
+  "fields": {
+    "age": "Age",
+    "ageHint": "Used to estimate your max heart rate if you don't know it.",
+    "hrMaxOptional": "Max heart rate (optional)",
+    "hrMaxHint": "Highest heart rate you have measured, e.g. at the end of an all-out effort.",
+    "hrMaxLthrHint": "Sets the top of zone 5. Leave empty if unknown.",
+    "restingHr": "Resting heart rate",
+    "restingHrOptional": "Resting heart rate (optional)",
+    "restingHrHint": "Measure in the morning before getting up.",
+    "lthr": "Threshold heart rate (LTHR)",
+    "lthrHint": "Average heart rate over the last 20 minutes of a 30-minute all-out solo run."
+  },
+  "races": {
+    "5k": "5 km",
+    "10k": "10 km",
+    "half": "Half marathon",
+    "marathon": "Marathon"
+  },
+  "zones": {
+    "label": "Z{{zone}}",
+    "zone": "Zone",
+    "range": "Range",
+    "names": {
+      "1": "Recovery",
+      "2": "Endurance",
+      "3": "Tempo",
+      "4": "Threshold",
+      "5": "VO₂max"
+    }
+  },
+  "units": {
+    "bpm": "bpm",
+    "years": "years",
+    "h": "h",
+    "min": "min",
+    "s": "s",
+    "hours": "hours",
+    "minutes": "minutes",
+    "seconds": "seconds",
+    "perKm": "/km",
+    "per100m": "/100 m",
+    "bpmValue": "{{value}} bpm",
+    "bpmRange": "{{min}}–{{max}} bpm",
+    "bpmUpTo": "up to {{value}} bpm",
+    "bpmFrom": "{{value}}+ bpm",
+    "paceValue": "{{pace}} {{unit}}",
+    "paceRange": "{{slow}}–{{fast}} {{unit}}",
+    "paceOrSlower": "{{pace}} {{unit}} or slower",
+    "paceOrFaster": "{{pace}} {{unit}} or faster"
+  },
+  "validation": {
+    "invalidNumber": "Enter a whole number.",
+    "invalidDuration": "Minutes and seconds must be below 60.",
+    "required": "Please fill in this field.",
+    "ageOrHrMaxRequired": "Enter your age or your max heart rate.",
+    "outOfRange": "Enter a value between {{min}} and {{max}}.",
+    "restingHrNotBelowHrMax": "Resting heart rate must be below your max heart rate ({{hrMax}} bpm).",
+    "lthrNotBelowHrMax": "Threshold heart rate must be below your max heart rate ({{hrMax}} bpm).",
+    "unrealisticRaceTime": "This time looks unrealistic for the distance. Enter a time between {{min}} and {{max}}.",
+    "swim400NotSlowerThan200": "Your 400 m pace must be slower than your 200 m pace. Please check both times.",
+    "swimTimesInconsistent": "These times are very far apart. Were both swims all-out efforts?"
+  }
+}
