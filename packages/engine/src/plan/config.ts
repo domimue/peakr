@@ -1,10 +1,12 @@
 import type { ZoneNumber } from '../zones';
+import type { Equipment } from './library/exercises';
 import type {
   ActivitySport,
   Experience,
   GoalKind,
   Phase,
   Sport,
+  StrengthEquipment,
   StrengthPriority,
   Terrain,
 } from './types';
@@ -241,6 +243,16 @@ export const planConfig = {
     progression: { upperIncrease: 0.025, lowerIncrease: 0.05, maxRpe: 8, roundToKg: 0.5 },
     /** Weights after a pause (§8.5: 80–90 %). */
     resumeFactor: 0.85,
+    /** Pauses longer than this resume at `resumeFactor` of the previous weights. */
+    resumePauseDays: 7,
+    /** Equipment each setting provides (§8.6); exercises need at least one of their items. */
+    equipment: {
+      gym: ['barbell', 'dumbbell', 'kettlebell', 'machine', 'cable', 'band', 'bodyweight', 'box'],
+      home: ['dumbbell', 'kettlebell', 'band', 'bodyweight', 'box'],
+      hotel: ['band', 'bodyweight'],
+    } satisfies Record<StrengthEquipment, readonly Equipment[]>,
+    /** Rest between sets by the top of the rep range, and for timed / core / mobility work. */
+    rest: { maxRepsLow: 6, lowRepsSec: 150, moderateSec: 90, highRepsSec: 60, timedSec: 45 },
   },
   benchmarks: {
     /** Tests in the first full loading week and then every n weeks (base/build only). */

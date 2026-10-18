@@ -8,6 +8,7 @@ import {
   strengthLoad,
   totalDurationSec,
 } from './load';
+import { defaultRestSec } from './strength-reps';
 import { planSessionTerrain } from './terrain';
 import type {
   Block,
@@ -208,6 +209,8 @@ export function materializeStrength(
       reps: e.reps,
       sets: Math.max(1, Math.round(e.sets * scale)),
       rpe: def.rpe,
+      restSec: e.restSec ?? defaultRestSec(e.exerciseId, e.reps),
+      ...(e.weightKg === undefined ? {} : { weightKg: e.weightKg }),
     });
   }
   const sets = exercises.reduce((sum, e) => sum + e.sets, 0);

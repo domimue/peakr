@@ -1,4 +1,5 @@
 import type { ZoneNumber } from '../zones';
+import type { CustomExercise } from './library/exercises';
 
 /** Endurance disciplines the user can select (any combination). */
 export type Sport = 'run' | 'bike' | 'swim';
@@ -31,7 +32,8 @@ export type LegLoad = 'none' | 'light' | 'heavy';
 
 export type StrengthMode = 'none' | 'peakr' | 'split' | 'routines' | 'log';
 export type StrengthPriority = 'enduranceFirst' | 'balanced' | 'strengthFirst';
-export type StrengthEquipment = 'home' | 'gym';
+/** Gym = everything, home = dumbbells/kettlebells/bands/box, hotel = bodyweight and bands. */
+export type StrengthEquipment = 'home' | 'gym' | 'hotel';
 export type SplitId =
   | 'fullBody'
   | 'upperLower'
@@ -44,11 +46,16 @@ export type SplitId =
   | 'bodyweight';
 
 export interface RoutineExercise {
-  /** Exercise from the library; custom exercises have no id. */
+  /** Library id or `custom:<id>` of a custom exercise; free-text entries (imports) have none. */
   exerciseId?: string;
   name?: string;
   sets: number;
+  /** Reps (`"8"`, `"8–12"`) or time (`"45 s"`). */
   reps: string;
+  /** Planned working weight; empty for bodyweight. */
+  weightKg?: number;
+  /** Rest between sets; defaults by rep range (`defaultRestSec`). */
+  restSec?: number;
   /** Overrides the library value; untagged custom exercises count as `light`. */
   legLoad?: LegLoad;
 }
@@ -72,6 +79,8 @@ export interface StrengthSetup {
   daysPerWeek?: number;
   /** Required for mode `routines`. */
   routines?: Routine[];
+  /** Exercises the user added to the library (referenced by `custom:` ids in routines). */
+  customExercises?: CustomExercise[];
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -174,7 +183,14 @@ export interface StrengthSessionDef {
   rpe: number;
   /** Duration of the session (gym; home sessions use the same). */
   durationMin: number;
-  exercises: { exerciseId: string; sets: number; reps: string; legLoad?: LegLoad }[];
+  exercises: {
+    exerciseId: string;
+    sets: number;
+    reps: string;
+    legLoad?: LegLoad;
+    weightKg?: number;
+    restSec?: number;
+  }[];
 }
 
 export interface WorkoutTemplate {
@@ -226,6 +242,8 @@ export interface ExercisePrescription {
   sets: number;
   reps: string;
   rpe: number;
+  restSec: number;
+  weightKg?: number;
 }
 
 export interface WinterVariant {

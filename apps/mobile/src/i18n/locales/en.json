@@ -1,86 +1,20 @@
 {
   "common": {
-    "estimate": "Estimate"
+    "estimate": "Estimate",
+    "decrease": "Decrease",
+    "increase": "Increase",
+    "cancel": "Cancel",
+    "yes": "Yes",
+    "no": "No"
   },
   "tabs": {
     "plan": "Plan",
-    "tools": "Tools",
     "profile": "Profile"
   },
   "plan": {
     "title": "Your plan",
-    "empty": "No plan yet. Take the quiz to build your personal training plan."
-  },
-  "tools": {
-    "title": "Tools",
-    "subtitle": "Free calculators – no account needed.",
-    "hrZones": {
-      "title": "Heart rate zones",
-      "description": "Your five training zones from max, resting or threshold heart rate.",
-      "methods": {
-        "percentMax": "% HRmax",
-        "karvonen": "Karvonen",
-        "lthr": "LTHR"
-      },
-      "methodInfo": {
-        "percentMax": "Zones as a percentage of your maximum heart rate. Simple and a good start.",
-        "karvonen": "Uses your heart rate reserve (max minus resting). More personal, because it reflects your fitness.",
-        "lthr": "Zones from your lactate threshold heart rate (Joe Friel). The most precise if you know your threshold."
-      },
-      "autoMethod": "Chosen automatically: Karvonen as soon as you enter your resting heart rate.",
-      "hrMaxUsed": "Max heart rate used",
-      "hrMaxEstimateNote": "Estimated from your age (208 − 0.7 × age). A measured value makes your zones more accurate.",
-      "lthrUsed": "Threshold heart rate used",
-      "resultTitle": "Your zones"
-    },
-    "zone2": {
-      "title": "Zone 2 calculator",
-      "description": "Find your easy aerobic range – and why it matters.",
-      "whyTitle": "Why Zone 2 matters",
-      "benefits": {
-        "base": "Builds your aerobic base: more mitochondria and capillaries, so you get faster at the same heart rate.",
-        "fat": "Trains your body to burn fat efficiently, which saves carbohydrates for hard efforts.",
-        "recovery": "Easy enough to recover from quickly, so you can train more often without getting injured.",
-        "volume": "Most endurance athletes do around 80 % of their training at this easy intensity."
-      },
-      "restingHint": "With resting heart rate the Karvonen method is used – more personal.",
-      "resultLabel": "Your Zone 2",
-      "methodNote": {
-        "percentMax": "60–70 % of your max heart rate ({{hrMax}} bpm).",
-        "karvonen": "60–70 % of your heart rate reserve (Karvonen, max {{hrMax}} bpm).",
-        "lthr": "Based on your threshold heart rate."
-      },
-      "talkTest": "Check: you can still talk in full sentences. If not, slow down."
-    },
-    "pace": {
-      "title": "Pace & race predictor",
-      "description": "Training paces and predicted race times from a recent race.",
-      "intro": "Enter a recent race or all-out time trial. The more recent, the better.",
-      "timeLabel": "Your {{distance}} time",
-      "racePace": "Race pace",
-      "thresholdPace": "Threshold pace",
-      "thresholdNote": "About the pace you could hold for one hour.",
-      "predictionsTitle": "Predicted race times",
-      "predictionsNote": "Riegel formula. Assumes you train for the distance – longer races, especially the marathon, are often slower than predicted.",
-      "zonesTitle": "Your pace zones"
-    },
-    "swim": {
-      "title": "Swim pace (CSS)",
-      "description": "Critical Swim Speed and swim zones per 100 m from a simple test.",
-      "guideTitle": "How to do the CSS test",
-      "guide": {
-        "warmUp": "Warm up for 10–15 minutes with easy swimming and a few short pick-ups.",
-        "swim400": "Swim 400 m as fast as you can at an even pace. Note the time.",
-        "recover": "Recover for 5–10 minutes with very easy swimming.",
-        "swim200": "Swim 200 m all-out. Note the time.",
-        "record": "Use the same pool and push-off starts for both efforts, then enter both times below."
-      },
-      "time400": "400 m time",
-      "time200": "200 m time",
-      "cssLabel": "Your CSS pace",
-      "cssNote": "Roughly the pace you can sustain for about 30 minutes.",
-      "zonesTitle": "Your swim zones"
-    }
+    "empty": "No plan yet. Take the quiz to build your personal training plan.",
+    "startQuiz": "Start the quiz"
   },
   "fields": {
     "age": "Age",
@@ -128,7 +62,8 @@
     "paceValue": "{{pace}} {{unit}}",
     "paceRange": "{{slow}}–{{fast}} {{unit}}",
     "paceOrSlower": "{{pace}} {{unit}} or slower",
-    "paceOrFaster": "{{pace}} {{unit}} or faster"
+    "paceOrFaster": "{{pace}} {{unit}} or faster",
+    "kg": "kg"
   },
   "validation": {
     "invalidNumber": "Enter a whole number.",
@@ -154,7 +89,8 @@
     "appearance": "Appearance",
     "themeSystem": "System",
     "themeLight": "Light",
-    "themeDark": "Dark"
+    "themeDark": "Dark",
+    "strength": "Strength"
   },
   "why": {
     "run": {
@@ -280,7 +216,542 @@
         "tri": "70.3 triathlon",
         "weightloss": "Lose weight",
         "granfondo": "Gran fondo"
+      },
+      "openStrength": "Open workout"
+    }
+  },
+  "quiz": {
+    "progress": "Question {{current}} of {{total}}",
+    "back": "Back",
+    "next": "Next",
+    "finish": "Finish",
+    "strength": {
+      "stepTitle": "Strength training",
+      "mode": {
+        "title": "How do you want to do strength?",
+        "hint": "Strength fits around your endurance plan in every mode. You can change this anytime in your profile.",
+        "options": {
+          "peakr": {
+            "label": "Peakr programme",
+            "description": "A ready programme that follows your training phases."
+          },
+          "split": {
+            "label": "My split",
+            "description": "Pick a split like push/pull/legs – we fill the days."
+          },
+          "routines": {
+            "label": "My own routines",
+            "description": "Build your own routines; we schedule them."
+          },
+          "log": {
+            "label": "Free / log only",
+            "description": "No planned sessions – log what you do and it still counts."
+          },
+          "none": {
+            "label": "No strength",
+            "description": "Endurance only."
+          }
+        }
+      },
+      "split": {
+        "title": "Which split?",
+        "options": {
+          "fullBody": {
+            "label": "Full body",
+            "description": "2–3 days · sessions A / B / C"
+          },
+          "upperLower": {
+            "label": "Upper / Lower",
+            "description": "2–4 days"
+          },
+          "pushPullLegs": {
+            "label": "Push / Pull / Legs",
+            "description": "3–6 days"
+          },
+          "bodyPart": {
+            "label": "Body-part split",
+            "description": "4–5 days · chest, back, shoulders, arms, legs"
+          },
+          "glutesLegs": {
+            "label": "Glutes & legs focus",
+            "description": "2–3 days"
+          },
+          "runners": {
+            "label": "Runner's strength",
+            "description": "2 days · single leg, hips, calves, core"
+          },
+          "coreMobility": {
+            "label": "Core & mobility",
+            "description": "2–4 days · easy on the legs"
+          },
+          "kettlebell": {
+            "label": "Kettlebell / home dumbbells",
+            "description": "2–3 days"
+          },
+          "bodyweight": {
+            "label": "Bodyweight / hotel",
+            "description": "2–3 days · no equipment"
+          }
+        }
+      },
+      "equipment": {
+        "title": "Where do you train?",
+        "hint": "Exercises are swapped for ones that work with your equipment.",
+        "options": {
+          "gym": {
+            "label": "Gym",
+            "description": "Barbells, machines, cables, dumbbells."
+          },
+          "home": {
+            "label": "Home",
+            "description": "Dumbbells, kettlebells, bands, a box."
+          },
+          "hotel": {
+            "label": "Bodyweight only",
+            "description": "No equipment – e.g. a hotel room."
+          }
+        }
+      },
+      "daysPerWeek": {
+        "title": "How many strength days per week?",
+        "hint": "If your week gets too full, sessions are combined automatically.",
+        "unit_one": "{{count}} day",
+        "unit_other": "{{count}} days"
+      },
+      "priority": {
+        "title": "What matters more to you?",
+        "hint": "Decides who gives way in hard weeks.",
+        "options": {
+          "enduranceFirst": {
+            "label": "Endurance first",
+            "description": "Less leg strength in build and peak weeks, none in the taper."
+          },
+          "balanced": {
+            "label": "Balanced",
+            "description": "Strength is reduced only a little before races."
+          },
+          "strengthFirst": {
+            "label": "Strength first",
+            "description": "Strength volume stays; the endurance plan adapts."
+          }
+        }
       }
+    }
+  },
+  "strength": {
+    "minutes_one": "{{count}} min",
+    "minutes_other": "{{count}} min",
+    "seconds_one": "{{count}} s",
+    "seconds_other": "{{count}} s",
+    "setup": {
+      "title": "Strength setup",
+      "entryHint": "Mode, split, equipment and priority",
+      "intro": "Choose how strength fits into your plan. The plan recalculates when you save.",
+      "save": "Save"
+    },
+    "routines": {
+      "title": "My routines",
+      "entryHint": "Build and start your own routines",
+      "intro": "Your own routines. With the mode \"My own routines\" they are scheduled into your plan.",
+      "new": "New routine",
+      "empty": "No routines yet.",
+      "summary_one": "{{count}} exercise · {{minutes}} min",
+      "summary_other": "{{count}} exercises · {{minutes}} min",
+      "edit": "Edit",
+      "start": "Start"
+    },
+    "builder": {
+      "title": "Routine",
+      "name": "Name",
+      "namePlaceholder": "e.g. Upper body A",
+      "duration": "Duration",
+      "exercises": "Exercises",
+      "noExercises": "Add at least one exercise.",
+      "sets": "Sets",
+      "reps": "Reps or time",
+      "repsHint": "e.g. 8–12 or 45 s",
+      "weight": "Weight",
+      "bodyweight": "Bodyweight",
+      "weightInvalid": "Enter a weight in kg, or leave empty for bodyweight.",
+      "rest": "Rest",
+      "up": "Up",
+      "down": "Down",
+      "remove": "Remove",
+      "addExercise": "Add exercise",
+      "save": "Save routine",
+      "delete": "Delete routine"
+    },
+    "picker": {
+      "title": "Add exercise",
+      "search": "Search",
+      "searchPlaceholder": "e.g. squat",
+      "pattern": "Movement",
+      "all": "All",
+      "createCustom": "Create your own",
+      "empty": "No exercise found. Create your own instead."
+    },
+    "custom": {
+      "title": "Your own exercise",
+      "name": "Name",
+      "equipment": "Equipment",
+      "legLoad": "Load on the legs",
+      "legLoadHint": "Heavy leg exercises are kept away from the day before long and key sessions.",
+      "save": "Save exercise"
+    },
+    "patterns": {
+      "squat": "Squat",
+      "hinge": "Hinge",
+      "lunge": "Lunge / single leg",
+      "calf": "Calf / foot",
+      "pushHorizontal": "Push horizontal",
+      "pushVertical": "Push vertical",
+      "pullHorizontal": "Pull horizontal",
+      "pullVertical": "Pull vertical",
+      "arms": "Arms",
+      "core": "Core",
+      "plyometrics": "Plyometrics",
+      "mobility": "Mobility"
+    },
+    "equipment": {
+      "barbell": "Barbell",
+      "dumbbell": "Dumbbell",
+      "kettlebell": "Kettlebell",
+      "machine": "Machine",
+      "cable": "Cable",
+      "band": "Band",
+      "bodyweight": "Bodyweight",
+      "box": "Box"
+    },
+    "legLoad": {
+      "none": "None",
+      "light": "Light",
+      "heavy": "Heavy"
+    },
+    "workout": {
+      "title": "Strength workout",
+      "notFound": "This workout is no longer available.",
+      "duration": "Duration",
+      "noSets": "Tick at least one set as done, or use the quick log.",
+      "finish": "Finish workout",
+      "quickLogInstead": "Quick log instead",
+      "progressed": "Progressed from {{from}} – you hit the top of the range last time.",
+      "prescription": "{{sets}} × {{reps}} · rest {{rest}} s",
+      "lastTime": "Last time: {{sets}}",
+      "howTo": "How to",
+      "hideHowTo": "Hide how-to",
+      "seconds": "sec",
+      "reps": "reps",
+      "rpe": "RPE",
+      "weightLabel": "Weight in kg, {{name}}, set {{set}}",
+      "rpeLabel": "RPE, {{name}}, set {{set}}",
+      "doneLabel": "Set {{set}} of {{name}} done"
+    },
+    "quickLog": {
+      "title": "Log strength session",
+      "entryHint": "Quick log: duration, effort, legs",
+      "intro": "No details needed – the session still counts towards your training load.",
+      "duration": "Duration",
+      "rpe": "Effort (RPE 1–10)",
+      "rpeHint": "1 = very easy, 7 = hard but controlled, 10 = maximal.",
+      "legs": "Did you train legs?",
+      "load": "Training load: {{load}}",
+      "hard": "Counts as a hard day – the next day stays easy.",
+      "easy": "Counts as an easy day for spacing.",
+      "save": "Save"
+    },
+    "types": {
+      "routine": "Own routine",
+      "peakr_base_gym": "Peakr strength – base",
+      "peakr_base_home": "Peakr strength – base (home)",
+      "peakr_build_gym": "Peakr strength – build",
+      "peakr_build_home": "Peakr strength – build (home)",
+      "peakr_peak_gym": "Peakr strength – maintenance",
+      "peakr_peak_home": "Peakr strength – maintenance (home)",
+      "core_mobility": "Core & mobility",
+      "full_a": "Full body A",
+      "full_b": "Full body B",
+      "full_c": "Full body C",
+      "upper": "Upper body",
+      "lower": "Lower body",
+      "push": "Push",
+      "pull": "Pull",
+      "legs": "Legs",
+      "chest": "Chest",
+      "back": "Back",
+      "shoulders": "Shoulders",
+      "arms": "Arms",
+      "glutes_a": "Glutes A",
+      "legs_b": "Legs B",
+      "runners_a": "Runner's strength A",
+      "runners_b": "Runner's strength B",
+      "core": "Core",
+      "mobility": "Mobility",
+      "kettlebell_a": "Kettlebell A",
+      "kettlebell_b": "Kettlebell B",
+      "bodyweight_a": "Bodyweight A",
+      "bodyweight_b": "Bodyweight B"
+    }
+  },
+  "exercises": {
+    "back_squat": {
+      "name": "Back squat",
+      "howTo": "Bar on your upper back, feet shoulder-width. Sit down between your heels until your thighs are at least parallel, chest up, knees tracking over your toes. Drive up through the whole foot."
+    },
+    "front_squat": {
+      "name": "Front squat",
+      "howTo": "Bar resting on the front of your shoulders, elbows high. Squat straight down keeping your torso upright, then stand up without letting the elbows drop."
+    },
+    "goblet_squat": {
+      "name": "Goblet squat",
+      "howTo": "Hold a dumbbell or kettlebell at your chest. Squat down between your knees, elbows inside the knees, chest tall, then stand up."
+    },
+    "leg_press": {
+      "name": "Leg press",
+      "howTo": "Feet hip-width in the middle of the platform. Lower until your knees are at about 90°, keep your lower back on the pad, press back up without locking the knees."
+    },
+    "bodyweight_squat": {
+      "name": "Bodyweight squat",
+      "howTo": "Feet shoulder-width, arms forward for balance. Sit back and down as deep as you can with a flat back, then stand up tall."
+    },
+    "split_squat": {
+      "name": "Split squat",
+      "howTo": "Long stride stance. Lower the back knee straight down towards the floor, front shin roughly vertical, then push up through the front foot. Switch legs after the set."
+    },
+    "bulgarian_split_squat": {
+      "name": "Bulgarian split squat",
+      "howTo": "Rear foot on a bench behind you. Lower until the front thigh is about parallel, torso slightly forward, then drive up through the front heel."
+    },
+    "deadlift": {
+      "name": "Deadlift",
+      "howTo": "Bar over mid-foot, hip-width stance. Hinge to grip the bar, flat back, shoulders over the bar. Push the floor away and stand up tall, then lower with control."
+    },
+    "romanian_deadlift": {
+      "name": "Romanian deadlift",
+      "howTo": "Stand tall with the weight. Push your hips back with soft knees, sliding the weight down your thighs until you feel the hamstrings stretch, then drive the hips forward."
+    },
+    "single_leg_rdl": {
+      "name": "Single-leg Romanian deadlift",
+      "howTo": "Stand on one leg. Hinge forward while the free leg reaches back, hips square, back flat. Return to standing by squeezing the glute of the standing leg."
+    },
+    "hip_thrust": {
+      "name": "Hip thrust",
+      "howTo": "Upper back on a bench, weight across your hips, feet flat. Drive the hips up until your body is straight from shoulders to knees, pause, lower with control."
+    },
+    "glute_bridge": {
+      "name": "Glute bridge",
+      "howTo": "Lie on your back, knees bent, feet flat. Press through your heels and lift the hips until shoulders, hips and knees line up, squeeze, then lower."
+    },
+    "kettlebell_swing": {
+      "name": "Kettlebell swing",
+      "howTo": "Hike the bell back between your legs, then snap the hips forward to float it to chest height. Power comes from the hips, not the arms."
+    },
+    "good_morning": {
+      "name": "Good morning",
+      "howTo": "Bar on your upper back, soft knees. Push the hips back and lower your torso with a flat back until you feel the hamstrings, then return to standing."
+    },
+    "walking_lunge": {
+      "name": "Walking lunge",
+      "howTo": "Step forward into a lunge, back knee close to the floor, then step through into the next lunge with the other leg. Keep your torso upright."
+    },
+    "reverse_lunge": {
+      "name": "Reverse lunge",
+      "howTo": "Step one foot back and lower the back knee towards the floor. Push through the front foot to return. Alternate legs or finish one side first."
+    },
+    "step_up": {
+      "name": "Step-up",
+      "howTo": "Place one foot fully on a box or bench. Drive through that foot to stand up on top without pushing off the back leg, then step down slowly."
+    },
+    "lateral_lunge": {
+      "name": "Lateral lunge",
+      "howTo": "Take a wide step to the side and sit into that hip, keeping the other leg straight and both feet flat. Push back to the start."
+    },
+    "pistol_squat_progression": {
+      "name": "Pistol squat progression",
+      "howTo": "Stand on one leg, the other leg forward. Squat down as far as you control – to a box or holding a support at first – then stand up."
+    },
+    "standing_calf_raise": {
+      "name": "Standing calf raise",
+      "howTo": "Balls of your feet on a step. Rise as high as you can, pause, then lower the heels slowly below the step."
+    },
+    "bent_knee_calf_raise": {
+      "name": "Bent-knee calf raise",
+      "howTo": "Same as a calf raise but with the knees bent about 30°, which targets the soleus – important for runners."
+    },
+    "tibialis_raise": {
+      "name": "Tibialis raise",
+      "howTo": "Lean your back against a wall, heels about a foot away. Lift your toes as high as you can, then lower slowly."
+    },
+    "single_leg_hops": {
+      "name": "Single-leg hops in place",
+      "howTo": "Small, quick hops on one foot staying on the ball of the foot, knee slightly bent. Stay springy and quiet."
+    },
+    "bench_press": {
+      "name": "Bench press",
+      "howTo": "Lie on the bench, eyes under the bar, shoulder blades squeezed together. Lower the bar to mid-chest with control, then press it back up."
+    },
+    "dumbbell_press": {
+      "name": "Dumbbell press",
+      "howTo": "Lie on a bench with a dumbbell in each hand above your chest. Lower them to chest level, elbows at about 45°, then press up."
+    },
+    "incline_press": {
+      "name": "Incline press",
+      "howTo": "Bench set to 30–45°. Lower the weight to your upper chest and press it back up over your shoulders."
+    },
+    "push_up": {
+      "name": "Push-up",
+      "howTo": "Hands slightly wider than shoulders, body in a straight line. Lower your chest to just above the floor, then push back up."
+    },
+    "feet_elevated_push_up": {
+      "name": "Feet-elevated push-up",
+      "howTo": "Like a push-up with your feet on a bench or chair. Keep the body straight and lower your chest towards the floor."
+    },
+    "archer_push_up": {
+      "name": "Archer push-up",
+      "howTo": "Very wide hands. Lower towards one hand while the other arm stays almost straight, push back up and alternate sides."
+    },
+    "dips": {
+      "name": "Dips",
+      "howTo": "Support yourself on parallel bars or a sturdy bench. Lower until your shoulders are just below the elbows, then press back up."
+    },
+    "overhead_press": {
+      "name": "Overhead press",
+      "howTo": "Bar on the front of your shoulders, glutes and core tight. Press straight overhead, moving your head back slightly, finish with arms locked."
+    },
+    "dumbbell_shoulder_press": {
+      "name": "Dumbbell shoulder press",
+      "howTo": "Seated or standing, dumbbells at shoulder height. Press them overhead until the arms are straight, then lower with control."
+    },
+    "pike_push_up": {
+      "name": "Pike push-up",
+      "howTo": "Hips high in an inverted V. Bend the elbows to lower the top of your head towards the floor, then push back up."
+    },
+    "lateral_raise": {
+      "name": "Lateral raise",
+      "howTo": "Light dumbbells at your sides. Raise them out to shoulder height with slightly bent elbows, then lower slowly."
+    },
+    "barbell_row": {
+      "name": "Barbell row",
+      "howTo": "Hinge forward with a flat back. Pull the bar to your lower ribs, squeezing the shoulder blades, then lower with control."
+    },
+    "dumbbell_row": {
+      "name": "Dumbbell row",
+      "howTo": "One hand and knee on a bench. Pull the dumbbell towards your hip, elbow close to the body, then lower fully."
+    },
+    "seated_cable_row": {
+      "name": "Seated cable row",
+      "howTo": "Sit tall with a slight knee bend. Pull the handle to your stomach, shoulders down and back, then let the arms extend slowly."
+    },
+    "inverted_row": {
+      "name": "Inverted row",
+      "howTo": "Hang under a bar or sturdy table, body straight, heels on the floor. Pull your chest to the bar, then lower with control."
+    },
+    "face_pull": {
+      "name": "Face pull",
+      "howTo": "Rope or band at face height. Pull towards your forehead, elbows high and wide, then return slowly."
+    },
+    "pull_up": {
+      "name": "Pull-up",
+      "howTo": "Hang with an overhand grip slightly wider than shoulders. Pull your chest towards the bar, then lower all the way with control."
+    },
+    "chin_up": {
+      "name": "Chin-up",
+      "howTo": "Like a pull-up with palms facing you and hands shoulder-width. Pull your chin over the bar."
+    },
+    "lat_pulldown": {
+      "name": "Lat pulldown",
+      "howTo": "Sit with thighs under the pad. Pull the bar to your upper chest, leading with the elbows, then let it rise slowly."
+    },
+    "band_assisted_pull_up": {
+      "name": "Band-assisted pull-up",
+      "howTo": "Loop a band over the bar and put a knee or foot in it. Do pull-ups with the band's help; use lighter bands as you get stronger."
+    },
+    "biceps_curl": {
+      "name": "Biceps curl",
+      "howTo": "Elbows by your sides. Curl the weight up without swinging, squeeze, then lower slowly."
+    },
+    "hammer_curl": {
+      "name": "Hammer curl",
+      "howTo": "Like a biceps curl with palms facing each other throughout."
+    },
+    "triceps_pushdown": {
+      "name": "Triceps pushdown",
+      "howTo": "At a cable station, elbows pinned to your sides. Push the bar or rope down until the arms are straight, then let it rise."
+    },
+    "overhead_triceps_extension": {
+      "name": "Overhead triceps extension",
+      "howTo": "Hold one weight overhead with both hands. Lower it behind your head by bending the elbows, then extend back up."
+    },
+    "plank": {
+      "name": "Plank",
+      "howTo": "Forearms under your shoulders, body straight from head to heels. Brace your stomach and hold without letting the hips sag."
+    },
+    "side_plank": {
+      "name": "Side plank",
+      "howTo": "On one forearm, feet stacked. Lift the hips so your body forms a straight line and hold. Switch sides."
+    },
+    "dead_bug": {
+      "name": "Dead bug",
+      "howTo": "On your back, arms up, knees over hips. Slowly lower the opposite arm and leg while keeping your lower back on the floor, then switch."
+    },
+    "bird_dog": {
+      "name": "Bird dog",
+      "howTo": "On hands and knees, reach one arm forward and the opposite leg back until straight. Hold briefly, keep the hips level, switch sides."
+    },
+    "pallof_press": {
+      "name": "Pallof press",
+      "howTo": "Stand side-on to a cable or band at chest height. Press the handle straight out and resist the pull to rotate, then bring it back."
+    },
+    "hanging_knee_raise": {
+      "name": "Hanging knee raise",
+      "howTo": "Hang from a bar. Raise your knees towards your chest without swinging, then lower slowly."
+    },
+    "copenhagen_plank": {
+      "name": "Copenhagen plank",
+      "howTo": "Side plank with the top leg on a bench and the bottom leg free. Hold the hips up – a strong exercise for the adductors."
+    },
+    "ab_wheel": {
+      "name": "Ab wheel rollout",
+      "howTo": "Kneel holding the wheel. Roll forward as far as you can keep your back flat, then pull back using your core."
+    },
+    "pogo_hops": {
+      "name": "Pogo hops",
+      "howTo": "Quick, small two-footed jumps on the balls of your feet with stiff ankles, minimal ground contact time."
+    },
+    "box_jump": {
+      "name": "Box jump",
+      "howTo": "Swing your arms and jump onto a box, landing softly in a quarter squat. Step down – don't jump down."
+    },
+    "broad_jump": {
+      "name": "Broad jump",
+      "howTo": "Swing your arms and jump forward as far as you can, landing softly on both feet. Reset before each jump."
+    },
+    "bounding": {
+      "name": "Bounding",
+      "howTo": "Exaggerated running strides: drive the knee up and push off powerfully, spending as long as possible in the air."
+    },
+    "a_skips": {
+      "name": "A-skips",
+      "howTo": "Skip forward lifting one knee to hip height while the other foot strikes the ground under your hips. Rhythmic and light."
+    },
+    "hip_flexor_stretch": {
+      "name": "Hip flexor stretch",
+      "howTo": "Half-kneeling, tuck your pelvis and shift forward until you feel a stretch at the front of the back hip. Hold, then switch."
+    },
+    "ankle_dorsiflexion": {
+      "name": "Ankle dorsiflexion",
+      "howTo": "Half-kneeling facing a wall. Drive the front knee towards the wall without lifting the heel, then return."
+    },
+    "thoracic_rotation": {
+      "name": "Thoracic rotation",
+      "howTo": "On all fours, one hand behind your head. Rotate the elbow down and then up towards the ceiling, following it with your eyes."
+    },
+    "hips_90_90": {
+      "name": "90/90 hips",
+      "howTo": "Sit with both knees bent at 90°, one in front, one to the side. Rotate the knees to the other side without using your hands."
+    },
+    "hamstring_floss": {
+      "name": "Hamstring floss",
+      "howTo": "Lie on your back holding one leg behind the thigh. Straighten and bend the knee slowly while pointing and flexing the foot."
     }
   }
 }

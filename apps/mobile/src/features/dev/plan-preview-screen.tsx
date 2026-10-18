@@ -3,7 +3,10 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
-import { Badge, Card, Screen, SegmentedControl, spacing, Text, useTheme } from '@/ui';
+import { router } from 'expo-router';
+
+import { useActiveWorkoutStore } from '@/features/strength/active-workout-store';
+import { Badge, Button, Card, Screen, SegmentedControl, spacing, Text, useTheme } from '@/ui';
 
 import { PLAN_PRESETS, PREVIEW_START, type PresetId } from './plan-presets';
 
@@ -104,6 +107,17 @@ function WorkoutRow({ workout: w }: { workout: Workout }) {
       {w.notes.map((note, i) => (
         <NoteText key={`${note.key}-${i}`} note={note} />
       ))}
+      {w.sport === 'strength' ? (
+        <Button
+          small
+          variant="secondary"
+          label={t('dev.planPreview.openStrength')}
+          onPress={() => {
+            useActiveWorkoutStore.getState().setWorkout(w);
+            router.push('/strength/workout');
+          }}
+        />
+      ) : null}
     </View>
   );
 }

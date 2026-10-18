@@ -1,6 +1,7 @@
 import { assertDefined } from '../result';
 import { planConfig } from './config';
-import { getExercise, getTemplate, splits } from './library';
+import { getTemplate, resolveExercise, splits, type CustomExercise } from './library';
+import { adaptToEquipment } from './strength-equipment';
 import type {
   LegLoad,
   Phase,
@@ -62,13 +63,18 @@ function fromTemplate(
 /** User routine → session; untagged custom exercises count as light legs (§8.3). */
 export function routineSession(
   routine: Routine,
+  custom: readonly CustomExercise[] = [],
 ): Omit<StrengthSlot, 'legScale' | 'upperScale' | 'durationFactor'> {
   const exercises = routine.exercises.map((e, i) => ({
     exerciseId: e.exerciseId ?? `custom:${routine.id}:${i}`,
     sets: e.sets,
     reps: e.reps,
+    weightKg: e.weightKg,
+    restSec: e.restSec,
     legLoad:
-      e.legLoad ?? (e.exerciseId ? getExercise(e.exerciseId)?.legLoad : undefined) ?? 'light',
+      e.legLoad ??
+      (e.exerciseId ? resolveExercise(e.exerciseId, custom)?.legLoad : undefined) ??
+      'light',
   }));
   const loads = exercises.map((e) => e.legLoad);
   const legLoad: LegLoad = loads.includes('heavy')
@@ -110,7 +116,7 @@ export function planStrengthWeek(setup: StrengthSetup, ctx: StrengthWeekContext)
   let rotation = ctx.rotation;
   if (setup.mode === 'peakr') {
     const wanted = setup.daysPerWeek ?? cfg.peakrPerWeek[phase];
-    const equipment = setup.equipment ?? 'home';
+    const equipment = setup.equipment === 'gym' ? 'gym' : 'home';
     const id =
       phase === 'taper'
         ? 'core_mobility'
@@ -134,8 +140,19 @@ export function planStrengthWeek(setup: StrengthSetup, ctx: StrengthWeekContext)
     }
   } else if (setup.mode === 'routines' && setup.routines && setup.routines.length > 0) {
     const count = Math.min(setup.daysPerWeek ?? setup.routines.length, ctx.maxSessions);
-    sessions = rotate(setup.routines, rotation, count).map(routineSession);
+    sessions = rotate(setup.routines, rotation, count).map((r) =>
+      routineSession(r, setup.customExercises),
+    );
     rotation = (rotation + count) % setup.routines.length;
+  }
+
+  // Programme and split sessions follow the user's equipment; own routines stay as built.
+  if (setup.mode === 'peakr' || setup.mode === 'split') {
+    const setting = setup.equipment ?? 'gym';
+    sessions = sessions.map((s) => {
+      const adapted = adaptToEquipment(s.def, s.legLoad, setting);
+      return adapted.changed ? { ...s, def: adapted.def, legLoad: adapted.legLoad } : s;
+    });
   }
 
   if (

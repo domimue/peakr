@@ -31,16 +31,41 @@ export { paceZonesFromBoundaries, ZONE_NUMBERS, type PaceZone, type ZoneNumber }
 export { planConfig, type PlanConfig } from './plan/config';
 export { generatePlan, type PlanField } from './plan/generate';
 export {
+  CUSTOM_PREFIX,
+  EQUIPMENT,
+  EXERCISE_PATTERNS,
   exercises,
   getExercise,
   getTemplate,
+  hasEquipmentFor,
+  LOWER_BODY_PATTERNS,
+  nextVariation,
+  progressionChains,
+  resolveExercise,
   splits,
+  validateCustomExercise,
   workoutLibrary,
+  type CustomExercise,
+  type CustomExerciseField,
+  type CustomExerciseInput,
   type Equipment,
   type Exercise,
   type ExercisePattern,
   type SplitDef,
 } from './plan/library';
+export { adaptToEquipment, equipmentFor, type AdaptedSession } from './plan/strength-equipment';
+export {
+  prefillExercise,
+  summarizeStrengthLog,
+  type ExercisePrefill,
+  type PlannedSet,
+  type PrefillOptions,
+  type SetLog,
+  type StrengthLog,
+  type StrengthLogSummary,
+} from './plan/strength-log';
+export { planStrengthWeek, routineSession, type StrengthSlot } from './plan/strength-plan';
+export { defaultRestSec, parseReps, type RepRange } from './plan/strength-reps';
 export { isHardEndurance, isHardOnItsOwn } from './plan/classify';
 export { hardShare, strengthLoad, stepLoad } from './plan/load';
 export {
