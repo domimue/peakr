@@ -8,7 +8,7 @@ export default function PlanScreen() {
   return (
     <Screen title={t('plan.title')}>
       <Text tone="secondary">{t('plan.empty')}</Text>
-      <Button label={t('plan.startQuiz')} onPress={() => router.push('/onboarding/strength')} />
+      <Button label={t('plan.startQuiz')} onPress={() => router.push('/onboarding')} />
     </Screen>
   );
 }

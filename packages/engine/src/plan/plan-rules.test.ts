@@ -132,6 +132,17 @@ describe('generatePlan rules over the fixture grid', () => {
     for (const day of days(plan)) expect(day.filter(isHardEndurance).length).toBeLessThanOrEqual(1);
   });
 
+  each('never repeats the same strength session on consecutive days', ({ plan }) => {
+    for (const week of plan.weeks) {
+      for (const w of week.workouts.filter((x) => x.sport === 'strength')) {
+        const next = week.workouts.filter(
+          (x) => x.sport === 'strength' && x.weekday === w.weekday + 1,
+        );
+        expect(next.map((x) => x.templateId)).not.toContain(w.templateId);
+      }
+    }
+  });
+
   each('never has hard days back to back (across weeks too)', ({ plan }) => {
     const hard = days(plan).map((day) => day.some((w) => w.hard));
     hard.forEach((h, i) => {

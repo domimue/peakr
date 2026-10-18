@@ -130,6 +130,18 @@ describe('generatePlan – plan shape', () => {
     ]);
   });
 
+  it('race goals without a date get the recommended preparation, ending with the taper', () => {
+    const marathon = plan(runner, { kind: 'marathon' }, week, '2026-10-19');
+    expect(marathon.weeks).toHaveLength(14);
+    expect(marathon.weeks.at(-1)?.phase).toBe('taper');
+    expect(marathon.targetDate).toBeNull();
+    expect(marathon.notes).toEqual([{ key: 'notes.noRaceDate', params: { weeks: 14 } }]);
+    // Shorter recommendations use the default plan length.
+    const fiveK = plan(runner, { kind: '5k' }, week, '2026-10-19');
+    expect(fiveK.weeks).toHaveLength(12);
+    expect(fiveK.notes).toEqual([{ key: 'notes.noRaceDate', params: { weeks: 12 } }]);
+  });
+
   it('labels recovery and taper weeks and fills workouts with steps, targets and why texts', () => {
     const p = plan(runner, { kind: 'half' }, week, '2026-10-19', '2027-01-17');
     expect(p.weeks.find((w) => w.isRecovery)?.notes[0]).toEqual({ key: 'notes.recoveryWeek' });
