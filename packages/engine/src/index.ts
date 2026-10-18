@@ -1,0 +1,1 @@
+export { estimateHrMax } from './hr';
