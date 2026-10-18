@@ -18,10 +18,6 @@ export default function TabsLayout() {
         <NativeTabs.Trigger.Label>{t('tabs.plan')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="calendar" md="calendar_month" />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="tools">
-        <NativeTabs.Trigger.Label>{t('tabs.tools')}</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="function" md="calculate" />
-      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <NativeTabs.Trigger.Label>{t('tabs.profile')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="person.crop.circle" md="person" />
