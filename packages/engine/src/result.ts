@@ -7,7 +7,14 @@ export type ValidationCode =
   | 'lthrNotBelowHrMax'
   | 'unrealisticRaceTime'
   | 'swim400NotSlowerThan200'
-  | 'swimTimesInconsistent';
+  | 'swimTimesInconsistent'
+  | 'invalidDate'
+  | 'targetNotAfterStart'
+  | 'planTooLong'
+  | 'sportsRequired'
+  | 'goalNeedsSports'
+  | 'notEnoughAvailability'
+  | 'underageWeightLoss';
 
 export interface ValidationIssue<F extends string> {
   field: F;

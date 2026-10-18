@@ -1,0 +1,376 @@
+import { assertDefined } from '../result';
+import { planConfig } from './config';
+import type { GoalKind, Phase, PlanNote, SlotRole, Sport, UserProfile } from './types';
+
+const sessions = planConfig.sessions;
+
+/** One session the week should contain, in fill priority order (WORKOUTS.md §9). */
+export interface Slot {
+  role: SlotRole;
+  sport: Sport | 'brick';
+  templateId: string;
+  /** Levelled sessions: this many levels below the current one (taper openers, short VO2). */
+  levelDrop?: number;
+  /** Levelled sessions: never above this level (light quality for fitness goals). */
+  maxLevel?: number;
+  note?: PlanNote;
+  /** Placed instead when this slot does not fit (benchmark → the normal key session). */
+  fallback?: Slot;
+}
+
+export type GoalFamily = 'run' | 'bike' | 'swim' | 'multisport' | 'fitness';
+
+export function goalFamily(goal: GoalKind): GoalFamily {
+  switch (goal) {
+    case '5k':
+    case '10k':
+    case 'half':
+    case 'marathon':
+      return 'run';
+    case 'granfondo':
+      return 'bike';
+    case 'swim':
+      return 'swim';
+    case 'fitness':
+    case 'weightloss':
+      return 'fitness';
+    default:
+      return 'multisport';
+  }
+}
+
+/** Disciplines a goal needs (triathlon: all three). Fitness goals accept any combination. */
+export function requiredSports(goal: GoalKind): Sport[] {
+  const family = goalFamily(goal);
+  if (family === 'fitness') return [];
+  if (family === 'multisport')
+    return goal === 'duathlon' ? ['bike', 'run'] : ['swim', 'bike', 'run'];
+  return [family];
+}
+
+/**
+ * Share of endurance time per selected discipline: goal split (triathlon 20/45/35, duathlon) or
+ * the goal sport with `primaryShare` and the rest evenly; fitness goals split evenly. Time moves
+ * from the strongest to the weakest discipline if one is named.
+ */
+export function sportShares(goal: GoalKind, profile: UserProfile): Record<Sport, number> {
+  const cfg = planConfig.multisport;
+  const required = requiredSports(goal);
+  const extra = profile.sports.filter((s) => !required.includes(s));
+  const shares: Record<Sport, number> = { run: 0, bike: 0, swim: 0 };
+  const requiredTotal = required.length === 0 ? 0 : extra.length === 0 ? 1 : cfg.primaryShare;
+  const base: Partial<Record<Sport, number>> =
+    goal === 'duathlon' ? cfg.split.duathlon : required.length === 3 ? cfg.split.tri : {};
+  for (const s of required) shares[s] = (base[s] ?? 1) * requiredTotal;
+  for (const s of extra) shares[s] = (1 - requiredTotal) / extra.length;
+
+  const weakest = profile.weakestSport;
+  if (weakest && shares[weakest] > 0) {
+    const strongest = (Object.keys(shares) as Sport[]).reduce((a, b) =>
+      shares[b] > shares[a] ? b : a,
+    );
+    if (strongest !== weakest) {
+      const shift = Math.min(cfg.weakestShift, shares[strongest]);
+      shares[strongest] -= shift;
+      shares[weakest] += shift;
+    }
+  }
+  return shares;
+}
+
+export interface CompositionContext {
+  goal: GoalKind;
+  profile: UserProfile;
+  phase: Phase;
+  /** 0-based plan week. */
+  weekIndex: number;
+  isRecovery: boolean;
+  /** True in the last week of the taper (race week). */
+  raceWeek: boolean;
+  /** Days with at least the minimum session length. */
+  trainingDays: number;
+  /** CSS sets allowed (400 m continuous, technique-first for beginners done). */
+  cssAllowed: boolean;
+  /** Replace key sessions with benchmark tests this week. */
+  benchmark: boolean;
+  /** 0-based count of build/peak weeks so far (brick cadence for sprint triathlons). */
+  buildWeekIndex: number;
+}
+
+const slot = (
+  role: SlotRole,
+  sport: Sport | 'brick',
+  templateId: string,
+  extra: Partial<Slot> = {},
+): Slot => ({
+  role,
+  sport,
+  templateId,
+  ...extra,
+});
+
+export const EASY_TEMPLATE: Record<Sport | 'brick', string> = {
+  run: 'run.easy',
+  bike: 'bike.endurance',
+  swim: 'swim.aerobic',
+  brick: 'bike.endurance',
+};
+
+const repeat = (n: number, s: Slot): Slot[] => Array.from({ length: Math.max(0, n) }, () => s);
+
+function runTemplates(ctx: CompositionContext) {
+  const { phase, weekIndex, goal, profile } = ctx;
+  const flat = profile.terrain === 'flat';
+  const odd = weekIndex % 2 === 1;
+  const hilly = profile.terrain === 'hilly' || profile.terrain === 'mountainous';
+  const vo2Ready = weekIndex >= 4;
+  const vo2 = vo2Ready ? (hilly ? 'run.vo2_intervals_time' : 'run.vo2_intervals') : 'run.tempo';
+  const marathonish = goal === 'half' || goal === 'marathon';
+  const strides = phase !== 'base' || weekIndex + 1 >= sessions.stridesFromWeek;
+  return {
+    marathonish,
+    vo2,
+    easy: slot('easy', 'run', 'run.easy'),
+    strides: slot('easy', 'run', strides ? 'run.easy_strides' : 'run.easy'),
+    fartlekOrHills: slot('key', 'run', !flat && odd ? 'run.hills_short' : 'run.fartlek'),
+    tempo: slot('key', 'run', phase === 'build' && !flat && odd ? 'run.hills_long' : 'run.tempo'),
+    racePace: goal === 'half' ? 'run.race_pace_hm' : 'run.race_pace_m',
+    long: slot('long', 'run', 'run.long'),
+  };
+}
+
+function runGoalSlots(ctx: CompositionContext, n: number): Slot[] {
+  const t = runTemplates(ctx);
+  const easyCount = (fixed: number) => repeat(n - fixed, t.easy);
+  switch (ctx.phase) {
+    case 'base':
+      return [t.long, t.fartlekOrHills, t.strides, ...easyCount(3)];
+    case 'build':
+      if (n <= 3) return [t.long, t.tempo, t.easy];
+      if (n === 4) return [t.long, t.tempo, t.easy, t.strides];
+      return [
+        t.long,
+        t.tempo,
+        slot('quality', 'run', t.marathonish ? 'run.progression' : t.vo2),
+        t.strides,
+        ...easyCount(4),
+      ];
+    case 'peak':
+      if (n <= 3) {
+        return [t.marathonish ? slot('long', 'run', t.racePace) : t.long, t.tempo, t.easy];
+      }
+      return [
+        t.long,
+        t.tempo,
+        slot('quality', 'run', t.marathonish ? t.racePace : t.vo2),
+        ...easyCount(3),
+      ];
+    default: {
+      // Taper: short sharp session, strides, short easy runs; race week drops the long run.
+      const sharp = slot('key', 'run', t.marathonish ? 'run.tempo' : t.vo2, { levelDrop: 2 });
+      if (ctx.raceWeek) return [sharp, t.strides, ...repeat(n - 3, t.easy)];
+      return [t.long, sharp, t.strides, ...easyCount(3)];
+    }
+  }
+}
+
+function bikeGoalSlots(ctx: CompositionContext, n: number): Slot[] {
+  const { phase, weekIndex, profile } = ctx;
+  const odd = weekIndex % 2 === 1;
+  const climbOk = profile.terrain !== 'flat';
+  const long = slot('long', 'bike', 'bike.long');
+  const endurance = slot('easy', 'bike', 'bike.endurance');
+  const fill = (fixed: number) => repeat(n - fixed, endurance);
+  const opener = slot('key', 'bike', 'bike.vo2', { levelDrop: 2 });
+  switch (phase) {
+    case 'base':
+      return [
+        long,
+        slot('key', 'bike', odd ? 'bike.tempo' : 'bike.sweetspot'),
+        slot('easy', 'bike', 'bike.cadence'),
+        ...fill(3),
+      ];
+    case 'build':
+      return [
+        long,
+        slot('key', 'bike', 'bike.threshold'),
+        slot('quality', 'bike', climbOk && odd ? 'bike.climb' : 'bike.vo2'),
+        ...fill(3),
+      ];
+    case 'peak':
+      return [
+        long,
+        slot('key', 'bike', climbOk && odd ? 'bike.climb' : 'bike.threshold'),
+        slot('quality', 'bike', 'bike.vo2', { levelDrop: 1 }),
+        slot('easy', 'bike', 'bike.recovery'),
+        ...fill(4),
+      ];
+    default:
+      if (ctx.raceWeek) return [opener, endurance];
+      return [long, opener, ...fill(2)];
+  }
+}
+
+function swimSlots(ctx: CompositionContext, n: number): Slot[] {
+  const key = slot('key', 'swim', ctx.cssAllowed ? 'swim.css' : 'swim.technique');
+  const technique = slot('technique', 'swim', 'swim.technique');
+  const aerobic = slot('easy', 'swim', 'swim.aerobic');
+  const fill = (fixed: number) => repeat(n - fixed, aerobic);
+  const speed = slot('quality', 'swim', 'swim.speed');
+  switch (ctx.phase) {
+    case 'base':
+      return [key, technique, aerobic, ...fill(3)];
+    case 'build':
+      return [key, speed, aerobic, technique, ...fill(4)];
+    case 'peak': {
+      const ow = ctx.profile.poolLength === 'openwater';
+      return [
+        key,
+        speed,
+        ow ? slot('quality', 'swim', 'swim.openwater') : aerobic,
+        technique,
+        ...fill(4),
+      ];
+    }
+    default:
+      return [
+        slot('key', 'swim', 'swim.speed', { levelDrop: 2 }),
+        technique,
+        ...repeat(n - 2, aerobic),
+      ];
+  }
+}
+
+function multisportSlots(ctx: CompositionContext): Slot[] {
+  const { phase, goal, isRecovery, buildWeekIndex } = ctx;
+  const tri = goal !== 'duathlon';
+  const shares = sportShares(goal, ctx.profile);
+  const t = runTemplates(ctx);
+  const buildOrPeak = phase === 'build' || phase === 'peak';
+  const brickWeek =
+    buildOrPeak &&
+    !isRecovery &&
+    (goal !== 'tri_sprint' || buildWeekIndex % sessions.sprintBrickEvery === 0);
+  const taper = phase === 'taper';
+  const drop = taper ? { levelDrop: 2 } : {};
+
+  const bikeKey = brickWeek
+    ? slot('brick', 'brick', 'brick')
+    : slot(
+        'key',
+        'bike',
+        phase === 'base' ? 'bike.sweetspot' : taper ? 'bike.vo2' : 'bike.threshold',
+        drop,
+      );
+  const runKey =
+    phase === 'base'
+      ? t.fartlekOrHills
+      : slot('key', 'run', taper ? 'run.tempo' : t.tempo.templateId, drop);
+  const swimKey = slot(
+    'key',
+    'swim',
+    taper ? 'swim.speed' : ctx.cssAllowed ? 'swim.css' : 'swim.technique',
+    drop,
+  );
+
+  // Priority: brick (needs the biggest day), long sessions, then one key session per discipline.
+  const longs = ctx.raceWeek ? [] : [slot('long', 'bike', 'bike.long'), t.long];
+  const keys = [...(tri ? [swimKey] : []), ...(brickWeek ? [] : [bikeKey]), runKey];
+  const easies: Slot[] = [
+    ...(tri ? [slot('technique', 'swim', 'swim.technique')] : []),
+    t.strides,
+    slot('easy', 'bike', phase === 'base' ? 'bike.cadence' : 'bike.endurance'),
+  ];
+  if (!taper) {
+    if (shares.run >= 0.35) easies.push(t.easy);
+    easies.push(slot('easy', 'bike', 'bike.endurance'));
+    if (tri) easies.push(slot('easy', 'swim', 'swim.aerobic'));
+  }
+  return [...(brickWeek ? [bikeKey] : []), ...longs, ...keys, ...easies];
+}
+
+function fitnessSlots(ctx: CompositionContext, n: number): Slot[] {
+  const { profile, weekIndex } = ctx;
+  const sports = profile.sports;
+  const longSport =
+    profile.longSessionSport && sports.includes(profile.longSessionSport)
+      ? profile.longSessionSport
+      : sports.includes('run')
+        ? 'run'
+        : assertDefined(sports[0], 'sport');
+  const long =
+    longSport === 'swim'
+      ? slot('long', 'swim', 'swim.aerobic')
+      : slot('long', longSport, `${longSport}.long`);
+  const result: Slot[] = [long];
+
+  if (weekIndex + 1 >= sessions.fitnessQualityFromWeek) {
+    const sport = assertDefined(sports[weekIndex % sports.length], 'sport');
+    const templateId =
+      sport === 'run'
+        ? weekIndex % 2 === 0
+          ? 'run.fartlek'
+          : 'run.tempo'
+        : sport === 'bike'
+          ? 'bike.sweetspot'
+          : ctx.cssAllowed
+            ? 'swim.css'
+            : 'swim.technique';
+    result.push(slot('key', sport, templateId, { maxLevel: sessions.fitnessQualityMaxLevel }));
+  }
+
+  // Easy sessions round-robin over the selected sports, starting after the long-session sport.
+  const order = [...sports.filter((s) => s !== longSport), longSport];
+  for (let i = 0; result.length < n; i++) {
+    const sport = assertDefined(order[i % order.length], 'sport');
+    result.push(
+      slot(
+        'easy',
+        sport,
+        sport === 'swim' && i % 2 === 1 ? 'swim.technique' : EASY_TEMPLATE[sport],
+      ),
+    );
+  }
+  return result;
+}
+
+/** Replaces the key session of each tested discipline with its benchmark (WORKOUTS.md §7). */
+function withBenchmarks(slots: Slot[], ctx: CompositionContext, raceGoal: boolean): Slot[] {
+  const tests: Partial<Record<Sport, string>> = {
+    run: raceGoal ? 'bench.run_5k' : 'bench.run_30min',
+    ...(ctx.profile.hasPowerMeter ? { bike: 'bench.bike_ftp20' } : {}),
+    ...(ctx.cssAllowed ? { swim: 'bench.swim_css' } : {}),
+  };
+  const done = new Set<string>();
+  return slots.map((s) => {
+    const test = s.sport === 'brick' ? undefined : tests[s.sport];
+    if (s.role !== 'key' || !test || done.has(s.sport)) return s;
+    done.add(s.sport);
+    return slot('benchmark', s.sport, test, { note: { key: 'notes.benchmark' }, fallback: s });
+  });
+}
+
+/**
+ * The week's sessions in fill priority order (long → key → second quality → easy). Strength is
+ * added by the scheduler; the scheduler drops what does not fit the availability.
+ */
+export function composeWeek(ctx: CompositionContext, raceGoal: boolean): Slot[] {
+  const family = goalFamily(ctx.goal);
+  const n = Math.min(sessions.perWeek[ctx.profile.experience], ctx.trainingDays);
+  let slots: Slot[];
+  if (family === 'run') slots = runGoalSlots(ctx, n);
+  else if (family === 'bike') slots = bikeGoalSlots(ctx, n);
+  else if (family === 'swim') slots = swimSlots(ctx, n);
+  else if (family === 'multisport') slots = multisportSlots(ctx);
+  else slots = fitnessSlots(ctx, n);
+
+  if (family !== 'multisport' && family !== 'fitness') {
+    slots = slots.slice(0, Math.max(n, 2));
+    // Cross-training: one easy session per other selected discipline.
+    for (const sport of ctx.profile.sports) {
+      if (sport !== family)
+        slots.push(slot('easy', sport, sport === 'swim' ? 'swim.technique' : EASY_TEMPLATE[sport]));
+    }
+  }
+  return ctx.benchmark ? withBenchmarks(slots, ctx, raceGoal) : slots;
+}

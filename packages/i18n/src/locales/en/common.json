@@ -62,6 +62,13 @@
     "lthrNotBelowHrMax": "Threshold heart rate must be below your max heart rate ({{hrMax}} bpm).",
     "unrealisticRaceTime": "This time looks unrealistic for the distance. Enter a time between {{min}} and {{max}}.",
     "swim400NotSlowerThan200": "Your 400 m pace must be slower than your 200 m pace. Please check both times.",
-    "swimTimesInconsistent": "These times are very far apart. Were both swims all-out efforts?"
+    "swimTimesInconsistent": "These times are very far apart. Were both swims all-out efforts?",
+    "invalidDate": "Enter a valid date.",
+    "targetNotAfterStart": "The target date must be after the start date.",
+    "planTooLong": "Plans can be at most {{max}} weeks long. Choose an earlier target date.",
+    "sportsRequired": "Choose at least one sport.",
+    "goalNeedsSports": "This goal needs all of its disciplines – for a triathlon swim, bike and run.",
+    "notEnoughAvailability": "Plan at least 2 days with 20 minutes or more.",
+    "underageWeightLoss": "The weight-loss goal is only available from age {{min}}."
   }
 }
