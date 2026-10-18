@@ -6,8 +6,9 @@
 A mobile app for **Android and iOS** that covers everything around fitness and weight loss: it generates **hybrid training plans** (running, cycling and swimming – any combination up to triathlon – plus strength) from the user's goal and weekly time availability, driven by **heart-rate zones**, aware of **terrain/elevation**, with an editable calendar – and, as a paid add-on, **nutrition and body tracking** that combines food intake with completed workouts into a real energy balance.
 
 ## Two surfaces, one account
-- **Website** (marketing + conversion): free calculators, the full quiz funnel with forecast, **checkout (Stripe)** and **account creation**. After paying, the user is sent to download the app and logs in there. The website is **not** for daily use of the plan.
+- **Website** (marketing + conversion): free calculators ("Tools"), the full quiz funnel with forecast, **checkout (Stripe)** and **account creation**. After paying, the user is sent to download the app and logs in there. The website is **not** for daily use of the plan.
 - **App** (Android first, iOS later): the actual product – plan, calendar, workouts, integrations, nutrition. A new user can also do **everything inside the app**: quiz, forecast, in-app purchase, login.
+- **The free calculators live on the website only.** The app has **no Tools tab and no free utilities**. Everything the calculators do is built into the plan instead: heart-rate zones, pace zones and swim CSS are computed during onboarding, shown with every workout, and can be **viewed and edited** in Profile → Training zones (change method, enter resting HR / LTHR / test results, override a zone; the plan recalculates). The only free parts of the app are the quiz, the forecast and the week-1 preview – everything after that needs an active subscription or running trial.
 - Both surfaces use the **same Supabase account** and the **same entitlements** (via RevenueCat), so a plan bought on the web unlocks immediately in the app, and vice versa.
 - The quiz is defined **once** in a shared package (questions, validation, branching, insights) and rendered by both web and app, so answers and forecast are identical.
 
@@ -19,8 +20,17 @@ A mobile app for **Android and iOS** that covers everything around fitness and w
 5. Success page → create account with the checkout email (magic link, Google or Apple) → the anonymous quiz answers and the generated plan are attached to that account.
 6. "Get the app" page: store badges + QR code + deep link. On first app login the plan is already there.
 
+### Website structure (public pages)
+- **Home** – positioning, how it works, the USPs, social proof later, main CTA "Build my plan".
+- **Features** – every feature of the app in sections (hybrid plan, heart-rate zones, terrain intelligence, calendar & real life, integrations, nutrition add-on "coming soon"), with screenshots.
+- **Pricing** – both tiers, monthly/yearly toggle, what the 7-day trial means (card upfront, charge date, cancel anytime), FAQ.
+- **Tools** – index page plus one page per calculator (heart-rate zones, Zone 2, pace & race predictor, swim CSS). Free, no login, each with an SEO text and a CTA into the quiz. These are the **only** place the calculators exist as standalone tools.
+- **Quiz funnel** – the shared quiz, forecast, paywall, checkout, success/"Get the app".
+- **Account** – login, subscription status, Stripe customer portal, account deletion request.
+- **Legal** – Impressum / legal notice (Swiss sole proprietorship: name, address, email), Privacy policy (GDPR/revDSG, Supabase, Stripe, Strava and other integrations, analytics), Terms of service (subscription, trial, auto-renewal, right of withdrawal), Cookie notice if analytics are used. Linked from the footer on every page.
+
 ### App-only flow
-Install → onboarding quiz (same shared package) → forecast → **in-app purchase** (Google Play / Apple) → login/account → plan.
+Install → onboarding quiz (same shared package) → forecast → **in-app purchase** (Google Play / Apple) → login/account → plan. No part of the plan, calendar, workouts or integrations is usable without a subscription or running trial; there is **no free tier** in the app.
 
 ### Store rules for web purchases (must respect)
 - The app may unlock subscriptions bought on the web (same account), but it must **also offer in-app purchase** and must **not link, button or steer** users from inside the app to the web checkout, except where a store explicitly allows it for that region (check current Google Play and App Store rules before adding any external link).
@@ -148,7 +158,7 @@ The engine must treat disciplines generically (a list of selected sports), never
 - **Health Connect / HealthKit**: read weight, steps, resting and active energy, workouts; write nutrition and workouts where allowed. Request only the permissions actually needed.
 
 ## Monetisation
-- **Free without subscription**: all calculators, the full onboarding quiz, the forecast and the preview of week 1.
+- **Free without subscription**: on the **website** the calculators ("Tools"), the full quiz and the forecast with the week-1 preview; in the **app** only the quiz, the forecast and that same week-1 preview. There is **no free tier and no free tools inside the app** – after the forecast the paywall is the only way forward.
 - **Two tiers** (one subscription group, so users can switch):
   - **Training** (target ~7.90/month or ~59/year): full plan, calendar editing, regeneration, pause, routes, integrations, exports.
   - **Training + Nutrition** (target ~11.90/month or ~89/year): everything in Training plus nutrition tracking with barcode scan, energy balance, body tracking. Until the nutrition part ships, this tier is shown as "coming soon".

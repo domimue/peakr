@@ -6,18 +6,30 @@ import { spacing, useTheme } from '../theme';
 import { Text } from './text';
 
 export interface ScreenProps {
-  title: string;
+  /** Large in-content title. Omit on screens that have a navigation header. */
+  title?: string;
   children?: ReactNode;
 }
 
 export function Screen({ title, children }: ScreenProps) {
   const { colors } = useTheme();
   return (
-    <SafeAreaView edges={['top']} style={[styles.root, { backgroundColor: colors.background }]}>
-      <ScrollView contentContainerStyle={styles.content}>
-        <Text variant="title" accessibilityRole="header">
-          {title}
-        </Text>
+    <SafeAreaView
+      // With a navigation header the header already handles the top inset.
+      edges={title ? ['top'] : []}
+      style={[styles.root, { backgroundColor: colors.background }]}
+    >
+      <ScrollView
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        contentInsetAdjustmentBehavior="automatic"
+      >
+        {title ? (
+          <Text variant="title" accessibilityRole="header">
+            {title}
+          </Text>
+        ) : null}
         {children}
       </ScrollView>
     </SafeAreaView>
@@ -26,5 +38,5 @@ export function Screen({ title, children }: ScreenProps) {
 
 const styles = StyleSheet.create({
   root: { flex: 1 },
-  content: { padding: spacing.md, gap: spacing.md },
+  content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
 });
