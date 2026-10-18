@@ -1,3 +1,4 @@
+import type { Result, ValidationIssue } from '../../result';
 import type { LegLoad } from '../types';
 
 /** Strength exercise starter library – WORKOUTS.md §8.6. Users can add custom exercises. */
@@ -30,6 +31,51 @@ export interface Exercise {
   howToKey: string;
   videoUrl?: string;
 }
+
+/** An exercise the user added; shown by its own `name` instead of an i18n key. */
+export interface CustomExercise extends Omit<Exercise, 'howToKey'> {
+  /** Always `custom:<id>`. */
+  id: string;
+  name: string;
+  howTo?: string;
+}
+
+export const CUSTOM_PREFIX = 'custom:';
+
+export const EXERCISE_PATTERNS: readonly ExercisePattern[] = [
+  'squat',
+  'hinge',
+  'lunge',
+  'calf',
+  'pushHorizontal',
+  'pushVertical',
+  'pullHorizontal',
+  'pullVertical',
+  'arms',
+  'core',
+  'plyometrics',
+  'mobility',
+];
+
+export const EQUIPMENT: readonly Equipment[] = [
+  'barbell',
+  'dumbbell',
+  'kettlebell',
+  'machine',
+  'cable',
+  'band',
+  'bodyweight',
+  'box',
+];
+
+/** Patterns that train the legs (lower-body progression steps, §8.5). */
+export const LOWER_BODY_PATTERNS: readonly ExercisePattern[] = [
+  'squat',
+  'hinge',
+  'lunge',
+  'calf',
+  'plyometrics',
+];
 
 type Row = [
   id: string,
@@ -82,6 +128,8 @@ const rows: Record<ExercisePattern, Row[]> = {
     ['dumbbell_press', ['chest', 'triceps'], ['dumbbell'], 'none'],
     ['incline_press', ['chest', 'shoulders'], ['barbell', 'dumbbell'], 'none'],
     ['push_up', ['chest', 'triceps'], ['bodyweight'], 'none'],
+    ['feet_elevated_push_up', ['chest', 'shoulders', 'triceps'], ['bodyweight'], 'none'],
+    ['archer_push_up', ['chest', 'triceps'], ['bodyweight'], 'none', true],
     ['dips', ['chest', 'triceps'], ['bodyweight'], 'none'],
   ],
   pushVertical: [
@@ -152,4 +200,81 @@ const byId = new Map(exercises.map((e) => [e.id, e]));
 
 export function getExercise(id: string): Exercise | undefined {
   return byId.get(id);
+}
+
+/** Library or custom exercise by id. */
+export function resolveExercise(
+  id: string,
+  custom: readonly CustomExercise[] = [],
+): Exercise | CustomExercise | undefined {
+  return byId.get(id) ?? custom.find((c) => c.id === id);
+}
+
+/**
+ * Bodyweight progression by harder variation (§8.5, e.g. push-up → feet elevated → archer).
+ * Each chain runs easy → hard.
+ */
+export const progressionChains: readonly (readonly string[])[] = [
+  ['push_up', 'feet_elevated_push_up', 'archer_push_up'],
+  ['bodyweight_squat', 'split_squat', 'bulgarian_split_squat', 'pistol_squat_progression'],
+  ['band_assisted_pull_up', 'pull_up'],
+  ['glute_bridge', 'hip_thrust'],
+  ['dead_bug', 'ab_wheel'],
+];
+
+/** The next harder bodyweight variation, if the exercise is part of a chain. */
+export function nextVariation(id: string): string | undefined {
+  for (const chain of progressionChains) {
+    const i = chain.indexOf(id);
+    if (i >= 0) return chain[i + 1];
+  }
+  return undefined;
+}
+
+/** Whether the equipment the user has (gym / home / hotel set) allows this exercise. */
+export function hasEquipmentFor(
+  exercise: Pick<Exercise, 'equipment'>,
+  available: readonly Equipment[],
+): boolean {
+  return exercise.equipment.some((e) => available.includes(e));
+}
+
+export type CustomExerciseField = 'name' | 'equipment';
+
+export interface CustomExerciseInput {
+  id: string;
+  name: string;
+  pattern: ExercisePattern;
+  equipment: Equipment[];
+  legLoad: LegLoad;
+  unilateral?: boolean;
+  muscles?: string[];
+  howTo?: string;
+}
+
+/** Validates a user-defined exercise; the id gets the `custom:` prefix. */
+export function validateCustomExercise(
+  input: CustomExerciseInput,
+): Result<CustomExercise, CustomExerciseField> {
+  const issues: ValidationIssue<CustomExerciseField>[] = [];
+  const name = input.name.trim();
+  if (name.length === 0) issues.push({ field: 'name', code: 'required' });
+  else if (name.length > 60)
+    issues.push({ field: 'name', code: 'outOfRange', params: { min: 1, max: 60 } });
+  if (input.equipment.length === 0) issues.push({ field: 'equipment', code: 'required' });
+  if (issues.length > 0) return { ok: false, issues };
+  const howTo = input.howTo?.trim();
+  return {
+    ok: true,
+    value: {
+      id: input.id.startsWith(CUSTOM_PREFIX) ? input.id : `${CUSTOM_PREFIX}${input.id}`,
+      name,
+      pattern: input.pattern,
+      muscles: input.muscles ?? [],
+      equipment: [...new Set(input.equipment)],
+      legLoad: input.legLoad,
+      unilateral: input.unilateral ?? false,
+      ...(howTo ? { howTo } : {}),
+    },
+  };
 }

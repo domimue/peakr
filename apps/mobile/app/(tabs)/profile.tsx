@@ -1,13 +1,11 @@
 import { router } from 'expo-router';
-import { Pressable, StyleSheet } from 'react-native';
 import { useTranslation } from 'react-i18next';
 
 import { useSettingsStore, type ThemePreference } from '@/features/settings/settings-store';
-import { radius, Screen, SegmentedControl, spacing, Text, useTheme } from '@/ui';
+import { LinkRow, Screen, SegmentedControl, Text } from '@/ui';
 
 export default function ProfileScreen() {
   const { t } = useTranslation();
-  const { colors } = useTheme();
   const themePreference = useSettingsStore((s) => s.themePreference);
   const setThemePreference = useSettingsStore((s) => s.setThemePreference);
 
@@ -19,36 +17,34 @@ export default function ProfileScreen() {
 
   return (
     <Screen title={t('profile.title')}>
+      <Text variant="heading">{t('profile.strength')}</Text>
+      <LinkRow
+        title={t('strength.setup.title')}
+        hint={t('strength.setup.entryHint')}
+        onPress={() => router.push('/strength/setup')}
+      />
+      <LinkRow
+        title={t('strength.routines.title')}
+        hint={t('strength.routines.entryHint')}
+        onPress={() => router.push('/strength/routines')}
+      />
+      <LinkRow
+        title={t('strength.quickLog.title')}
+        hint={t('strength.quickLog.entryHint')}
+        onPress={() => router.push('/strength/quick-log')}
+      />
+
       <Text variant="heading">{t('profile.appearance')}</Text>
       <SegmentedControl options={options} value={themePreference} onChange={setThemePreference} />
 
       {/* Developer tools: development builds only. */}
       {__DEV__ ? (
-        <Pressable
-          accessibilityRole="link"
+        <LinkRow
+          title={t('dev.planPreview.title')}
+          hint={t('dev.planPreview.entryHint')}
           onPress={() => router.push('/dev/plan')}
-          style={({ pressed }) => [
-            styles.item,
-            {
-              backgroundColor: pressed ? colors.surfaceSelected : colors.surface,
-              borderColor: colors.border,
-            },
-          ]}
-        >
-          <Text style={styles.itemTitle}>{t('dev.planPreview.title')}</Text>
-          <Text tone="secondary">{t('dev.planPreview.entryHint')}</Text>
-        </Pressable>
+        />
       ) : null}
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  item: {
-    borderRadius: radius.md,
-    borderWidth: StyleSheet.hairlineWidth,
-    padding: spacing.md,
-    gap: spacing.xs,
-  },
-  itemTitle: { fontWeight: '600' },
-});

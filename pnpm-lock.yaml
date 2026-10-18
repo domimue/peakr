@@ -181,6 +181,9 @@ importers:
       '@peakr/engine':
         specifier: workspace:*
         version: link:../../packages/engine
+      '@peakr/quiz':
+        specifier: workspace:*
+        version: link:../../packages/quiz
       '@tanstack/react-query':
         specifier: ^5.104.3
         version: 5.104.3(react@19.3.0)
@@ -410,6 +413,10 @@ importers:
         version: 4.1.12(@types/node@20.19.43)(@vitest/coverage-v8@4.1.12)(jsdom@26.1.0(supports-color@8.1.1))(vite@8.3.4(@types/node@20.19.43)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.51.2)(tsx@4.23.15))
 
   packages/quiz:
+    dependencies:
+      '@peakr/engine':
+        specifier: workspace:*
+        version: link:../engine
     devDependencies:
       '@eslint/js':
         specifier: ^9.39.0

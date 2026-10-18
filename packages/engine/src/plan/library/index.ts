@@ -6,8 +6,20 @@ import { strengthTemplates } from './strength';
 import { swimTemplates } from './swim';
 
 export {
+  CUSTOM_PREFIX,
+  EQUIPMENT,
+  EXERCISE_PATTERNS,
   exercises,
   getExercise,
+  hasEquipmentFor,
+  LOWER_BODY_PATTERNS,
+  nextVariation,
+  progressionChains,
+  resolveExercise,
+  validateCustomExercise,
+  type CustomExercise,
+  type CustomExerciseField,
+  type CustomExerciseInput,
   type Equipment,
   type Exercise,
   type ExercisePattern,
