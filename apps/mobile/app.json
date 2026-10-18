@@ -39,7 +39,8 @@
         }
       ],
       "expo-sqlite",
-      "expo-localization"
+      "expo-localization",
+      ["./plugins/with-windows-cmake", { "version": "4.1.2" }]
     ],
     "experiments": {
       "typedRoutes": true,
