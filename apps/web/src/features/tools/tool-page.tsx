@@ -3,16 +3,14 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 
 import { messages } from '@/i18n';
+import { pageMetadata } from '@/lib/metadata';
 
-import { QUIZ_HREF, type ToolKey } from './tools';
+import { QUIZ_HREF, TOOLS, type ToolKey } from './tools';
 
 export function toolMetadata(key: ToolKey): Metadata {
   const t = messages.tools[key];
-  return {
-    title: t.metaTitle,
-    description: t.metaDescription,
-    openGraph: { title: t.metaTitle, description: t.metaDescription, type: 'website' },
-  };
+  const href = TOOLS.find((tool) => tool.key === key)?.href ?? '/tools';
+  return pageMetadata({ title: t.metaTitle, description: t.metaDescription, path: href });
 }
 
 export function QuizCta() {

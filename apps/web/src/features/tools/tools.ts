@@ -1,5 +1,8 @@
-/** Entry point of the quiz funnel; every tool page links here ("Build your personal plan"). */
-export const QUIZ_HREF = '/quiz';
+/**
+ * Target of "Build your personal plan" on every tool page. Points to the waitlist until the
+ * quiz funnel exists on the website; then switch it to the quiz entry.
+ */
+export const QUIZ_HREF = '/#waitlist';
 
 export type ToolKey = 'hrZones' | 'zone2' | 'pace' | 'swim';
 

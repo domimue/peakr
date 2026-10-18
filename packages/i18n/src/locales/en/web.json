@@ -1,21 +1,97 @@
 {
   "meta": {
-    "title": "Peakr – hybrid training plans",
-    "description": "Heart-rate based training plans for running, cycling, swimming and strength."
-  },
-  "home": {
-    "title": "Peakr",
-    "tagline": "One plan for running, cycling, swimming and strength.",
-    "comingSoon": "Coming soon.",
-    "toolsLink": "Try the free calculators"
+    "siteName": "Peakr",
+    "title": "Peakr – hybrid training plans for running, cycling, swimming & strength",
+    "description": "One training plan for running, cycling, swimming and strength – built around your heart rate zones, your terrain and your week. Coming soon for Android and iOS.",
+    "ogAlt": "Peakr – one plan for running, cycling, swimming and strength"
   },
   "nav": {
     "home": "Peakr",
-    "tools": "All tools",
-    "label": "Main navigation"
+    "tools": "Free tools",
+    "waitlist": "Join the waitlist",
+    "label": "Main navigation",
+    "skipToContent": "Skip to content"
   },
-  "common": {
-    "estimate": "Estimate"
+  "footer": {
+    "tagline": "Hybrid training plans driven by heart rate zones.",
+    "label": "Footer",
+    "tools": "Free tools",
+    "privacy": "Privacy policy",
+    "imprint": "Legal notice",
+    "copyright": "© {{year}} Peakr"
+  },
+  "home": {
+    "hero": {
+      "eyebrow": "Coming soon to Android and iOS",
+      "title": "One training plan for running, cycling, swimming and strength.",
+      "lead": "Peakr builds your plan from your goal and the time you really have – prescribed in heart rate zones, aware of your terrain and rebuilt in seconds when life gets in the way."
+    },
+    "usps": {
+      "title": "Why Peakr",
+      "items": [
+        {
+          "title": "One load model for everything",
+          "body": "Runs, rides, swims and strength sessions share one training-load budget. A hard Saturday ride makes Sunday’s run easier – automatically."
+        },
+        {
+          "title": "Heart rate first",
+          "body": "Every session is prescribed in heart rate zones, with a strong focus on Zone 2. Pace and power are hints, not the goal."
+        },
+        {
+          "title": "Strength that fits",
+          "body": "Strength training is planned together with your endurance phases – no heavy leg day before your long run."
+        },
+        {
+          "title": "Terrain intelligence",
+          "body": "Peakr knows how hilly each session is and adjusts duration, load and pace per kilometre to the gradient."
+        },
+        {
+          "title": "Built for real life",
+          "body": "Commutes count, winter sports count, travel weeks and bad weather get a plan B with the same training effect."
+        },
+        {
+          "title": "Fair subscription",
+          "body": "Everything you need for one simple price – cheaper than the big plan apps, with a 7-day free trial."
+        }
+      ]
+    },
+    "how": {
+      "title": "How it works",
+      "steps": [
+        {
+          "title": "Tell us your goal and your week",
+          "body": "From your first 5 km to a full-distance triathlon – pick your sports and how much time you have each day."
+        },
+        {
+          "title": "Get your personal plan",
+          "body": "Peakr calculates your zones and builds a periodised plan with the right mix of easy, hard and strength sessions."
+        },
+        {
+          "title": "Train, sync, adapt",
+          "body": "Workouts go to your watch, completed activities sync back, and the plan adapts to what you actually did."
+        }
+      ]
+    },
+    "toolsTeaser": {
+      "title": "Try the free calculators",
+      "body": "Heart rate zones, Zone 2, race predictions and swim pace – free, no account needed."
+    }
+  },
+  "waitlist": {
+    "title": "Join the waitlist",
+    "body": "Be the first to try Peakr when it launches. One email at launch – no spam.",
+    "emailLabel": "Email address",
+    "emailPlaceholder": "you@example.com",
+    "consent": "I agree that Peakr may store my email address to inform me about the launch. I can withdraw my consent at any time.",
+    "privacyLink": "Privacy policy",
+    "submit": "Join the waitlist",
+    "submitting": "Joining…",
+    "success": "Thanks – you’re on the list. We’ll email you when Peakr launches.",
+    "errors": {
+      "invalidEmail": "Please enter a valid email address.",
+      "consentRequired": "Please confirm that we may store your email address.",
+      "unavailable": "Something went wrong on our side. Please try again in a moment."
+    }
   },
   "cta": {
     "title": "Train by these numbers – automatically",
@@ -160,66 +236,57 @@
       ]
     }
   },
-  "fields": {
-    "age": "Age",
-    "ageHint": "Used to estimate your max heart rate if you don't know it.",
-    "hrMaxOptional": "Max heart rate (optional)",
-    "hrMaxHint": "Highest heart rate you have measured, e.g. at the end of an all-out effort.",
-    "hrMaxLthrHint": "Sets the top of zone 5. Leave empty if unknown.",
-    "restingHr": "Resting heart rate",
-    "restingHrOptional": "Resting heart rate (optional)",
-    "restingHrHint": "Measure in the morning before getting up.",
-    "lthr": "Threshold heart rate (LTHR)",
-    "lthrHint": "Average heart rate over the last 20 minutes of a 30-minute all-out solo run."
-  },
-  "races": {
-    "5k": "5 km",
-    "10k": "10 km",
-    "half": "Half marathon",
-    "marathon": "Marathon"
-  },
-  "zones": {
-    "label": "Z{{zone}}",
-    "zone": "Zone",
-    "range": "Range",
-    "names": {
-      "1": "Recovery",
-      "2": "Endurance",
-      "3": "Tempo",
-      "4": "Threshold",
-      "5": "VO₂max"
+  "legal": {
+    "operator": {
+      "name": "[Full name]",
+      "business": "Peakr, sole proprietorship",
+      "address": "[Street and number], [Postcode] [City], Switzerland",
+      "email": "[contact email]"
+    },
+    "imprint": {
+      "metaTitle": "Legal notice | Peakr",
+      "metaDescription": "Legal notice (Impressum) of Peakr.",
+      "title": "Legal notice",
+      "operatorHeading": "Responsible for this website",
+      "disclaimerHeading": "Disclaimer",
+      "disclaimer": "The content of this website is created with care. The calculators provide estimates for training purposes only and are not medical advice. We are not responsible for the content of external websites we link to."
+    },
+    "privacy": {
+      "metaTitle": "Privacy policy | Peakr",
+      "metaDescription": "How Peakr handles your personal data on this website.",
+      "title": "Privacy policy",
+      "updated": "Last updated: {{date}}",
+      "controllerHeading": "Controller",
+      "sections": [
+        {
+          "heading": "Overview",
+          "body": "This policy explains which personal data this website processes and why. It follows the Swiss Federal Act on Data Protection (revFADP) and, where applicable, the EU General Data Protection Regulation (GDPR)."
+        },
+        {
+          "heading": "Waitlist",
+          "body": "If you join the waitlist we store your email address, the consent text you agreed to and the time of your sign-up. We use this only to email you about the launch of Peakr. The legal basis is your consent (Art. 6(1)(a) GDPR). You can withdraw your consent at any time by emailing us; we will then delete your address. We delete the waitlist at the latest 12 months after launch."
+        },
+        {
+          "heading": "Database hosting (Supabase)",
+          "body": "Waitlist sign-ups are stored with Supabase Inc. as our processor in a data centre in the EU. Supabase processes the data only on our behalf, under a data processing agreement."
+        },
+        {
+          "heading": "Website hosting (Vercel)",
+          "body": "This website is hosted by Vercel Inc. When you visit it, Vercel processes technical data such as your IP address, browser type and the requested page to deliver the site and protect it against abuse. These logs are kept only briefly. Data may be transferred to the USA based on the EU-US Data Privacy Framework and standard contractual clauses."
+        },
+        {
+          "heading": "Free calculators",
+          "body": "The calculators run in your browser. The values you enter are not sent to us or stored."
+        },
+        {
+          "heading": "Cookies and analytics",
+          "body": "This website uses no tracking cookies and no analytics. Fonts are served from our own domain, not from third parties."
+        },
+        {
+          "heading": "Your rights",
+          "body": "You can ask for access to, correction or deletion of your data, restrict or object to its processing, and receive it in a portable format. You can also lodge a complaint with a data protection authority – in Switzerland the Federal Data Protection and Information Commissioner (FDPIC)."
+        }
+      ]
     }
-  },
-  "units": {
-    "bpm": "bpm",
-    "years": "years",
-    "h": "h",
-    "min": "min",
-    "s": "s",
-    "hours": "hours",
-    "minutes": "minutes",
-    "seconds": "seconds",
-    "perKm": "/km",
-    "per100m": "/100 m",
-    "bpmValue": "{{value}} bpm",
-    "bpmRange": "{{min}}–{{max}} bpm",
-    "bpmUpTo": "up to {{value}} bpm",
-    "bpmFrom": "{{value}}+ bpm",
-    "paceValue": "{{pace}} {{unit}}",
-    "paceRange": "{{slow}}–{{fast}} {{unit}}",
-    "paceOrSlower": "{{pace}} {{unit}} or slower",
-    "paceOrFaster": "{{pace}} {{unit}} or faster"
-  },
-  "validation": {
-    "invalidNumber": "Enter a whole number.",
-    "invalidDuration": "Minutes and seconds must be below 60.",
-    "required": "Please fill in this field.",
-    "ageOrHrMaxRequired": "Enter your age or your max heart rate.",
-    "outOfRange": "Enter a value between {{min}} and {{max}}.",
-    "restingHrNotBelowHrMax": "Resting heart rate must be below your max heart rate ({{hrMax}} bpm).",
-    "lthrNotBelowHrMax": "Threshold heart rate must be below your max heart rate ({{hrMax}} bpm).",
-    "unrealisticRaceTime": "This time looks unrealistic for the distance. Enter a time between {{min}} and {{max}}.",
-    "swim400NotSlowerThan200": "Your 400 m pace must be slower than your 200 m pace. Please check both times.",
-    "swimTimesInconsistent": "These times are very far apart. Were both swims all-out efforts?"
   }
 }
