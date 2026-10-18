@@ -25,9 +25,12 @@ export async function joinWaitlist(
     return { status: 'error', error: 'unavailable', email: parsed.email, consent: true };
   }
 
+  // No `.select()`: there is no select policy, so asking for the row back would be rejected.
   const { error } = await supabase.from('waitlist').insert({
     email: parsed.email,
+    consent: true,
     consent_text: messages.waitlist.consent,
+    source: 'home',
     locale: 'en',
   });
   // An address that is already on the list is a success too – and we don't reveal who signed up.
