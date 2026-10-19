@@ -183,7 +183,7 @@ export interface MaterializedStrength {
   exercises: ExercisePrescription[];
 }
 
-function exerciseLegLoad(exerciseId: string): LegLoad {
+export function exerciseLegLoad(exerciseId: string): LegLoad {
   return getExercise(exerciseId)?.legLoad ?? 'light';
 }
 

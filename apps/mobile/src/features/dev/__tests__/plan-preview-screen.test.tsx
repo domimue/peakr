@@ -1,10 +1,12 @@
 import { workoutLibrary } from '@peakr/engine';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
 import ProfileScreen from '../../../../app/(tabs)/profile';
 
+import * as repo from '@/data/repositories/plan-repository';
 import en from '@/i18n/locales/en.json';
+import { renderWithQuery } from '@/test-utils/render-with-query';
 
 import { PlanPreviewScreen } from '../plan-preview-screen';
 
@@ -14,9 +16,25 @@ function lookup(key: string): unknown {
     .reduce<unknown>((node, part) => (node as Record<string, unknown> | undefined)?.[part], en);
 }
 
+jest.mock('@/data/repositories/plan-repository');
+
+const mock = repo as unknown as typeof import('@/data/repositories/__mocks__/plan-repository');
+
 describe('dev plan preview', () => {
+  it('"Use as my plan" stores the preset as the plan, starting this week', async () => {
+    mock.resetStore();
+    const replace = jest.spyOn(router, 'replace').mockImplementation(() => undefined);
+    await renderWithQuery(<PlanPreviewScreen />);
+    await fireEvent.press(screen.getByText('Use as my plan'));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/plan'));
+    const stored = mock.store.plan;
+    expect(stored?.input.goal).toEqual({ kind: 'half' });
+    expect(stored?.state.plan.weeks.length).toBe(12);
+    replace.mockRestore();
+  });
+
   it('renders a generated 12-week plan', async () => {
-    await render(<PlanPreviewScreen />);
+    await renderWithQuery(<PlanPreviewScreen />);
     for (let week = 1; week <= 12; week++) {
       expect(screen.getByLabelText(`week-${week}`)).toBeOnTheScreen();
     }
@@ -25,7 +43,7 @@ describe('dev plan preview', () => {
   });
 
   it('switches presets, e.g. to the 70.3 triathlon with bricks', async () => {
-    await render(<PlanPreviewScreen />);
+    await renderWithQuery(<PlanPreviewScreen />);
     await fireEvent.press(screen.getByText('70.3 triathlon'));
     expect(screen.getByLabelText('week-12')).toBeOnTheScreen();
     expect(screen.getAllByText(/· brick/).length).toBeGreaterThan(0);

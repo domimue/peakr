@@ -17,6 +17,14 @@ export default function ProfileScreen() {
 
   return (
     <Screen title={t('profile.title')}>
+      <Text variant="heading">{t('profile.training')}</Text>
+      <LinkRow
+        icon="book"
+        title={t('workoutTypes.title')}
+        hint={t('workoutTypes.entryHint')}
+        onPress={() => router.push('/training/workout-types')}
+      />
+
       <Text variant="heading">{t('profile.strength')}</Text>
       <LinkRow
         title={t('strength.setup.title')}

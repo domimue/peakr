@@ -1,14 +1,17 @@
 import { generatePlan, type PlanNote, type PlanWeek, type Workout } from '@peakr/engine';
+import { planStartDate } from '@peakr/quiz';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { router } from 'expo-router';
 
+import { todayIso } from '@/data/ids';
+import { useCreatePlan } from '@/features/plan/queries';
 import { useActiveWorkoutStore } from '@/features/strength/active-workout-store';
 import { Badge, Button, Card, Screen, SegmentedControl, spacing, Text, useTheme } from '@/ui';
 
-import { PLAN_PRESETS, PREVIEW_START, type PresetId } from './plan-presets';
+import { liveTargetDate, PLAN_PRESETS, PREVIEW_START, type PresetId } from './plan-presets';
 
 const PRESET_IDS: PresetId[] = ['half', 'tri', 'weightloss', 'granfondo'];
 
@@ -19,6 +22,7 @@ const PRESET_IDS: PresetId[] = ['half', 'tri', 'weightloss', 'granfondo'];
 export function PlanPreviewScreen() {
   const { t } = useTranslation();
   const [presetId, setPresetId] = useState<PresetId>('half');
+  const createPlan = useCreatePlan();
 
   const result = useMemo(() => {
     const p = PLAN_PRESETS[presetId];
@@ -31,6 +35,24 @@ export function PlanPreviewScreen() {
         options={PRESET_IDS.map((id) => ({ value: id, label: t(`dev.planPreview.presets.${id}`) }))}
         value={presetId}
         onChange={setPresetId}
+      />
+      <Button
+        label={t('dev.planPreview.usePlan')}
+        disabled={createPlan.isPending}
+        onPress={() => {
+          const p = PLAN_PRESETS[presetId];
+          // Starts today (not the preview date) so the current week can be edited.
+          createPlan.mutate(
+            {
+              profile: p.profile,
+              goal: p.goal,
+              availability: p.availability,
+              startDate: planStartDate(todayIso()),
+              ...(p.targetDate ? { targetDate: liveTargetDate(p.targetDate) } : {}),
+            },
+            { onSuccess: () => router.replace('/plan') },
+          );
+        }}
       />
       {result.ok ? (
         <>

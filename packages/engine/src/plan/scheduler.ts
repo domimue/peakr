@@ -75,6 +75,8 @@ export interface WeekInput {
   levels: ReadonlyMap<string, number>;
   longMin: Readonly<Partial<Record<Sport, number>>>;
   strengthRotation: number;
+  /** Prepended to workout ids (regenerated weeks must not reuse ids of kept workouts). */
+  idPrefix?: string;
 }
 
 export interface WeekOutput {
@@ -717,7 +719,7 @@ class WeekScheduler {
     const day = this.dayAt(i.day);
     const date = toIsoDate(assertDefined(day.day, 'day'));
     return {
-      id: `${date}-${index + 1}`,
+      id: `${this.input.idPrefix ?? ''}${date}-${index + 1}`,
       date,
       weekday: day.weekday,
       sport: i.template.sport,

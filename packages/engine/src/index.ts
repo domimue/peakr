@@ -29,7 +29,42 @@ export {
 export { calculateCss, type CssField, type CssInput, type CssResult } from './swim';
 export { paceZonesFromBoundaries, ZONE_NUMBERS, type PaceZone, type ZoneNumber } from './zones';
 export { planConfig, type PlanConfig } from './plan/config';
-export { generatePlan, type PlanField } from './plan/generate';
+export { generatePlan, type PlanContinuation, type PlanField } from './plan/generate';
+export {
+  activePause,
+  activeWorkouts,
+  allWorkouts,
+  easeWorkout,
+  findViolations,
+  findWorkout,
+  inDetailWindow,
+  isPaused,
+  moveWorkout,
+  newPlanState,
+  pausePlan,
+  planRange,
+  regeneratePlan,
+  regenerationStart,
+  resumePlan,
+  resumeRules,
+  setWorkoutStatus,
+  statusOf,
+  type EditCode,
+  type EditField,
+  type EditIssue,
+  type EditResult,
+  type MoveNoticeCode,
+  type RebalanceSuggestion,
+  type MoveResult,
+  type MoveWarning,
+  type PauseReason,
+  type PlanInput,
+  type PlanPause,
+  type PlanState,
+  type RuleCode,
+  type RuleViolation,
+  type WorkoutStatus,
+} from './plan/edit';
 export {
   CUSTOM_PREFIX,
   EQUIPMENT,
@@ -89,3 +124,17 @@ export {
 } from './plan/terrain';
 export type * from './plan/types';
 export { SPORTS } from './plan/types';
+export {
+  kindKey,
+  WORKOUT_KINDS,
+  workoutKind,
+  type KindCategory,
+  type KindSport,
+  type WorkoutKind,
+} from './plan/kinds';
+export {
+  summarizeWorkouts,
+  workoutDistances,
+  type SportDistances,
+  type WeekSummary,
+} from './plan/distance';

@@ -52,6 +52,31 @@ export const zoneColors = {
   light: ['#7488A6', '#5A8700', '#B07400', '#CC4A0C', '#A01030'],
 } as const satisfies Record<'dark' | 'light', readonly [string, string, string, string, string]>;
 
+/**
+ * Workout colour per sport (calendar card stripe and marker). Distinct from each other and from
+ * Volt; ≥ 3:1 against bg and surface. Cards always show the sport as text too.
+ */
+export const sportColors = {
+  dark: {
+    run: '#FF7A59',
+    bike: '#4FC3F7',
+    swim: '#2DD4BF',
+    strength: '#B794F6',
+    brick: '#F472B6',
+    winter: '#E2E8F0',
+  },
+  light: {
+    run: '#C2410C',
+    bike: '#0369A1',
+    swim: '#0F766E',
+    strength: '#6D28D9',
+    brick: '#BE185D',
+    winter: '#334155',
+  },
+} as const;
+
+export type SportColorKey = keyof (typeof sportColors)['dark'];
+
 export type ColorScheme = 'dark' | 'light';
 export type ZoneNumber = 1 | 2 | 3 | 4 | 5;
 
@@ -83,10 +108,17 @@ export interface SchemeColors {
   zone3: string;
   zone4: string;
   zone5: string;
+  sportRun: string;
+  sportBike: string;
+  sportSwim: string;
+  sportStrength: string;
+  sportBrick: string;
+  sportWinter: string;
 }
 
 function scheme(name: ColorScheme): SchemeColors {
   const [zone1, zone2, zone3, zone4, zone5] = zoneColors[name];
+  const sport = sportColors[name];
   return {
     ...colors[name],
     accentPressed: colors.voltPressed,
@@ -100,6 +132,12 @@ function scheme(name: ColorScheme): SchemeColors {
     zone3,
     zone4,
     zone5,
+    sportRun: sport.run,
+    sportBike: sport.bike,
+    sportSwim: sport.swim,
+    sportStrength: sport.strength,
+    sportBrick: sport.brick,
+    sportWinter: sport.winter,
   };
 }
 

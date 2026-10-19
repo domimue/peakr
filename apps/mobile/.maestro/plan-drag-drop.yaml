@@ -1,0 +1,48 @@
+# Plan tab: move a workout to another day by drag & drop (Phase 5).
+#
+# Runs against a development build (the plan comes from Profile → Plan preview → "Use as my plan",
+# which only exists in __DEV__ builds) with Metro running:
+#   pnpm --filter @peakr/mobile start
+#   maestro test apps/mobile/.maestro/plan-drag-drop.yaml
+# On a physical device pass the Metro URL: maestro test -e METRO_URL=http://<lan-ip>:8081 ...
+appId: com.peakr.app
+name: Plan – drag a workout to another day
+tags:
+  - plan
+env:
+  METRO_URL: http://10.0.2.2:8081
+---
+- launchApp:
+    clearState: true
+- openLink: peakr://expo-development-client/?url=${encodeURIComponent(METRO_URL)}
+- extendedWaitUntil:
+    visible: Your plan
+    timeout: 60000
+
+# Create a plan from the half-marathon preset; it starts on the next Monday (or today).
+- tapOn: Profile
+- scrollUntilVisible:
+    element: Plan preview \(dev\)
+- tapOn: Plan preview \(dev\)
+- tapOn: Use as my plan
+- extendedWaitUntil:
+    visible:
+      id: plan-card-0-0
+    timeout: 10000
+- assertVisible: Week 1 of .*
+
+# Drag Monday's workout by its handle down the week; a drop below the list lands on Sunday,
+# which already has a session – so a warning appears.
+- swipe:
+    from:
+      id: plan-card-0-0-handle
+    direction: DOWN
+    duration: 1500
+- assertVisible: Moved to .*
+
+# The move always stands; broken rules are only warnings that can be closed.
+- assertVisible:
+    id: move-feedback
+- tapOn: Keep it as it is
+- assertNotVisible:
+    id: move-feedback

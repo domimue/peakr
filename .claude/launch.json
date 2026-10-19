@@ -6,6 +6,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@peakr/web", "dev"],
       "port": 3000
+    },
+    {
+      "name": "mobile",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@peakr/mobile", "start"],
+      "port": 8081
     }
   ]
 }

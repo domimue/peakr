@@ -16,3 +16,5 @@ export * from './components/text';
 export * from './components/zone-table';
 export * from './theme';
 export * from './brand/peakr-logo';
+export * from './components/icon';
+export * from './components/icon-button';

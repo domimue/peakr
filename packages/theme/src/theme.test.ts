@@ -1,7 +1,15 @@
 import { describe, expect, it } from 'vitest';
 
 import { logoColors } from './brand';
-import { colors, schemes, status, statusText, zoneColors, type ColorScheme } from './colors';
+import {
+  colors,
+  schemes,
+  sportColors,
+  status,
+  statusText,
+  zoneColors,
+  type ColorScheme,
+} from './colors';
 import { contrastRatio, hue, luminance } from './contrast';
 import { lockup, markStrokeWidth, wordmark, wordmarkWidth } from './logo';
 
@@ -80,6 +88,29 @@ describe.each(SCHEMES)('%s zone scale', (name) => {
         const hueDiff = Math.min(diff, 360 - diff);
         const separable = hueDiff >= 18 || contrastRatio(a, b) >= 1.5;
         expect(separable, `${a} vs ${b}`).toBe(true);
+      }
+    }
+  });
+});
+
+describe.each(SCHEMES)('%s sport colours', (name) => {
+  const values = Object.values(sportColors[name]);
+
+  it('are ≥ 3:1 against bg and surface and never Volt', () => {
+    for (const c of values) {
+      expect(contrastRatio(c, colors[name].bg)).toBeGreaterThanOrEqual(3);
+      expect(contrastRatio(c, colors[name].surface)).toBeGreaterThanOrEqual(3);
+      expect(c).not.toBe(colors.volt);
+    }
+  });
+
+  it('differ clearly from each other', () => {
+    for (let i = 0; i < values.length; i++) {
+      for (let j = i + 1; j < values.length; j++) {
+        const a = values[i] as string;
+        const b = values[j] as string;
+        const dh = Math.min(Math.abs(hue(a) - hue(b)), 360 - Math.abs(hue(a) - hue(b)));
+        expect(dh >= 25 || contrastRatio(a, b) >= 1.5, `${a} vs ${b}`).toBe(true);
       }
     }
   });
