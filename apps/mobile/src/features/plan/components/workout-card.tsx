@@ -1,6 +1,6 @@
 import {
-  workoutDistances,
   workoutKind,
+  workoutKm as engineWorkoutKm,
   type UserProfile,
   type Workout,
   type WorkoutStatus,
@@ -8,9 +8,10 @@ import {
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View, type AccessibilityActionEvent } from 'react-native';
 
-import { Icon, IconBadge, numeric, radius, spacing, Text, useTheme, zoneColorKey } from '@/ui';
+import { Icon, IconBadge, radius, spacing, Text, useTheme, zoneColorKey } from '@/ui';
 
-import { calendarTitle, kindColor, kindIcon } from '../kind';
+import { durationText } from '../../onboarding/workout-text';
+import { calendarTitle, kindIcon, typeColor, typeName } from '../kind';
 
 export interface WorkoutCardProps {
   workout: Workout;
@@ -21,6 +22,8 @@ export interface WorkoutCardProps {
   outline: boolean;
   /** Inside a pause: shown dimmed. */
   paused?: boolean;
+  /** Calendar chip: one line, no zone pills. */
+  compact?: boolean;
   onPress?: () => void;
   /** Accessible alternative to drag & drop. */
   onMoveAction?: () => void;
@@ -33,17 +36,16 @@ export function mainZone(w: Workout): 1 | 2 | 3 | 4 | 5 | null {
   return steps.reduce((max, s) => (s.zone > max ? s.zone : max), steps[0]?.zone ?? 1);
 }
 
-/** Total estimated km of a workout (all disciplines), or null for strength. */
+/** Total estimated km of a workout (all disciplines), or null without distance (strength). */
 export function workoutKm(w: Workout, profile: UserProfile): number | null {
-  const values = Object.values(workoutDistances(w, profile));
-  if (values.length === 0) return null;
-  return Math.round(values.reduce((sum, km) => sum + km, 0) * 10) / 10;
+  const km = engineWorkoutKm(w, profile);
+  return km > 0 ? km : null;
 }
 
 /**
- * A planned workout in the calendar: the general name ("Easy run") with its icon in the sport
- * colour, duration, distance, main zone and a hard marker. The details are on the workout screen.
- * Sport and zone are always written out, never only colour-coded.
+ * A planned workout: a bar in the type colour on the left edge, the general name ("Easy run"),
+ * the type in words, the duration range, distance, main zone and a hard marker. Type and zone are
+ * always written out, never only colour-coded.
  */
 export function WorkoutCard({
   workout: w,
@@ -51,23 +53,26 @@ export function WorkoutCard({
   profile,
   outline,
   paused,
+  compact,
   onPress,
   onMoveAction,
 }: WorkoutCardProps) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const kind = workoutKind(w);
+  const color = typeColor(colors, w);
   const zone = w.sport === 'strength' ? null : mainZone(w);
   const title = calendarTitle(t, w);
+  const type = typeName(t, w.type);
   const km = workoutKm(w, profile);
-  const minutes = t('workoutText.minutes', { count: w.durationMin });
+  const minutes = durationText(t, w);
   const meta = km === null ? minutes : `${minutes} · ${t('plan.km', { value: km })}`;
   const statusLabel = status === 'planned' ? null : t(`plan.status.${status}`);
   const dim = status === 'skipped' || paused;
 
   const label = [
     title,
-    t(`plan.sports.${w.sport}`),
+    type,
     meta,
     !outline && zone !== null ? t('workoutText.hrZone', { zone }) : null,
     w.hard ? t('plan.hard') : null,
@@ -80,6 +85,13 @@ export function WorkoutCard({
     if (e.nativeEvent.actionName === 'move') onMoveAction?.();
   };
 
+  const statusIcon =
+    status === 'done' ? (
+      <Icon name="check" size={18} color={colors.accentLine} />
+    ) : status === 'skipped' ? (
+      <Icon name="skip" size={18} color={colors.textMuted} />
+    ) : null;
+
   return (
     <Pressable
       testID={`workout-${w.id}`}
@@ -90,23 +102,27 @@ export function WorkoutCard({
       onPress={onPress}
       style={({ pressed }) => [
         styles.card,
+        compact && styles.compact,
         { backgroundColor: pressed ? colors.surface2 : colors.surface, opacity: dim ? 0.55 : 1 },
       ]}
     >
-      <IconBadge name={kindIcon(kind)} color={kindColor(colors, kind)} />
+      <View style={[styles.bar, { backgroundColor: color }]} testID={`type-bar-${w.colorKey}`} />
+      {compact ? null : <IconBadge name={kindIcon(kind)} color={color} />}
       <View style={styles.body}>
         <View style={styles.row}>
-          <Text numberOfLines={1} style={[styles.title, status === 'skipped' && styles.skipped]}>
+          <Text
+            numberOfLines={compact ? 1 : 2}
+            style={[styles.title, status === 'skipped' && styles.skipped]}
+          >
             {title}
           </Text>
-          {status === 'done' ? <Icon name="check" size={18} color={colors.accentLine} /> : null}
-          {status === 'skipped' ? <Icon name="skip" size={18} color={colors.textMuted} /> : null}
+          {statusIcon}
         </View>
         <View style={styles.row}>
-          <Text variant="caption" tone="secondary" style={[styles.flex, numeric]} numberOfLines={1}>
-            {meta}
+          <Text variant="caption" tone="secondary" style={styles.flex}>
+            {compact ? meta : `${type} · ${meta}`}
           </Text>
-          {!outline && zone !== null ? (
+          {!compact && !outline && zone !== null ? (
             <View style={[styles.pill, { borderColor: colors[zoneColorKey(zone)] }]}>
               <View style={[styles.zoneDot, { backgroundColor: colors[zoneColorKey(zone)] }]} />
               <Text variant="micro">{t('plan.zone', { zone })}</Text>
@@ -131,11 +147,15 @@ const styles = StyleSheet.create({
     gap: spacing.sm + spacing.xs,
     borderRadius: radius.md,
     paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.sm + spacing.xs,
+    paddingLeft: spacing.sm + spacing.xs + 4,
+    paddingRight: spacing.sm + spacing.xs,
+    overflow: 'hidden',
   },
+  compact: { paddingVertical: spacing.xs + 2, gap: spacing.sm },
+  bar: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4 },
   body: { flex: 1, gap: 2 },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  flex: { flex: 1 },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' },
+  flex: { flexGrow: 1, flexShrink: 1 },
   title: { flex: 1, fontWeight: '600' },
   skipped: { textDecorationLine: 'line-through' },
   pill: {

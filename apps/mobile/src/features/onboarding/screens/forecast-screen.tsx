@@ -22,7 +22,13 @@ import {
 
 import { LoadChart, PhaseStrip } from '../components/load-chart';
 import { localToday, useQuizStore } from '../quiz-store';
-import { exerciseLines, structureLines, targetText, workoutTitle } from '../workout-text';
+import {
+  durationText,
+  exerciseLines,
+  structureLines,
+  targetText,
+  workoutTitle,
+} from '../workout-text';
 
 /** Params that are ids get translated (race distances). */
 function lineParams(t: (k: never) => string, line: ForecastLine | PlanNote) {
@@ -206,8 +212,8 @@ function WorkoutCard({
       </View>
       <Text>
         {w.sport === 'strength'
-          ? t('workoutText.minutes', { count: w.durationMin })
-          : `${t('workoutText.minutes', { count: w.durationMin })} · ${targetText(t, w.target, hrZones)}`}
+          ? durationText(t, w)
+          : `${durationText(t, w)} · ${targetText(t, w.target, hrZones)}`}
       </Text>
       <View style={[styles.lines, { borderLeftColor: colors.border }]}>
         {lines.map((line, i) => (

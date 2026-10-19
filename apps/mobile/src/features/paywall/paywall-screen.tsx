@@ -29,7 +29,7 @@ export function PaywallScreen() {
     const { profile, goal, availability, startDate, targetDate, hrZones } = input.value;
     createPlan.mutate(
       { profile, goal, availability, startDate, hrZones, ...(targetDate ? { targetDate } : {}) },
-      { onSuccess: () => router.replace('/plan') },
+      { onSuccess: () => router.replace('/today') },
     );
   };
 

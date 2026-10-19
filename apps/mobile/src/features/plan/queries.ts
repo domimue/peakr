@@ -4,6 +4,7 @@ import {
   moveWorkout,
   pausePlan,
   regeneratePlan,
+  resetWeek,
   resumePlan,
   setTravel,
   setWeekOverride,
@@ -149,6 +150,11 @@ export function usePlanActions() {
       if (!stored) return missing;
       const input = { ...stored.input, profile };
       return commit(regeneratePlan(stored.state, input, today), input);
+    },
+    /** "Reset week": manual moves of the week go back to the plan's days. */
+    resetWeek(weekStart: string): Edit {
+      if (!stored) return missing;
+      return commit(resetWeek(stored.state, weekStart, stored.input));
     },
     /** "This week is different" (null: reset the week). */
     setWeekOverride(weekStart: string, override: Omit<WeekOverride, 'weekStart'> | null): Edit {

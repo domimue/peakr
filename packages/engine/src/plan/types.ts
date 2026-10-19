@@ -313,19 +313,45 @@ export interface WinterVariant {
   load: number;
 }
 
+/**
+ * Workout types of the UI (CLAUDE.md "UI patterns"): easy/recovery, long, tempo/threshold,
+ * intervals/VO2, hills, race/test, strength, cross-training/winter, commute.
+ */
+export type WorkoutType =
+  'easy' | 'long' | 'tempo' | 'intervals' | 'hills' | 'test' | 'strength' | 'cross' | 'commute';
+
+export type WorkoutColorKey = `type${Capitalize<WorkoutType>}`;
+
+export type PaceMode = 'limit' | 'target';
+
+export interface DurationRange {
+  minMin: number;
+  maxMin: number;
+}
+
 export interface Workout {
   id: string;
   date: string;
   weekday: Weekday;
   sport: ActivitySport;
   templateId: string;
-  type: string;
+  /** Template type, e.g. `long`, `push` (i18n of strength sessions, classification). */
+  templateType: string;
+  /** Workout type for colour and naming (CLAUDE.md "UI patterns"), derived by `describeWorkout`. */
+  type: WorkoutType;
+  /** Theme token of the type colour, e.g. `typeEasy`. */
+  colorKey: WorkoutColorKey;
   role: SlotRole;
   intensity: Intensity;
   /** Final §11 classification including neighbouring days. */
   hard: boolean;
   level: number | null;
+  /** Planned duration the load model and the scheduler use. */
   durationMin: number;
+  /** What the user sees: a range around `durationMin` (e.g. 30–35 min). */
+  duration: DurationRange;
+  /** `limit`: pace is a "no faster than" cap and HR the real target; `target`: pace is the target. */
+  paceMode: PaceMode;
   load: number;
   legLoad: LegLoad;
   /** Primary target of the main set. */
@@ -343,6 +369,8 @@ export interface Workout {
   commuteId?: string;
   /** Planned on a travel day (travel mode). */
   travel?: boolean;
+  /** Date the plan had before the user moved it ("reset week" restores it). */
+  originalDate?: string;
 }
 
 export interface PlanWeek {

@@ -9,6 +9,8 @@ import { renderWithQuery } from '@/test-utils/render-with-query';
 
 import { usePlanUiStore } from '../plan-ui-store';
 import { CommutesScreen } from '../screens/commutes-screen';
+import { TodayScreen } from '../../today/today-screen';
+import { CalendarScreen } from '../screens/calendar-screen';
 import { PlanScreen } from '../screens/plan-screen';
 import { TravelScreen } from '../screens/travel-screen';
 import { WeekScreen } from '../screens/week-screen';
@@ -53,7 +55,7 @@ const stored = () => {
 
 beforeEach(() => {
   mock.resetStore();
-  usePlanUiStore.setState({ view: 'week', weekStart: null, month: null, feedback: null });
+  usePlanUiStore.setState({ weekStart: null, feedback: null });
   jest.spyOn(ids, 'todayIso').mockReturnValue('2026-10-19');
   jest.spyOn(router, 'push').mockImplementation(() => undefined);
   jest.spyOn(router, 'back').mockImplementation(() => undefined);
@@ -64,7 +66,7 @@ afterEach(() => jest.restoreAllMocks());
 describe('commutes', () => {
   it('skip commute today with one tap, and undo', async () => {
     storePlan({ ...base, profile: { ...base.profile, commutes: [commute] } });
-    await renderWithQuery(<PlanScreen />);
+    await renderWithQuery(<TodayScreen />);
     expect(await screen.findByTestId('commute-today')).toBeOnTheScreen();
     expect(screen.getByText('Ride · 40 min')).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('Skip commute today'));
@@ -132,7 +134,7 @@ describe('this week is different', () => {
     expect(later(stored().state.plan)).toEqual(later(before));
 
     usePlanUiStore.setState({ weekStart: '2026-10-26' });
-    await renderWithQuery(<PlanScreen />);
+    await renderWithQuery(<CalendarScreen />);
     expect(await screen.findByText('Different week')).toBeOnTheScreen();
   });
 
@@ -151,13 +153,6 @@ describe('this week is different', () => {
     await renderWithQuery(<WeekScreen start="2026-10-26" />);
     await fireEvent.press(await screen.findByText('Reset week'));
     await waitFor(() => expect(stored().input.availability.weekOverrides).toEqual([]));
-  });
-
-  it('the Plan tab opens it for the week shown', async () => {
-    storePlan();
-    await renderWithQuery(<PlanScreen />);
-    await fireEvent.press(await screen.findByText('This week is different'));
-    expect(router.push).toHaveBeenCalledWith('/training/week?start=2026-10-19');
   });
 });
 
@@ -182,12 +177,8 @@ describe('travel mode', () => {
     await waitFor(() => expect(stored().input.availability.travel).toEqual([]));
   });
 
-  it('the Plan tab toggle opens travel mode, or ends the running one', async () => {
+  it('a travel week is tagged in the Plan tab', async () => {
     storePlan();
-    await renderWithQuery(<PlanScreen />);
-    await fireEvent.press(await screen.findByLabelText('Travel mode'));
-    expect(router.push).toHaveBeenCalledWith('/training/travel');
-
     mock.store.plan = {
       ...stored(),
       input: {
@@ -199,10 +190,7 @@ describe('travel mode', () => {
       },
     };
     await renderWithQuery(<PlanScreen />);
-    expect(await screen.findByText('On from Oct 19 to Oct 21')).toBeOnTheScreen();
-    expect(screen.getByText('Travel')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByLabelText('Travel mode'));
-    await waitFor(() => expect(stored().input.availability.travel).toEqual([]));
+    expect(await screen.findByText('Travel')).toBeOnTheScreen();
   });
 });
 

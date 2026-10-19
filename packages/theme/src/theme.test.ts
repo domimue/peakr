@@ -8,9 +8,10 @@ import {
   status,
   statusText,
   zoneColors,
+  workoutTypeColors,
   type ColorScheme,
 } from './colors';
-import { contrastRatio, hue, luminance } from './contrast';
+import { contrastRatio, deltaE, hue, luminance, oklab } from './contrast';
 import { lockup, markStrokeWidth, wordmark, wordmarkWidth } from './logo';
 
 const SCHEMES: ColorScheme[] = ['dark', 'light'];
@@ -112,6 +113,65 @@ describe.each(SCHEMES)('%s sport colours', (name) => {
         const dh = Math.min(Math.abs(hue(a) - hue(b)), 360 - Math.abs(hue(a) - hue(b)));
         expect(dh >= 25 || contrastRatio(a, b) >= 1.5, `${a} vs ${b}`).toBe(true);
       }
+    }
+  });
+});
+
+describe('OKLab distance', () => {
+  it('matches reference values', () => {
+    const [l, a, b] = oklab('#FFFFFF');
+    expect(l).toBeCloseTo(1, 3);
+    expect(Math.abs(a)).toBeLessThan(1e-3);
+    expect(Math.abs(b)).toBeLessThan(1e-3);
+    expect(deltaE('#000000', '#FFFFFF')).toBeCloseTo(1, 3);
+    expect(deltaE('#5CB8FF', '#5CB8FF')).toBe(0);
+  });
+});
+
+/** Minimum OKLab distance between two type colours, and between a type colour and Volt. */
+const MIN_TYPE_DELTA_E = 0.1;
+const MIN_VOLT_DELTA_E = 0.15;
+
+describe.each(SCHEMES)('%s workout type colours', (name) => {
+  const entries = Object.entries(workoutTypeColors[name]);
+  const c = schemes[name];
+
+  it('has one colour per workout type, exposed as typeX tokens', () => {
+    expect(entries.map(([k]) => k)).toEqual([
+      'easy',
+      'long',
+      'tempo',
+      'intervals',
+      'hills',
+      'test',
+      'strength',
+      'cross',
+      'commute',
+    ]);
+    expect(c.typeEasy).toBe(workoutTypeColors[name].easy);
+    expect(c.typeCommute).toBe(workoutTypeColors[name].commute);
+  });
+
+  it.each(['bg', 'surface', 'surface2'] as const)('every type is ≥ 3:1 against %s', (bg) => {
+    for (const [type, value] of entries) {
+      expect(contrastRatio(value, c[bg]), `${type} on ${bg}`).toBeGreaterThanOrEqual(3);
+    }
+  });
+
+  it('every pair of types is perceptually distinct', () => {
+    for (let i = 0; i < entries.length; i++) {
+      for (let j = i + 1; j < entries.length; j++) {
+        const [ka, a] = entries[i] as [string, string];
+        const [kb, b] = entries[j] as [string, string];
+        expect(deltaE(a, b), `${ka} vs ${kb}`).toBeGreaterThanOrEqual(MIN_TYPE_DELTA_E);
+      }
+    }
+  });
+
+  it('no type can be confused with the brand accent', () => {
+    for (const [type, value] of entries) {
+      expect(value).not.toBe(c.accent);
+      expect(deltaE(value, colors.volt), type).toBeGreaterThanOrEqual(MIN_VOLT_DELTA_E);
     }
   });
 });

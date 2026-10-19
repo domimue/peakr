@@ -135,7 +135,7 @@ describe('strength scheduling rules (§8.3)', () => {
     const all = days(
       plan({ mode: 'split', split: 'pushPullLegs', daysPerWeek: 3, equipment: 'gym' }),
     );
-    const upper = (w: Workout) => w.type === 'push' || w.type === 'pull';
+    const upper = (w: Workout) => w.templateType === 'push' || w.templateType === 'pull';
     const adjacent = all.filter(
       (day, i) =>
         day.some(upper) &&
@@ -161,7 +161,7 @@ describe('strength scheduling rules (§8.3)', () => {
     for (const w of p.weeks) {
       const strength = w.workouts.filter((x) => x.sport === 'strength');
       const types = strength
-        .map((x) => x.type)
+        .map((x) => x.templateType)
         .sort()
         .join();
       if (w.phase === 'taper') {
@@ -177,7 +177,7 @@ describe('strength scheduling rules (§8.3)', () => {
     expect(
       p.weeks[0]?.workouts
         .filter((x) => x.sport === 'strength')
-        .map((x) => x.type)
+        .map((x) => x.templateType)
         .sort(),
     ).toEqual(['legs', 'upper']);
   });

@@ -12,6 +12,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@peakr/mobile", "start"],
       "port": 8081
+    },
+    {
+      "name": "mobile-offline",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@peakr/mobile", "start", "--offline", "--clear"],
+      "port": 8081
     }
   ]
 }

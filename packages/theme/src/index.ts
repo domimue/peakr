@@ -10,6 +10,9 @@ export {
   type SchemeColors,
   type SportColorKey,
   type ZoneNumber,
+  type WorkoutTypeColorKey,
+  type WorkoutTypeKey,
+  workoutTypeColors,
 } from './colors';
 export {
   buttonTokens,
@@ -34,4 +37,4 @@ export {
   type LogoVariant,
 } from './logo';
 export { logoColors } from './brand';
-export { contrastRatio, hue, luminance } from './contrast';
+export { contrastRatio, deltaE, hue, luminance, oklab } from './contrast';

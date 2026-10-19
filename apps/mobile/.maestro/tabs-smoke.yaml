@@ -1,0 +1,60 @@
+# All five tabs open and show their main content (Phase 5c).
+#
+# Same setup as plan-drag-drop.yaml: development build + Metro running.
+#   maestro test apps/mobile/.maestro/tabs-smoke.yaml
+appId: com.peakr.app
+name: Tabs – Today, Plan, Calendar, Progress, Profile
+tags:
+  - tabs
+env:
+  METRO_URL: http://10.0.2.2:8081
+---
+- launchApp:
+    clearState: true
+# After clearState the dev launcher asks for nearby devices (server discovery) – not needed.
+- extendedWaitUntil:
+    visible: Don.t allow
+    timeout: 15000
+    optional: true
+- tapOn:
+    text: Don.t allow
+    optional: true
+# The dev client registers its own scheme (exp+<app scheme>).
+- openLink: exp+peakr://expo-development-client/?url=${encodeURIComponent(METRO_URL)}
+# After clearState the dev client explains its developer menu once (covers the app).
+- extendedWaitUntil:
+    visible: Continue
+    timeout: 120000
+    optional: true
+- tapOn:
+    text: Continue
+    optional: true
+# …and then leaves the developer menu open.
+- tapOn:
+    text: Close
+    optional: true
+- extendedWaitUntil:
+    visible: Today
+    timeout: 60000
+
+- tapOn: Profile
+- scrollUntilVisible:
+    element: Plan preview \(dev\)
+- tapOn: Plan preview \(dev\)
+- tapOn: Use as my plan
+- extendedWaitUntil:
+    visible:
+      id: plan-card-0-0
+    timeout: 10000
+
+- tapOn: Today
+- assertVisible:
+    id: week-strip
+- tapOn: Plan
+- assertVisible: Week 1 of .*
+- tapOn: Progress
+- assertVisible: History
+- tapOn: Performance
+- assertVisible: Lifetime
+- tapOn: Profile
+- assertVisible: Heart-rate zones

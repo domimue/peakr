@@ -3,7 +3,7 @@ import type { Experience, Workout } from './types';
 
 type Classifiable = Pick<
   Workout,
-  'sport' | 'type' | 'intensity' | 'durationMin' | 'legLoad' | 'terrain'
+  'sport' | 'templateType' | 'intensity' | 'durationMin' | 'legLoad' | 'terrain'
 >;
 
 /**
@@ -14,8 +14,8 @@ export function isHardOnItsOwn(w: Classifiable): boolean {
   // Strength is hard only with heavy legs (after phase scaling); upper/core/mobility is easy.
   if (w.sport === 'strength') return w.legLoad === 'heavy';
   if (w.intensity === 'hard' || w.sport === 'brick') return true;
-  if (w.sport === 'run' && w.type === 'long' && w.durationMin >= 90) return true;
-  if (w.sport === 'bike' && w.type === 'long' && w.durationMin >= 180) return true;
+  if (w.sport === 'run' && w.templateType === 'long' && w.durationMin >= 90) return true;
+  if (w.sport === 'bike' && w.templateType === 'long' && w.durationMin >= 180) return true;
   if (w.terrain && (w.sport === 'run' || w.sport === 'bike')) {
     return w.terrain.gainPerKm >= planConfig.terrain.hardGainPerKm[w.sport];
   }

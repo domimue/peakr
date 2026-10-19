@@ -1,8 +1,6 @@
 import type { MoveWarning, RebalanceSuggestion } from '@peakr/engine';
 import { create } from 'zustand';
 
-export type PlanView = 'week' | 'month';
-
 /** What the last move caused – shown above the calendar until the user dismisses it. */
 export interface MoveFeedback {
   workoutId: string;
@@ -13,26 +11,17 @@ export interface MoveFeedback {
 }
 
 interface PlanUiState {
-  view: PlanView;
-  /** Monday of the week shown (null: the current week). */
+  /** Monday of the first week the Calendar shows (null: the current week). */
   weekStart: string | null;
-  /** First day of the month shown in the month view (null: the current month). */
-  month: string | null;
   feedback: MoveFeedback | null;
-  setView: (view: PlanView) => void;
   showWeek: (monday: string) => void;
-  showMonth: (month: string) => void;
   setFeedback: (feedback: MoveFeedback | null) => void;
 }
 
-/** Calendar UI state of the Plan tab (survives navigating to a workout and back). */
+/** Calendar UI state (survives switching tabs and opening a workout). */
 export const usePlanUiStore = create<PlanUiState>()((set) => ({
-  view: 'week',
   weekStart: null,
-  month: null,
   feedback: null,
-  setView: (view) => set({ view }),
-  showWeek: (weekStart) => set({ weekStart, view: 'week' }),
-  showMonth: (month) => set({ month }),
+  showWeek: (weekStart) => set({ weekStart }),
   setFeedback: (feedback) => set({ feedback }),
 }));

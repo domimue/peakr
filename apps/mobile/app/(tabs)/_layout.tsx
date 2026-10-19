@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@/ui';
 
+/** Five tabs (CLAUDE.md "UI patterns"): Today, Plan, Calendar, Progress, Profile. */
 export default function TabsLayout() {
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -14,9 +15,21 @@ export default function TabsLayout() {
       tintColor={colors.accentLine}
       labelStyle={{ selected: { color: colors.text } }}
     >
+      <NativeTabs.Trigger name="today">
+        <NativeTabs.Trigger.Label>{t('tabs.today')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="sun.max" md="today" />
+      </NativeTabs.Trigger>
       <NativeTabs.Trigger name="plan">
         <NativeTabs.Trigger.Label>{t('tabs.plan')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="list.bullet.rectangle" md="view_agenda" />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="calendar">
+        <NativeTabs.Trigger.Label>{t('tabs.calendar')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="calendar" md="calendar_month" />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="progress">
+        <NativeTabs.Trigger.Label>{t('tabs.progress')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="chart.bar" md="bar_chart" />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="profile">
         <NativeTabs.Trigger.Label>{t('tabs.profile')}</NativeTabs.Trigger.Label>

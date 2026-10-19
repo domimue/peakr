@@ -1,18 +1,24 @@
 import {
   calculateHrZones,
   findWorkout,
+  formatDuration,
   inDetailWindow,
+  indoorVersion,
   isPaused,
   kindKey,
+  paceLimitSecPerKm,
   planRange,
   statusOf,
   workoutKind,
+  type Block,
   type HrZone,
+  type Step,
 } from '@peakr/engine';
 import { router } from 'expo-router';
+import type { TFunction } from 'i18next';
 import { useMemo, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { todayIso } from '@/data/ids';
 import {
@@ -23,23 +29,25 @@ import {
   Icon,
   IconBadge,
   LinkRow,
-  numeric,
+  radius,
   Screen,
+  SegmentedControl,
   spacing,
   Text,
   useTheme,
   type IconName,
 } from '@/ui';
+import { sessionDoneHaptic } from '@/ui/haptics';
 
 import {
+  durationText,
   exerciseLines,
-  structureLines,
   targetText,
   workoutTitle,
 } from '../../onboarding/workout-text';
 import { addDays, formatDate, mondayOf, weekDates } from '../calendar';
 import { workoutKm } from '../components/workout-card';
-import { calendarTitle, kindColor, kindIcon } from '../kind';
+import { calendarTitle, kindIcon, typeColor, typeName } from '../kind';
 import { usePlanUiStore } from '../plan-ui-store';
 import { usePlan, usePlanActions } from '../queries';
 import { issueText } from './plan-screen';
@@ -50,11 +58,87 @@ export interface WorkoutScreenProps {
   startMoving?: boolean;
 }
 
+type Setting = 'outdoor' | 'indoor';
+
+interface StepItem {
+  key: string;
+  title: string;
+  target: string;
+  explanation: string;
+}
+
+function amountText(t: TFunction, s: Step): string {
+  if (s.distanceM !== undefined) return t('workoutText.meters', { value: s.distanceM });
+  const sec = s.durationSec ?? 0;
+  return sec % 60 === 0 ? t('workoutText.minutes', { count: sec / 60 }) : formatDuration(sec);
+}
+
 /**
- * One workout: its general kind ("Tempo run") with the concrete session behind it, structured
- * steps with zone targets, "why this session" and a link to the workout-type explanation. Every
- * action is allowed (done, skip, move to any day); the plan tab shows warnings afterwards.
- * Beyond the 4-week look-ahead only the outline is shown.
+ * Numbered steps: every warm-up and cool-down step, every main block (repeats as one step with
+ * the work and recovery inside). Each with its target and one line of explanation.
+ */
+function stepItems(
+  t: TFunction,
+  parts: { warmup: Step[]; main: Block[]; cooldown: Step[] },
+  hrZones: readonly HrZone[],
+  paceLimit: string | null,
+): StepItem[] {
+  const target = (s: Step) => {
+    const main = targetText(t, s.target, hrZones);
+    return paceLimit && s.zone <= 2
+      ? t('workout.paceLimit', { target: main, pace: paceLimit })
+      : main;
+  };
+  const explain = (s: Step, fallback: string) =>
+    s.noteKey ? (t(s.noteKey as never) as string) : fallback;
+  const items: StepItem[] = [];
+  parts.warmup.forEach((s, i) =>
+    items.push({
+      key: `w${i}`,
+      title: `${t('workout.step.warmup')} · ${amountText(t, s)}`,
+      target: target(s),
+      explanation: explain(s, t('workout.explain.warmup')),
+    }),
+  );
+  parts.main.forEach((b, i) => {
+    const work = b.steps.find((s) => !s.rest) ?? b.steps[0];
+    const rest = b.steps.find((s) => s.rest);
+    if (!work) return;
+    const amount =
+      b.repeat > 1
+        ? t('workout.repeat', {
+            count: b.repeat,
+            work: amountText(t, work),
+            rest: rest ? amountText(t, rest) : '',
+          })
+        : amountText(t, work);
+    items.push({
+      key: `m${i}`,
+      title: `${t('workout.step.main')} · ${amount}`,
+      target: target(work),
+      explanation: explain(
+        work,
+        b.repeat > 1 ? t('workout.explain.repeat') : t(`workout.explain.zone${work.zone}`),
+      ),
+    });
+  });
+  parts.cooldown.forEach((s, i) =>
+    items.push({
+      key: `c${i}`,
+      title: `${t('workout.step.cooldown')} · ${amountText(t, s)}`,
+      target: target(s),
+      explanation: explain(s, t('workout.explain.cooldown')),
+    }),
+  );
+  return items;
+}
+
+const formatPace = (sec: number) => `${formatDuration(sec)}/km`;
+
+/**
+ * One workout: header tinted in the type colour, duration as a range, quick actions, outdoor /
+ * indoor, numbered steps with target and explanation, "why this session" and one primary action.
+ * Easy sessions phrase pace as a limit ("no faster than …") with HR as the real target.
  */
 export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
   const { t, i18n } = useTranslation();
@@ -64,6 +148,8 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
   const setFeedback = usePlanUiStore((s) => s.setFeedback);
   const showWeek = usePlanUiStore((s) => s.showWeek);
   const [moving, setMoving] = useState(startMoving);
+  const [setting, setSetting] = useState<Setting>('outdoor');
+  const [warmupOpen, setWarmupOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const today = todayIso();
 
@@ -87,16 +173,22 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
 
   const { state, input } = stored;
   const kind = workoutKind(w);
-  const color = kindColor(colors, kind);
+  const color = typeColor(colors, w);
   const status = statusOf(state, w.id);
   const paused = isPaused(state, w.date);
   const outline = !inDetailWindow(w.date, today);
   const km = workoutKm(w, input.profile);
   const date = (iso: string, opts: Intl.DateTimeFormatOptions) =>
     formatDate(iso, i18n.language, opts);
-  const lines = w.sport === 'strength' ? exerciseLines(t, w) : structureLines(t, w);
   const title = calendarTitle(t, w);
   const session = workoutTitle(t, w);
+  const week = state.plan.weeks.find((x) => x.workouts.some((o) => o.id === w.id));
+  const indoor = indoorVersion(w);
+  const useIndoor = setting === 'indoor' && indoor !== null;
+  const parts = useIndoor ? indoor : w;
+  const limit = paceLimitSecPerKm(w, input.profile);
+  const paceLimit = limit !== null && !useIndoor ? formatPace(limit) : null;
+  const steps = w.sport === 'strength' ? [] : stepItems(t, parts, hrZones, paceLimit);
 
   const range = planRange(state.plan);
   const monday = mondayOf(w.date);
@@ -108,6 +200,11 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
 
   const run = (result: { ok: boolean; issues?: Parameters<typeof issueText>[1] }) => {
     setError(result.ok ? null : issueText(t, result.issues ?? []));
+    return result.ok;
+  };
+
+  const markDone = () => {
+    if (run(actions.setStatus(w.id, 'done'))) sessionDoneHaptic();
   };
 
   const moveTo = (to: string) => {
@@ -123,28 +220,77 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
     router.back();
   };
 
+  // Routes exist for runs and rides only (terrain intelligence).
+  const routable = w.sport === 'run' || w.sport === 'bike';
+  const quickActions: { icon: IconName; label: string; onPress: () => void; active?: boolean }[] = [
+    ...(routable
+      ? [
+          {
+            icon: 'route' as const,
+            label: t('workout.actions.route'),
+            onPress: () => router.push('/coming-soon/routes'),
+          },
+        ]
+      : []),
+    {
+      icon: 'link',
+      label: t('workout.actions.link'),
+      onPress: () => router.push('/coming-soon/linkActivity'),
+    },
+    {
+      icon: 'warmup',
+      label: t('workout.actions.warmup'),
+      onPress: () => setWarmupOpen((open) => !open),
+      active: warmupOpen,
+    },
+    {
+      icon: status === 'skipped' ? 'undo' : 'skip',
+      label: status === 'skipped' ? t('plan.workout.undo') : t('workout.actions.skip'),
+      onPress: () => run(actions.setStatus(w.id, status === 'skipped' ? 'planned' : 'skipped')),
+    },
+  ];
+
   return (
     <Screen>
-      <View style={styles.hero}>
-        <IconBadge name={kindIcon(kind)} color={color} size={56} />
-        <View style={styles.flex}>
+      <View style={[styles.header, { borderColor: color }]} testID="workout-header">
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: color, opacity: 0.16 }]} />
+        <View style={[styles.headerBar, { backgroundColor: color }]} />
+        <View style={styles.headerRow}>
+          <IconBadge name={kindIcon(kind)} color={color} size={48} />
+          <View style={styles.flex}>
+            <Text variant="caption" tone="secondary">
+              {[
+                week
+                  ? t('plan.weekOf', { week: week.index + 1, total: state.plan.weeks.length })
+                  : null,
+                date(w.date, { weekday: 'long', day: 'numeric', month: 'long' }),
+              ]
+                .filter(Boolean)
+                .join(' · ')}
+            </Text>
+            <Text variant="subtitle" accessibilityRole="header">
+              {title}
+            </Text>
+            <Text tone="secondary">
+              {[typeName(t, w.type), session !== title ? session : null]
+                .filter(Boolean)
+                .join(' · ')}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.headerFigures}>
+          <Text variant="title" testID="duration-range">
+            {durationText(t, w)}
+          </Text>
+          {km !== null ? <Text variant="label">{`≈ ${t('plan.km', { value: km })}`}</Text> : null}
+        </View>
+        <View style={styles.inline}>
+          <Icon name="watch" size={14} color={colors.textMuted} />
           <Text variant="caption" tone="secondary">
-            {date(w.date, { weekday: 'long', day: 'numeric', month: 'long' })}
+            {t('workout.watchNever')}
           </Text>
-          <Text variant="subtitle" accessibilityRole="header">
-            {title}
-          </Text>
-          {session !== title ? <Text tone="secondary">{session}</Text> : null}
         </View>
       </View>
-
-      <Card style={styles.stats}>
-        <Stat icon="time" value={t('workoutText.minutes', { count: w.durationMin })} />
-        {km !== null ? <Stat icon="distance" value={t('plan.km', { value: km })} /> : null}
-        {!outline && w.sport !== 'strength' ? (
-          <Stat icon="heart" value={targetText(t, w.target, hrZones)} />
-        ) : null}
-      </Card>
 
       <View style={styles.badges}>
         {w.hard ? <Badge label={t('plan.hard')} /> : null}
@@ -155,24 +301,92 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
         ) : null}
       </View>
 
+      <View style={styles.quick} testID="quick-actions">
+        {quickActions.map((a) => (
+          <Pressable
+            key={a.icon}
+            accessibilityRole="button"
+            accessibilityLabel={a.label}
+            accessibilityState={a.active === undefined ? undefined : { expanded: a.active }}
+            onPress={a.onPress}
+            style={({ pressed }) => [
+              styles.quickItem,
+              { backgroundColor: pressed || a.active ? colors.surface2 : colors.surface },
+            ]}
+          >
+            <Icon name={a.icon} size={22} color={colors.text} />
+            <Text variant="micro" style={styles.center}>
+              {a.label}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
+      {warmupOpen ? (
+        <Section icon="warmup" color={color} title={t('workout.warmupTitle')}>
+          <Text>
+            {t(w.sport === 'strength' ? 'workout.warmupStrength' : 'workout.warmupEndurance')}
+          </Text>
+        </Section>
+      ) : null}
+
+      {indoor && !outline ? (
+        <View style={styles.gapSm}>
+          <SegmentedControl
+            options={[
+              { value: 'outdoor', label: t('workout.outdoor') },
+              { value: 'indoor', label: t(`workout.indoor.${indoor.kind}`) },
+            ]}
+            value={setting}
+            onChange={setSetting}
+          />
+          {useIndoor ? (
+            <Text variant="caption" tone="secondary">
+              {indoor.inclinePct !== null
+                ? t('workout.indoorIncline', { incline: indoor.inclinePct })
+                : t('workout.indoorSameLoad')}
+            </Text>
+          ) : null}
+        </View>
+      ) : null}
+
       {outline ? (
         <Section icon="info" color={color} title={t('plan.workout.outlineTitle')}>
           <Text tone="secondary">{t('plan.outlineHint')}</Text>
         </Section>
       ) : (
         <>
+          {w.paceMode === 'limit' && w.sport !== 'strength' ? (
+            <Card testID="hr-first">
+              <View style={styles.inline}>
+                <Icon name="heart" size={18} color={colors.text} />
+                <Text style={[styles.flex, styles.strong]}>
+                  {paceLimit
+                    ? t('workout.limitHint', { pace: paceLimit })
+                    : t('workout.limitHintNoPace')}
+                </Text>
+              </View>
+            </Card>
+          ) : null}
           <Section
             icon="structure"
             color={color}
-            title={
-              w.sport === 'strength' ? t('plan.workout.exercises') : t('plan.workout.structure')
-            }
+            title={w.sport === 'strength' ? t('plan.workout.exercises') : t('workout.steps')}
           >
-            <View style={[styles.lines, { borderLeftColor: color }]}>
-              {lines.map((line, i) => (
-                <Text key={i}>{line}</Text>
-              ))}
-            </View>
+            {w.sport === 'strength'
+              ? exerciseLines(t, w).map((line, i) => (
+                  <NumberedRow key={i} n={i + 1} color={color} title={line} />
+                ))
+              : steps.map((s, i) => (
+                  <NumberedRow
+                    key={`${setting}-${s.key}`}
+                    n={i + 1}
+                    color={color}
+                    title={s.title}
+                    target={s.target}
+                    explanation={s.explanation}
+                  />
+                ))}
           </Section>
           <Section icon="why" color={color} title={t('plan.workout.why')}>
             <Text>{t(w.whyKey as never) as string}</Text>
@@ -196,19 +410,7 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
 
       <View style={styles.actions}>
         {status !== 'done' ? (
-          <Button
-            icon="check"
-            label={t('plan.workout.markDone')}
-            onPress={() => run(actions.setStatus(w.id, 'done'))}
-          />
-        ) : null}
-        {status === 'planned' ? (
-          <Button
-            icon="skip"
-            variant="secondary"
-            label={t('plan.workout.skip')}
-            onPress={() => run(actions.setStatus(w.id, 'skipped'))}
-          />
+          <Button icon="check" label={t('plan.workout.markDone')} onPress={markDone} />
         ) : (
           <Button
             icon="undo"
@@ -242,14 +444,29 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
   );
 }
 
-function Stat({ icon, value }: { icon: IconName; value: string }) {
-  const { colors } = useTheme();
+interface NumberedRowProps {
+  n: number;
+  color: string;
+  title: string;
+  target?: string;
+  explanation?: string;
+}
+
+function NumberedRow({ n, color, title, target, explanation }: NumberedRowProps) {
   return (
-    <View style={styles.stat}>
-      <Icon name={icon} size={18} color={colors.textMuted} />
-      <Text variant="label" style={[numeric, styles.flexShrink]}>
-        {value}
-      </Text>
+    <View style={styles.step} accessible testID={`step-${n}`}>
+      <View style={[styles.stepNumber, { borderColor: color }]}>
+        <Text variant="label">{n}</Text>
+      </View>
+      <View style={styles.flex}>
+        <Text style={styles.strong}>{title}</Text>
+        {target ? <Text>{target}</Text> : null}
+        {explanation ? (
+          <Text variant="caption" tone="secondary">
+            {explanation}
+          </Text>
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -257,7 +474,7 @@ function Stat({ icon, value }: { icon: IconName; value: string }) {
 interface SectionProps {
   icon: IconName;
   title: string;
-  /** Icon colour (the workout's sport colour). */
+  /** Icon colour (the workout's type colour). */
   color: string;
   children: ReactNode;
 }
@@ -265,7 +482,7 @@ interface SectionProps {
 function Section({ icon, title, color, children }: SectionProps) {
   return (
     <Card>
-      <View style={styles.sectionTitle}>
+      <View style={styles.inline}>
         <Icon name={icon} size={18} color={color} />
         <Text variant="label">{title}</Text>
       </View>
@@ -275,13 +492,44 @@ function Section({ icon, title, color, children }: SectionProps) {
 }
 
 const styles = StyleSheet.create({
-  hero: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  header: {
+    borderRadius: radius.md,
+    overflow: 'hidden',
+    padding: spacing.md,
+    paddingTop: spacing.md + 4,
+    gap: spacing.sm,
+  },
+  headerBar: { position: 'absolute', top: 0, left: 0, right: 0, height: 4 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  headerFigures: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
   flex: { flex: 1 },
-  flexShrink: { flexShrink: 1 },
-  stats: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md },
-  stat: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, flexShrink: 1 },
+  strong: { fontWeight: '600' },
+  center: { textAlign: 'center' },
+  inline: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   badges: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-  sectionTitle: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  lines: { borderLeftWidth: 2, paddingLeft: spacing.sm, gap: spacing.xs },
+  quick: { flexDirection: 'row', gap: spacing.sm },
+  quickItem: {
+    flex: 1,
+    alignItems: 'center',
+    gap: spacing.xs,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.xs,
+    borderRadius: radius.md,
+  },
+  gapSm: { gap: spacing.sm },
+  step: { flexDirection: 'row', gap: spacing.sm, paddingVertical: spacing.xs },
+  stepNumber: {
+    minWidth: 28,
+    height: 28,
+    borderRadius: 14,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   actions: { gap: spacing.sm },
 });

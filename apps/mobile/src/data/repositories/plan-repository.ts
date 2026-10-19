@@ -1,4 +1,10 @@
-import type { Plan, PlanState, Workout, WorkoutStatus } from '@peakr/engine';
+import {
+  normalizePlan,
+  type Plan,
+  type PlanState,
+  type Workout,
+  type WorkoutStatus,
+} from '@peakr/engine';
 import { asc, eq } from 'drizzle-orm';
 
 import { db } from '../db/client';
@@ -77,7 +83,8 @@ export async function getPlan(): Promise<StoredPlan | null> {
     id: plan.id,
     input: plan.input,
     state: {
-      plan: value,
+      // Plans stored before Phase 5c lack the derived UI fields.
+      plan: normalizePlan(value),
       status,
       revision: plan.revision,
       pauses: pauses.map(({ reason, startDate, endDate }) => ({ reason, startDate, endDate })),

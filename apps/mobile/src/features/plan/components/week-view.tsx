@@ -8,7 +8,7 @@ import {
 } from '@peakr/engine';
 import { useCallback, useMemo, useRef, type ComponentRef } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import {
   GestureDetector,
   usePanGesture,
@@ -16,13 +16,14 @@ import {
 } from 'react-native-gesture-handler';
 import Animated, {
   useAnimatedStyle,
+  useReducedMotion,
   useSharedValue,
   withSpring,
   type SharedValue,
 } from 'react-native-reanimated';
 import { scheduleOnRN } from 'react-native-worklets';
 
-import { radius, spacing, Text, useTheme } from '@/ui';
+import { Icon, radius, spacing, Text, useTheme } from '@/ui';
 
 import { formatDate, weekDates } from '../calendar';
 import { WorkoutCard } from './workout-card';
@@ -50,6 +51,10 @@ export interface WeekViewProps {
   onMoveAction: (id: string) => void;
   /** Dragging started / ended – the screen locks scrolling meanwhile. */
   onDragChange?: (dragging: boolean) => void;
+  /** "Add" on an empty day. */
+  onAdd?: (date: string) => void;
+  /** testID prefix, unique per week on screen (`plan` → `plan-card-0-0`). */
+  idPrefix?: string;
 }
 
 /** The day row under the finger; above or below the list snaps to the first / last day. */
@@ -83,6 +88,8 @@ export function WeekView({
   onMove,
   onMoveAction,
   onDragChange,
+  onAdd,
+  idPrefix = 'plan',
 }: WeekViewProps) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
@@ -139,7 +146,7 @@ export function WeekView({
             ref={(r) => {
               rowRefs.current[i] = r;
             }}
-            testID={`plan-day-${i}`}
+            testID={`${idPrefix}-day-${i}`}
           >
             <View
               style={[
@@ -157,14 +164,40 @@ export function WeekView({
             </View>
             <View style={styles.dayContent}>
               {dayWorkouts.length === 0 ? (
-                <Text variant="caption" tone="secondary" style={styles.rest}>
-                  {paused ? t('plan.paused') : t('plan.rest')}
-                </Text>
+                <View style={styles.empty}>
+                  <Text variant="caption" tone="secondary" style={styles.rest}>
+                    {paused ? t('plan.paused') : t('plan.rest')}
+                  </Text>
+                  {onAdd && !paused ? (
+                    <Pressable
+                      testID={`${idPrefix}-add-${i}`}
+                      accessibilityRole="button"
+                      accessibilityLabel={t('calendar.addA11y', {
+                        date: formatDate(date, i18n.language, {
+                          weekday: 'long',
+                          day: 'numeric',
+                          month: 'long',
+                        }),
+                      })}
+                      onPress={() => onAdd(date)}
+                      style={({ pressed }) => [
+                        styles.add,
+                        { borderColor: colors.border },
+                        pressed && { backgroundColor: colors.surface2 },
+                      ]}
+                    >
+                      <Icon name="plus" size={14} color={colors.textMuted} />
+                      <Text variant="caption" tone="secondary">
+                        {t('calendar.add')}
+                      </Text>
+                    </Pressable>
+                  ) : null}
+                </View>
               ) : (
                 dayWorkouts.map((w, n) => (
                   <DraggableWorkout
                     key={w.id}
-                    testID={`plan-card-${i}-${n}`}
+                    testID={`${idPrefix}-card-${i}-${n}`}
                     workout={w}
                     state={state}
                     today={today}
@@ -248,10 +281,16 @@ function DraggableWorkout({
   const x = useSharedValue(0);
   const y = useSharedValue(0);
   const lifted = useSharedValue(0);
+  // Reduce motion: the card follows the finger, but lifting and snapping back are instant.
+  const reduceMotion = useReducedMotion();
+  const settle = (to: number) => {
+    'worklet';
+    return reduceMotion ? to : withSpring(to);
+  };
 
   const onActivate = () => {
     'worklet';
-    lifted.value = withSpring(1);
+    lifted.value = settle(1);
     activeRow.set(row);
     scheduleOnRN(onDragStart);
   };
@@ -270,9 +309,9 @@ function DraggableWorkout({
     'worklet';
     hover.set(-1);
     activeRow.set(-1);
-    lifted.value = withSpring(0);
-    x.value = withSpring(0);
-    y.value = withSpring(0);
+    lifted.value = settle(0);
+    x.value = settle(0);
+    y.value = settle(0);
   };
   // Long-press anywhere on the card, or drag the handle right away.
   const cardPan = usePanGesture({
@@ -305,6 +344,7 @@ function DraggableWorkout({
       <Animated.View style={[styles.draggable, style]} testID={testID}>
         <View style={styles.flex}>
           <WorkoutCard
+            compact
             workout={w}
             status={status}
             outline={!inDetailWindow(w.date, today)}
@@ -351,7 +391,7 @@ const styles = StyleSheet.create({
   day: {
     flexDirection: 'row',
     gap: spacing.sm,
-    minHeight: 60,
+    minHeight: 52,
     padding: spacing.xs,
     borderRadius: radius.md,
     borderWidth: 1.5,
@@ -364,5 +404,16 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.xs,
   },
   dayContent: { flex: 1, gap: spacing.xs, justifyContent: 'center' },
-  rest: { paddingVertical: spacing.sm },
+  rest: { paddingVertical: spacing.sm, flex: 1 },
+  empty: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  add: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    borderWidth: 1,
+    borderStyle: 'dashed',
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: spacing.xs,
+  },
 });

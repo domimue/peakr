@@ -12,8 +12,16 @@ import type { TFunction } from 'i18next';
 
 export function workoutTitle(t: TFunction, w: Workout): string {
   return w.sport === 'strength'
-    ? (t(`strength.types.${w.type}` as never) as string)
+    ? (t(`strength.types.${w.templateType}` as never) as string)
     : (t(`workouts.${w.templateId}` as never) as string);
+}
+
+/** Duration range, e.g. "30–35 min" (a single value when fixed, e.g. commutes). */
+export function durationText(t: TFunction, w: Pick<Workout, 'duration'>): string {
+  const { minMin, maxMin } = w.duration;
+  return minMin === maxMin
+    ? t('workoutText.minutes', { count: minMin })
+    : t('workoutText.minutesRange', { min: minMin, max: maxMin });
 }
 
 function zoneNumber(target: Target): number | null {

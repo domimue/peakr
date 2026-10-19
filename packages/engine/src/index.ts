@@ -38,6 +38,7 @@ export {
   easeWorkout,
   findViolations,
   findWorkout,
+  hasManualChanges,
   inDetailWindow,
   isPaused,
   moveWorkout,
@@ -47,6 +48,7 @@ export {
   regeneratePlan,
   regenerationStart,
   resumePlan,
+  resetWeek,
   resumeRules,
   setTravel,
   setWeekOverride,
@@ -146,3 +148,31 @@ export {
   type SportDistances,
   type WeekSummary,
 } from './plan/distance';
+export {
+  describeWorkout,
+  durationRange,
+  kindWorkoutType,
+  normalizePlan,
+  paceLimitSecPerKm,
+  paceMode,
+  typeColorKey,
+  WORKOUT_TYPES,
+  workoutType,
+} from './plan/workout-type';
+export { indoorVersion, type IndoorKind, type IndoorVersion } from './plan/indoor';
+export {
+  historyByMonth,
+  performance,
+  weekProgress,
+  weekTags,
+  workoutKm,
+  type HistoryEntry,
+  type HistoryMonth,
+  type Performance,
+  type PerformanceWeek,
+  type PersonalBests,
+  type ProgressSegment,
+  type Totals,
+  type WeekProgress,
+  type WeekTag,
+} from './plan/summary';
