@@ -1,5 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
+import * as activities from '../repositories/activity-repository';
+import { pullActivities } from './activities-remote';
 import { resolvePlan, resolveWorkouts } from './merge';
 import * as remote from './remote';
 import * as local from './sync-repository';
@@ -73,5 +75,20 @@ export async function syncOnce(
 
   if (changes.cursor && changes.cursor !== cursor)
     await local.setSyncValue('sync.cursor', changes.cursor);
+
+  // Imported activities (read-only for the app). A failure here must not stop the plan sync.
+  try {
+    changed = (await pullActivityChanges(client)) || changed;
+  } catch (error) {
+    console.warn('Activity pull failed', error);
+  }
   return { changed };
+}
+
+async function pullActivityChanges(client: SupabaseClient): Promise<boolean> {
+  const cursor = await local.getSyncValue('sync.activitiesCursor');
+  const { upserts, deletes, cursor: next } = await pullActivities(client, cursor);
+  if (upserts.length > 0 || deletes.length > 0) activities.applyActivities(upserts, deletes);
+  if (next && next !== cursor) await local.setSyncValue('sync.activitiesCursor', next);
+  return upserts.length > 0 || deletes.length > 0;
 }

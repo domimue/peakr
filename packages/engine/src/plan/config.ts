@@ -314,6 +314,34 @@ export const planConfig = {
     /** Full workout details for the current week and the next 3 (CLAUDE.md "Look-ahead"). */
     weeks: 4,
   },
+  /** Imported activities (CLAUDE.md "Automatic activity sync"). */
+  activities: {
+    /** Same activity from two sources: start times at most this far apart … */
+    dedupeStartToleranceSec: 5 * 60,
+    /** … and durations differing by at most this share of the longer one. */
+    dedupeDurationTolerance: 0.1,
+    /**
+     * Source priority for the merged record, highest first: the watch provider, then Strava,
+     * then the phone's health data.
+     */
+    sourcePriority: ['garmin', 'coros', 'suunto', 'apple', 'strava', 'healthconnect', 'healthkit'],
+    /** Zone assumed when an activity has no heart rate. */
+    defaultZone: 2,
+    /** An activity counts as hard with an average HR in this zone or above … */
+    hardZone: 4,
+    /** … or in Z3+ for at least this long … */
+    tempoZone: 3,
+    tempoMinMin: 30,
+    /** … or when it is at least this long (long session), per sport. */
+    longMin: { run: 90, bike: 180, swim: 75, walk: 240, xcski: 150, skitour: 180, snowshoe: 180 },
+    /**
+     * Unplanned activity: its load is taken off the easy sessions left in that week, each shortened
+     * to at least this many minutes. Only this share of the activity's load is taken off, so the
+     * week keeps a little more than planned instead of being cut to the bone.
+     */
+    absorbShare: 0.8,
+    minEasyMin: 20,
+  },
 } as const;
 
 export type PlanConfig = typeof planConfig;

@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { create } from 'zustand';
 
+import { processNewActivities } from '../activities/process';
 import { supabase } from '../supabase';
 import { onLocalChange } from './changes';
 import { syncOnce } from './sync';
@@ -55,6 +56,10 @@ export async function requestSync(userId: string): Promise<boolean> {
       try {
         const result = await syncOnce(client, userId);
         changed ||= result.changed;
+        // New activities (or a plan that waited for them): mark planned workouts done /
+        // rebalance the week, then announce them.
+        const notices = await processNewActivities();
+        changed ||= notices.length > 0;
         useSyncStore.setState({ status: 'idle', lastSyncedAt: Date.now(), error: null });
       } catch (error) {
         console.warn('Sync failed', error);

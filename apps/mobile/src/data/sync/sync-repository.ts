@@ -2,6 +2,8 @@ import { and, asc, eq, inArray } from 'drizzle-orm';
 
 import { db } from '../db/client';
 import {
+  activities,
+  activityLinks,
   appSettings,
   planPauses,
   plans,
@@ -29,12 +31,16 @@ function chunks<T>(rows: readonly T[]): T[][] {
 
 // --- Sync state (cursor, account) ------------------------------------------------------------
 
-export async function getSyncValue(key: 'sync.cursor' | 'sync.userId'): Promise<string | null> {
+/** Pull cursors (plans + workouts, activities) and the account the local data belongs to. */
+export type SyncKey = 'sync.cursor' | 'sync.activitiesCursor' | 'sync.userId';
+const SYNC_KEYS: SyncKey[] = ['sync.cursor', 'sync.activitiesCursor', 'sync.userId'];
+
+export async function getSyncValue(key: SyncKey): Promise<string | null> {
   const row = await db.query.appSettings.findFirst({ where: eq(appSettings.key, key) });
   return row?.value ?? null;
 }
 
-export async function setSyncValue(key: 'sync.cursor' | 'sync.userId', value: string) {
+export async function setSyncValue(key: SyncKey, value: string) {
   await db
     .insert(appSettings)
     .values({ key, value })
@@ -308,8 +314,9 @@ export function clearSyncedData(): void {
   db.transaction((tx) => {
     clearPlans(tx);
     tx.delete(syncTombstones).run();
-    tx.delete(appSettings)
-      .where(inArray(appSettings.key, ['sync.cursor', 'sync.userId']))
-      .run();
+    // Imported activities belong to the account too.
+    tx.delete(activities).run();
+    tx.delete(activityLinks).run();
+    tx.delete(appSettings).where(inArray(appSettings.key, SYNC_KEYS)).run();
   });
 }

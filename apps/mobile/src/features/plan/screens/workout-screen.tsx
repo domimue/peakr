@@ -21,6 +21,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { todayIso } from '@/data/ids';
+import { useWorkoutActivity, type LinkedActivity } from '@/features/activities/queries';
 import {
   Badge,
   Button,
@@ -135,6 +136,17 @@ function stepItems(
 
 const formatPace = (sec: number) => `${formatDuration(sec)}/km`;
 
+/** What was actually done: "52 min · 10.3 km · ⌀ 142 bpm". */
+function actualText(t: TFunction, { activity: a }: LinkedActivity): string {
+  return [
+    t('workoutText.minutes', { count: Math.round(a.durationSec / 60) }),
+    a.distanceM !== null ? t('plan.km', { value: Math.round(a.distanceM / 100) / 10 }) : null,
+    a.avgHr !== null ? t('workout.avgHr', { value: Math.round(a.avgHr) }) : null,
+  ]
+    .filter(Boolean)
+    .join(' · ');
+}
+
 /**
  * One workout: header tinted in the type colour, duration as a range, quick actions, outdoor /
  * indoor, numbered steps with target and explanation, "why this session" and one primary action.
@@ -151,6 +163,7 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
   const [setting, setSetting] = useState<Setting>('outdoor');
   const [warmupOpen, setWarmupOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const linked = useWorkoutActivity(id);
   const today = todayIso();
 
   const hrZones = useMemo<readonly HrZone[]>(() => {
@@ -290,6 +303,22 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
             {t('workout.watchNever')}
           </Text>
         </View>
+        {linked ? (
+          <View style={styles.inline} testID="activity-synced">
+            <Icon name="connections" size={14} color={colors.textMuted} />
+            <Text variant="caption" tone="secondary" style={styles.flex}>
+              {t('workout.synced', {
+                source: t(`activities.source.${linked.activity.source}`),
+                time: new Date(linked.syncedAt).toLocaleString(i18n.language, {
+                  weekday: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                }),
+                actual: actualText(t, linked),
+              })}
+            </Text>
+          </View>
+        ) : null}
       </View>
 
       <View style={styles.badges}>

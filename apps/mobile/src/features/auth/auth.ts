@@ -6,6 +6,7 @@ import { Platform } from 'react-native';
 import { supabase } from '@/data/supabase';
 import { clearSyncedData } from '@/data/sync/sync-repository';
 import { requestSync, useSyncStore } from '@/data/sync/use-background-sync';
+import { unregisterPushToken } from '@/features/notifications/push';
 
 /**
  * Sign-in methods: email magic link (with a 6-digit code as fallback), Google and Sign in with
@@ -99,6 +100,8 @@ export async function signInWithApple(): Promise<boolean> {
 export async function signOut(userId: string, force = false): Promise<'done' | 'unsynced'> {
   await requestSync(userId);
   if (!force && useSyncStore.getState().status !== 'idle') return 'unsynced';
+  // This device stops receiving the account's activity pushes (best effort, needs the session).
+  await unregisterPushToken().catch((e: unknown) => console.warn('Push unregister failed', e));
   const { error } = await client().auth.signOut();
   if (error) throw error;
   clearSyncedData();

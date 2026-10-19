@@ -1,4 +1,6 @@
 import '@/i18n';
+// Defines the background task for activity pushes; must run at module scope on every start.
+import { registerBackgroundSync } from '@/features/notifications/background-task';
 
 import { Archivo_400Regular, Archivo_500Medium } from '@expo-google-fonts/archivo';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -11,11 +13,15 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useDatabaseMigrations } from '@/data/db/use-database-migrations';
 import { queryClient } from '@/data/query-client';
+import { useActivityRealtime } from '@/data/sync/use-activity-realtime';
 import { useBackgroundSync } from '@/data/sync/use-background-sync';
+import { ActivityNoticeHost } from '@/features/activities/activity-notice';
 import { useAuthListener, useSessionStore } from '@/features/auth/session-store';
+import { registerPushToken } from '@/features/notifications/push';
 import { fontFamilies, toNavigationTheme, useTheme } from '@/ui';
 
 void SplashScreen.preventAutoHideAsync();
+registerBackgroundSync();
 
 export default function RootLayout() {
   const theme = useTheme();
@@ -44,15 +50,23 @@ export default function RootLayout() {
         <ThemeProvider value={toNavigationTheme(theme)}>
           <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
           <Stack screenOptions={{ headerShown: false }} />
+          <ActivityNoticeHost />
         </ThemeProvider>
       </QueryClientProvider>
     </GestureHandlerRootView>
   );
 }
 
-/** Syncs SQLite with Supabase while someone is signed in (inside the query client for refreshes). */
+/**
+ * Syncs SQLite with Supabase while someone is signed in (inside the query client for refreshes):
+ * background sync, Realtime for new activities, and this device's push token (no prompt here).
+ */
 function BackgroundSync() {
   const userId = useSessionStore((s) => s.session?.user.id ?? null);
   useBackgroundSync(userId);
+  useActivityRealtime(userId);
+  useEffect(() => {
+    if (userId) void registerPushToken(userId);
+  }, [userId]);
   return null;
 }

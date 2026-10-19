@@ -5,6 +5,7 @@ import { router } from 'expo-router';
 
 import type { StoredPlanInput } from '@/data/db/schema';
 import * as ids from '@/data/ids';
+import * as activityRepo from '@/data/repositories/activity-repository';
 import * as repo from '@/data/repositories/plan-repository';
 import { renderWithQuery } from '@/test-utils/render-with-query';
 
@@ -18,8 +19,11 @@ import { ProgressScreen } from '../../progress/progress-screen';
 import { TodayScreen } from '../../today/today-screen';
 
 jest.mock('@/data/repositories/plan-repository');
+jest.mock('@/data/repositories/activity-repository');
 
 const mock = repo as unknown as typeof import('@/data/repositories/__mocks__/plan-repository');
+const activityMock =
+  activityRepo as unknown as typeof import('@/data/repositories/__mocks__/activity-repository');
 
 /**
  * Same plan as the engine edit tests: half marathon, intermediate, from Monday 2026-10-19.
@@ -61,6 +65,7 @@ const state = () => {
 
 beforeEach(() => {
   mock.resetStore();
+  activityMock.resetStore();
   usePlanUiStore.setState({ weekStart: null, feedback: null });
   setToday('2026-10-19');
   jest.spyOn(router, 'push').mockImplementation(() => undefined);
@@ -331,6 +336,38 @@ describe('moving a workout', () => {
 });
 
 describe('workout detail', () => {
+  it('shows the synced activity that fulfilled the session', async () => {
+    storePlan();
+    setToday('2026-10-26');
+    activityMock.store.activities = [
+      {
+        source: 'strava',
+        externalId: '42',
+        sport: 'run',
+        startTime: '2026-10-26T05:30:00Z',
+        date: '2026-10-26',
+        durationSec: 3120,
+        distanceM: 10_340,
+        elevationGainM: 35,
+        avgHr: 141.6,
+        maxHr: 165,
+        swimPaceSecPer100m: null,
+        polyline: 'abc',
+        name: 'Morning run',
+        indoor: false,
+        commute: false,
+        importedAt: Date.parse('2026-10-26T06:40:00Z'),
+        handled: true,
+      },
+    ];
+    activityMock.store.links = [
+      { activityKey: 'strava:42', workoutId: '2026-10-26-1', planId: 'plan-1' },
+    ];
+    await renderWithQuery(<WorkoutScreen id="2026-10-26-1" />);
+    const line = await screen.findByTestId('activity-synced');
+    expect(line).toHaveTextContent(/^Synced from Strava · .+ · 52 min · 10\.3 km · ⌀ 142 bpm$/);
+  });
+
   it('easy run: tinted header, range, HR target with a pace limit, numbered steps, done', async () => {
     storePlan();
     setToday('2026-10-26');
