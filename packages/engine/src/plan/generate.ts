@@ -1,13 +1,15 @@
 import { zoneConfig } from '../config';
 import { assertDefined, checkRange, type Result, type ValidationIssue } from '../result';
 import { classifyDays } from './classify';
+import { commuteMinutes, commutesOn, commutesValid } from './commute';
 import { requiredSports, sportShares } from './composition';
 import { planConfig } from './config';
 import { parseIsoDate, toIsoDate, weekdayOf } from './dates';
 import { hardShare } from './load';
 import { athleteFor } from './materialize';
 import { buildSkeleton, isRaceGoal, weekTargetLoad } from './periodisation';
-import { RESTED, scheduleWeek, type PrevDay, type ScheduleDay } from './scheduler';
+import { RESTED, scheduleWeek, type NextDay, type PrevDay, type ScheduleDay } from './scheduler';
+import { travelOn } from './travel';
 import {
   SPORTS,
   type Availability,
@@ -21,7 +23,16 @@ import {
   type Workout,
 } from './types';
 
-export type PlanField = 'startDate' | 'targetDate' | 'sports' | 'availability' | 'age' | 'strength';
+export type PlanField =
+  | 'startDate'
+  | 'targetDate'
+  | 'sports'
+  | 'availability'
+  | 'age'
+  | 'strength'
+  | 'commutes'
+  | 'weekOverrides'
+  | 'travel';
 
 /**
  * Continues an existing plan from `startDate` (new availability, resume after a pause): week
@@ -46,6 +57,10 @@ export interface PlanContinuation {
   lastBenchmarkWeek?: number | null;
   /** Prefix for the new workout ids, so they never collide with kept ones. */
   idPrefix?: string;
+  /** Only this many weeks from `startDate` (rebuild of single weeks); default: to the end. */
+  weeks?: number;
+  /** The day after the last generated week, when it stays as planned. */
+  next?: NextDay;
 }
 
 const cfg = planConfig;
@@ -123,6 +138,35 @@ function validate(
     (strength.mode === 'routines' && (strength.routines ?? []).length === 0)
   ) {
     issues.push({ field: 'strength', code: 'required' });
+  }
+
+  if (!commutesValid(profile.commutes ?? [])) {
+    issues.push({ field: 'commutes', code: 'outOfRange', params: planConfig.commute.oneWayMin });
+  }
+  const validDate = (iso: string) => parseIsoDate(iso) !== null;
+  const overrides = availability.weekOverrides ?? [];
+  if (
+    new Set(overrides.map((o) => o.weekStart)).size !== overrides.length ||
+    overrides.some((o) => {
+      const monday = parseIsoDate(o.weekStart);
+      return (
+        monday === null ||
+        weekdayOf(monday) !== 0 ||
+        (o.minutesPerDay !== undefined &&
+          (o.minutesPerDay.length !== 7 ||
+            o.minutesPerDay.some((m) => checkRange([], 'availability', m, limit) === undefined))) ||
+        (o.blockedDates ?? []).some((d) => !validDate(d))
+      );
+    })
+  ) {
+    issues.push({ field: 'weekOverrides', code: 'invalidDate' });
+  }
+  if (
+    (availability.travel ?? []).some(
+      (t) => !validDate(t.startDate) || !validDate(t.endDate) || t.endDate < t.startDate,
+    )
+  ) {
+    issues.push({ field: 'travel', code: 'invalidDate' });
   }
   return { issues, start: start ?? 0, planStart: planStart ?? 0, target };
 }
@@ -206,16 +250,32 @@ export function generatePlan(
   let lastBenchmark: number | null = continuation?.lastBenchmarkWeek ?? null;
   const weeks: PlanWeek[] = [];
 
-  for (const week of skeleton.slice(firstIndex)) {
+  const generated = skeleton.slice(
+    firstIndex,
+    continuation?.weeks === undefined ? undefined : firstIndex + continuation.weeks,
+  );
+  for (const week of generated) {
+    const weekStart = toIsoDate(monday + week.index * 7);
+    const override = availability.weekOverrides?.find((o) => o.weekStart === weekStart);
+    const minutesPerDay = override?.minutesPerDay ?? availability.minutesPerDay;
     const days: ScheduleDay[] = Array.from({ length: 7 }, (_, d) => {
       const day = monday + week.index * 7 + d;
+      const iso = toIsoDate(day);
       const inPlan = day >= start && day <= lastDay;
+      const away = override?.blockedDates?.includes(iso) === true;
       return {
         day: inPlan ? day : null,
         weekday: weekdayOf(day),
-        minutes: inPlan ? assertDefined(availability.minutesPerDay[d], 'minutes') : 0,
+        minutes: inPlan && !away ? assertDefined(minutesPerDay[d], 'minutes') : 0,
+        away,
+        travel: inPlan ? travelOn(availability.travel, iso) : null,
       };
     });
+    // Minutes left for training after the commutes (they are placed first).
+    const trainingMinutes = (d: ScheduleDay) =>
+      d.away || d.travel
+        ? d.minutes
+        : d.minutes - commutesOn(profile, d.weekday).reduce((s, c) => s + commuteMinutes(c), 0);
     const planDays = days.filter((d) => d.day !== null).length;
     const isPartial = planDays < 7;
     const loading = !week.isRecovery && week.taperIndex === null;
@@ -249,7 +309,7 @@ export function generatePlan(
         weekIndex: week.index,
         isRecovery: week.isRecovery,
         raceWeek: week.index === weekCount - 1 && week.taperIndex !== null,
-        trainingDays: days.filter((d) => d.minutes >= cfg.plan.minSessionMin).length,
+        trainingDays: days.filter((d) => trainingMinutes(d) >= cfg.plan.minSessionMin).length,
         cssAllowed: cssAllowed(profile, levels),
         benchmark,
         buildWeekIndex,
@@ -260,6 +320,9 @@ export function generatePlan(
       targetLoad,
       capLoad,
       raceDayIndex: lastIsRaceEve ? lastDay - (monday + week.index * 7) + 1 : null,
+      ...(continuation?.next && week === generated[generated.length - 1]
+        ? { next: continuation.next }
+        : {}),
       prev,
       levels,
       longMin,
@@ -275,15 +338,20 @@ export function generatePlan(
       // The reduced week is the new reference (scaled up when it was partial).
       reference = (out.load * 7) / planDays;
       firstWeekLoad = null;
-    } else if (loading && !isPartial) reference = out.load;
+    } else if (loading && !isPartial && !override && !days.some((d) => d.travel)) {
+      // Irregular and travel weeks are no reference: the weeks after continue the normal progression.
+      reference = out.load;
+    }
     if (week.phase === 'build' || week.phase === 'peak') buildWeekIndex++;
 
     const weekNotes: PlanNote[] = [...out.notes];
     if (week.isRecovery) weekNotes.unshift({ key: 'notes.recoveryWeek' });
     if (week.taperIndex !== null) weekNotes.unshift({ key: 'notes.taperWeek' });
+    if (override) weekNotes.push({ key: 'notes.weekOverride' });
+    if (days.some((d) => d.travel)) weekNotes.push({ key: 'notes.travelWeek' });
     weeks.push({
       index: week.index,
-      startDate: toIsoDate(monday + week.index * 7),
+      startDate: weekStart,
       phase: week.phase,
       isRecovery: week.isRecovery,
       isPartial,

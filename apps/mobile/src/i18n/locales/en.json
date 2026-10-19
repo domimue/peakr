@@ -52,7 +52,8 @@
       "brick": "Brick",
       "xcski": "Cross-country ski",
       "skitour": "Ski touring",
-      "snowshoe": "Snowshoeing"
+      "snowshoe": "Snowshoeing",
+      "walk": "Walk"
     },
     "dragHint": "Hold a workout (or grab its handle) and drag it to any day. You decide – Peakr only warns and suggests.",
     "moveA11y": "Move to another day",
@@ -137,6 +138,62 @@
     "summary": {
       "sessions_one": "session",
       "sessions_other": "sessions"
+    },
+    "realLife": {
+      "weekDifferent": "This week is different",
+      "weekDifferentHint": "Less time or days away – this week is rebuilt, the rest of the plan stays.",
+      "weekBadge": "Different week",
+      "travelBadge": "Travel",
+      "travelMode": "Travel mode",
+      "travelModeOn": "On from {{from}} to {{to}}",
+      "travelModeOff": "Hotel-room strength, runs by time, alternatives for rides and swims.",
+      "commuteToday": "Commute today",
+      "commuteLine": "{{type}} · {{minutes}} min",
+      "skipCommute": "Skip commute today",
+      "commuteSkipped": "Skipped today – it does not count towards your load.",
+      "undoSkip": "Undo"
+    },
+    "week": {
+      "title": "This week is different",
+      "hint": "Set the time you have on each day of this week. Days away get no training and no commute. Only this week is rebuilt – it keeps as much of its training load as the time allows.",
+      "minutesTitle": "Time per day this week",
+      "awayTitle": "Days away",
+      "save": "Rebuild this week",
+      "reset": "Reset week",
+      "resetHint": "Back to your normal week."
+    },
+    "travel": {
+      "title": "Travel mode",
+      "entryHint": "Train on the road: hotel-room strength and alternatives for rides and swims.",
+      "hint": "While you travel, strength switches to bodyweight and band exercises, runs are planned by time, and rides and swims get an easy alternative of similar load – as long as nothing else is available there. No commutes on travel days.",
+      "start": "From",
+      "end": "Until",
+      "pool": "A pool is available",
+      "bike": "A bike or indoor trainer is available",
+      "save": "Start travel mode",
+      "active": "Travel mode from {{from}} to {{to}}.",
+      "stop": "End travel mode",
+      "endBeforeStart": "The last day must not be before the first."
+    },
+    "commutes": {
+      "title": "Commutes",
+      "entryHint": "Bike, run or walk to work – counted as easy training.",
+      "hint": "Commutes are planned first as easy sessions and count towards your training load. On the day, you can skip one with a tap.",
+      "empty": "No commutes yet.",
+      "add": "Add commute",
+      "edit": "Edit commute",
+      "save": "Save and rebuild plan",
+      "remove": "Remove commute",
+      "summary": "{{sport}} · {{minutes}} min · {{ways}} · {{days}}",
+      "bothWays": "there and back",
+      "oneWay": "one way"
+    },
+    "winter": {
+      "title": "Winter sports",
+      "entryHint": "Skiing, ski touring or snowshoeing as part of your plan.",
+      "hint": "In your winter period, easy and long sessions get a winter variant with the same training load. Key sessions for a race stay in your sport.",
+      "monthsTitle": "Winter period",
+      "save": "Save and rebuild plan"
     }
   },
   "fields": {
@@ -223,7 +280,8 @@
     "about": "About",
     "licenses": "Third-party notices",
     "licensesHint": "Fonts and open-source licences",
-    "training": "Training"
+    "training": "Training",
+    "realLife": "Real life"
   },
   "why": {
     "run": {
@@ -239,7 +297,8 @@
       "tempo": "Threshold running raises the pace you can hold for a long time.",
       "vo2": "Intervals at VO2max pace raise your aerobic ceiling.",
       "racePace": "Running at goal race pace makes that pace feel familiar and controlled on race day.",
-      "downhill": "Controlled descents prepare your legs for the eccentric load of downhill racing."
+      "downhill": "Controlled descents prepare your legs for the eccentric load of downhill racing.",
+      "commute": "Running to work counts as easy training – it is part of the plan."
     },
     "bike": {
       "recovery": "An easy spin with high cadence flushes your legs after hard days.",
@@ -284,6 +343,9 @@
       "legs": "Leg day from your split, placed so it does not hurt your key endurance sessions.",
       "runners": "Runner-specific strength for hips, calves and single-leg stability.",
       "routine": "Your own routine, placed so it fits around the endurance sessions."
+    },
+    "walk": {
+      "commute": "Walking to work is gentle, low-impact movement – it counts a little towards your load."
     }
   },
   "notes": {
@@ -299,7 +361,13 @@
     "strengthNoDay": "No free day for strength this week.",
     "strengthSkipped": "The {{type}} strength session did not fit this week without hurting a key session.",
     "noRaceDate": "No race date yet – your plan runs the recommended {{weeks}} weeks. Add the date anytime and the plan adapts.",
-    "eased": "Made easier: the planned {{type}} session is now easy, so you do not have two hard days in a row."
+    "eased": "Made easier: the planned {{type}} session is now easy, so you do not have two hard days in a row.",
+    "commuteNoRoom": "A commute does not fit the time you have on one day this week, so it is not planned there. Add minutes for that day to count it.",
+    "weekOverride": "This week is different – rebuilt for the time you have.",
+    "travelWeek": "Travel week – hotel-room strength, runs by time and alternatives for rides and swims.",
+    "travelStrength": "Travel: bodyweight and band exercises you can do in a hotel room.",
+    "travelReplaced": "Travel: the planned {{type}} session is replaced by an easy session of similar load you can do there.",
+    "travelDropped": "Travel: the planned {{type}} session has no alternative at your travel location."
   },
   "steps": {
     "continuous": "Continuous easy swimming",
@@ -848,7 +916,9 @@
         "boredom": "Your plan mixes sports, terrain and session types – and winter sports count too.",
         "none": "Great starting point. Let’s build a plan that keeps it that way."
       },
-      "weightloss": "A safe pace is at most {{kg}} kg per week (1 % of your body weight). Your training plan supports it; nutrition tracking comes with the Training + Nutrition plan."
+      "weightloss": "A safe pace is at most {{kg}} kg per week (1 % of your body weight). Your training plan supports it; nutrition tracking comes with the Training + Nutrition plan.",
+      "commute": "Your commute adds about {{hours}} h of easy training on {{days}} days a week. It counts towards your plan, so the other sessions fit around it.",
+      "winter": "From December to March your plan offers winter variants of your easy and long sessions – with the same training load. You can change the winter period anytime."
     },
     "forecast": {
       "title": "Your plan is ready",
@@ -890,6 +960,53 @@
         "oneLoad": "All your sports share one load budget: a hard ride makes the next run easier automatically.",
         "weightloss": "Safe weight-loss pace: at most {{kg}} kg per week.",
         "routinesPending": "Strength from your own routines is added once you have built one."
+      }
+    },
+    "commute": {
+      "sport": {
+        "title": "Do you commute actively?",
+        "hint": "Riding, running or walking to work counts as easy training – we plan it first.",
+        "options": {
+          "none": {
+            "label": "No"
+          },
+          "bike": {
+            "label": "By bike"
+          },
+          "run": {
+            "label": "Running"
+          },
+          "walk": {
+            "label": "Walking"
+          }
+        }
+      },
+      "minutes": {
+        "title": "Minutes for one way",
+        "hint": "How long a single trip takes."
+      },
+      "days": {
+        "title": "On which days?"
+      },
+      "bothWays": {
+        "title": "There and back?"
+      }
+    },
+    "winter": {
+      "sports": {
+        "title": "Which winter sports do you do?",
+        "hint": "Optional. In winter, easy and long sessions can be swapped for these – with the same training load.",
+        "options": {
+          "xcski": {
+            "label": "Cross-country skiing"
+          },
+          "skitour": {
+            "label": "Ski touring"
+          },
+          "snowshoe": {
+            "label": "Snowshoeing"
+          }
+        }
       }
     }
   },
@@ -1348,7 +1465,8 @@
       "vo2_intervals_time": "VO₂max intervals",
       "race_pace_hm": "Half-marathon pace run",
       "race_pace_m": "Marathon pace run",
-      "downhill": "Downhill technique run"
+      "downhill": "Downhill technique run",
+      "commute": "Run commute"
     },
     "bike": {
       "recovery": "Recovery ride",
@@ -1386,6 +1504,9 @@
       "run_30min": "30-minute test run",
       "swim_css": "CSS swim test",
       "bike_ftp20": "20-minute FTP test"
+    },
+    "walk": {
+      "commute": "Walk to work"
     }
   },
   "paywall": {
@@ -1426,7 +1547,8 @@
       "swim": "Swimming",
       "brick": "Multisport",
       "strength": "Strength",
-      "winter": "Winter sports"
+      "winter": "Winter sports",
+      "commute": "Commuting"
     },
     "kinds": {
       "run.easy": {
@@ -1596,6 +1718,13 @@
         "description": "Repeats at a hard effort on cross-country skis.",
         "why": "A strong aerobic stimulus that uses the whole body.",
         "intensity": "Zone 4–5"
+      },
+      "commute.commute": {
+        "name": "Commute",
+        "short": "Getting to work by bike, running or on foot",
+        "description": "Your regular trip to work or school, one way or there and back. Ridden, run or walked at an easy effort – no pace to hit.",
+        "why": "Easy minutes that build your aerobic base without extra time. They count towards your training load, so the rest of the week is planned around them.",
+        "intensity": "Zone 1–2 · effort 2–4/10"
       }
     }
   }

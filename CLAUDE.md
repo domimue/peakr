@@ -30,7 +30,7 @@ A mobile app for **Android and iOS** that covers everything around fitness and w
 - **Legal** – Impressum / legal notice (Swiss sole proprietorship: name, address, email), Privacy policy (GDPR/revDSG, Supabase, Stripe, Strava and other integrations, analytics), Terms of service (subscription, trial, auto-renewal, right of withdrawal), Cookie notice if analytics are used. Linked from the footer on every page.
 
 ### App-only flow
-Install → onboarding quiz (same shared package) → forecast → **in-app purchase** (Google Play / Apple) → login/account → plan. No part of the plan, calendar, workouts or integrations is usable without a subscription or running trial; there is **no free tier** in the app. A running 7-day trial unlocks everything, exactly like a paid subscription (see Monetisation).
+Install → onboarding quiz (same shared package) → forecast → **in-app purchase** (Google Play / Apple) → login/account → plan. No part of the plan, calendar, workouts or integrations is usable without a subscription or running trial; there is **no free tier** in the app.
 
 ### Store rules for web purchases (must respect)
 - The app may unlock subscriptions bought on the web (same account), but it must **also offer in-app purchase** and must **not link, button or steer** users from inside the app to the web checkout, except where a store explicitly allows it for that region (check current Google Play and App Store rules before adding any external link).
@@ -72,7 +72,7 @@ The engine must treat disciplines generically (a list of selected sports), never
 /apps/mobile            – Expo app (Expo Router)
   /app                  – routes: (tabs)/plan, (tabs)/tools, (tabs)/profile, onboarding/*, paywall, ...
   /src/features         – tools, onboarding, plan, routes, integrations, settings, nutrition, body
-  /src/ui               – design system, theme (dark by default, light optional), shared components, brand logo components
+  /src/ui               – design system, theme (light/dark), shared components
   /src/data             – sqlite schema (Drizzle), repositories, sync, Supabase client
   /src/i18n             – locales/en.json (+ de, fr, it, es later)
 /packages/engine        – pure TypeScript training + energy engine, no React/RN imports, heavily unit tested
@@ -80,36 +80,6 @@ The engine must treat disciplines generically (a list of selected sports), never
 /packages/i18n          – shared translation files used by web and app
 /supabase               – migrations, edge functions
 ```
-
-## Branding & design tokens
-All colors, spacing, radii, font sizes and zone colors come from **/packages/theme**. No hex values anywhere else in code (`pnpm lint` runs a check). Web maps the tokens in `tailwind.config.ts` (classes like `bg-surface`, `text-muted`), the app imports them into `src/ui/theme`.
-
-**Palette "Volt"**
-```
-volt #D4FF3A · voltPressed #BFE81F · ink #0B0D10 · white #FFFFFF
-dark:  bg #0B0D10, surface #14171C, surface2 #1C2027, border #2A2F38, text #FFFFFF, textMuted #9AA3AE, accent #D4FF3A, onAccent #0B0D10
-light: bg #FFFFFF, surface #F4F6EC, surface2 #E9ECDF, border #DADFCE, text #0B0D10, textMuted #5A6270, accent #D4FF3A, onAccent #0B0D10
-status: error #FF5A4E, warning #FFB020, info #5B8CFF (fills/icons; on light backgrounds use the darker *Text tokens for text)
-```
-- **The app is dark by default**; light mode is optional (user setting). Web pages (tools, features, pricing, quiz, checkout) may be light, but header and hero are dark with Volt.
-- Primary button: Volt fill, Ink text, radius 14, min height 48. Secondary: transparent, 1.5 border in `border`, text in `text`.
-- Volt sparingly: one primary accent per screen. No gradients, no glows.
-- **Heart-rate zones** are their own five-step scale (Z2 = Volt in dark theme); steps differ clearly in lightness and hue and stay separable side by side in charts. Never rely on colour alone – always label zones.
-- Text contrast at least 4.5:1 (unit-tested in /packages/theme).
-
-**Logo "Pulse Peak"** – a heart-rate line whose spike forms a mountain peak. Exact geometry, never change, never outline, never distort; stroke always 10/120 of the size:
-`<polyline points="6,82 30,82 38,70 45,92 60,22 75,92 82,70 90,82 114,82" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>` in viewBox 0 0 120 120.
-- Wordmark "peakr", always lowercase: Archivo 800, width 112 %, tracking −0.03em (static instance `packages/theme/fonts/Peakr-Display.ttf`; rendered as outlined paths from `@peakr/theme`).
-- Lockup: mark left, wordmark right, vertically centred; proportions mark 64 / font size 50 / gap 14, scaled together.
-- Components with the same API in app and web: `<PeakrMark size color />`, `<PeakrWordmark height color />`, `<PeakrLogo variant="lockup|mark|wordmark" tone="onLight|onDark" />`.
-- Colours: on dark (Ink) → mark Volt, wordmark white. On light → mark and wordmark Ink; **never Volt as line or text on white/light**. On a Volt surface → mark Ink.
-- Icons, splash, favicons and OG image are generated by `pnpm brand:assets` – never edit them by hand.
-
-**Typography**
-- Archivo for headlines and UI (SIL Open Font License, `packages/theme/fonts/OFL.txt`, listed in the app's third-party notices).
-- Headlines: Peakr-Display (800, width 112 %), tracking −0.02em. Body: Archivo 400–500, width 100 %.
-- Numbers in training data: `tabular-nums`.
-- Type scale: 12 / 14 / 16 / 20 / 24 / 32 / 44.
 
 ## Training engine rules (source of truth for the logic)
 
@@ -126,8 +96,7 @@ status: error #FF5A4E, warning #FFB020, info #5B8CFF (fills/icons; on light back
 - **Pause**: illness, injury, holiday. On resume: ≤7 days → first week 80 %, ≤14 days → 70 %, longer → 60 % and re-enter Base; then regenerate the remainder.
 - **Swimming**: intensity is prescribed by **pace per 100 m from CSS (Critical Swim Speed)** – derived from a 400 m and 200 m time trial – with RPE as fallback; HR is secondary because it reads ~10–15 bpm lower in water and wrist HR is unreliable while swimming. Swim workouts are structured as warm-up / drill / main set / cool-down with sets, distances, rest intervals and pool length (25 m / 50 m / open water). Beginners get technique-focused sessions first.
 - **Multisport & triathlon**: distribute weekly time across selected disciplines by goal (e.g. triathlon base roughly swim 20 % / bike 45 % / run 35 % of endurance time, adjusted to the user's weakest discipline). Include **brick sessions** (bike → run) in Build and Peak. Allow swim + run or swim + bike on the same day if doubles are allowed; never two hard sessions on one day. Race-specific taper for multisport events.
-- **Editing**: the calendar is freely plannable – every change by the user is allowed (any day incl. past and paused days, done or skipped workouts). The engine never blocks or silently changes other sessions: it shows dismissible warnings when a rule is broken and **suggests** a rebalance of that week (keep weekly load and spacing rules) that the user can apply with one tap.
-- **Look-ahead (similar to Runna)**: full workout details (structure, steps, HR/pace targets, routes, exercises, send to watch) are visible only for the current week and the next 3 weeks – a rolling 4-week window from today. Weeks further out show the outline only: weekday, sport, session title (e.g. "Long run", "Tempo run"), approximate duration, phase and recovery/taper labels – no steps, zones or paces – with a short note that details appear 4 weeks ahead because the plan keeps adapting to completed workouts. The engine still generates the whole plan (load, phases, forecast); only the presentation is limited.
+- **Editing**: moving a workout triggers a rebalance of that week (keep weekly load and spacing rules). Warn when a rule is broken, but allow it.
 
 ## Terrain intelligence (core USP)
 **User flow for a session:** open today's workout → app shows 3 route options from the user's start point (home or current location): (a) the user's own routes, (b) app-generated round trips, (c) "free session" (time + HR only) → user picks one → map, elevation profile, expected duration and per-km pace plan → "send to watch" (route + structured workout) → after the activity syncs back, grade-adjusted evaluation.
@@ -193,7 +162,7 @@ status: error #FF5A4E, warning #FFB020, info #5B8CFF (fills/icons; on light back
 - **Two tiers** (one subscription group, so users can switch):
   - **Training** (target ~7.90/month or ~59/year): full plan, calendar editing, regeneration, pause, routes, integrations, exports.
   - **Training + Nutrition** (target ~11.90/month or ~89/year): everything in Training plus nutrition tracking with barcode scan, energy balance, body tracking. Until the nutrition part ships, this tier is shown as "coming soon".
-- **7-day free trial**: the user **starts the subscription right after the forecast** and enters payment details upfront (Google Play / App Store / Stripe). Nothing is charged for 7 days; the paywall states the exact first charge date. **During the trial the user has full access to everything of the chosen tier** – the whole plan and calendar, workout tracking and feedback after every workout, all integrations (Strava, watches, Zwift, Komoot, Hevy, Health data), routes, exports and, for Training + Nutrition, nutrition and body tracking. The trial is never a reduced preview; entitlement checks treat a running trial exactly like a paid subscription. **One day before the trial ends** the app sends a reminder (push + email) with the charge date, amount and a direct link to cancel. One trial per user/account.
+- **7-day free trial**: the user **starts the subscription right after the forecast** and enters payment details upfront (Google Play / App Store / Stripe). Nothing is charged for 7 days; the paywall states the exact first charge date. **One day before the trial ends** the app sends a reminder (push + email) with the charge date, amount and a direct link to cancel. One trial per user/account.
 - Paywall appears **after** the quiz and forecast, on the web (Stripe) and in the app (in-app purchase). Entitlements handled via RevenueCat (`training`, `plus`) regardless of where the user paid.
 - **Manage subscription in the app** (Profile → Subscription): see current tier, price, next billing date and trial status; **upgrade/downgrade** between Training and Training + Nutrition and switch monthly/yearly (via the store's subscription change flow; web subscribers via the Stripe customer portal); **cancel easily** without deleting the account (deep link to the store's cancel screen for app purchases, Stripe portal for web purchases). After cancelling, access stays until the end of the paid period; afterwards the user keeps the account, history and free tools, the plan becomes read-only.
 
@@ -210,6 +179,19 @@ status: error #FF5A4E, warning #FFB020, info #5B8CFF (fills/icons; on light back
 - **Android first**: build, test and release on Android first. iOS follows from the **same codebase**.
 - Stay iOS-compatible from day one: only use libraries that support both platforms; put unavoidable platform code behind one interface with `.android.ts` / `.ios.ts` files (e.g. health data); no Android-only UI patterns.
 - iOS-specific items for later: HealthKit, Sign in with Apple, App Store products in RevenueCat, App Store review.
+
+## UI patterns (app)
+These are the conventions every screen follows. They are patterns common to training apps, implemented in **our own** visual language (Volt palette, Archivo, Peakr logo) – never a copy of another app's layout, icons, illustrations, gradients or wording.
+
+- **Navigation**: five bottom tabs – **Today, Plan, Calendar, Progress, Profile**.
+- **Workout type colours**: every workout type owns a colour token (easy/recovery, long, tempo/threshold, intervals/VO2, hills, race/test, strength, cross-training/winter, commute). It appears as a bar on the left edge of every workout card, as the dot under a day in the week strip, and as the tint of the workout screen header. The tokens must be distinguishable in hue **and** lightness, must not be confusable with the brand accent (Volt is reserved for primary actions), and colour never carries meaning alone – the type is always named in text too.
+- **Today**: week strip Mon–Sun with today marked and a coloured dot under every day that has a session; weather chip; today's session as a card; week summary with segmented progress ("Sessions 2/4", "Distance 12/29 km"); insights; one primary action.
+- **Plan**: one card per week – date range, "Week 3 of 12", a tick when the week is complete, a segmented bar with one segment per session, sessions done/planned and distance done/planned, and a tag when the week is special (recovery, travel, race week).
+- **Calendar**: weeks as sections with the week's total; one row per day; empty days offer "add"; sessions as compact chips with the type colour; "reset week" undoes manual changes.
+- **Workout detail**: header tinted in the type colour with week, date, title and subtitle; **duration as a range** (e.g. 30–35 min); a line showing when it was last sent to the watch; a row of quick actions (choose route, link activity, warm-up, skip); outdoor/indoor toggle; numbered steps, each with its target and one line of explanation; the "why this session" text; one primary CTA. For easy sessions the pace is phrased as a **limit, not a target** ("no faster than …"), with HR as the real target.
+- **Progress**: two sections. *History* – activities grouped by month with month totals, each card with a small route thumbnail drawn from the GPS trace, distance, time, average pace and the type colour. *Performance* – period picker, summary figures, a bar chart per week with an average line, personal bests, and lifetime totals.
+- **Profile**: grouped setting rows with icons (training, units, heart-rate zones, notifications, language, appearance, connections, subscription, account, privacy).
+- **General**: training numbers in tabular figures; haptic feedback when a session is completed; dark theme by default.
 
 ## Conventions
 - Engine code (`/packages/engine`) is pure TypeScript, deterministic, and every rule above has unit tests.

@@ -1,4 +1,12 @@
-import { activePause, type EditIssue } from '@peakr/engine';
+import {
+  activePause,
+  activeTravel,
+  allWorkouts,
+  statusOf,
+  travelOn,
+  weekOverrideOf,
+  type EditIssue,
+} from '@peakr/engine';
 import { router } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { useState } from 'react';
@@ -12,6 +20,7 @@ import {
   Badge,
   Button,
   Card,
+  CheckRow,
   Icon,
   IconButton,
   LinkRow,
@@ -75,6 +84,12 @@ export function PlanScreen() {
   const firstWeek = plan.weeks[0]?.startDate ?? monday;
   const lastWeek = plan.weeks[plan.weeks.length - 1]?.startDate ?? monday;
   const pause = activePause(state);
+  const travel = activeTravel(input, today);
+  const override = weekOverrideOf(input, monday);
+  const travelWeek = [0, 1, 2, 3, 4, 5, 6].some(
+    (d) => travelOn(input.availability.travel, addDays(monday, d)) !== null,
+  );
+  const commutesToday = allWorkouts(plan).filter((w) => w.date === today && w.role === 'commute');
   const date = (iso: string, opts: Intl.DateTimeFormatOptions) =>
     formatDate(iso, i18n.language, opts);
 
@@ -101,6 +116,15 @@ export function PlanScreen() {
     const result = actions.ease(ids);
     if (!result.ok) setError(issueText(t, result.issues));
     setFeedback(null);
+  };
+
+  const toggleTravel = (on: boolean) => {
+    if (on) {
+      router.push('/training/travel');
+      return;
+    }
+    const result = actions.setTravel((input.availability.travel ?? []).filter((p) => p !== travel));
+    setError(result.ok ? null : issueText(t, result.issues));
   };
 
   const viewOptions: { value: PlanView; label: string }[] = [
@@ -146,6 +170,37 @@ export function PlanScreen() {
           </Card>
         ) : null}
 
+        {commutesToday.length > 0 && !pause ? (
+          <Card testID="commute-today">
+            <View style={styles.inline}>
+              <Icon name="commute" size={22} color={colors.sportCommute} />
+              <Text style={[styles.strong, styles.flex]}>{t('plan.realLife.commuteToday')}</Text>
+            </View>
+            {commutesToday.map((c) => {
+              const skipped = statusOf(state, c.id) === 'skipped';
+              return (
+                <View key={c.id} style={styles.inline}>
+                  <Text tone={skipped ? 'secondary' : undefined} style={styles.flex}>
+                    {skipped
+                      ? t('plan.realLife.commuteSkipped')
+                      : t('plan.realLife.commuteLine', {
+                          type: t(`plan.sports.${c.sport}` as never),
+                          minutes: c.durationMin,
+                        })}
+                  </Text>
+                  <Button
+                    small
+                    variant="secondary"
+                    icon={skipped ? 'undo' : 'skip'}
+                    label={t(skipped ? 'plan.realLife.undoSkip' : 'plan.realLife.skipCommute')}
+                    onPress={() => actions.setStatus(c.id, skipped ? 'planned' : 'skipped')}
+                  />
+                </View>
+              );
+            })}
+          </Card>
+        ) : null}
+
         {feedback ? (
           <MoveFeedbackCard
             feedback={feedback}
@@ -186,10 +241,16 @@ export function PlanScreen() {
                 onPress={() => showWeek(addDays(monday, 7))}
               />
             </View>
-            {week?.isRecovery || week?.phase === 'taper' || monday !== initialWeek(plan, today) ? (
+            {week?.isRecovery ||
+            week?.phase === 'taper' ||
+            override ||
+            travelWeek ||
+            monday !== initialWeek(plan, today) ? (
               <View style={styles.badges}>
                 {week?.isRecovery ? <Badge label={t('plan.recoveryWeek')} /> : null}
                 {week?.phase === 'taper' ? <Badge label={t('plan.taperWeek')} /> : null}
+                {override ? <Badge label={t('plan.realLife.weekBadge')} /> : null}
+                {travelWeek ? <Badge label={t('plan.realLife.travelBadge')} /> : null}
                 <View style={styles.flex} />
                 {monday !== initialWeek(plan, today) ? (
                   <Button
@@ -221,6 +282,14 @@ export function PlanScreen() {
                 {t('plan.dragHint')}
               </Text>
             </View>
+            {pause ? null : (
+              <Button
+                variant="secondary"
+                icon="calendar"
+                label={t('plan.realLife.weekDifferent')}
+                onPress={() => router.push(`/training/week?start=${monday}`)}
+              />
+            )}
           </>
         ) : (
           <>
@@ -255,6 +324,29 @@ export function PlanScreen() {
           title={t('plan.availability.title')}
           hint={t('plan.availability.entryHint')}
           onPress={() => router.push('/training/availability')}
+        />
+        {pause ? null : (
+          <View>
+            <CheckRow
+              label={t('plan.realLife.travelMode')}
+              checked={travel !== null}
+              onChange={toggleTravel}
+            />
+            <Text variant="caption" tone="secondary">
+              {travel
+                ? t('plan.realLife.travelModeOn', {
+                    from: date(travel.startDate, { day: 'numeric', month: 'short' }),
+                    to: date(travel.endDate, { day: 'numeric', month: 'short' }),
+                  })
+                : t('plan.realLife.travelModeOff')}
+            </Text>
+          </View>
+        )}
+        <LinkRow
+          icon="commute"
+          title={t('plan.commutes.title')}
+          hint={t('plan.commutes.entryHint')}
+          onPress={() => router.push('/training/commutes')}
         />
         {pause ? null : (
           <LinkRow

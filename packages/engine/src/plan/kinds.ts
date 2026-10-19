@@ -5,7 +5,7 @@ import type { Workout } from './types';
  * in the workout-type overview. The concrete session (template, level) is the detail behind it.
  */
 
-export type KindSport = 'run' | 'bike' | 'swim' | 'strength' | 'brick' | 'winter';
+export type KindSport = 'run' | 'bike' | 'swim' | 'strength' | 'brick' | 'winter' | 'commute';
 
 export type KindCategory =
   | 'easy'
@@ -19,7 +19,8 @@ export type KindCategory =
   | 'openwater'
   | 'test'
   | 'strength'
-  | 'brick';
+  | 'brick'
+  | 'commute';
 
 export interface WorkoutKind {
   sport: KindSport;
@@ -42,6 +43,7 @@ export const WORKOUT_KINDS: readonly WorkoutKind[] = [
   { sport: 'strength', category: 'strength' },
   { sport: 'winter', category: 'easy' },
   { sport: 'winter', category: 'intervals' },
+  { sport: 'commute', category: 'commute' },
 ];
 
 const BY_TEMPLATE: Record<string, KindCategory> = {
@@ -62,7 +64,6 @@ const BY_TEMPLATE: Record<string, KindCategory> = {
   'run.downhill': 'hills',
   'bike.recovery': 'easy',
   'bike.endurance': 'easy',
-  'bike.commute': 'easy',
   'bike.long': 'long',
   'bike.tempo': 'tempo',
   'bike.sweetspot': 'threshold',
@@ -88,6 +89,8 @@ export function kindKey(kind: WorkoutKind): string {
 
 /** The kind of a planned workout (by template; benchmarks are tests, routines strength). */
 export function workoutKind(w: Pick<Workout, 'sport' | 'templateId' | 'role'>): WorkoutKind {
+  // Commutes (by bike, running or walking) are their own kind with their own colour.
+  if (w.role === 'commute') return { sport: 'commute', category: 'commute' };
   if (w.sport === 'strength') return { sport: 'strength', category: 'strength' };
   if (w.sport === 'brick') return { sport: 'brick', category: 'brick' };
   const sport: KindSport =

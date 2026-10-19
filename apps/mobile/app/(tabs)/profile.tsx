@@ -25,6 +25,26 @@ export default function ProfileScreen() {
         onPress={() => router.push('/training/workout-types')}
       />
 
+      <Text variant="heading">{t('profile.realLife')}</Text>
+      <LinkRow
+        icon="commute"
+        title={t('plan.commutes.title')}
+        hint={t('plan.commutes.entryHint')}
+        onPress={() => router.push('/training/commutes')}
+      />
+      <LinkRow
+        icon="winter"
+        title={t('plan.winter.title')}
+        hint={t('plan.winter.entryHint')}
+        onPress={() => router.push('/training/winter')}
+      />
+      <LinkRow
+        icon="travel"
+        title={t('plan.travel.title')}
+        hint={t('plan.travel.entryHint')}
+        onPress={() => router.push('/training/travel')}
+      />
+
       <Text variant="heading">{t('profile.strength')}</Text>
       <LinkRow
         title={t('strength.setup.title')}

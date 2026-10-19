@@ -16,6 +16,8 @@ const ICONS = {
   strength: { ios: 'dumbbell.fill', android: 'fitness_center' },
   brick: { ios: 'arrow.left.arrow.right', android: 'sync_alt' },
   winter: { ios: 'figure.skiing.crosscountry', android: 'downhill_skiing' },
+  commute: { ios: 'briefcase.fill', android: 'work' },
+  travel: { ios: 'airplane', android: 'flight' },
   easy: { ios: 'leaf.fill', android: 'eco' },
   long: { ios: 'road.lanes', android: 'route' },
   tempo: { ios: 'speedometer', android: 'speed' },

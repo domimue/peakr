@@ -1,15 +1,18 @@
 import { assertDefined } from '../result';
 import { isHardOnItsOwn } from './classify';
+import { commuteSession, commutesOn } from './commute';
 import { composeWeek, EASY_TEMPLATE, type CompositionContext, type Slot } from './composition';
 import { planConfig } from './config';
 import { toIsoDate } from './dates';
 import { rpe, time } from './library/helpers';
 import { getTemplate } from './library';
 import { clampLevel, recoveryWeekLevel, startLevel } from './levels';
-import { flattenSteps, hardShare, round1, totalDurationSec } from './load';
+import { enduranceLoad, flattenSteps, hardShare, round1, totalDurationSec } from './load';
 import { materialize, materializeStrength, type Athlete } from './materialize';
 import type { WeekSkeleton } from './periodisation';
+import { adaptToEquipment } from './strength-equipment';
 import { planStrengthWeek, type StrengthSlot } from './strength-plan';
+import { replacementSport, timeBased } from './travel';
 import type {
   Block,
   ExercisePrescription,
@@ -20,6 +23,7 @@ import type {
   Sport,
   Step,
   Target,
+  TravelPeriod,
   Weekday,
   Workout,
   WorkoutTemplate,
@@ -47,6 +51,10 @@ export interface ScheduleDay {
   day: number | null;
   weekday: Weekday;
   minutes: number;
+  /** Away (blocked in a week override): no training and no commute. */
+  away?: boolean;
+  /** Travel mode on this day. */
+  travel?: TravelPeriod | null;
 }
 
 /** What the scheduler needs to know about the last day of the previous week. */
@@ -57,6 +65,12 @@ export interface PrevDay {
 }
 
 export const RESTED: PrevDay = { hard: false, heavyLegs: false, eccentric: false };
+
+/** The Monday after the week, when only this week is rebuilt and the next one stays. */
+export interface NextDay {
+  hard: boolean;
+  longOrKey: boolean;
+}
 
 export interface WeekInput {
   athlete: Athlete;
@@ -72,6 +86,8 @@ export interface WeekInput {
   prev: PrevDay;
   /** Race day as day index (0–7, 7 = next Monday): counts as a hard day for spacing. */
   raceDayIndex: number | null;
+  /** The following Monday, if it is already planned (single-week rebuild). */
+  next?: NextDay;
   levels: ReadonlyMap<string, number>;
   longMin: Readonly<Partial<Record<Sport, number>>>;
   strengthRotation: number;
@@ -107,6 +123,9 @@ interface Item {
   strength: StrengthSlot | null;
   /** Volume multiplier for strength sessions shrunk to respect the load cap. */
   strengthScale: number;
+  /** Strength on a travel day: bodyweight / hotel-room exercises only. */
+  hotel: boolean;
+  commuteId: string | null;
   // Materialized values
   durationMin: number;
   load: number;
@@ -147,6 +166,7 @@ class WeekScheduler {
     const rest = slots.filter((s) => !first.includes(s) && !second.includes(s));
     const strengthFirst = input.athlete.profile.strength.priority === 'strengthFirst';
 
+    this.placeCommutes();
     first.forEach((s) => this.placeSlot(s));
     if (strengthFirst) this.placeStrength();
     second.forEach((s) => this.placeSlot(s));
@@ -154,11 +174,41 @@ class WeekScheduler {
     rest.forEach((s) => this.placeSlot(s));
 
     this.settleLoad();
+    this.applyTravel();
     return this.output();
   }
 
   // ------------------------------------------------------------------------------------------
   // Placement
+
+  /** Commutes first, on their weekdays (not on days away or while travelling). */
+  private placeCommutes(): void {
+    const { profile } = this.input.athlete;
+    this.input.days.forEach((day, d) => {
+      if (day.day === null || day.away || day.travel) return;
+      for (const c of commutesOn(profile, day.weekday)) {
+        const session = commuteSession(c);
+        if (session.durationMin > this.freeMinutes(d)) {
+          // A day without any minutes is a day off – nothing to say.
+          if (day.minutes > 0)
+            this.notes.push({ key: 'notes.commuteNoRoom', params: { weekday: day.weekday } });
+          continue;
+        }
+        const item = this.newItem('commute', session.template, {});
+        this.items.push({
+          ...item,
+          day: d,
+          minutes: session.durationMin,
+          floorMin: session.durationMin,
+          durationMin: session.durationMin,
+          load: session.load,
+          main: session.main,
+          target: session.target,
+          commuteId: c.id,
+        });
+      }
+    });
+  }
 
   private placeSlot(slot: Slot): void {
     const template = getTemplate(slot.templateId);
@@ -231,6 +281,8 @@ class WeekScheduler {
       notes: [],
       strength: null,
       strengthScale: 1,
+      hotel: false,
+      commuteId: null,
       durationMin: 0,
       load: 0,
       intensity: template.intensity,
@@ -282,9 +334,9 @@ class WeekScheduler {
   /** Tries the item on every day, highest level first; commits the best day. */
   private place(item: Item): boolean {
     const levels = item.level === null ? [null] : range(item.level, 1);
-    // Strength first tries days that keep the same muscles apart (see strengthClash).
-    const passes = item.strength === null ? [true] : [false, true];
-    return passes.some((relaxed) => this.placeOn(item, levels, relaxed));
+    // First with the soft rules (strength keeps the same muscles apart, hard sessions avoid heavy
+    // commute days), then without them if nothing fits.
+    return [false, true].some((relaxed) => this.placeOn(item, levels, relaxed));
   }
 
   private placeOn(item: Item, levels: (number | null)[], relaxed: boolean): boolean {
@@ -293,6 +345,7 @@ class WeekScheduler {
       for (let d = 0; d < 7; d++) {
         const trial = this.trial(item, level, d);
         if (!trial || !this.canPlace(trial, d) || this.strengthClash(trial, d, relaxed)) continue;
+        if (!relaxed && this.isHard(trial) && this.heavyCommuteDay(d)) continue;
         const score = this.score(trial, d);
         if (!best || score > best.score) best = { day: d, score };
       }
@@ -318,7 +371,7 @@ class WeekScheduler {
       if (free < floor) return null;
       minutes = Math.min(Math.max(item.minutes, floor), free);
     }
-    let t = this.materializeItem({ ...item, level }, minutes);
+    let t = this.materializeItem({ ...item, level, hotel: Boolean(day.travel) }, minutes);
     // Strength sessions are shortened (fewer sets) to fit a short day, down to 40 % volume.
     while (item.strength && t.durationMin > free && t.strengthScale > 0.4) {
       t = this.materializeItem({ ...t, strengthScale: t.strengthScale * 0.8 });
@@ -328,7 +381,7 @@ class WeekScheduler {
 
   private materializeItem(item: Item, minutes = item.minutes): Item {
     if (item.strength) {
-      const s = item.strength;
+      const s = item.hotel ? hotelSlot(item.strength) : item.strength;
       const k = item.strengthScale;
       let r = materializeStrength(
         s.def,
@@ -341,8 +394,9 @@ class WeekScheduler {
       if (r.exercises.length === 0) {
         // No leg volume left (taper): core & mobility instead.
         template = getTemplate('strength.core_mobility');
+        const def = assertDefined(template.strength, 'strength');
         r = materializeStrength(
-          assertDefined(template.strength, 'strength'),
+          item.hotel ? adaptToEquipment(def, 'none', 'hotel').def : def,
           'none',
           1,
           s.upperScale,
@@ -390,6 +444,18 @@ class WeekScheduler {
     return this.items.filter((i) => i.day === d);
   }
 
+  /** Training sessions of the day – commutes are transport, not one of them. */
+  private sessionsOn(d: number): Item[] {
+    return this.itemsOn(d).filter((i) => i.commuteId === null);
+  }
+
+  private heavyCommuteDay(d: number): boolean {
+    const minutes = this.itemsOn(d)
+      .filter((i) => i.commuteId !== null)
+      .reduce((sum, i) => sum + i.durationMin, 0);
+    return minutes >= planConfig.commute.heavyDayMin;
+  }
+
   private dayAt(d: number): ScheduleDay {
     return assertDefined(this.input.days[d], 'day');
   }
@@ -404,8 +470,9 @@ class WeekScheduler {
 
   private hasRoomFor(d: number, minutes: number): boolean {
     const day = this.dayAt(d);
-    const count = this.itemsOn(d).length;
-    if (day.day === null || count >= (this.input.doubles ? MAX_SESSIONS_PER_DAY : 1)) return false;
+    const count = this.sessionsOn(d).length;
+    if (day.day === null || day.away || count >= (this.input.doubles ? MAX_SESSIONS_PER_DAY : 1))
+      return false;
     return day.minutes - this.usedMinutes(d) >= minutes;
   }
 
@@ -420,6 +487,7 @@ class WeekScheduler {
   private dayHard(d: number): boolean {
     if (d < 0) return this.input.prev.hard;
     if (d === this.input.raceDayIndex) return true;
+    if (d > 6) return this.input.next?.hard === true;
     return this.itemsOn(d).some((i) => this.isHard(i));
   }
 
@@ -434,6 +502,7 @@ class WeekScheduler {
   }
 
   private dayLongOrKey(d: number): boolean {
+    if (d > 6) return this.input.next?.longOrKey === true;
     return this.itemsOn(d).some((i) => isLongOrKey(i.role));
   }
 
@@ -455,7 +524,7 @@ class WeekScheduler {
   }
 
   private canPlace(item: Item, d: number): boolean {
-    const existing = this.itemsOn(d);
+    const existing = this.sessionsOn(d);
     if (!this.hasRoomFor(d, 0)) return false;
     const sport = item.template.sport;
     // One session per discipline and day; a brick day (placed first in its week) stays a brick day.
@@ -516,7 +585,8 @@ class WeekScheduler {
     for (let guard = 0; guard < 200; guard++) {
       this.fillEasy(budget);
       if (capLoad !== null && this.totalLoad() > capLoad) {
-        this.reduceForCap();
+        // Only commutes left above the cap: they stay (real life), the week ends over the cap.
+        if (!this.reduceForCap()) return;
       } else if (this.hardShare() > planConfig.intensity.maxHardShare) {
         this.reduceIntensity();
       } else {
@@ -627,20 +697,23 @@ class WeekScheduler {
   /**
    * One step towards the load cap: lower a level, shorten the long session, let easy and long
    * sessions go below their template minimum, shrink strength, then convert or drop sessions.
+   * Commutes are never touched; false when nothing else is left to reduce.
    */
-  private reduceForCap(): void {
-    if (this.lowerLevel(this.items, (i) => i.load)) return;
+  private reduceForCap(): boolean {
+    if (this.lowerLevel(this.items, (i) => i.load)) return true;
     const long = this.items.find(
       (i) =>
         i.role === 'long' &&
         i.template.durationScaled &&
         i.minutes - 10 >= i.template.durationScaled.minMin,
     );
-    if (long)
-      return this.replace(
+    if (long) {
+      this.replace(
         long,
         this.materializeItem({ ...long, minutes: long.minutes - 10, shortened: true }),
       );
+      return true;
+    }
     const floor = planConfig.plan.minSessionMin;
     const easy = this.scalable().filter((i) => i.floorMin === null);
     for (const i of easy) {
@@ -649,16 +722,17 @@ class WeekScheduler {
         floorMin: Math.min(floor, assertDefined(i.template.durationScaled, 'scaled').minMin),
       });
     }
-    if (easy.length > 0) return;
+    if (easy.length > 0) return true;
     const shortLong = this.items.find(
       (i) => i.role === 'long' && i.template.durationScaled && i.durationMin - 5 >= floor,
     );
     if (shortLong) {
       const minutes = shortLong.durationMin - 5;
-      return this.replace(
+      this.replace(
         shortLong,
         this.materializeItem({ ...shortLong, minutes, floorMin: floor, shortened: true }),
       );
+      return true;
     }
     const shrunk = this.items
       .filter((i) => i.strength !== null && i.durationMin > floor)
@@ -666,7 +740,10 @@ class WeekScheduler {
         (i) => [i, this.materializeItem({ ...i, strengthScale: i.strengthScale * 0.8 })] as const,
       )
       .find(([i, smaller]) => smaller.load < i.load);
-    if (shrunk) return this.replace(shrunk[0], shrunk[1]);
+    if (shrunk) {
+      this.replace(shrunk[0], shrunk[1]);
+      return true;
+    }
 
     // Last resort: strength or easy sessions go first (by priority), then structured ones become a
     // short easy session (the fill sizes it) so the week stays close to the cap – then the long one.
@@ -680,14 +757,16 @@ class WeekScheduler {
       brick: 2,
       benchmark: 2,
       long: 3,
+      commute: 4,
     };
-    const victim = assertDefined(
-      [...this.items].sort((a, b) => rank[a.role] - rank[b.role] || b.order - a.order)[0],
-      'victim',
-    );
+    const victim = this.items
+      .filter((i) => i.commuteId === null)
+      .sort((a, b) => rank[a.role] - rank[b.role] || b.order - a.order)[0];
+    if (!victim) return false;
     this.notes.push({ key: 'notes.loadCap' });
     const note = { key: 'notes.loadCapEasy', params: { type: victim.template.type } };
     this.replace(victim, rank[victim.role] >= 2 ? this.toEasy(victim, floor, note) : null);
+    return true;
   }
 
   /** One step towards 80/20: lower the hardest levelled session, then make a quality session easy. */
@@ -710,6 +789,72 @@ class WeekScheduler {
     );
     const note = { key: 'notes.intensityBalance', params: { type: quality.template.type } };
     this.replace(quality, this.toEasy(quality, quality.durationMin, note));
+  }
+
+  // ------------------------------------------------------------------------------------------
+  // Travel mode (CLAUDE.md "Irregular weeks & travel")
+
+  /**
+   * On travel days runs become time-based (no known routes), and rides, swims and bricks without
+   * a bike / pool at the location become an available alternative of equivalent load – never
+   * longer than the original (so it fits the day) and always easy (spacing stays intact). With no
+   * alternative the session is dropped. Strength was already planned with hotel equipment.
+   */
+  private applyTravel(): void {
+    for (const item of [...this.items]) {
+      const travel = this.dayAt(item.day).travel;
+      if (!travel || item.commuteId !== null || item.strength !== null) continue;
+      const sport = item.template.sport as Sport | 'brick';
+      if (sport === 'run') {
+        this.replace(item, this.timeBasedRun(item));
+        continue;
+      }
+      const taken = this.sessionsOn(item.day)
+        .filter((i) => i.order !== item.order)
+        .map((i) => i.template.sport);
+      const alternative = replacementSport(sport, travel, this.input.athlete.profile.sports, taken);
+      if (alternative === sport) continue;
+      if (alternative === null) {
+        this.notes.push({ key: 'notes.travelDropped', params: { type: item.template.type } });
+        this.replace(item, null);
+        continue;
+      }
+      const perMin = planConfig.load.zoneWeights[2] * planConfig.load.sportFactors[alternative];
+      const minutes = Math.min(
+        item.durationMin,
+        planConfig.travel.maxReplacementMin,
+        Math.max(planConfig.plan.minSessionMin, Math.round(item.load / perMin / 5) * 5),
+      );
+      let replaced = this.materializeItem({
+        ...item,
+        role: 'easy',
+        template: getTemplate(EASIER_TEMPLATE[alternative]),
+        level: null,
+        minutes,
+        floorMin: minutes,
+        notes: [
+          ...item.notes,
+          { key: 'notes.travelReplaced', params: { type: item.template.type, sport: alternative } },
+        ],
+      });
+      if (alternative === 'run') replaced = this.timeBasedRun(replaced);
+      this.replace(item, replaced);
+    }
+  }
+
+  /** A run by time only: no distances, no route (so no climbing load). */
+  private timeBasedRun(item: Item): Item {
+    const warmup = timeBased(item.warmup);
+    const cooldown = timeBased(item.cooldown);
+    const main = item.main.map((b) => ({ ...b, steps: timeBased(b.steps) }));
+    return {
+      ...item,
+      warmup,
+      main,
+      cooldown,
+      terrain: null,
+      load: round1(enduranceLoad(flattenSteps(warmup, main, cooldown), 'run')),
+    };
   }
 
   // ------------------------------------------------------------------------------------------
@@ -741,9 +886,11 @@ class WeekScheduler {
       terrain: i.terrain,
       exercises: i.exercises,
       whyKey: i.template.whyKey,
-      notes: i.notes,
+      notes: i.hotel ? [...i.notes, { key: 'notes.travelStrength' }] : i.notes,
       indoorAlternativeId: i.template.indoorAlternativeId ?? null,
       winterVariant: null,
+      ...(i.commuteId === null ? {} : { commuteId: i.commuteId }),
+      ...(day.travel ? { travel: true } : {}),
     };
   }
 
@@ -802,6 +949,17 @@ function range(from: number, to: number): number[] {
   const out: number[] = [];
   for (let n = from; n >= to; n--) out.push(n);
   return out;
+}
+
+/** The strength slot with hotel-room equipment (bodyweight and bands) and the home duration. */
+function hotelSlot(s: StrengthSlot): StrengthSlot {
+  const adapted = adaptToEquipment(s.def, s.legLoad, 'hotel');
+  return {
+    ...s,
+    def: adapted.def,
+    legLoad: adapted.legLoad,
+    durationFactor: Math.min(s.durationFactor, planConfig.strength.homeDurationFactor),
+  };
 }
 
 /** Synthetic template for a user routine so it runs through the same scheduling rules. */

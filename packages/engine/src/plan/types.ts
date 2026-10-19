@@ -7,8 +7,12 @@ export const SPORTS: readonly Sport[] = ['run', 'bike', 'swim'];
 
 export type WinterSport = 'xcski' | 'skitour' | 'snowshoe';
 
+/** How the user gets to work (CLAUDE.md "Commuting"). */
+export type CommuteSport = 'bike' | 'run' | 'walk';
+export const COMMUTE_SPORTS: readonly CommuteSport[] = ['bike', 'run', 'walk'];
+
 /** Everything a workout can be about (WORKOUTS.md §1). */
-export type ActivitySport = Sport | WinterSport | 'strength' | 'brick';
+export type ActivitySport = Sport | WinterSport | 'walk' | 'strength' | 'brick';
 
 /** Drives "no hard days back to back" (WORKOUTS.md §11). */
 export type Intensity = 'recovery' | 'easy' | 'moderate' | 'hard';
@@ -110,6 +114,21 @@ export interface UserProfile {
   winterMonths?: number[];
   /** Include optional benchmark tests (default true). */
   benchmarks?: boolean;
+  /** Regular commutes, placed before everything else as easy sessions. */
+  commutes?: Commute[];
+}
+
+/** A regular commute (CLAUDE.md "Commuting"). */
+export interface Commute {
+  id: string;
+  sport: CommuteSport;
+  /** Minutes for one way (from the route when one is linked). */
+  oneWayMin: number;
+  /** Route from the user's library; the duration above still drives the schedule. */
+  routeId?: string;
+  weekdays: Weekday[];
+  /** There and back (two legs) or one way only. */
+  bothWays: boolean;
 }
 
 export type GoalKind =
@@ -131,11 +150,44 @@ export interface Goal {
   kind: GoalKind;
 }
 
+export type WeekMinutes = readonly [number, number, number, number, number, number, number];
+
 export interface Availability {
   /** Minutes available per weekday, Monday first. */
-  minutesPerDay: readonly [number, number, number, number, number, number, number];
+  minutesPerDay: WeekMinutes;
   /** Two sessions on one day allowed (e.g. swim + run). */
   doublesAllowed: boolean;
+  /** Weeks that differ from the normal week ("This week is different"). */
+  weekOverrides?: readonly WeekOverride[];
+  /** Travel periods (travel mode). */
+  travel?: readonly TravelPeriod[];
+}
+
+/**
+ * One week with other availability than usual (CLAUDE.md "Irregular weeks & travel"): fewer
+ * minutes on some days and/or days away. That week is rebuilt keeping its load as far as possible.
+ */
+export interface WeekOverride {
+  /** Monday of the week. */
+  weekStart: string;
+  /** Minutes per weekday for this week only; default: the normal availability. */
+  minutesPerDay?: WeekMinutes;
+  /** Days away: no training and no commute. */
+  blockedDates?: readonly string[];
+}
+
+/**
+ * Travel mode for these dates: strength becomes bodyweight / hotel-room work, runs are time-based,
+ * bike and swim sessions get an available alternative of equivalent load.
+ */
+export interface TravelPeriod {
+  /** First and last day (inclusive). */
+  startDate: string;
+  endDate: string;
+  /** A pool is available at the travel location (swims stay). */
+  poolAvailable?: boolean;
+  /** A bike or indoor trainer is available (rides and bricks stay). */
+  bikeAvailable?: boolean;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -220,7 +272,15 @@ export interface WorkoutTemplate {
 // Output
 
 export type SlotRole =
-  'long' | 'key' | 'quality' | 'brick' | 'benchmark' | 'strength' | 'easy' | 'technique';
+  | 'long'
+  | 'key'
+  | 'quality'
+  | 'brick'
+  | 'benchmark'
+  | 'strength'
+  | 'easy'
+  | 'technique'
+  | 'commute';
 
 /** Why the scheduler did something, rendered via i18n (`notes.<key>`). */
 export interface PlanNote {
@@ -279,6 +339,10 @@ export interface Workout {
   notes: PlanNote[];
   indoorAlternativeId: string | null;
   winterVariant: WinterVariant | null;
+  /** Commute sessions: the commute they come from. */
+  commuteId?: string;
+  /** Planned on a travel day (travel mode). */
+  travel?: boolean;
 }
 
 export interface PlanWeek {

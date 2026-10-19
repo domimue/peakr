@@ -234,7 +234,10 @@ describe('generatePlan – plan shape', () => {
     const p = plan({ ...runner, winterSports: ['xcski'] }, { kind: 'fitness' }, week, '2026-11-30');
     const december =
       p.weeks[1]?.workouts.filter((w) => w.sport === 'run' && w.role !== 'key') ?? [];
-    expect(december.length).toBeGreaterThan(0);
-    expect(december.every((w) => w.winterVariant?.sport === 'xcski')).toBe(true);
+    expect(december.find((w) => w.role === 'long')?.winterVariant?.sport).toBe('xcski');
+    // Short easy runs have less load than the shortest ski session (45 min): no variant then.
+    for (const w of december.filter((x) => x.winterVariant)) {
+      expect(Math.abs((w.winterVariant?.load ?? 0) - w.load)).toBeLessThanOrEqual(w.load * 0.1);
+    }
   });
 });

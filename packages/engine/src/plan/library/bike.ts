@@ -65,7 +65,7 @@ export const bikeTemplates: WorkoutTemplate[] = [
     intensity: 'easy',
     phases: ALL_PHASES,
     levels: [],
-    durationScaled: { minMin: 10, maxMin: 120, fill: { zone: 2, target: hr(2) } },
+    durationScaled: { minMin: 5, maxMin: 360, fill: { zone: 2, target: hr(2) } },
     legLoad: 'none',
     whyKey: 'why.bike.commute',
   },

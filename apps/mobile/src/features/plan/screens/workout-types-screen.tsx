@@ -7,7 +7,7 @@ import { Card, Icon, IconBadge, Screen, spacing, Text, useTheme } from '@/ui';
 import { kindColor, kindIcon, kindName, SPORT_ICON } from '../kind';
 import { usePlan } from '../queries';
 
-const SPORT_ORDER: KindSport[] = ['run', 'bike', 'swim', 'brick', 'strength', 'winter'];
+const SPORT_ORDER: KindSport[] = ['run', 'bike', 'swim', 'brick', 'strength', 'winter', 'commute'];
 
 export interface WorkoutTypesScreenProps {
   /** `kindKey` of the workout the user came from – shown first. */

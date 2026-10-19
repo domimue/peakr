@@ -58,6 +58,8 @@ describe('workout kinds', () => {
     expect(k('brick', 'brick', 'brick')).toBe('brick.brick');
     expect(k('xcski', 'xcski.intervals')).toBe('winter.intervals');
     expect(k('run', 'run.unknown')).toBe('run.easy');
+    expect(k('walk', 'walk.commute', 'commute')).toBe('commute.commute');
+    expect(k('bike', 'bike.commute', 'commute')).toBe('commute.commute');
   });
 });
 

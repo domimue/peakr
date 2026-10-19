@@ -5,12 +5,18 @@ import {
   pausePlan,
   regeneratePlan,
   resumePlan,
+  setTravel,
+  setWeekOverride,
   setWorkoutStatus,
+  type AdjustResult,
   type Availability,
   type MoveResult,
   type PauseReason,
   type PlanState,
   type EditResult,
+  type TravelPeriod,
+  type UserProfile,
+  type WeekOverride,
   type WorkoutStatus,
 } from '@peakr/engine';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -81,6 +87,13 @@ export function usePlanActions() {
     return result;
   }
 
+  /** Week overrides and travel change the stored input together with the plan. */
+  function commitAdjusted(result: EditResult<AdjustResult>): Edit {
+    if (!result.ok) return result;
+    const input: StoredPlanInput = { ...stored?.input, ...result.value.input };
+    return commit({ ok: true, value: result.value.state }, input);
+  }
+
   const today = todayIso();
   // Only reachable before the plan has loaded.
   const missing = {
@@ -122,11 +135,31 @@ export function usePlanActions() {
       if (!stored) return missing;
       return commit(resumePlan(stored.state, today, stored.input, today));
     },
-    /** New availability: the remaining weeks are generated again. */
+    /** New availability: the remaining weeks are generated again (overrides and travel stay). */
     updateAvailability(availability: Availability): Edit {
       if (!stored) return missing;
-      const input = { ...stored.input, availability };
+      const input = {
+        ...stored.input,
+        availability: { ...stored.input.availability, ...availability },
+      };
       return commit(regeneratePlan(stored.state, input, today), input);
+    },
+    /** Commutes, winter sports or winter period changed: the remaining weeks are generated again. */
+    updateProfile(profile: UserProfile): Edit {
+      if (!stored) return missing;
+      const input = { ...stored.input, profile };
+      return commit(regeneratePlan(stored.state, input, today), input);
+    },
+    /** "This week is different" (null: reset the week). */
+    setWeekOverride(weekStart: string, override: Omit<WeekOverride, 'weekStart'> | null): Edit {
+      if (!stored) return missing;
+      return commitAdjusted(
+        setWeekOverride(stored.state, stored.input, weekStart, override, today),
+      );
+    },
+    setTravel(travel: readonly TravelPeriod[]): Edit {
+      if (!stored) return missing;
+      return commitAdjusted(setTravel(stored.state, stored.input, travel, today));
     },
   };
 }
