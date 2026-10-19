@@ -1,5 +1,6 @@
 import { allWorkouts, findWorkout, generatePlan, type Plan } from '@peakr/engine';
-import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
 
 import type { StoredPlanInput } from '@/data/db/schema';
@@ -10,8 +11,11 @@ import { renderWithQuery } from '@/test-utils/render-with-query';
 import { usePlanUiStore } from '../plan-ui-store';
 import { AvailabilityScreen } from '../screens/availability-screen';
 import { PauseScreen } from '../screens/pause-screen';
+import { CalendarScreen } from '../screens/calendar-screen';
 import { PlanScreen } from '../screens/plan-screen';
 import { WorkoutScreen } from '../screens/workout-screen';
+import { ProgressScreen } from '../../progress/progress-screen';
+import { TodayScreen } from '../../today/today-screen';
 
 jest.mock('@/data/repositories/plan-repository');
 
@@ -57,7 +61,7 @@ const state = () => {
 
 beforeEach(() => {
   mock.resetStore();
-  usePlanUiStore.setState({ view: 'week', weekStart: null, month: null, feedback: null });
+  usePlanUiStore.setState({ weekStart: null, feedback: null });
   setToday('2026-10-19');
   jest.spyOn(router, 'push').mockImplementation(() => undefined);
   jest.spyOn(router, 'back').mockImplementation(() => undefined);
@@ -66,39 +70,200 @@ beforeEach(() => {
 afterEach(() => jest.restoreAllMocks());
 
 describe('Plan tab', () => {
-  it('shows the current week with its workouts, today highlighted, and pages weeks', async () => {
+  it('one card per week: range, "Week 1 of 17", types in words, progress, tags', async () => {
     storePlan();
     await renderWithQuery(<PlanScreen />);
     expect(await screen.findByText('Oct 19 – Oct 25')).toBeOnTheScreen();
     expect(screen.getByText('Week 1 of 17 · Base')).toBeOnTheScreen();
+    expect(screen.getByText('This week')).toBeOnTheScreen();
+    expect(screen.getAllByText(/^Sessions 0\/\d+$/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^Distance 0\/\d+ km$/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Recovery week').length).toBeGreaterThan(0);
+    expect(screen.getByTestId('week-progress-0')).toBeOnTheScreen();
+    // The bar's colours are named: week 2 = 2 easy runs, a long run, intervals, 2 strength.
+    const week2 = within(screen.getByTestId('week-types-1'));
+    expect(week2.getByText('2× Easy')).toBeOnTheScreen();
+    expect(week2.getByText('Long')).toBeOnTheScreen();
+    expect(week2.getByText('Intervals')).toBeOnTheScreen();
+    expect(week2.getByText('2× Strength')).toBeOnTheScreen();
+  });
+
+  it('weeks expand to their days and sessions; the current week starts open', async () => {
+    storePlan();
+    await renderWithQuery(<PlanScreen />);
+    expect(await screen.findByTestId('week-0-day-2026-10-19')).toBeOnTheScreen();
+    expect(screen.queryByTestId('week-1-day-2026-10-26')).toBeNull();
+    expect(screen.getByTestId('week-toggle-1')).toBeCollapsed();
+
+    await fireEvent.press(screen.getByTestId('week-toggle-1'));
+    expect(screen.getByTestId('week-toggle-1')).toBeExpanded();
+    const monday = within(screen.getByTestId('week-1-day-2026-10-26'));
+    await fireEvent.press(monday.getByLabelText(/^Easy run, Easy, \d+–\d+ min/));
+    expect(router.push).toHaveBeenCalledWith('/training/workout/2026-10-26-1');
+    expect(
+      within(screen.getByTestId('week-1-day-2026-10-30')).getByText('Rest day'),
+    ).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getAllByText('Open in calendar')[1] as never);
+    expect(usePlanUiStore.getState().weekStart).toBe('2026-10-26');
+    expect(router.push).toHaveBeenCalledWith('/calendar');
+
+    await fireEvent.press(screen.getByTestId('week-toggle-0'));
+    expect(screen.queryByTestId('week-0-day-2026-10-19')).toBeNull();
+  });
+
+  it('ticks a week when every session is done or skipped', async () => {
+    const plan = storePlan();
+    const week1 = plan.weeks[0]?.workouts ?? [];
+    mock.store.plan = {
+      ...(mock.store.plan as NonNullable<typeof mock.store.plan>),
+      state: {
+        ...state(),
+        status: Object.fromEntries(week1.map((w, i) => [w.id, i === 0 ? 'skipped' : 'done'])),
+      },
+    };
+    await renderWithQuery(<PlanScreen />);
+    expect(await screen.findByLabelText('Week complete')).toBeOnTheScreen();
+    expect(screen.getByText(`Sessions ${week1.length - 1}/${week1.length - 1}`)).toBeOnTheScreen();
+  });
+});
+
+describe('Calendar tab', () => {
+  it('weeks as sections with totals, days with typed chips; pages weeks', async () => {
+    storePlan();
+    await renderWithQuery(<CalendarScreen />);
+    expect(await screen.findByText('Oct 19 – Oct 25')).toBeOnTheScreen();
+    expect(screen.getByText('Week 1 of 17 · Base')).toBeOnTheScreen();
+    expect(screen.getByTestId('calendar-week-0')).toBeOnTheScreen();
+    expect(screen.getByTestId('calendar-week-3')).toBeOnTheScreen();
+    expect(screen.getAllByLabelText(/^Week total: \d+–\d+ min · \d+ km$/)).toHaveLength(4);
     expect(screen.getByLabelText(/^Monday, October 19, Today$/)).toBeOnTheScreen();
     expect(screen.getByTestId('plan-card-0-0')).toBeOnTheScreen();
-    // The week at a glance: sessions and km instead of minutes.
-    expect(screen.getByTestId('week-summary')).toBeOnTheScreen();
-    expect(screen.getByLabelText(/^6 sessions$/)).toBeOnTheScreen();
-    expect(screen.getByLabelText(/^\d+ km Run$/)).toBeOnTheScreen();
+    // Type and duration range are written out, never only colour-coded.
+    expect(
+      screen.getAllByLabelText(/^Easy run, Easy, \d+–\d+ min · [\d.]+ km, Zone 2$/).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getAllByTestId('type-bar-typeEasy').length).toBeGreaterThan(0);
+    expect(
+      screen.getAllByLabelText(/^Strength, Strength, \d+–\d+ min, Hard$/).length,
+    ).toBeGreaterThan(1);
+    expect(screen.getAllByLabelText(/^Intervals, Intervals, /).length).toBeGreaterThan(0);
+    expect(screen.queryByText('Peakr strength – base')).toBeNull();
 
     await fireEvent.press(screen.getByLabelText('Next week'));
-    expect(screen.getByText('Oct 26 – Nov 1')).toBeOnTheScreen();
-    // General names in the calendar; sport, km and zone are written out, not only colour-coded.
-    expect(screen.getByLabelText(/^Easy run, Run, 50 min · [\d.]+ km, Zone 2$/)).toBeOnTheScreen();
-    expect(screen.getAllByLabelText(/^Strength, Strength, 50 min, Hard$/)).toHaveLength(2);
-    expect(screen.getByLabelText(/^Intervals, Run, /)).toBeOnTheScreen();
-    expect(screen.queryByText('Peakr strength – base')).toBeNull();
-    expect(screen.getAllByText('Rest day').length).toBeGreaterThan(0);
+    expect(usePlanUiStore.getState().weekStart).toBe('2026-10-26');
+    expect(screen.queryByText('Oct 19 – Oct 25')).toBeNull();
+    expect(screen.getByText('Today')).toBeOnTheScreen();
 
-    await fireEvent.press(screen.getByLabelText(/^Easy run, Run, 50 min/));
+    await fireEvent.press(screen.getAllByLabelText(/^Easy run, Easy, /)[0] as never);
     expect(router.push).toHaveBeenCalledWith('/training/workout/2026-10-26-1');
   });
 
-  it('month view: tap a week to open it in the week view', async () => {
+  it('empty days offer "add"', async () => {
     storePlan();
-    await renderWithQuery(<PlanScreen />);
-    await fireEvent.press(await screen.findByText('Month'));
-    expect(screen.getByText('October 2026')).toBeOnTheScreen();
-    expect(screen.getByTestId('month-day-2026-10-19')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByLabelText('Open the week of October 26'));
-    expect(usePlanUiStore.getState()).toMatchObject({ view: 'week', weekStart: '2026-10-26' });
+    await renderWithQuery(<CalendarScreen />);
+    // Friday has no available time in this plan.
+    await fireEvent.press(await screen.findByLabelText('Add a session on Friday, October 23'));
+    expect(router.push).toHaveBeenCalledWith('/coming-soon/addSession');
+  });
+
+  it('"reset week" undoes manual moves', async () => {
+    storePlan();
+    await renderWithQuery(<WorkoutScreen id="2026-10-28-1" startMoving />);
+    await fireEvent.press(await screen.findByText('Tue, Oct 27'));
+    await waitFor(() => expect(findWorkout(state().plan, '2026-10-28-1')?.date).toBe('2026-10-27'));
+
+    usePlanUiStore.setState({ weekStart: '2026-10-26', feedback: null });
+    await renderWithQuery(<CalendarScreen />);
+    await fireEvent.press(await screen.findByText('Reset week'));
+    await waitFor(() => expect(findWorkout(state().plan, '2026-10-28-1')?.date).toBe('2026-10-28'));
+    expect(findWorkout(state().plan, '2026-10-28-1')?.originalDate).toBeUndefined();
+  });
+
+  it('"this week is different" opens for that week', async () => {
+    storePlan();
+    await renderWithQuery(<CalendarScreen />);
+    await fireEvent.press((await screen.findAllByText('This week is different'))[0] as never);
+    expect(router.push).toHaveBeenCalledWith('/training/week?start=2026-10-19');
+  });
+});
+
+describe('Today tab', () => {
+  it("week strip, today's session, the week's progress; marks it done with haptics", async () => {
+    storePlan();
+    setToday('2026-10-26');
+    await renderWithQuery(<TodayScreen />);
+    expect(await screen.findByTestId('week-strip')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Monday, October 26, Today, Easy')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Tuesday, October 27, Strength')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Friday, October 30, Rest day')).toBeOnTheScreen();
+    expect(screen.getByLabelText(/^Easy run, Easy, /)).toBeOnTheScreen();
+    expect(screen.getByTestId('weather-chip')).toBeOnTheScreen();
+    expect(screen.getByTestId('insights')).toBeOnTheScreen();
+    expect(screen.getByText('Sessions 0/6')).toBeOnTheScreen();
+
+    await fireEvent.press(screen.getByText('Mark as done'));
+    await waitFor(() => expect(state().status['2026-10-26-1']).toBe('done'));
+    expect(Haptics.notificationAsync).toHaveBeenCalledWith('success');
+    expect(await screen.findByText('Sessions 1/6')).toBeOnTheScreen();
+  });
+
+  it('a rest day says so and offers the week', async () => {
+    storePlan();
+    setToday('2026-10-30');
+    await renderWithQuery(<TodayScreen />);
+    expect(await screen.findByText('Rest day')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('See this week'));
+    expect(router.push).toHaveBeenCalledWith('/calendar');
+  });
+
+  it('before the plan starts it names the start date', async () => {
+    storePlan();
+    setToday('2026-10-15');
+    await renderWithQuery(<TodayScreen />);
+    expect(await screen.findByText('Your plan starts on Monday, October 19.')).toBeOnTheScreen();
+  });
+});
+
+describe('Progress tab', () => {
+  it('history by month with totals; performance with chart, bests and lifetime', async () => {
+    storePlan();
+    setToday('2026-10-28');
+    mock.store.plan = {
+      ...(mock.store.plan as NonNullable<typeof mock.store.plan>),
+      state: {
+        ...state(),
+        status: { '2026-10-19-1': 'done', '2026-10-26-1': 'done', '2026-10-27-1': 'done' },
+      },
+    };
+    await renderWithQuery(<ProgressScreen />);
+    expect(await screen.findByText('October 2026')).toBeOnTheScreen();
+    expect(screen.getByText(/^3 sessions · /)).toBeOnTheScreen();
+    expect(screen.getAllByText(/^\d+:\d\d \/km$/).length).toBeGreaterThan(0);
+    await fireEvent.press(screen.getByLabelText(/^Easy run, Easy, Mon, Oct 26/));
+    expect(router.push).toHaveBeenCalledWith('/training/workout/2026-10-26-1');
+
+    await fireEvent.press(screen.getByText('Performance'));
+    expect(screen.getAllByLabelText('Sessions: 3').length).toBeGreaterThan(0);
+    expect(
+      screen.getByLabelText(/^Bar chart of the last 12 weeks: average \d+ minutes/),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Longest session')).toBeOnTheScreen();
+    expect(screen.getByText('Longest run')).toBeOnTheScreen();
+    expect(screen.getByText('Lifetime')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('4 weeks'));
+    expect(screen.getByLabelText(/^Bar chart of the last 4 weeks/)).toBeOnTheScreen();
+  });
+
+  it('clear empty states without completed sessions', async () => {
+    storePlan();
+    await renderWithQuery(<ProgressScreen />);
+    expect(await screen.findByText('No completed sessions yet')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('Performance'));
+    expect(screen.getByText('No completed sessions in this period.')).toBeOnTheScreen();
+    expect(
+      screen.getByText('Your bests appear after your first completed session.'),
+    ).toBeOnTheScreen();
   });
 });
 
@@ -111,7 +276,7 @@ describe('moving a workout', () => {
     expect(findWorkout(state().plan, '2026-10-28-1')?.date).toBe('2026-10-27');
     expect(findWorkout(state().plan, '2026-10-27-1')?.date).toBe('2026-10-27');
 
-    await renderWithQuery(<PlanScreen />);
+    await renderWithQuery(<CalendarScreen />);
     expect(await screen.findByText('Moved to Tuesday, Oct 27.')).toBeOnTheScreen();
     expect(
       screen.getByText('Suggestion to keep your week balanced: Strength to Wednesday, Oct 28.'),
@@ -127,7 +292,7 @@ describe('moving a workout', () => {
     await fireEvent.press(await screen.findByText('Mon, Oct 26'));
     await waitFor(() => expect(router.back).toHaveBeenCalled());
 
-    await renderWithQuery(<PlanScreen />);
+    await renderWithQuery(<CalendarScreen />);
     expect(await screen.findByText(/^Two hard days in a row/)).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('Make the other day easier'));
     await waitFor(() =>
@@ -143,7 +308,7 @@ describe('moving a workout', () => {
     storePlan();
     await renderWithQuery(<WorkoutScreen id="2026-10-27-1" startMoving />);
     await fireEvent.press(await screen.findByText('Mon, Oct 26'));
-    await renderWithQuery(<PlanScreen />);
+    await renderWithQuery(<CalendarScreen />);
     await fireEvent.press(await screen.findByLabelText('Close'));
     expect(usePlanUiStore.getState().feedback).toBeNull();
     expect(findWorkout(state().plan, '2026-10-25-1')?.hard).toBe(true);
@@ -166,32 +331,71 @@ describe('moving a workout', () => {
 });
 
 describe('workout detail', () => {
-  it('shows steps, zone target with bpm and "why this session"; marks done and back', async () => {
+  it('easy run: tinted header, range, HR target with a pace limit, numbered steps, done', async () => {
     storePlan();
     setToday('2026-10-26');
     await renderWithQuery(<WorkoutScreen id="2026-10-26-1" />);
-    expect(await screen.findByText('Structure')).toBeOnTheScreen();
-    // General name as title, the concrete session below, plus duration and km.
+    expect(await screen.findByText('Steps')).toBeOnTheScreen();
+    expect(screen.getByTestId('workout-header')).toBeOnTheScreen();
     expect(screen.getByText('Easy run')).toBeOnTheScreen();
-    expect(screen.getByText(/^\d+(\.\d)? km$/)).toBeOnTheScreen();
+    expect(screen.getByText('Week 2 of 17 · Monday, October 26')).toBeOnTheScreen();
+    expect(screen.getByTestId('duration-range')).toHaveTextContent(/^\d+–\d+ min$/);
+    expect(screen.getByText(/^≈ [\d.]+ km$/)).toBeOnTheScreen();
+    expect(screen.getByText('Not sent to a watch yet')).toBeOnTheScreen();
+    expect(
+      screen.getByText(
+        /^Heart rate is your target\. Pace is a limit: no faster than \d+:\d\d\/km\.$/,
+      ),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getAllByText(/^Zone 2 · \d+–\d+ bpm · no faster than \d+:\d\d\/km$/).length,
+    ).toBeGreaterThan(0);
+    expect(screen.getByTestId('step-1')).toBeOnTheScreen();
+    expect(screen.getByText('Why this session')).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('Easy run explained'));
     expect(router.push).toHaveBeenCalledWith('/training/workout-types?focus=run.easy');
-    expect(screen.getByText('Why this session')).toBeOnTheScreen();
-    expect(screen.getByText(/^Zone 2 · \d+–\d+ bpm$/)).toBeOnTheScreen();
 
     await fireEvent.press(screen.getByText('Mark as done'));
     await waitFor(() => expect(state().status['2026-10-26-1']).toBe('done'));
+    expect(Haptics.notificationAsync).toHaveBeenCalledWith('success');
     await fireEvent.press(await screen.findByText('Back to planned'));
     await waitFor(() => expect(state().status).toEqual({}));
   });
 
-  it('skips a future workout; the concrete session is the subtitle', async () => {
+  it('indoor swaps the steps for the treadmill version; quick actions', async () => {
+    storePlan();
+    await renderWithQuery(<WorkoutScreen id="2026-10-26-1" />);
+    await fireEvent.press(await screen.findByText('Treadmill'));
+    expect(
+      screen.getByText('Treadmill at 1 % incline – same steps and load as outside.'),
+    ).toBeOnTheScreen();
+    expect(screen.queryAllByText(/no faster than \d+:\d\d\/km$/)).toHaveLength(0);
+    await fireEvent.press(screen.getByText('Outdoor'));
+    expect(screen.getAllByText(/no faster than \d+:\d\d\/km$/).length).toBeGreaterThan(0);
+
+    await fireEvent.press(screen.getByLabelText('Choose route'));
+    expect(router.push).toHaveBeenCalledWith('/coming-soon/routes');
+    await fireEvent.press(screen.getByLabelText('Link activity'));
+    expect(router.push).toHaveBeenCalledWith('/coming-soon/linkActivity');
+    await fireEvent.press(screen.getByLabelText('Warm-up'));
+    expect(screen.getByText('Warm-up routine')).toBeOnTheScreen();
+  });
+
+  it('intervals: pace is the target, repeats are one numbered step', async () => {
+    storePlan();
+    await renderWithQuery(<WorkoutScreen id="2026-11-01-1" />);
+    expect(await screen.findByText('Steps')).toBeOnTheScreen();
+    expect(screen.queryByTestId('hr-first')).toBeNull();
+    expect(screen.getAllByText(/^Main set · \d+ × /).length).toBeGreaterThan(0);
+  });
+
+  it('skips from the quick actions; the concrete session is in the subtitle', async () => {
     storePlan();
     await renderWithQuery(<WorkoutScreen id="2026-10-27-1" />);
-    expect(await screen.findByText('Skip this workout')).toBeOnTheScreen();
-    expect(screen.getByText('Strength')).toBeOnTheScreen();
-    expect(screen.getByText('Peakr strength – base')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByText('Skip this workout'));
+    expect(await screen.findByText('Strength · Peakr strength – base')).toBeOnTheScreen();
+    expect(screen.queryByText('Treadmill')).toBeNull();
+    expect(screen.queryByLabelText('Choose route')).toBeNull();
+    await fireEvent.press(screen.getByLabelText('Skip'));
     await waitFor(() => expect(state().status['2026-10-27-1']).toBe('skipped'));
   });
 
@@ -211,7 +415,7 @@ describe('workout detail', () => {
         'Details appear 4 weeks ahead – the plan keeps adapting to the workouts you complete.',
       ),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('Structure')).toBeNull();
+    expect(screen.queryByText('Steps')).toBeNull();
     expect(screen.queryByText('Why this session')).toBeNull();
   });
 });
@@ -255,7 +459,7 @@ describe('pause and resume', () => {
     expect(resumed?.targetLoad).toBe(Math.round(reference * 0.8));
   });
 
-  it('the Plan tab shows the running pause', async () => {
+  it('Today shows the running pause, the calendar marks paused days', async () => {
     storePlan();
     mock.store.plan = {
       ...(mock.store.plan as NonNullable<typeof mock.store.plan>),
@@ -264,9 +468,10 @@ describe('pause and resume', () => {
         pauses: [{ reason: 'holiday', startDate: '2026-10-21', endDate: null }],
       },
     };
-    await renderWithQuery(<PlanScreen />);
+    await renderWithQuery(<TodayScreen />);
     expect(await screen.findByText('Plan paused since October 21 (Holiday).')).toBeOnTheScreen();
-    expect(screen.getAllByText('Paused').length).toBeGreaterThan(0);
+    await renderWithQuery(<CalendarScreen />);
+    expect((await screen.findAllByText('Paused')).length).toBeGreaterThan(0);
   });
 });
 

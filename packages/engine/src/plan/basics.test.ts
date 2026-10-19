@@ -228,7 +228,7 @@ describe('levels (WORKOUTS.md §10)', () => {
 describe('classification (WORKOUTS.md §11)', () => {
   const base = {
     sport: 'run',
-    type: 'easy',
+    templateType: 'easy',
     intensity: 'easy',
     durationMin: 45,
     legLoad: 'none',
@@ -239,10 +239,14 @@ describe('classification (WORKOUTS.md §11)', () => {
     expect(isHardOnItsOwn(base)).toBe(false);
     expect(isHardOnItsOwn({ ...base, intensity: 'hard' })).toBe(true);
     expect(isHardOnItsOwn({ ...base, sport: 'brick' })).toBe(true);
-    expect(isHardOnItsOwn({ ...base, type: 'long', durationMin: 90 })).toBe(true);
-    expect(isHardOnItsOwn({ ...base, type: 'long', durationMin: 85 })).toBe(false);
-    expect(isHardOnItsOwn({ ...base, sport: 'bike', type: 'long', durationMin: 180 })).toBe(true);
-    expect(isHardOnItsOwn({ ...base, sport: 'bike', type: 'long', durationMin: 170 })).toBe(false);
+    expect(isHardOnItsOwn({ ...base, templateType: 'long', durationMin: 90 })).toBe(true);
+    expect(isHardOnItsOwn({ ...base, templateType: 'long', durationMin: 85 })).toBe(false);
+    expect(isHardOnItsOwn({ ...base, sport: 'bike', templateType: 'long', durationMin: 180 })).toBe(
+      true,
+    );
+    expect(isHardOnItsOwn({ ...base, sport: 'bike', templateType: 'long', durationMin: 170 })).toBe(
+      false,
+    );
     const hilly = { gainPerKm: 25, distanceKm: 8, expectedGainM: 200, eccentric: false };
     expect(isHardOnItsOwn({ ...base, terrain: hilly })).toBe(true);
     expect(isHardOnItsOwn({ ...base, terrain: { ...hilly, gainPerKm: 10 } })).toBe(false);

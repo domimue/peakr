@@ -23,32 +23,6 @@ export function weekDates(monday: string): string[] {
   return Array.from({ length: 7 }, (_, i) => addDays(monday, i));
 }
 
-/** First day of the month of `iso`. */
-export function monthStart(iso: string): string {
-  return `${iso.slice(0, 7)}-01`;
-}
-
-export function addMonths(monthIso: string, months: number): string {
-  const d = new Date(`${monthIso}T00:00:00Z`);
-  d.setUTCMonth(d.getUTCMonth() + months, 1);
-  return d.toISOString().slice(0, 10);
-}
-
-/** Weeks (Monday first) covering the month, each with 7 ISO dates. */
-export function monthGrid(monthIso: string): string[][] {
-  const first = monthStart(monthIso);
-  const next = addMonths(first, 1);
-  const weeks: string[][] = [];
-  for (let monday = mondayOf(first); monday < next; monday = addDays(monday, 7)) {
-    weeks.push(weekDates(monday));
-  }
-  return weeks;
-}
-
-export function isSameMonth(a: string, b: string): boolean {
-  return a.slice(0, 7) === b.slice(0, 7);
-}
-
 export function weekOfPlan(plan: Plan, date: string): PlanWeek | undefined {
   const monday = mondayOf(date);
   return plan.weeks.find((w) => w.startDate === monday);

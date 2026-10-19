@@ -1,4 +1,4 @@
-# Plan tab: move a workout to another day by drag & drop (Phase 5).
+# Calendar tab: move a workout to another day by drag & drop (Phase 5, tabs since Phase 5c).
 #
 # Runs against a development build (the plan comes from Profile → Plan preview → "Use as my plan",
 # which only exists in __DEV__ builds) with Metro running:
@@ -14,9 +14,30 @@ env:
 ---
 - launchApp:
     clearState: true
-- openLink: peakr://expo-development-client/?url=${encodeURIComponent(METRO_URL)}
+# After clearState the dev launcher asks for nearby devices (server discovery) – not needed.
 - extendedWaitUntil:
-    visible: Your plan
+    visible: Don.t allow
+    timeout: 15000
+    optional: true
+- tapOn:
+    text: Don.t allow
+    optional: true
+# The dev client registers its own scheme (exp+<app scheme>).
+- openLink: exp+peakr://expo-development-client/?url=${encodeURIComponent(METRO_URL)}
+# After clearState the dev client explains its developer menu once (covers the app).
+- extendedWaitUntil:
+    visible: Continue
+    timeout: 120000
+    optional: true
+- tapOn:
+    text: Continue
+    optional: true
+# …and then leaves the developer menu open.
+- tapOn:
+    text: Close
+    optional: true
+- extendedWaitUntil:
+    visible: Today
     timeout: 60000
 
 # Create a plan from the half-marathon preset; it starts on the next Monday (or today).
@@ -25,6 +46,8 @@ env:
     element: Plan preview \(dev\)
 - tapOn: Plan preview \(dev\)
 - tapOn: Use as my plan
+# The preview opens the Calendar tab; tap it anyway in case the tab bar kept another tab.
+- tapOn: Calendar
 - extendedWaitUntil:
     visible:
       id: plan-card-0-0

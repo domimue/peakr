@@ -50,7 +50,7 @@ export function PlanPreviewScreen() {
               startDate: planStartDate(todayIso()),
               ...(p.targetDate ? { targetDate: liveTargetDate(p.targetDate) } : {}),
             },
-            { onSuccess: () => router.replace('/plan') },
+            { onSuccess: () => router.replace('/calendar') },
           );
         }}
       />

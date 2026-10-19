@@ -6,11 +6,17 @@
     "cancel": "Cancel",
     "yes": "Yes",
     "no": "No",
-    "back": "Back"
+    "back": "Back",
+    "loading": "Loading…",
+    "loadError": "Couldn’t load your data.",
+    "retry": "Try again"
   },
   "tabs": {
     "plan": "Plan",
-    "profile": "Profile"
+    "profile": "Profile",
+    "today": "Today",
+    "calendar": "Calendar",
+    "progress": "Progress"
   },
   "plan": {
     "title": "Your plan",
@@ -194,7 +200,27 @@
       "hint": "In your winter period, easy and long sessions get a winter variant with the same training load. Key sessions for a race stay in your sport.",
       "monthsTitle": "Winter period",
       "save": "Save and rebuild plan"
-    }
+    },
+    "weekOf": "Week {{week}} of {{total}}",
+    "thisWeek": "This week",
+    "weekComplete": "Week complete",
+    "progress": {
+      "sessions": "Sessions {{done}}/{{planned}}",
+      "distance": "Distance {{done}}/{{planned}} km"
+    },
+    "tags": {
+      "recovery": "Recovery week",
+      "taper": "Taper",
+      "race": "Race week",
+      "travel": "Travel",
+      "different": "Different week"
+    },
+    "goalLine": "{{goal}} · {{date}}",
+    "pausedBadge": "Plan paused",
+    "noWeeks": "This plan has no weeks yet.",
+    "expandHint": "Shows the sessions of this week",
+    "collapseHint": "Hides the sessions of this week",
+    "openInCalendar": "Open in calendar"
   },
   "fields": {
     "age": "Age",
@@ -281,7 +307,18 @@
     "licenses": "Third-party notices",
     "licensesHint": "Fonts and open-source licences",
     "training": "Training",
-    "realLife": "Real life"
+    "realLife": "Real life",
+    "settings": "Settings",
+    "units": "Units",
+    "metric": "Metric",
+    "hrZones": "Heart-rate zones",
+    "notifications": "Notifications",
+    "language": "Language",
+    "connections": "Connections",
+    "subscription": "Subscription",
+    "account": "Account",
+    "privacy": "Privacy",
+    "accountGroup": "Account & privacy"
   },
   "why": {
     "run": {
@@ -385,7 +422,10 @@
     "sighting": "Sight every 6–8 strokes",
     "standingEvery4": "Stand for 1 minute every 4 minutes",
     "strides": "Stride – fast and relaxed",
-    "timeTrial": "Time trial – all out, evenly paced"
+    "timeTrial": "Time trial – all out, evenly paced",
+    "indoor": {
+      "inclineRep": "on the treadmill at the incline shown above"
+    }
   },
   "dev": {
     "planPreview": {
@@ -1447,7 +1487,8 @@
     "warmup_other": "Warm-up {{count}} min",
     "cooldown_one": "Cool-down {{count}} min",
     "cooldown_other": "Cool-down {{count}} min",
-    "exercise": "{{sets}} × {{reps}} {{name}}"
+    "exercise": "{{sets}} × {{reps}} {{name}}",
+    "minutesRange": "{{min}}–{{max}} min"
   },
   "workouts": {
     "run": {
@@ -1725,6 +1766,181 @@
         "description": "Your regular trip to work or school, one way or there and back. Ridden, run or walked at an easy effort – no pace to hit.",
         "why": "Easy minutes that build your aerobic base without extra time. They count towards your training load, so the rest of the week is planned around them.",
         "intensity": "Zone 1–2 · effort 2–4/10"
+      }
+    },
+    "types": {
+      "easy": "Easy",
+      "long": "Long",
+      "tempo": "Tempo",
+      "intervals": "Intervals",
+      "hills": "Hills",
+      "test": "Race / test",
+      "strength": "Strength",
+      "cross": "Cross-training",
+      "commute": "Commute"
+    }
+  },
+  "today": {
+    "title": "Today",
+    "session": "Today’s session",
+    "week": "This week",
+    "insights": "Insights",
+    "insight": {
+      "load": {
+        "title": "Training load",
+        "body": "How this week’s load compares with your plan – shown here once you have trained for a week."
+      },
+      "zones": {
+        "title": "Easy vs hard",
+        "body": "Your 80/20 balance of easy and hard minutes appears here as sessions get done."
+      }
+    },
+    "weatherSoon": "Weather check coming soon",
+    "startsOn": "Your plan starts on {{date}}.",
+    "restTitle": "Rest day",
+    "restHint": "Recovery is part of the plan – nothing scheduled today.",
+    "markDone": "Mark as done",
+    "openSession": "Open session",
+    "seeWeek": "See this week"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "add": "Add",
+    "addA11y": "Add a session on {{date}}",
+    "resetWeek": "Reset week",
+    "weekTotal": "Week total: {{value}}"
+  },
+  "workout": {
+    "steps": "Steps",
+    "paceLimit": "{{target}} · no faster than {{pace}}",
+    "step": {
+      "warmup": "Warm-up",
+      "main": "Main set",
+      "cooldown": "Cool-down"
+    },
+    "repeat": "{{count}} × {{work}} with {{rest}} easy",
+    "explain": {
+      "warmup": "Start relaxed and let your heart rate rise gradually.",
+      "cooldown": "Ease off and let your heart rate settle before you stop.",
+      "repeat": "Hit the target on every rep; the recoveries are truly easy.",
+      "zone1": "Very easy – recovery pace, you could chat the whole time.",
+      "zone2": "Easy and steady – breathing calm, conversation possible.",
+      "zone3": "Moderate – comfortably hard, short sentences only.",
+      "zone4": "Hard – around your threshold, controlled but demanding.",
+      "zone5": "Very hard – near maximum, only a few words possible."
+    },
+    "actions": {
+      "route": "Choose route",
+      "link": "Link activity",
+      "warmup": "Warm-up",
+      "skip": "Skip"
+    },
+    "watchNever": "Not sent to a watch yet",
+    "warmupTitle": "Warm-up routine",
+    "warmupEndurance": "5 min easy movement, then leg swings, ankle hops and two or three short pick-ups before the first step.",
+    "warmupStrength": "5 min easy cardio, then mobility for hips and shoulders and one light set of the first exercise.",
+    "outdoor": "Outdoor",
+    "indoor": {
+      "treadmill": "Treadmill",
+      "trainer": "Indoor trainer",
+      "pool": "Pool"
+    },
+    "indoorIncline": "Treadmill at {{incline}} % incline – same steps and load as outside.",
+    "indoorSameLoad": "Same steps and the same load as outside.",
+    "limitHint": "Heart rate is your target. Pace is a limit: no faster than {{pace}}.",
+    "limitHintNoPace": "Heart rate is your target – keep it easy, whatever the pace."
+  },
+  "progress": {
+    "title": "Progress",
+    "history": "History",
+    "performance": "Performance",
+    "noPlan": "Your progress appears here once you have a plan.",
+    "emptyHistory": "No completed sessions yet",
+    "emptyHistoryHint": "Mark a session as done and it shows up here. Synced activities follow in a later update.",
+    "sessions_one": "{{count}} session",
+    "sessions_other": "{{count}} sessions",
+    "hoursMinutes": "{{h}} h {{m}} min",
+    "pace": "{{pace}} /km",
+    "tiles": {
+      "sessions": "Sessions",
+      "time": "Time",
+      "distance": "Distance",
+      "load": "Load"
+    },
+    "periods": {
+      "4": "4 weeks",
+      "12": "12 weeks",
+      "52": "1 year"
+    },
+    "chart": {
+      "title": "Minutes per week",
+      "minutes": "Minutes",
+      "average": "Average {{value}} min",
+      "a11y": "Bar chart of the last {{weeks}} weeks: average {{average}} minutes, most {{max}} minutes per week."
+    },
+    "emptyPeriod": "No completed sessions in this period.",
+    "bests": "Personal bests",
+    "emptyBests": "Your bests appear after your first completed session.",
+    "best": {
+      "longestSession": "Longest session",
+      "biggestWeek": "Biggest week",
+      "longest": {
+        "run": "Longest run",
+        "bike": "Longest ride",
+        "swim": "Longest swim"
+      }
+    },
+    "bestsHint": "Race times and fastest efforts come with synced activities.",
+    "lifetime": "Lifetime"
+  },
+  "comingSoon": {
+    "label": "Coming soon",
+    "short": "Soon",
+    "hint": "This arrives in a later update – nothing to set up yet.",
+    "topics": {
+      "routes": {
+        "title": "Routes",
+        "body": "Pick a route for this session from your own routes or ones recognised from Strava, with per-km pace for the terrain."
+      },
+      "linkActivity": {
+        "title": "Link activity",
+        "body": "Connect a synced activity to this session to see how it went against the plan."
+      },
+      "addSession": {
+        "title": "Add a session",
+        "body": "Adding your own extra sessions to a day. For now you can drag any session to an empty day."
+      },
+      "units": {
+        "title": "Units",
+        "body": "Switch between metric and imperial units."
+      },
+      "hrZones": {
+        "title": "Heart-rate zones",
+        "body": "View and edit your zones: method, resting HR, threshold HR and test results."
+      },
+      "notifications": {
+        "title": "Notifications",
+        "body": "One morning reminder on training days, at a time you choose."
+      },
+      "language": {
+        "title": "Language",
+        "body": "German, French, Italian and Spanish follow English."
+      },
+      "connections": {
+        "title": "Connections",
+        "body": "Strava, Garmin, COROS, Suunto and more – activities sync automatically."
+      },
+      "subscription": {
+        "title": "Subscription",
+        "body": "See your plan and trial, switch tiers or cancel."
+      },
+      "account": {
+        "title": "Account",
+        "body": "Log out or delete your account and all its data."
+      },
+      "privacy": {
+        "title": "Privacy",
+        "body": "What is stored, where, and how to export or delete it."
       }
     }
   }

@@ -8,6 +8,7 @@ import { parseIsoDate, toIsoDate, weekdayOf } from './dates';
 import { hardShare } from './load';
 import { athleteFor } from './materialize';
 import { buildSkeleton, isRaceGoal, weekTargetLoad } from './periodisation';
+import { describeWorkout } from './workout-type';
 import { RESTED, scheduleWeek, type NextDay, type PrevDay, type ScheduleDay } from './scheduler';
 import { travelOn } from './travel';
 import {
@@ -405,7 +406,10 @@ export function classifyPlan(weeks: PlanWeek[], experience: Experience): PlanWee
   });
   const classified = classifyDays(byDay, experience);
   return weeks.map((w, wi) => {
-    const workouts = classified.filter((_, i) => index[i]?.week === wi).flat();
+    const workouts = classified
+      .filter((_, i) => index[i]?.week === wi)
+      .flat()
+      .map(describeWorkout);
     return { ...w, workouts, hardShare: Math.round(hardShare(workouts) * 1000) / 1000 };
   });
 }

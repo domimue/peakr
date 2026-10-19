@@ -9,6 +9,7 @@ import { round1, strengthLoad } from './load';
 import { athleteFor, exerciseLegLoad, materialize } from './materialize';
 import { isRaceGoal } from './periodisation';
 import type { NextDay, PrevDay } from './scheduler';
+import { describeWorkout } from './workout-type';
 import type {
   Availability,
   Experience,
@@ -290,8 +291,12 @@ function rebuild(plan: Plan, workouts: readonly Workout[], experience: Experienc
   return { ...plan, weeks: classifyPlan(weeks, experience) };
 }
 
+/** Moves a workout and remembers the plan's date (dropped again when it is back there). */
 function relocate(w: Workout, date: string): Workout {
-  return { ...w, date, weekday: weekdayOf(day(date)) };
+  const originalDate = w.originalDate ?? w.date;
+  const moved: Workout = { ...w, date, weekday: weekdayOf(day(date)), originalDate };
+  if (originalDate === date) delete moved.originalDate;
+  return moved;
 }
 
 /** A workout the user or the engine may still change: planned, not in the past, not paused. */
@@ -398,6 +403,44 @@ export function moveWorkout(
 }
 
 // ---------------------------------------------------------------------------------------------
+// Reset week
+
+/** Workouts of the week starting on `weekStart` that the user moved in or out of it. */
+function movedInWeek(plan: Plan, weekStart: string): Workout[] {
+  const start = day(weekStart);
+  const inWeek = (iso: string) => day(iso) >= start && day(iso) < start + 7;
+  return allWorkouts(plan).filter(
+    (w) => w.originalDate !== undefined && (inWeek(w.date) || inWeek(w.originalDate)),
+  );
+}
+
+/** The week has manual moves that "reset week" can undo. */
+export function hasManualChanges(state: PlanState, weekStart: string): boolean {
+  return movedInWeek(state.plan, weekStart).length > 0;
+}
+
+/**
+ * "Reset week": every workout moved into, out of or within the week goes back to the day the plan
+ * had for it. Status (done / skipped) stays; eased sessions stay eased.
+ */
+export function resetWeek(
+  state: PlanState,
+  weekStart: string,
+  input: PlanInput,
+): EditResult<PlanState> {
+  if (parseIsoDate(weekStart) === null) return fail('date', 'invalidDate');
+  const ids = new Set(movedInWeek(state.plan, weekStart).map((w) => w.id));
+  if (ids.size === 0) return { ok: true, value: state };
+  const workouts = allWorkouts(state.plan).map((w) =>
+    ids.has(w.id) ? relocate(w, w.originalDate as string) : w,
+  );
+  return {
+    ok: true,
+    value: { ...state, plan: rebuild(state.plan, workouts, input.profile.experience) },
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
 // Ease ("make the other day easier")
 
 const EASY_TEMPLATE: Record<Sport | 'brick', { normal: string; long: string }> = {
@@ -420,7 +463,7 @@ export function easeWorkout(
 ): EditResult<PlanState> {
   const w = findWorkout(state.plan, workoutId);
   if (!w) return fail('workout', 'notFound');
-  const note: PlanNote = { key: 'notes.eased', params: { type: w.type } };
+  const note: PlanNote = { key: 'notes.eased', params: { type: w.templateType } };
 
   let eased: Workout;
   if (w.sport === 'strength') {
@@ -434,7 +477,7 @@ export function easeWorkout(
       Math.round((w.durationMin * sets(exercises)) / Math.max(1, sets(planned))),
     );
     const rpe = Math.min(...exercises.map((e) => e.rpe), cfg.easedStrengthMaxRpe);
-    eased = {
+    eased = describeWorkout({
       ...w,
       exercises,
       durationMin,
@@ -442,7 +485,7 @@ export function easeWorkout(
       intensity: 'easy',
       load: round1(strengthLoad(durationMin, rpe)),
       notes: [...w.notes, note],
-    };
+    });
   } else {
     // Plan workouts are always run / bike / swim / brick (winter sports are only variants).
     const sport = w.sport as Sport | 'brick';
@@ -457,11 +500,11 @@ export function easeWorkout(
       athlete,
       w.durationMin,
     );
-    eased = {
+    eased = describeWorkout({
       ...w,
       sport: template.sport,
       templateId: template.id,
-      type: template.type,
+      templateType: template.type,
       role: long ? 'long' : 'easy',
       intensity: template.intensity,
       level: null,
@@ -479,7 +522,7 @@ export function easeWorkout(
       /* v8 ignore next -- every easy template has an indoor alternative */
       indoorAlternativeId: template.indoorAlternativeId ?? null,
       winterVariant: null,
-    };
+    });
   }
   const workouts = allWorkouts(state.plan).map((x) => (x.id === workoutId ? eased : x));
   return {

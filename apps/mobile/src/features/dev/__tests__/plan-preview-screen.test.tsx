@@ -1,5 +1,5 @@
 import { workoutLibrary } from '@peakr/engine';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
 import ProfileScreen from '../../../../app/(tabs)/profile';
@@ -26,7 +26,7 @@ describe('dev plan preview', () => {
     const replace = jest.spyOn(router, 'replace').mockImplementation(() => undefined);
     await renderWithQuery(<PlanPreviewScreen />);
     await fireEvent.press(screen.getByText('Use as my plan'));
-    await waitFor(() => expect(replace).toHaveBeenCalledWith('/plan'));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/calendar'));
     const stored = mock.store.plan;
     expect(stored?.input.goal).toEqual({ kind: 'half' });
     expect(stored?.state.plan.weeks.length).toBe(12);
@@ -52,8 +52,8 @@ describe('dev plan preview', () => {
 
   it('is linked from the profile in development builds', async () => {
     const push = jest.spyOn(router, 'push').mockImplementation(() => undefined);
-    await render(<ProfileScreen />);
-    await fireEvent.press(screen.getByText('Plan preview (dev)'));
+    await renderWithQuery(<ProfileScreen />);
+    await fireEvent.press(await screen.findByText('Plan preview (dev)'));
     expect(push).toHaveBeenCalledWith('/dev/plan');
   });
 

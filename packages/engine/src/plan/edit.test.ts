@@ -82,7 +82,7 @@ describe('moveWorkout', () => {
 
   it('the base week matches the documented layout', () => {
     const week = weekOf(state.plan, '2026-10-26');
-    expect(week.workouts.map((w) => `${w.date} ${w.type}`)).toEqual([
+    expect(week.workouts.map((w) => `${w.date} ${w.templateType}`)).toEqual([
       '2026-10-26 easy',
       '2026-10-27 peakr_base_gym',
       '2026-10-28 easy',
@@ -135,7 +135,13 @@ describe('moveWorkout', () => {
 
     const eased = ok(easeWorkout(r.state, '2026-10-25-1', input));
     const w = findWorkout(eased.plan, '2026-10-25-1');
-    expect(w).toMatchObject({ type: 'easy', intensity: 'easy', hard: false, level: null });
+    expect(w).toMatchObject({
+      templateType: 'easy',
+      type: 'easy',
+      intensity: 'easy',
+      hard: false,
+      level: null,
+    });
     expect(w?.durationMin).toBe(findWorkout(state.plan, '2026-10-25-1')?.durationMin);
     expect(w?.notes.map((n) => n.key)).toContain('notes.eased');
     const left = findViolations(activeWorkouts(eased), input.availability, 'intermediate');
@@ -262,7 +268,7 @@ describe('pause and resume', () => {
     expect(fresh.length).toBeGreaterThan(0);
     expect(fresh.every((w) => w.id.startsWith('r1-'))).toBe(true);
     const level = (p: Plan, type: string, from: string) =>
-      allWorkouts(p).find((w) => w.type === type && w.date >= from)?.level ?? 0;
+      allWorkouts(p).find((w) => w.templateType === type && w.date >= from)?.level ?? 0;
     expect(level(resumed.plan, 'fartlek', '2026-11-12')).toBeLessThan(
       level(state.plan, 'fartlek', '2026-11-12'),
     );
@@ -338,7 +344,7 @@ describe('edge cases', () => {
       id: 'c',
       date: '2026-11-05',
       intensity: 'easy' as const,
-      type: 'easy',
+      templateType: 'easy',
       terrain: { gainPerKm: 30, distanceKm: 12, expectedGainM: 360, eccentric: true },
     };
     const legs = { ...strength, id: 'd', date: '2026-11-06' };
@@ -384,7 +390,7 @@ describe('edge cases', () => {
 
   it('eases a long session into an easy long one', () => {
     const eased = findWorkout(ok(easeWorkout(state, '2026-10-31-1', input)).plan, '2026-10-31-1');
-    expect(eased).toMatchObject({ role: 'long', type: 'long', level: null });
+    expect(eased).toMatchObject({ role: 'long', templateType: 'long', type: 'long', level: null });
   });
 
   it('eases a hard swim set into an easy swim', () => {

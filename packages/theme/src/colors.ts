@@ -53,6 +53,39 @@ export const zoneColors = {
 } as const satisfies Record<'dark' | 'light', readonly [string, string, string, string, string]>;
 
 /**
+ * Workout type scale (CLAUDE.md "UI patterns"): the bar on every workout card, the dot under a day
+ * and the tint of the workout header. Each type is ≥ 3:1 against bg/surface/surface2, separable
+ * from every other type and from Volt in OKLab (hue and lightness), and always named in text too.
+ */
+export const workoutTypeColors = {
+  dark: {
+    easy: '#5CB8FF',
+    long: '#6F73F2',
+    tempo: '#FFB547',
+    intervals: '#FF4F4F',
+    hills: '#C9895B',
+    test: '#F472D0',
+    strength: '#D2A6FF',
+    cross: '#D3DCE6',
+    commute: '#3FD69B',
+  },
+  light: {
+    easy: '#1F78C8',
+    long: '#2F2A9C',
+    tempo: '#B86E00',
+    intervals: '#C81E1E',
+    hills: '#6B3A1E',
+    test: '#B0258F',
+    strength: '#8A4FE0',
+    cross: '#4A5868',
+    commute: '#0E7A55',
+  },
+} as const;
+
+export type WorkoutTypeKey = keyof (typeof workoutTypeColors)['dark'];
+export type WorkoutTypeColorKey = `type${Capitalize<WorkoutTypeKey>}`;
+
+/**
  * Workout colour per sport (calendar card stripe and marker). Distinct from each other and from
  * Volt; ≥ 3:1 against bg and surface. Cards always show the sport as text too.
  */
@@ -87,7 +120,7 @@ export function zoneColor(scheme: ColorScheme, zone: ZoneNumber): string {
 }
 
 /** Semantic colours for one scheme – what UI code uses. */
-export interface SchemeColors {
+export interface SchemeColors extends Record<WorkoutTypeColorKey, string> {
   bg: string;
   surface: string;
   surface2: string;
@@ -119,10 +152,19 @@ export interface SchemeColors {
   sportCommute: string;
 }
 
+function typeTokens(name: ColorScheme): Record<WorkoutTypeColorKey, string> {
+  const out = {} as Record<WorkoutTypeColorKey, string>;
+  for (const [type, value] of Object.entries(workoutTypeColors[name])) {
+    out[`type${type.charAt(0).toUpperCase()}${type.slice(1)}` as WorkoutTypeColorKey] = value;
+  }
+  return out;
+}
+
 function scheme(name: ColorScheme): SchemeColors {
   const [zone1, zone2, zone3, zone4, zone5] = zoneColors[name];
   const sport = sportColors[name];
   return {
+    ...typeTokens(name),
     ...colors[name],
     accentPressed: colors.voltPressed,
     accentLine: name === 'dark' ? colors.volt : colors.ink,

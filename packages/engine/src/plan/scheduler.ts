@@ -30,6 +30,7 @@ import type {
   WorkoutTerrain,
 } from './types';
 import { winterVariantFor } from './winter';
+import { describeWorkout } from './workout-type';
 
 const MAX_SESSIONS_PER_DAY = 2;
 
@@ -479,7 +480,7 @@ class WeekScheduler {
   /** Hard for spacing: §11, and `moderate` for beginners (it becomes hard next to a hard day). */
   private isHard(i: Item): boolean {
     return (
-      isHardOnItsOwn({ ...i, sport: i.template.sport, type: i.template.type }) ||
+      isHardOnItsOwn({ ...i, sport: i.template.sport, templateType: i.template.type }) ||
       (this.beginner && i.intensity === 'moderate')
     );
   }
@@ -863,7 +864,7 @@ class WeekScheduler {
   private toWorkout(i: Item, index = 0): Workout {
     const day = this.dayAt(i.day);
     const date = toIsoDate(assertDefined(day.day, 'day'));
-    return {
+    return describeWorkout({
       id: `${this.input.idPrefix ?? ''}${date}-${index + 1}`,
       date,
       weekday: day.weekday,
@@ -871,7 +872,7 @@ class WeekScheduler {
       templateId: i.strength?.templateId.startsWith('routine:')
         ? i.strength.templateId
         : i.template.id,
-      type: i.template.type,
+      templateType: i.template.type,
       role: i.role,
       intensity: i.intensity,
       hard: this.isHard(i),
@@ -891,7 +892,7 @@ class WeekScheduler {
       winterVariant: null,
       ...(i.commuteId === null ? {} : { commuteId: i.commuteId }),
       ...(day.travel ? { travel: true } : {}),
-    };
+    });
   }
 
   private output(): WeekOutput {
