@@ -4,6 +4,18 @@ import type { Availability, Goal, UserProfile } from '@peakr/engine';
 export const PREVIEW_START = '2026-11-02';
 export const PREVIEW_RACE = '2027-01-24';
 
+/** The preset race date moved so the race is as far from today's plan start as in the preview. */
+export function liveTargetDate(previewTarget: string, today = new Date()): string {
+  const day = 86_400_000;
+  const offset =
+    Date.parse(`${previewTarget}T00:00:00Z`) - Date.parse(`${PREVIEW_START}T00:00:00Z`);
+  const start = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
+  // Next Monday (or today) like `planStartDate`, then the same distance; race stays on a Sunday.
+  const weekday = (new Date(start).getUTCDay() + 6) % 7;
+  const monday = start + (weekday === 0 ? 0 : 7 - weekday) * day;
+  return new Date(monday + offset).toISOString().slice(0, 10);
+}
+
 export type PresetId = 'half' | 'tri' | 'weightloss' | 'granfondo';
 
 export interface PlanPreset {

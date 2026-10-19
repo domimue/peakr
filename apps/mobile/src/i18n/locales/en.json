@@ -5,7 +5,8 @@
     "increase": "Increase",
     "cancel": "Cancel",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "back": "Back"
   },
   "tabs": {
     "plan": "Plan",
@@ -14,7 +15,129 @@
   "plan": {
     "title": "Your plan",
     "empty": "No plan yet. Take the quiz to build your personal training plan.",
-    "startQuiz": "Start the quiz"
+    "startQuiz": "Start the quiz",
+    "view": {
+      "week": "Week",
+      "month": "Month"
+    },
+    "weekLabel": "Week {{week}} of {{total}} · {{phase}}",
+    "phases": {
+      "base": "Base",
+      "build": "Build",
+      "peak": "Peak",
+      "taper": "Taper",
+      "maintain": "Maintain"
+    },
+    "recoveryWeek": "Recovery week",
+    "taperWeek": "Taper",
+    "today": "Today",
+    "prevWeek": "Previous week",
+    "nextWeek": "Next week",
+    "prevMonth": "Previous month",
+    "nextMonth": "Next month",
+    "rest": "Rest day",
+    "paused": "Paused",
+    "hard": "Hard",
+    "zone": "Z{{zone}}",
+    "status": {
+      "done": "Done",
+      "skipped": "Skipped",
+      "planned": "Planned"
+    },
+    "sports": {
+      "run": "Run",
+      "bike": "Ride",
+      "swim": "Swim",
+      "strength": "Strength",
+      "brick": "Brick",
+      "xcski": "Cross-country ski",
+      "skitour": "Ski touring",
+      "snowshoe": "Snowshoeing"
+    },
+    "dragHint": "Hold a workout (or grab its handle) and drag it to any day. You decide – Peakr only warns and suggests.",
+    "moveA11y": "Move to another day",
+    "outlineHint": "Details appear 4 weeks ahead – the plan keeps adapting to the workouts you complete.",
+    "manage": "Adjust your plan",
+    "pauseBanner": "Plan paused since {{date}} ({{reason}}).",
+    "month": {
+      "openWeek": "Open the week of {{date}}",
+      "legend": "One bar per workout, thicker bars are hard sessions. Tap a week to see its workouts."
+    },
+    "feedback": {
+      "moved": "Moved to {{date}}.",
+      "close": "Close",
+      "rules": {
+        "backToBackHard": "Two hard days in a row ({{dates}}): {{workouts}}.",
+        "twoHardOneDay": "Two hard sessions on one day ({{dates}}).",
+        "tooManySessions": "More sessions on {{dates}} than you want per day.",
+        "sameSportOneDay": "Two sessions of the same sport on {{dates}}.",
+        "heavyLegsBeforeKey": "Heavy leg strength the day before a key session ({{dates}}).",
+        "heavyLegsAfterDescent": "Heavy leg strength right after a long downhill run ({{dates}}).",
+        "overAvailability": "Longer than the time you have on {{day}}.",
+        "pastDay": "{{dates}} is in the past – moved anyway.",
+        "pausedDay": "{{dates}} is during your pause."
+      },
+      "suggestion": "Suggestion to keep your week balanced: {{list}}.",
+      "suggestionItem": "{{title}} to {{date}}",
+      "apply": "Apply suggestion",
+      "ease": "Make the other day easier",
+      "keep": "Keep it as it is"
+    },
+    "workout": {
+      "title": "Workout",
+      "target": "Target",
+      "structure": "Structure",
+      "exercises": "Exercises",
+      "why": "Why this session",
+      "markDone": "Mark as done",
+      "skip": "Skip this workout",
+      "undo": "Back to planned",
+      "move": "Move to another day",
+      "moveTo": "Move to",
+      "notFound": "This workout is no longer in your plan.",
+      "level": "Level {{level}}",
+      "outlineTitle": "Coming up"
+    },
+    "availability": {
+      "title": "Availability",
+      "entryHint": "Change your training time per day – the rest of the plan is rebuilt.",
+      "hint": "Changes apply from today. Completed workouts stay; the remaining weeks are rebuilt with your progress so far.",
+      "save": "Save and rebuild plan"
+    },
+    "pause": {
+      "title": "Pause plan",
+      "entryHint": "Illness, injury or holiday – resume when you are ready.",
+      "reasonTitle": "Why are you pausing?",
+      "reasons": {
+        "illness": "Illness",
+        "injury": "Injury",
+        "holiday": "Holiday"
+      },
+      "startTitle": "Pause from",
+      "rules": "When you resume, the first week is lighter: up to 7 days paused → 80 %, up to 14 days → 70 %, longer → 60 % and back to the base phase. Workouts during the pause are removed.",
+      "start": "Pause plan",
+      "running_one": "Paused since {{date}} ({{reason}}) – {{count}} day.",
+      "running_other": "Paused since {{date}} ({{reason}}) – {{count}} days.",
+      "resumeInfo": "If you resume today, your first week back is at {{percent}} % of your last full training week.",
+      "resumeBase": "If you resume today, your first week back is at {{percent}} % and the plan goes back to the base phase.",
+      "resumeNoChange": "The pause has not started yet – resuming simply cancels it.",
+      "resume": "Resume today"
+    },
+    "errors": {
+      "generic": "That did not work. Please try again.",
+      "paused": "Your plan is paused on that day.",
+      "outsidePlan": "That day is outside your plan.",
+      "invalidDate": "Please choose today or a later day.",
+      "notFound": "This workout is no longer in your plan.",
+      "notPaused": "Your plan is not paused.",
+      "notEnoughAvailability": "Please plan at least 2 days with 20 minutes or more."
+    },
+    "devStart": "Start plan without purchase (development)",
+    "km": "{{value}} km",
+    "summary": {
+      "sessions_one": "session",
+      "sessions_other": "sessions"
+    }
   },
   "fields": {
     "age": "Age",
@@ -99,7 +222,8 @@
     "strength": "Strength",
     "about": "About",
     "licenses": "Third-party notices",
-    "licensesHint": "Fonts and open-source licences"
+    "licensesHint": "Fonts and open-source licences",
+    "training": "Training"
   },
   "why": {
     "run": {
@@ -174,7 +298,8 @@
     "strengthMerged": "Not enough free days for your split: sessions are combined into {{sessions}}.",
     "strengthNoDay": "No free day for strength this week.",
     "strengthSkipped": "The {{type}} strength session did not fit this week without hurting a key session.",
-    "noRaceDate": "No race date yet – your plan runs the recommended {{weeks}} weeks. Add the date anytime and the plan adapts."
+    "noRaceDate": "No race date yet – your plan runs the recommended {{weeks}} weeks. Add the date anytime and the plan adapts.",
+    "eased": "Made easier: the planned {{type}} session is now easy, so you do not have two hard days in a row."
   },
   "steps": {
     "continuous": "Continuous easy swimming",
@@ -227,7 +352,8 @@
         "weightloss": "Lose weight",
         "granfondo": "Gran fondo"
       },
-      "openStrength": "Open workout"
+      "openStrength": "Open workout",
+      "usePlan": "Use as my plan"
     },
     "brand": {
       "title": "Brand (dev)",
@@ -1288,5 +1414,189 @@
       "license": "Licensed under the SIL Open Font License, Version 1.1."
     },
     "openFoodFacts": "More notices (e.g. Open Food Facts) are added here when those features ship."
+  },
+  "workoutTypes": {
+    "title": "Workout types",
+    "entryHint": "What easy run, tempo, intervals & co. mean – and why they are in your plan.",
+    "intro": "Your calendar shows each session by its type. Tap a workout for the exact steps and targets; here you find what each type is for.",
+    "whatIs": "{{name}} explained",
+    "sports": {
+      "run": "Running",
+      "bike": "Cycling",
+      "swim": "Swimming",
+      "brick": "Multisport",
+      "strength": "Strength",
+      "winter": "Winter sports"
+    },
+    "kinds": {
+      "run.easy": {
+        "name": "Easy run",
+        "short": "Relaxed, conversational running",
+        "description": "Running at a pace where you can still hold a conversation – heart rate in Zone 2 (Zone 1 for recovery runs). Some easy runs end with strides: 15–20 seconds of relaxed, quick running.",
+        "why": "Builds your aerobic base, strengthens muscles and tendons and helps you recover. Most of your running should be easy.",
+        "intensity": "Zone 1–2 · effort 3–4/10"
+      },
+      "run.long": {
+        "name": "Long run",
+        "short": "Your longest run of the week, at an easy effort",
+        "description": "A steady run clearly longer than your other runs, mostly in Zone 2. Go slower than you think – time on your feet counts, not pace.",
+        "why": "Improves endurance and fat burning and gets body and mind ready for longer races.",
+        "intensity": "Zone 2 · effort 4/10"
+      },
+      "run.tempo": {
+        "name": "Tempo run",
+        "short": "Comfortably hard, sustained running",
+        "description": "After a warm-up you run one long block – or a few shorter ones – at threshold or race pace. Progression runs that get faster towards the end belong here too.",
+        "why": "Raises the pace you can hold for a long time – the key for 10 km up to the marathon.",
+        "intensity": "Zone 3–4 · effort 6–7/10"
+      },
+      "run.intervals": {
+        "name": "Intervals",
+        "short": "Fast repeats with easy recoveries",
+        "description": "Repeats of about 1–5 minutes at a hard effort – or a playful fartlek – with easy jogging in between, always with a proper warm-up and cool-down.",
+        "why": "Improves your VO₂max, speed and running economy.",
+        "intensity": "Zone 4–5 · effort 8–9/10"
+      },
+      "run.hills": {
+        "name": "Hills",
+        "short": "Uphill repeats and hilly terrain",
+        "description": "Short or long climbs run hard with easy recoveries on the way down – or steady hiking and running on steep terrain, plus downhill technique.",
+        "why": "Builds strength, power and running form with less impact than fast flat running, and prepares you for hilly races.",
+        "intensity": "Zone 3–5 · effort 6–9/10"
+      },
+      "run.test": {
+        "name": "Test run",
+        "short": "A benchmark that calibrates your zones",
+        "description": "A time trial – e.g. 5 km or 30 minutes – at the best effort you can sustain. Your result updates your paces and zones.",
+        "why": "Keeps your training targets right as you get fitter.",
+        "intensity": "Maximal effort"
+      },
+      "bike.easy": {
+        "name": "Easy ride",
+        "short": "Relaxed endurance riding",
+        "description": "Steady riding in Zone 2 at a cadence that feels smooth. Recovery rides and bike commutes count as easy rides too.",
+        "why": "Builds aerobic endurance with very little stress on your legs.",
+        "intensity": "Zone 1–2 · effort 3–4/10"
+      },
+      "bike.long": {
+        "name": "Long ride",
+        "short": "Your longest ride of the week",
+        "description": "Hours in the saddle at an easy, steady effort. A good time to practise eating and drinking on the bike.",
+        "why": "Builds endurance for long events like a gran fondo or a triathlon.",
+        "intensity": "Zone 2 · effort 4/10"
+      },
+      "bike.tempo": {
+        "name": "Tempo ride",
+        "short": "Steady, moderately hard riding",
+        "description": "Longer blocks at an effort that needs focus but stays under control.",
+        "why": "Raises the power you can sustain on long rides.",
+        "intensity": "Zone 3 · effort 6/10"
+      },
+      "bike.threshold": {
+        "name": "Threshold ride",
+        "short": "Sweet spot and threshold blocks",
+        "description": "Blocks of about 8–20 minutes just below or at your threshold (FTP) with short recoveries.",
+        "why": "The most time-efficient way to lift your FTP.",
+        "intensity": "Zone 3–4 · effort 7–8/10"
+      },
+      "bike.intervals": {
+        "name": "Intervals",
+        "short": "Hard efforts of a few minutes",
+        "description": "Repeats of about 2–5 minutes well above threshold with equally long recoveries.",
+        "why": "Improves your VO₂max and your ability to handle surges and short climbs.",
+        "intensity": "Zone 5 · effort 9/10"
+      },
+      "bike.hills": {
+        "name": "Climbing ride",
+        "short": "Sustained climbs",
+        "description": "Seated and standing efforts on climbs – or high resistance on the indoor trainer.",
+        "why": "Builds climbing strength and teaches you to pace long ascents.",
+        "intensity": "Zone 3–4 · effort 6–8/10"
+      },
+      "bike.technique": {
+        "name": "Cadence drills",
+        "short": "Smooth, fast pedalling",
+        "description": "Easy riding with blocks of high and low cadence.",
+        "why": "Makes your pedalling more efficient and coordinated.",
+        "intensity": "Zone 2 · effort 4/10"
+      },
+      "bike.test": {
+        "name": "FTP test",
+        "short": "A benchmark for your power zones",
+        "description": "A 20-minute all-out effort after a thorough warm-up; about 95 % of the average power is your FTP.",
+        "why": "Keeps your power and heart-rate targets right.",
+        "intensity": "Maximal effort"
+      },
+      "swim.technique": {
+        "name": "Technique swim",
+        "short": "Drills for a better stroke",
+        "description": "Short repeats with drills for catch, kick and body position, with plenty of rest.",
+        "why": "Better technique makes you faster with less effort – the biggest lever in swimming.",
+        "intensity": "Easy · effort 3–5/10"
+      },
+      "swim.easy": {
+        "name": "Easy swim",
+        "short": "Relaxed, continuous swimming",
+        "description": "Steady swimming at a comfortable pace, a little slower than your CSS pace.",
+        "why": "Builds swim endurance and feel for the water.",
+        "intensity": "CSS + 10 s/100 m · effort 4/10"
+      },
+      "swim.threshold": {
+        "name": "CSS swim",
+        "short": "Repeats at threshold pace",
+        "description": "Repeats of 100–400 m at your Critical Swim Speed with short rests.",
+        "why": "Raises the pace you can hold over longer distances.",
+        "intensity": "CSS pace · effort 7/10"
+      },
+      "swim.speed": {
+        "name": "Speed swim",
+        "short": "Short, fast repeats",
+        "description": "Sprints of 25–50 m with long rests.",
+        "why": "Improves top speed and the power of your stroke.",
+        "intensity": "Faster than CSS · effort 9/10"
+      },
+      "swim.openwater": {
+        "name": "Open-water swim",
+        "short": "Practice for lakes and the sea",
+        "description": "Continuous swimming with sighting, swimming in a group and changes of pace.",
+        "why": "Prepares you for race conditions without lane lines and walls.",
+        "intensity": "Easy to moderate"
+      },
+      "swim.test": {
+        "name": "CSS test",
+        "short": "A benchmark for your swim paces",
+        "description": "A 400 m and a 200 m time trial; together they give your Critical Swim Speed.",
+        "why": "Sets the paces of every swim session.",
+        "intensity": "Maximal effort"
+      },
+      "brick.brick": {
+        "name": "Brick",
+        "short": "Ride straight into a run",
+        "description": "A ride followed immediately by a run, just like in a triathlon or duathlon.",
+        "why": "Teaches your legs to run well after cycling.",
+        "intensity": "Zone 2–4"
+      },
+      "strength.strength": {
+        "name": "Strength",
+        "short": "Strength training that fits your plan",
+        "description": "Your strength session – the Peakr programme, your own split or your own routine. The workout lists every exercise with sets, reps and rest.",
+        "why": "Makes you more robust, prevents injuries and improves running economy. Heavy leg sessions are never placed right before a key session.",
+        "intensity": "Effort 6–8/10"
+      },
+      "winter.easy": {
+        "name": "Winter endurance",
+        "short": "Cross-country skiing, ski touring, snowshoeing",
+        "description": "Easy endurance on snow that replaces a run or ride with the same training load.",
+        "why": "Real training in winter – full body and low impact.",
+        "intensity": "Zone 1–2"
+      },
+      "winter.intervals": {
+        "name": "Ski intervals",
+        "short": "Hard efforts on skis",
+        "description": "Repeats at a hard effort on cross-country skis.",
+        "why": "A strong aerobic stimulus that uses the whole body.",
+        "intensity": "Zone 4–5"
+      }
+    }
   }
 }

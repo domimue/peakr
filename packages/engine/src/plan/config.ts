@@ -261,6 +261,45 @@ export const planConfig = {
   winter: {
     defaultMonths: [12, 1, 2, 3],
   },
+  edit: {
+    /** Resume after a pause: first week load vs. the last loading week (CLAUDE.md "Pause"). */
+    resume: [
+      { maxDays: 7, factor: 0.8 },
+      { maxDays: 14, factor: 0.7 },
+    ],
+    /** Longer pauses resume at this share and re-enter Base. */
+    longPauseFactor: 0.6,
+    /** Session RPE cap of a strength session made easier. */
+    easedStrengthMaxRpe: 7,
+    /** Max other workouts the rebalance moves after the user moved one. */
+    maxRebalanceMoves: 3,
+    /** Weight of each broken rule when the rebalance compares two arrangements of a week. */
+    ruleWeights: {
+      tooManySessions: 3,
+      sameSportOneDay: 3,
+      twoHardOneDay: 3,
+      backToBackHard: 2,
+      heavyLegsBeforeKey: 2,
+      heavyLegsAfterDescent: 2,
+      overAvailability: 1,
+    },
+  },
+  distance: {
+    /** Run pace label per load zone (Z1 is a bit slower than easy pace). */
+    runPaceLabel: { 1: 'E', 2: 'E', 3: 'MP', 4: 'T', 5: 'I' } satisfies Record<ZoneNumber, string>,
+    runZ1Slowdown: 1.08,
+    /** Bike speed per zone as a multiple of the easy flat speed. */
+    bikeSpeedFactor: { 1: 0.85, 2: 1, 3: 1.1, 4: 1.18, 5: 1.25 } satisfies Record<
+      ZoneNumber,
+      number
+    >,
+    /** Swim pace per zone: seconds per 100 m added to CSS. */
+    swimCssOffset: { 1: 15, 2: 10, 3: 5, 4: 0, 5: -8 } satisfies Record<ZoneNumber, number>,
+  },
+  lookAhead: {
+    /** Full workout details for the current week and the next 3 (CLAUDE.md "Look-ahead"). */
+    weeks: 4,
+  },
 } as const;
 
 export type PlanConfig = typeof planConfig;

@@ -1,12 +1,14 @@
 export {
   colors,
   schemes,
+  sportColors,
   status,
   statusText,
   zoneColor,
   zoneColors,
   type ColorScheme,
   type SchemeColors,
+  type SportColorKey,
   type ZoneNumber,
 } from './colors';
 export {

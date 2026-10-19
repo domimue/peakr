@@ -11,6 +11,7 @@ import { RESTED, scheduleWeek, type PrevDay, type ScheduleDay } from './schedule
 import {
   SPORTS,
   type Availability,
+  type Experience,
   type Goal,
   type Plan,
   type PlanNote,
@@ -22,6 +23,31 @@ import {
 
 export type PlanField = 'startDate' | 'targetDate' | 'sports' | 'availability' | 'age' | 'strength';
 
+/**
+ * Continues an existing plan from `startDate` (new availability, resume after a pause): week
+ * indices and phases follow the original plan, progression continues from the given state.
+ */
+export interface PlanContinuation {
+  /** Start date of the original plan. */
+  planStartDate: string;
+  /** Load of the last full loading week before `startDate` (the +10 % reference), if any. */
+  referenceLoad: number | null;
+  /** The first regenerated week gets `referenceLoad × firstWeekFactor` (resume rules). */
+  firstWeekFactor?: number;
+  /** Phases restart at Base over the remaining weeks (long pause). */
+  restartPhases?: boolean;
+  /** Level per template id reached so far. */
+  levels?: Readonly<Record<string, number>>;
+  /** Next long session duration per sport. */
+  longMin?: Readonly<Partial<Record<Sport, number>>>;
+  /** The day before `startDate`. */
+  prev?: PrevDay;
+  /** Week index of the last benchmark test before `startDate`, if any. */
+  lastBenchmarkWeek?: number | null;
+  /** Prefix for the new workout ids, so they never collide with kept ones. */
+  idPrefix?: string;
+}
+
 const cfg = planConfig;
 
 function validate(
@@ -30,17 +56,28 @@ function validate(
   availability: Availability,
   startDate: string,
   targetDate: string | undefined,
-): { issues: ValidationIssue<PlanField>[]; start: number; target: number | null } {
+  planStartDate: string,
+): {
+  issues: ValidationIssue<PlanField>[];
+  start: number;
+  planStart: number;
+  target: number | null;
+} {
   const issues: ValidationIssue<PlanField>[] = [];
   const start = parseIsoDate(startDate);
-  if (start === null) issues.push({ field: 'startDate', code: 'invalidDate' });
+  const planStart = parseIsoDate(planStartDate);
+  if (start === null || planStart === null || planStart > start)
+    issues.push({ field: 'startDate', code: 'invalidDate' });
   let target: number | null = null;
   if (targetDate !== undefined) {
     target = parseIsoDate(targetDate);
     if (target === null) issues.push({ field: 'targetDate', code: 'invalidDate' });
     else if (start !== null && target <= start)
       issues.push({ field: 'targetDate', code: 'targetNotAfterStart' });
-    else if (start !== null && target - (start - weekdayOf(start)) >= cfg.plan.maxWeeks * 7) {
+    else if (
+      planStart !== null &&
+      target - (planStart - weekdayOf(planStart)) >= cfg.plan.maxWeeks * 7
+    ) {
       issues.push({ field: 'targetDate', code: 'planTooLong', params: { max: cfg.plan.maxWeeks } });
     }
   }
@@ -87,7 +124,7 @@ function validate(
   ) {
     issues.push({ field: 'strength', code: 'required' });
   }
-  return { issues, start: start ?? 0, target };
+  return { issues, start: start ?? 0, planStart: planStart ?? 0, target };
 }
 
 /**
@@ -99,6 +136,8 @@ function validate(
  *
  * The +10 % rule compares each week with the previous full loading week (recovery and taper weeks
  * and partial weeks are not used as reference, so returning to normal after a recovery week is fine).
+ *
+ * With `continuation` only the weeks from `startDate` on are returned (see `regeneratePlan`).
  */
 export function generatePlan(
   profile: UserProfile,
@@ -106,18 +145,35 @@ export function generatePlan(
   availability: Availability,
   startDate: string,
   targetDate?: string,
+  continuation?: PlanContinuation,
 ): Result<Plan, PlanField> {
-  const { issues, start, target } = validate(profile, goal, availability, startDate, targetDate);
+  const { issues, start, planStart, target } = validate(
+    profile,
+    goal,
+    availability,
+    startDate,
+    targetDate,
+    continuation?.planStartDate ?? startDate,
+  );
   if (issues.length > 0) return { ok: false, issues };
 
   const raceGoal = isRaceGoal(goal.kind);
   const minWeeks = isRaceGoal(goal.kind) ? cfg.plan.minRaceWeeks[goal.kind] : 0;
   // A race goal without a date gets the recommended preparation (at least the default length).
   const openWeeks = Math.max(cfg.plan.defaultWeeks, minWeeks);
-  const monday = start - weekdayOf(start);
+  const monday = planStart - weekdayOf(planStart);
   const lastDay = target === null ? monday + openWeeks * 7 - 1 : raceGoal ? target - 1 : target;
+  if (lastDay < start) return { ok: false, issues: [{ field: 'startDate', code: 'invalidDate' }] };
   const weekCount = Math.floor((lastDay - monday) / 7) + 1;
-  const skeleton = buildSkeleton(weekCount, goal.kind, profile.age);
+  const firstIndex = Math.floor((start - monday) / 7);
+  let skeleton = buildSkeleton(weekCount, goal.kind, profile.age);
+  if (continuation?.restartPhases) {
+    const rest = buildSkeleton(weekCount - firstIndex, goal.kind, profile.age);
+    skeleton = [
+      ...skeleton.slice(0, firstIndex),
+      ...rest.map((w) => ({ ...w, index: w.index + firstIndex })),
+    ];
+  }
 
   const athlete = athleteFor(profile, goal.kind);
   const shares = sportShares(goal.kind, profile);
@@ -125,25 +181,32 @@ export function generatePlan(
   const startLoad = capacity * cfg.progression.startFraction[profile.experience];
 
   const notes: PlanNote[] = [];
-  if (raceGoal && target === null) {
+  if (raceGoal && target === null && !continuation) {
     notes.push({ key: 'notes.noRaceDate', params: { weeks: weekCount } });
   }
-  if (weekCount < minWeeks)
+  if (weekCount < minWeeks && !continuation)
     notes.push({
       key: 'notes.shortPreparation',
       params: { weeks: weekCount, recommended: minWeeks },
     });
 
-  let levels = new Map<string, number>();
-  let longMin: Partial<Record<Sport, number>> = {};
+  let levels = new Map<string, number>(Object.entries(continuation?.levels ?? {}));
+  let longMin: Partial<Record<Sport, number>> = { ...continuation?.longMin };
   let rotation = 0;
-  let prev: PrevDay = RESTED;
-  let reference: number | null = null;
-  let buildWeekIndex = 0;
-  let lastBenchmark: number | null = null;
+  let prev: PrevDay = continuation?.prev ?? RESTED;
+  let reference: number | null = continuation?.referenceLoad ?? null;
+  // Resume after a pause: the first week is a fixed share of the last loading week.
+  let firstWeekLoad =
+    continuation?.firstWeekFactor === undefined
+      ? null
+      : (reference ?? startLoad) * continuation.firstWeekFactor;
+  let buildWeekIndex = skeleton
+    .slice(0, firstIndex)
+    .filter((w) => w.phase === 'build' || w.phase === 'peak').length;
+  let lastBenchmark: number | null = continuation?.lastBenchmarkWeek ?? null;
   const weeks: PlanWeek[] = [];
 
-  for (const week of skeleton) {
+  for (const week of skeleton.slice(firstIndex)) {
     const days: ScheduleDay[] = Array.from({ length: 7 }, (_, d) => {
       const day = monday + week.index * 7 + d;
       const inPlan = day >= start && day <= lastDay;
@@ -164,10 +227,16 @@ export function generatePlan(
       (lastBenchmark === null || week.index - lastBenchmark >= cfg.benchmarks.everyWeeks);
     if (benchmark) lastBenchmark = week.index;
 
-    const targetLoad = (weekTargetLoad(week, reference, startLoad) * planDays) / 7;
+    const fullTarget = firstWeekLoad ?? weekTargetLoad(week, reference, startLoad);
+    const targetLoad = (fullTarget * planDays) / 7;
     const cap = reference === null ? null : reference * cfg.progression.maxWeeklyIncrease;
-    // Recovery and taper weeks must really come down: their target is also their cap.
-    const capLoad = loading || cap === null ? cap : Math.min(cap, targetLoad);
+    // Recovery, taper and resume weeks must really come down: their target is also their cap.
+    const capLoad =
+      firstWeekLoad !== null
+        ? targetLoad
+        : loading || cap === null
+          ? cap
+          : Math.min(cap, targetLoad);
     const lastIsRaceEve = raceGoal && target !== null && lastDay - (monday + week.index * 7) < 7;
     const out = scheduleWeek({
       athlete,
@@ -195,13 +264,18 @@ export function generatePlan(
       levels,
       longMin,
       strengthRotation: rotation,
+      ...(continuation?.idPrefix ? { idPrefix: continuation.idPrefix } : {}),
     });
 
     levels = out.levels;
     longMin = out.longMin;
     rotation = out.strengthRotation;
     prev = out.last;
-    if (loading && !isPartial) reference = out.load;
+    if (firstWeekLoad !== null) {
+      // The reduced week is the new reference (scaled up when it was partial).
+      reference = (out.load * 7) / planDays;
+      firstWeekLoad = null;
+    } else if (loading && !isPartial) reference = out.load;
     if (week.phase === 'build' || week.phase === 'peak') buildWeekIndex++;
 
     const weekNotes: PlanNote[] = [...out.notes];
@@ -226,9 +300,9 @@ export function generatePlan(
     ok: true,
     value: {
       goal,
-      startDate,
+      startDate: continuation?.planStartDate ?? startDate,
       targetDate: targetDate ?? null,
-      weeks: classifyPlan(weeks, profile),
+      weeks: classifyPlan(weeks, profile.experience),
       notes,
     },
   };
@@ -252,7 +326,7 @@ function cssAllowed(profile: UserProfile, levels: ReadonlyMap<string, number>): 
 }
 
 /** Final §11 classification over the whole plan (neighbouring days across weeks) + 80/20 share. */
-function classifyPlan(weeks: PlanWeek[], profile: UserProfile): PlanWeek[] {
+export function classifyPlan(weeks: PlanWeek[], experience: Experience): PlanWeek[] {
   const byDay: Workout[][] = [];
   const index: { week: number; day: number }[] = [];
   weeks.forEach((w, wi) => {
@@ -261,7 +335,7 @@ function classifyPlan(weeks: PlanWeek[], profile: UserProfile): PlanWeek[] {
       index.push({ week: wi, day: d });
     }
   });
-  const classified = classifyDays(byDay, profile.experience);
+  const classified = classifyDays(byDay, experience);
   return weeks.map((w, wi) => {
     const workouts = classified.filter((_, i) => index[i]?.week === wi).flat();
     return { ...w, workouts, hardShare: Math.round(hardShare(workouts) * 1000) / 1000 };
