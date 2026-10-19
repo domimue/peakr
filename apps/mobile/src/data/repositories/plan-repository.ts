@@ -5,16 +5,28 @@ import {
   type Workout,
   type WorkoutStatus,
 } from '@peakr/engine';
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq, inArray } from 'drizzle-orm';
 
 import { db } from '../db/client';
-import { planPauses, plans, planWeeks, planWorkouts, type StoredPlanInput } from '../db/schema';
+import {
+  planPauses,
+  plans,
+  planWeeks,
+  planWorkouts,
+  syncTombstones,
+  type StoredPlanInput,
+} from '../db/schema';
 import { newId } from '../ids';
+import { notifyLocalChange } from '../sync/changes';
 
 /**
  * The local training plan: one active plan with its weeks, workouts (incl. done / skipped) and
  * pauses. The engine edits a `PlanState` in memory; `savePlanState` writes the result back in one
  * transaction. Screens use it through `features/plan/queries.ts`; tests use `__mocks__`.
+ *
+ * Sync bookkeeping (Phase 6): every save marks the plan and each changed workout as dirty with a
+ * new `updated_at`; removed workouts and replaced plans leave a tombstone. `data/sync` pushes
+ * them and applies server changes ("last write wins" per workout).
  */
 
 export interface StoredPlan {
@@ -97,10 +109,7 @@ export async function createPlan(input: StoredPlanInput, plan: Plan): Promise<st
   const id = newId();
   const now = Date.now();
   db.transaction((tx) => {
-    tx.delete(planWorkouts).run();
-    tx.delete(planWeeks).run();
-    tx.delete(planPauses).run();
-    tx.delete(plans).run();
+    removeAllPlans(tx, now);
     tx.insert(plans)
       .values({
         id,
@@ -112,6 +121,7 @@ export async function createPlan(input: StoredPlanInput, plan: Plan): Promise<st
         revision: 0,
         createdAt: now,
         updatedAt: now,
+        dirty: true,
       })
       .run();
   });
@@ -139,22 +149,48 @@ export async function savePlanState(
     hardShare: w.hardShare,
     notes: w.notes,
   }));
-  const workoutRows = plan.weeks.flatMap((w) =>
-    w.workouts.map((x) => ({
-      planId,
-      id: x.id,
-      date: x.date,
-      status: state.status[x.id] ?? ('planned' as const),
-      data: x,
-    })),
-  );
+  const now = Date.now();
   const pauseRows = state.pauses.map((p) => ({ id: newId(), planId, ...p }));
   db.transaction((tx) => {
+    const previous = new Map(
+      tx
+        .select()
+        .from(planWorkouts)
+        .where(eq(planWorkouts.planId, planId))
+        .all()
+        .map((row) => [row.id, row]),
+    );
+    const workoutRows = plan.weeks.flatMap((w) =>
+      w.workouts.map((x) => {
+        const status = state.status[x.id] ?? ('planned' as const);
+        const old = previous.get(x.id);
+        const unchanged =
+          old !== undefined &&
+          old.date === x.date &&
+          old.status === status &&
+          JSON.stringify(old.data) === JSON.stringify(x);
+        return {
+          planId,
+          id: x.id,
+          date: x.date,
+          status,
+          data: x,
+          // Unchanged workouts keep their version, so an edit on another device can still win.
+          updatedAt: unchanged ? old.updatedAt : Math.max(now, (old?.updatedAt ?? 0) + 1),
+          dirty: unchanged ? old.dirty : true,
+        };
+      }),
+    );
+    const kept = new Set(workoutRows.map((r) => r.id));
+    const removed = [...previous.keys()].filter((id) => !kept.has(id));
+    const added = workoutRows.filter((r) => !previous.has(r.id)).map((r) => r.id);
+
     tx.update(plans)
       .set({
         revision: state.revision,
         notes: plan.notes,
-        updatedAt: Date.now(),
+        updatedAt: now,
+        dirty: true,
         ...(input ? { input } : {}),
       })
       .where(eq(plans.id, planId))
@@ -165,16 +201,56 @@ export async function savePlanState(
     for (const rows of chunks(weekRows)) tx.insert(planWeeks).values(rows).run();
     for (const rows of chunks(workoutRows)) tx.insert(planWorkouts).values(rows).run();
     for (const rows of chunks(pauseRows)) tx.insert(planPauses).values(rows).run();
+    for (const ids of chunks(removed)) {
+      tx.insert(syncTombstones)
+        .values(ids.map((id) => ({ entity: 'workout' as const, planId, id, deletedAt: now })))
+        .onConflictDoUpdate({
+          target: [syncTombstones.entity, syncTombstones.planId, syncTombstones.id],
+          set: { deletedAt: now },
+        })
+        .run();
+    }
+    // A workout that comes back (same id) is no longer deleted.
+    for (const ids of chunks(added)) {
+      tx.delete(syncTombstones)
+        .where(
+          and(
+            eq(syncTombstones.entity, 'workout'),
+            eq(syncTombstones.planId, planId),
+            inArray(syncTombstones.id, ids),
+          ),
+        )
+        .run();
+    }
   });
+  notifyLocalChange();
 }
 
 export async function deletePlan(): Promise<void> {
-  db.transaction((tx) => {
-    tx.delete(planWorkouts).run();
-    tx.delete(planWeeks).run();
-    tx.delete(planPauses).run();
-    tx.delete(plans).run();
-  });
+  const now = Date.now();
+  db.transaction((tx) => removeAllPlans(tx, now));
+  notifyLocalChange();
+}
+
+type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+/** Deletes the local plan(s) and leaves a tombstone so the deletion reaches the server. */
+function removeAllPlans(tx: Tx, now: number): void {
+  for (const old of tx.select({ id: plans.id }).from(plans).all()) {
+    tx.insert(syncTombstones)
+      .values({ entity: 'plan', planId: old.id, id: old.id, deletedAt: now })
+      .onConflictDoUpdate({
+        target: [syncTombstones.entity, syncTombstones.planId, syncTombstones.id],
+        set: { deletedAt: now },
+      })
+      .run();
+  }
+  // Workout tombstones of a deleted plan are covered by the plan's tombstone.
+  tx.delete(syncTombstones).where(eq(syncTombstones.entity, 'workout')).run();
+  tx.delete(planWorkouts).run();
+  tx.delete(planWeeks).run();
+  tx.delete(planPauses).run();
+  tx.delete(plans).run();
 }
 
 function addDays(iso: string, n: number): string {

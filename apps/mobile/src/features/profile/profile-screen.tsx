@@ -2,6 +2,7 @@ import { activePause } from '@peakr/engine';
 import { router, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
+import { useSessionStore } from '@/features/auth/session-store';
 import { usePlan } from '@/features/plan/queries';
 import { useSettingsStore, type ThemePreference } from '@/features/settings/settings-store';
 import { Screen, SegmentedControl, SettingsGroup, SettingsRow, type IconName } from '@/ui';
@@ -27,6 +28,7 @@ export function ProfileScreen() {
   const themePreference = useSettingsStore((s) => s.themePreference);
   const setThemePreference = useSettingsStore((s) => s.setThemePreference);
   const { data: stored } = usePlan();
+  const session = useSessionStore((s) => s.session);
   const paused = stored ? activePause(stored.state) !== null : false;
 
   const themeOptions: { value: ThemePreference; label: string }[] = [
@@ -76,7 +78,14 @@ export function ProfileScreen() {
       href: soon('subscription'),
       soon: true,
     },
-    { icon: 'account', title: t('profile.account'), href: soon('account'), soon: true },
+    session
+      ? {
+          icon: 'account',
+          title: t('profile.account'),
+          value: session.user.email,
+          href: '/auth/account',
+        }
+      : { icon: 'account', title: t('profile.signIn'), href: '/auth/sign-in' },
     { icon: 'privacy', title: t('profile.privacy'), href: soon('privacy'), soon: true },
   ];
   const about: Row[] = [{ icon: 'info', title: t('profile.licenses'), href: '/licenses' }];

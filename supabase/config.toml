@@ -161,7 +161,8 @@ site_url = "http://127.0.0.1:3000"
 # The public URL that Auth serves on. Defaults to the API external URL with `/auth/v1` appended.
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
-additional_redirect_urls = ["https://127.0.0.1:3000"]
+# `peakr://**` covers the app's magic-link and OAuth callbacks (peakr://auth/callback).
+additional_redirect_urls = ["https://127.0.0.1:3000", "peakr://**", "exp+peakr://**"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.
@@ -244,6 +245,16 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
+# Magic link with a 6-digit code as fallback (when the link opens in another browser or device).
+[auth.email.template.magic_link]
+subject = "Your Peakr sign-in link"
+content_path = "./supabase/templates/magic_link.html"
+
+# The first sign-in of a new email address sends the confirmation template instead.
+[auth.email.template.confirmation]
+subject = "Your Peakr sign-in link"
+content_path = "./supabase/templates/confirmation.html"
+
 # Uncomment to customize email template
 # [auth.email.template.invite]
 # subject = "You have been invited"
@@ -317,6 +328,14 @@ max_frequency = "5s"
 # enroll_enabled = true
 # verify_enabled = true
 
+# Google sign-in. Client id / secret from Google Cloud (see supabase/README.md); the secret only
+# via environment variable, never committed.
+[auth.external.google]
+enabled = false
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+skip_nonce_check = false
+
 # Use an external OAuth provider. The full list of providers are: `apple`, `azure`, `bitbucket`,
 # `discord`, `facebook`, `github`, `gitlab`, `google`, `keycloak`, `linkedin_oidc`, `notion`, `twitch`,
 # `twitter`, `x`, `slack`, `spotify`, `workos`, `zoom`.
@@ -385,6 +404,11 @@ deno_version = 2
 
 # [edge_runtime.secrets]
 # secret_key = "env(SECRET_VALUE)"
+
+# OAuth with third-party services (Strava, …). The callback is opened by the provider in the
+# browser without a Supabase JWT; the function checks the user itself (signed state, see code).
+[functions.oauth]
+verify_jwt = false
 
 [analytics]
 enabled = true
