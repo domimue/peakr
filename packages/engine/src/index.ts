@@ -32,6 +32,7 @@ export { planConfig, type PlanConfig } from './plan/config';
 export { generatePlan, type PlanContinuation, type PlanField } from './plan/generate';
 export {
   activePause,
+  activeTravel,
   activeWorkouts,
   allWorkouts,
   easeWorkout,
@@ -47,8 +48,12 @@ export {
   regenerationStart,
   resumePlan,
   resumeRules,
+  setTravel,
+  setWeekOverride,
   setWorkoutStatus,
   statusOf,
+  weekOverrideOf,
+  type AdjustResult,
   type EditCode,
   type EditField,
   type EditIssue,
@@ -123,7 +128,10 @@ export {
   type PaceSegment,
 } from './plan/terrain';
 export type * from './plan/types';
-export { SPORTS } from './plan/types';
+export { COMMUTE_SPORTS, SPORTS } from './plan/types';
+export { commuteMinutes, commutesValid } from './plan/commute';
+export { travelOn } from './plan/travel';
+export { winterVariantFor } from './plan/winter';
 export {
   kindKey,
   WORKOUT_KINDS,

@@ -570,7 +570,7 @@ describe('strength plan (WORKOUTS.md §8)', () => {
 
 describe('winter variants', () => {
   const athlete = athleteFor({ ...profile, winterSports: ['snowshoe', 'xcski'] }, 'fitness');
-  const easy = { sport: 'run' as const, role: 'easy' as const, load: 100, level: null };
+  const easy = { sport: 'run' as const, role: 'easy' as const, load: 100 };
 
   it('offers an equivalent-load winter session in the winter months only', () => {
     const v = winterVariantFor(easy, athlete, 1, false);
@@ -590,11 +590,14 @@ describe('winter variants', () => {
   });
 
   it('quality sessions get XC-ski intervals for non-race goals only', () => {
-    const key = { ...easy, role: 'key' as const, level: 6 };
+    // L1: 15 min Z2 + 5 × (3 min Z4 + 2 min Z1) + 10 min Z1 = 110 × 0.8 = 88.
+    const key = { ...easy, role: 'key' as const, load: 90 };
     expect(winterVariantFor(key, athlete, 2, false)).toMatchObject({
       templateId: 'xcski.intervals',
+      durationMin: 50,
     });
-    expect(winterVariantFor({ ...key, level: null }, athlete, 2, false)?.durationMin).toBe(50);
+    // No level within the load tolerance → stays in the target sport.
+    expect(winterVariantFor({ ...key, load: 400 }, athlete, 2, false)).toBeNull();
     expect(winterVariantFor(key, athlete, 2, true)).toBeNull();
     expect(
       winterVariantFor(

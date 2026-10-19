@@ -9,6 +9,10 @@ export default function TrainingLayout() {
       <Stack.Screen name="availability" options={{ title: t('plan.availability.title') }} />
       <Stack.Screen name="pause" options={{ title: t('plan.pause.title') }} />
       <Stack.Screen name="workout-types" options={{ title: t('workoutTypes.title') }} />
+      <Stack.Screen name="week" options={{ title: t('plan.week.title') }} />
+      <Stack.Screen name="travel" options={{ title: t('plan.travel.title') }} />
+      <Stack.Screen name="commutes" options={{ title: t('plan.commutes.title') }} />
+      <Stack.Screen name="winter" options={{ title: t('plan.winter.title') }} />
     </Stack>
   );
 }

@@ -40,6 +40,8 @@ export {
 export {
   BARRIERS,
   clearAnswer,
+  COMMUTE_OPTIONS,
+  commuteOf,
   cssPaceOf,
   EXPERIENCES,
   goalOf,
@@ -55,6 +57,9 @@ export {
   RUN_REFERENCES,
   setAnswer,
   SEXES,
+  WEEKDAY_VALUES,
+  WINTER_SPORTS,
+  winterSportsOf,
   sportsOf,
   stepInsight,
   stepIssues,

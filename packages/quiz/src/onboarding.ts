@@ -2,6 +2,7 @@ import {
   analyzeRaceResult,
   calculateCss,
   calculateHrZones,
+  COMMUTE_SPORTS,
   formatDuration,
   isRaceGoal,
   planConfig,
@@ -10,6 +11,8 @@ import {
   SPORTS,
   zoneConfig,
   type Availability,
+  type Commute,
+  type CommuteSport,
   type CustomExercise,
   type Experience,
   type GoalKind,
@@ -21,6 +24,8 @@ import {
   type StrengthSetup,
   type Terrain,
   type UserProfile,
+  type Weekday,
+  type WinterSport,
 } from '@peakr/engine';
 
 import {
@@ -67,6 +72,9 @@ export const SWIM_WATERS = ['pool25', 'pool50', 'openwater'] as const;
 export const SEXES = ['female', 'male'] as const;
 export const MOTIVATIONS = ['health', 'weight', 'race', 'energy', 'challenge', 'stress'] as const;
 export const BARRIERS = ['time', 'motivation', 'injury', 'knowledge', 'rigid', 'boredom'] as const;
+export const COMMUTE_OPTIONS = ['none', ...COMMUTE_SPORTS] as const;
+export const WINTER_SPORTS: readonly WinterSport[] = ['xcski', 'skitour', 'snowshoe'];
+export const WEEKDAY_VALUES = ['0', '1', '2', '3', '4', '5', '6'] as const;
 
 export type RunReference = (typeof RUN_REFERENCES)[number];
 export type SwimAbility = (typeof SWIM_ABILITIES)[number];
@@ -89,7 +97,12 @@ export const QUESTION_IDS = {
   hrMax: 'hr.max',
   availability: 'availability.minutes',
   doubles: 'availability.doubles',
+  commuteSport: 'commute.sport',
+  commuteMinutes: 'commute.minutes',
+  commuteDays: 'commute.days',
+  commuteBothWays: 'commute.bothWays',
   terrain: 'terrain',
+  winterSports: 'winter.sports',
   targetDate: 'targetDate',
   why: 'motivation.why',
   barriers: 'motivation.barriers',
@@ -115,6 +128,8 @@ const NOTE_MAX_LENGTH = 500;
 const TARGET_DAYS = { min: 14, max: planConfig.plan.maxWeeks * 7 - 7 };
 /** Suggested availability: two short weekday sessions and a longer weekend one. */
 const DEFAULT_MINUTES = [0, 45, 0, 45, 0, 90, 60] as const;
+/** Commutes on workdays by default. */
+const DEFAULT_COMMUTE_DAYS = ['0', '1', '2', '3', '4'] as const;
 
 function options(id: string, values: readonly string[], withDescription = false): QuizOption[] {
   return values.map((value) => ({
@@ -156,6 +171,10 @@ const raceReference = (a: QuizAnswers): ReferenceRaceId | undefined => {
 };
 const swimsComfortably = (a: QuizAnswers) =>
   has('swim')(a) && str(a, Q.swimAbility) === 'comfortable';
+const commutes = (a: QuizAnswers) => {
+  const sport = str(a, Q.commuteSport);
+  return sport !== undefined && sport !== 'none';
+};
 const isRace = (a: QuizAnswers) => {
   const goal = goalOf(a);
   return goal !== undefined && isRaceGoal(goal);
@@ -340,10 +359,54 @@ export const onboardingQuestions: readonly QuizQuestion[] = [
     visibleIf: (a) => sportsOf(a).length > 1,
   },
   {
+    id: Q.commuteSport,
+    kind: 'single',
+    titleKey: 'quiz.commute.sport.title',
+    hintKey: 'quiz.commute.sport.hint',
+    options: options('commute.sport', COMMUTE_OPTIONS),
+    defaultValue: () => 'none',
+  },
+  {
+    id: Q.commuteMinutes,
+    kind: 'number',
+    titleKey: 'quiz.commute.minutes.title',
+    hintKey: 'quiz.commute.minutes.hint',
+    unitKey: 'units.min',
+    range: () => planConfig.commute.oneWayMin,
+    defaultValue: () => 20,
+    visibleIf: commutes,
+  },
+  {
+    id: Q.commuteDays,
+    kind: 'multi',
+    titleKey: 'quiz.commute.days.title',
+    options: WEEKDAY_VALUES.map((d) => ({ value: d, labelKey: `quiz.availability.weekdays.${d}` })),
+    minSelected: 1,
+    defaultValue: () => DEFAULT_COMMUTE_DAYS,
+    visibleIf: commutes,
+  },
+  {
+    id: Q.commuteBothWays,
+    kind: 'single',
+    titleKey: 'quiz.commute.bothWays.title',
+    options: YES_NO,
+    defaultValue: () => 'yes',
+    visibleIf: commutes,
+  },
+  {
     id: Q.terrain,
     kind: 'single',
     titleKey: 'quiz.terrain.title',
     options: options('terrain', TERRAINS, true),
+  },
+  {
+    id: Q.winterSports,
+    kind: 'multi',
+    titleKey: 'quiz.winter.sports.title',
+    hintKey: 'quiz.winter.sports.hint',
+    options: options('winter.sports', WINTER_SPORTS),
+    minSelected: 0,
+    optional: true,
   },
   {
     id: Q.targetDate,
@@ -515,6 +578,20 @@ function availabilityInsight(a: QuizAnswers): QuizInsight | null {
   return { key: 'quiz.insights.availability', params: { days, hours: Math.round(total / 6) / 10 } };
 }
 
+function commuteInsight(a: QuizAnswers): QuizInsight | null {
+  const commute = commuteOf(a);
+  if (!commute) return null;
+  const minutes = commute.oneWayMin * (commute.bothWays ? 2 : 1) * commute.weekdays.length;
+  return {
+    key: 'quiz.insights.commute',
+    params: { days: commute.weekdays.length, hours: Math.round(minutes / 6) / 10 },
+  };
+}
+
+function winterInsight(a: QuizAnswers): QuizInsight | null {
+  return winterSportsOf(a).length > 0 ? { key: 'quiz.insights.winter' } : null;
+}
+
 function targetDateInsight(a: QuizAnswers, ctx: QuizContext): QuizInsight | null {
   const goal = goalOf(a);
   if (!goal || !isRaceGoal(goal)) return null;
@@ -567,7 +644,13 @@ export const ONBOARDING_STEPS: readonly QuizStep[] = [
   },
   { id: 'heartRate', questionIds: [Q.restingHr, Q.hrMax], insight: zone2Insight },
   { id: 'availability', questionIds: [Q.availability, Q.doubles], insight: availabilityInsight },
+  {
+    id: 'commute',
+    questionIds: [Q.commuteSport, Q.commuteMinutes, Q.commuteDays, Q.commuteBothWays],
+    insight: commuteInsight,
+  },
   { id: 'terrain', questionIds: [Q.terrain] },
+  { id: 'winter', questionIds: [Q.winterSports], insight: winterInsight },
   { id: 'targetDate', questionIds: [Q.targetDate], insight: targetDateInsight },
   { id: 'motivation', questionIds: [Q.why, Q.barriers, Q.note], insight: motivationInsight },
   { id: 'body', questionIds: [Q.age, Q.sex, Q.heightCm, Q.weightKg], insight: bodyInsight },
@@ -673,6 +756,26 @@ export function planStartDate(today: string): string {
   return dayToIso(weekday === 0 ? day : day + 7 - weekday);
 }
 
+/** The commute from the quiz (one; more can be added in the app). */
+export function commuteOf(a: QuizAnswers): Commute | undefined {
+  if (!commutes(a)) return undefined;
+  const days = (a[Q.commuteDays] as readonly string[] | undefined) ?? [];
+  const oneWayMin = num(a, Q.commuteMinutes);
+  if (oneWayMin === undefined || days.length === 0) return undefined;
+  return {
+    id: 'commute-1',
+    sport: str(a, Q.commuteSport) as CommuteSport,
+    oneWayMin,
+    weekdays: WEEKDAY_VALUES.filter((d) => days.includes(d)).map((d) => Number(d) as Weekday),
+    bothWays: str(a, Q.commuteBothWays) !== 'no',
+  };
+}
+
+export function winterSportsOf(a: QuizAnswers): WinterSport[] {
+  const chosen = (a[Q.winterSports] as readonly string[] | undefined) ?? [];
+  return WINTER_SPORTS.filter((s) => chosen.includes(s));
+}
+
 const POOL: Record<(typeof SWIM_WATERS)[number], PoolLength> = {
   pool25: 25,
   pool50: 50,
@@ -736,6 +839,10 @@ export function toPlanInput(
     if (css !== undefined) profile.cssPacePer100mSec = css;
   }
   if (sports.includes('bike')) profile.hasPowerMeter = str(a, Q.bikePowerMeter) === 'yes';
+  const commute = commuteOf(a);
+  if (commute) profile.commutes = [commute];
+  const winterSports = winterSportsOf(a);
+  if (winterSports.length > 0) profile.winterSports = winterSports;
 
   const minutes = a[Q.availability] as readonly number[];
   const note = str(a, Q.note)?.trim();

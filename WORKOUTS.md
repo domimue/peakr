@@ -75,6 +75,8 @@ Every template must be exportable to FIT (all watch providers) and WorkoutKit (A
 |---|---|---|---|
 | `run.recovery` | recovery | 20–35 min Z1 | Day after hard sessions, travel mode |
 | `run.easy` | easy | 25–75 min Z2 | Core of every plan; length from weekly volume |
+| `run.commute` | easy | From user's commute settings, Z2, one step per leg | Placed first, never moved by the load rules (CLAUDE.md "Commuting") |
+| `walk.commute` | recovery | From user's commute settings, Z1, one step per leg | Walking factor 0.5 in the load config |
 | `run.easy_strides` | easy | Easy run + 4–8 × 20 s strides (fast, relaxed), 60–90 s walk/jog | From base week 3; counts as easy |
 | `run.long` | moderate | 45–180 min Z2 (cap: 5K/10K 90, HM 135, M 180, fitness 100) | +10 min/week max, back −20 % in recovery weeks; hilly route preferred if terrain goal |
 | `run.uphill_hike` | moderate | 30–150 min steep hiking/running Z2–3, +300 to +1500 m | Mountain/trail events only |

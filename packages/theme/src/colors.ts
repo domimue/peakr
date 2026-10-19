@@ -64,6 +64,7 @@ export const sportColors = {
     strength: '#B794F6',
     brick: '#F472B6',
     winter: '#E2E8F0',
+    commute: '#7DD68A',
   },
   light: {
     run: '#C2410C',
@@ -72,6 +73,7 @@ export const sportColors = {
     strength: '#6D28D9',
     brick: '#BE185D',
     winter: '#334155',
+    commute: '#2F7A3A',
   },
 } as const;
 
@@ -114,6 +116,7 @@ export interface SchemeColors {
   sportStrength: string;
   sportBrick: string;
   sportWinter: string;
+  sportCommute: string;
 }
 
 function scheme(name: ColorScheme): SchemeColors {
@@ -138,6 +141,7 @@ function scheme(name: ColorScheme): SchemeColors {
     sportStrength: sport.strength,
     sportBrick: sport.brick,
     sportWinter: sport.winter,
+    sportCommute: sport.commute,
   };
 }
 

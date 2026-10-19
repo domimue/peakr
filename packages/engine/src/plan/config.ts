@@ -28,6 +28,8 @@ export const planConfig = {
       xcski: 0.8,
       skitour: 0.85,
       snowshoe: 0.9,
+      /** Walking commutes: low impact, low cost per minute at the same heart rate. */
+      walk: 0.5,
       brick: 1.0,
       strength: 1.0,
     } satisfies Record<ActivitySport, number>,
@@ -260,6 +262,18 @@ export const planConfig = {
   },
   winter: {
     defaultMonths: [12, 1, 2, 3],
+    /** A winter variant must be within this share of the original session's load. */
+    loadTolerance: 0.1,
+  },
+  commute: {
+    /** One-way duration limits (minutes). */
+    oneWayMin: { min: 5, max: 180 },
+    /** Days with at least this many commute minutes get no hard session if another day fits. */
+    heavyDayMin: 60,
+  },
+  travel: {
+    /** Bike/swim replacements are easy runs no longer than this (never a hard long run). */
+    maxReplacementMin: 75,
   },
   edit: {
     /** Resume after a pause: first week load vs. the last loading week (CLAUDE.md "Pause"). */

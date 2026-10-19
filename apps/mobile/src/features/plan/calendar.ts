@@ -83,6 +83,7 @@ const SPORT_COLOR: Record<ActivitySport, keyof ThemeColors> = {
   xcski: 'sportWinter',
   skitour: 'sportWinter',
   snowshoe: 'sportWinter',
+  walk: 'sportCommute',
 };
 
 export function sportColor(colors: ThemeColors, sport: ActivitySport): string {

@@ -116,8 +116,21 @@ describe('onboarding quiz', () => {
     expect(screen.getByText(/4 training days and up to 4.3 hours/)).toBeOnTheScreen();
     await proceed();
 
+    // Commute: details appear once a way to commute is chosen (defaults: 20 min, workdays).
+    expect(screen.getByText('Do you commute actively?')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('By bike'));
+    expect(screen.getByText('On which days?')).toBeOnTheScreen();
+    await next();
+    expect(screen.getByText(/about 3.3 h of easy training on 5 days/)).toBeOnTheScreen();
+    await proceed();
+
     await fireEvent.press(screen.getByText('Rolling'));
     await next();
+    // Winter sports are optional.
+    await fireEvent.press(screen.getByText('Cross-country skiing'));
+    await next();
+    expect(screen.getByText(/winter variants of your easy and long sessions/)).toBeOnTheScreen();
+    await proceed();
     await fireEvent.press(screen.getByText('Stay healthy'));
     await fireEvent.press(screen.getByText('Not enough time'));
     await next();
@@ -146,6 +159,8 @@ describe('onboarding quiz', () => {
       [Q.runRaceTime]: 3000,
       [Q.restingHr]: 52,
       [Q.availability]: [15, 45, 0, 45, 0, 90, 60],
+      [Q.commuteSport]: 'bike',
+      [Q.winterSports]: ['xcski'],
       [Q.age]: 34,
       [Q.disclaimer]: true,
     });

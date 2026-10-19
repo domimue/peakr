@@ -50,7 +50,10 @@ export interface WeekSummary {
   minutes: number;
 }
 
-/** Sessions, km per discipline and minutes of a list of workouts (e.g. one week). */
+/**
+ * Sessions, km per discipline and minutes of a list of workouts (e.g. one week). Commutes add
+ * their km and minutes but are no training session of their own.
+ */
 export function summarizeWorkouts(workouts: readonly Workout[], profile: UserProfile): WeekSummary {
   const distances: SportDistances = {};
   for (const w of workouts) {
@@ -59,7 +62,7 @@ export function summarizeWorkouts(workouts: readonly Workout[], profile: UserPro
     }
   }
   return {
-    sessions: workouts.length,
+    sessions: workouts.filter((w) => w.commuteId === undefined).length,
     distances,
     minutes: workouts.reduce((sum, w) => sum + w.durationMin, 0),
   };

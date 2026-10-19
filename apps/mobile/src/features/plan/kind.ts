@@ -25,6 +25,7 @@ const CATEGORY_ICON: Record<KindCategory, IconName> = {
   test: 'test',
   strength: 'strength',
   brick: 'brick',
+  commute: 'commute',
 };
 
 export const SPORT_ICON: Record<KindSport, IconName> = {
@@ -34,6 +35,7 @@ export const SPORT_ICON: Record<KindSport, IconName> = {
   strength: 'strength',
   brick: 'brick',
   winter: 'winter',
+  commute: 'commute',
 };
 
 const SPORT_COLOR: Record<KindSport, keyof ThemeColors> = {
@@ -43,6 +45,7 @@ const SPORT_COLOR: Record<KindSport, keyof ThemeColors> = {
   strength: 'sportStrength',
   brick: 'sportBrick',
   winter: 'sportWinter',
+  commute: 'sportCommute',
 };
 
 export function kindIcon(kind: WorkoutKind): IconName {

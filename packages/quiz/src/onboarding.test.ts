@@ -5,12 +5,15 @@ import { buildForecast } from './forecast';
 import type { QuizAnswers } from './model';
 import {
   clearAnswer,
+  commuteOf,
+  ONBOARDING_STEPS,
   planStartDate,
   prepareAnswers,
   QUESTION_IDS as Q,
   setAnswer,
   stepInsight,
   stepIssues,
+  stepQuestions,
   toPlanInput,
   validateOnboarding,
   visibleSteps,
@@ -92,6 +95,71 @@ function mapped(a: QuizAnswers): OnboardingResult {
   return r.value;
 }
 
+describe('commute and winter sports', () => {
+  it('no commute by default; the details only show for a commute', () => {
+    expect(mapped(halfMarathon).profile.commutes).toBeUndefined();
+    const ids = (a: QuizAnswers) =>
+      stepQuestions(
+        ONBOARDING_STEPS.find((s) => s.id === 'commute') as (typeof ONBOARDING_STEPS)[number],
+        prepareAnswers(a, TODAY),
+      ).map((q) => q.id);
+    expect(ids(halfMarathon)).toEqual([Q.commuteSport]);
+    expect(ids({ ...halfMarathon, [Q.commuteSport]: 'bike' })).toEqual([
+      Q.commuteSport,
+      Q.commuteMinutes,
+      Q.commuteDays,
+      Q.commuteBothWays,
+    ]);
+  });
+
+  it('maps the commute (defaults: 20 min, workdays, both ways) and the winter sports', () => {
+    const bike = mapped({ ...halfMarathon, [Q.commuteSport]: 'bike' });
+    expect(bike.profile.commutes).toEqual([
+      { id: 'commute-1', sport: 'bike', oneWayMin: 20, weekdays: [0, 1, 2, 3, 4], bothWays: true },
+    ]);
+    const walk = mapped({
+      ...halfMarathon,
+      [Q.commuteSport]: 'walk',
+      [Q.commuteMinutes]: 35,
+      [Q.commuteDays]: ['4', '0'],
+      [Q.commuteBothWays]: 'no',
+      [Q.winterSports]: ['snowshoe', 'xcski'],
+    });
+    expect(walk.profile.commutes).toEqual([
+      { id: 'commute-1', sport: 'walk', oneWayMin: 35, weekdays: [0, 4], bothWays: false },
+    ]);
+    expect(walk.profile.winterSports).toEqual(['xcski', 'snowshoe']);
+    expect(mapped(halfMarathon).profile.winterSports).toBeUndefined();
+  });
+
+  it('validates the commute', () => {
+    const issues = (a: QuizAnswers) =>
+      validateOnboarding(prepareAnswers(a, TODAY), TODAY).map((i) => `${i.questionId}:${i.code}`);
+    expect(issues({ ...halfMarathon, [Q.commuteSport]: 'run', [Q.commuteMinutes]: 2 })).toEqual([
+      `${Q.commuteMinutes}:outOfRange`,
+    ]);
+    expect(issues({ ...halfMarathon, [Q.commuteSport]: 'run', [Q.commuteDays]: [] })).toEqual([
+      `${Q.commuteDays}:tooFewSelected`,
+    ]);
+    expect(commuteOf({ [Q.commuteSport]: 'run' })).toBeUndefined();
+  });
+
+  it('insights', () => {
+    const step = (id: string) =>
+      ONBOARDING_STEPS.find((s) => s.id === id) as (typeof ONBOARDING_STEPS)[number];
+    const bike = prepareAnswers({ ...halfMarathon, [Q.commuteSport]: 'bike' }, TODAY);
+    expect(stepInsight(step('commute'), bike, TODAY)).toEqual({
+      key: 'quiz.insights.commute',
+      params: { days: 5, hours: 3.3 },
+    });
+    expect(stepInsight(step('commute'), prepareAnswers(halfMarathon, TODAY), TODAY)).toBeNull();
+    expect(stepInsight(step('winter'), halfMarathon, TODAY)).toBeNull();
+    expect(
+      stepInsight(step('winter'), { ...halfMarathon, [Q.winterSports]: ['xcski'] }, TODAY),
+    ).toEqual({ key: 'quiz.insights.winter' });
+  });
+});
+
 describe('onboarding branching', () => {
   it('shows only the steps that apply', () => {
     expect(stepIds({})).toEqual([
@@ -101,7 +169,9 @@ describe('onboarding branching', () => {
       'experience',
       'heartRate',
       'availability',
+      'commute',
       'terrain',
+      'winter',
       'motivation',
       'body',
       'disclaimer',
@@ -115,7 +185,9 @@ describe('onboarding branching', () => {
       'run',
       'heartRate',
       'availability',
+      'commute',
       'terrain',
+      'winter',
       'targetDate',
       'motivation',
       'body',

@@ -8,7 +8,7 @@ import { deloadSets, levelAfterPause } from './levels';
 import { round1, strengthLoad } from './load';
 import { athleteFor, exerciseLegLoad, materialize } from './materialize';
 import { isRaceGoal } from './periodisation';
-import type { PrevDay } from './scheduler';
+import type { NextDay, PrevDay } from './scheduler';
 import type {
   Availability,
   Experience,
@@ -18,7 +18,9 @@ import type {
   PlanNote,
   PlanWeek,
   Sport,
+  TravelPeriod,
   UserProfile,
+  WeekOverride,
   Workout,
 } from './types';
 
@@ -192,11 +194,13 @@ export function findViolations(
     const list = byDay.get(d) as Workout[];
     const date = toIsoDate(d);
     const ids = list.map((w) => w.id);
-    if (list.length > maxPerDay)
-      out.push({ code: 'tooManySessions', dates: [date], workoutIds: ids });
-    const sports = list.map((w) => w.sport);
+    // Commutes are transport: they never count as one of the day's sessions.
+    const sessions = list.filter((w) => w.commuteId === undefined);
+    if (sessions.length > maxPerDay)
+      out.push({ code: 'tooManySessions', dates: [date], workoutIds: sessions.map((w) => w.id) });
+    const sports = sessions.map((w) => w.sport);
     if (new Set(sports).size < sports.length) {
-      const dupes = list.filter((w) => sports.filter((s) => s === w.sport).length > 1);
+      const dupes = sessions.filter((w) => sports.filter((s) => s === w.sport).length > 1);
       out.push({ code: 'sameSportOneDay', dates: [date], workoutIds: dupes.map((w) => w.id) });
     }
     const hard = list.filter((w) => hardForSpacing(w, experience));
@@ -209,7 +213,7 @@ export function findViolations(
       });
     }
     const minutes = list.reduce((sum, w) => sum + w.durationMin, 0);
-    if (minutes > availability.minutesPerDay[weekdayOf(d)]) {
+    if (minutes > availableMinutes(availability, d)) {
       out.push({ code: 'overAvailability', dates: [date], workoutIds: ids });
     }
 
@@ -243,6 +247,16 @@ export function findViolations(
     }
   }
   return out;
+}
+
+/** Minutes available on a day: the week override if there is one, else the normal week. */
+function availableMinutes(availability: Availability, d: number): number {
+  const iso = toIsoDate(d);
+  const monday = toIsoDate(d - weekdayOf(d));
+  const override = availability.weekOverrides?.find((o) => o.weekStart === monday);
+  if (override?.blockedDates?.includes(iso)) return 0;
+  const minutes = override?.minutesPerDay ?? availability.minutesPerDay;
+  return minutes[weekdayOf(d)];
 }
 
 /** Workouts that count for the rules and the load: everything except skipped ones. */
@@ -509,7 +523,10 @@ function continuationState(plan: Plan, fromDate: string, trainedUntil = fromDate
   const from = day(trainedUntil);
   const before = plan.weeks.filter((w) => day(w.startDate) + 7 <= from);
   const loading = (w: PlanWeek) => !w.isRecovery && w.phase !== 'taper' && !w.isPartial;
-  const reference = [...before].reverse().find(loading)?.load ?? null;
+  // Irregular and travel weeks progress levels but are no load reference (as in generatePlan).
+  const irregular = (w: PlanWeek) =>
+    w.notes.some((n) => n.key === 'notes.weekOverride' || n.key === 'notes.travelWeek');
+  const reference = [...before].reverse().find((w) => loading(w) && !irregular(w))?.load ?? null;
 
   let lastBenchmarkWeek: number | null = null;
   const levels: Record<string, number> = {};
@@ -547,6 +564,8 @@ interface RegenerateOptions {
   pauseDays?: number;
   /** Start of the pause: planned workouts from here to `fromDate` are dropped. */
   dropFrom?: string;
+  /** Last day to rebuild (a Sunday); the weeks after it stay as they are. */
+  until?: string;
 }
 
 function regenerateFrom(
@@ -567,10 +586,11 @@ function regenerateFrom(
         );
 
   // Kept: everything before `fromDate` (minus planned sessions inside a pause) and all done ones.
+  const { until } = opts;
   const keep = (w: Workout) => {
     const s = statusOf(state, w.id);
     if (s === 'done') return true;
-    if (w.date >= fromDate) return false;
+    if (w.date >= fromDate) return until !== undefined && w.date > until;
     return !(opts.dropFrom !== undefined && w.date >= opts.dropFrom && s === 'planned');
   };
   const kept = allWorkouts(plan).filter(keep);
@@ -578,6 +598,15 @@ function regenerateFrom(
   let weeks = plan.weeks;
   if (fromDate <= range.last) {
     const revision = state.revision + 1;
+    let partial: { weeks: number; next: NextDay } | null = null;
+    if (until !== undefined) {
+      const after = activeWorkouts(state).filter((w) => day(w.date) === day(until) + 1);
+      const mondayOf = (iso: string) => day(iso) - weekdayOf(day(iso));
+      partial = {
+        weeks: (mondayOf(until) - mondayOf(fromDate)) / 7 + 1,
+        next: { hard: after.some((w) => w.hard), longOrKey: after.some(isLongOrKey) },
+      };
+    }
     const generated = generatePlan(
       input.profile,
       input.goal,
@@ -594,22 +623,22 @@ function regenerateFrom(
         idPrefix: `r${revision}-`,
         ...(opts.firstWeekFactor === undefined ? {} : { firstWeekFactor: opts.firstWeekFactor }),
         ...(opts.restartPhases ? { restartPhases: true } : {}),
+        ...(partial ?? {}),
       },
     );
     if (!generated.ok) return generated;
     const byIndex = new Map(generated.value.weeks.map((w) => [w.index, w]));
+    // A done session keeps its day; new sessions on that day are dropped.
+    const doneDays = new Set(
+      kept.filter((k) => statusOf(state, k.id) === 'done').map((k) => k.date),
+    );
     weeks = plan.weeks.map((w) => {
       const fresh = byIndex.get(w.index);
-      if (!fresh) return w;
-      const doneDays = new Set(kept.map((k) => k.date));
-      return {
-        ...fresh,
-        isPartial: w.isPartial,
-        // A done session keeps its day; new sessions on that day are dropped.
-        workouts: fresh.workouts.filter((x) => !doneDays.has(x.date)),
-      };
+      return fresh ? { ...fresh, isPartial: w.isPartial } : w;
     });
-    const freshWorkouts = weeks.flatMap((w) => w.workouts).filter((w) => w.date >= fromDate);
+    const freshWorkouts = generated.value.weeks
+      .flatMap((w) => w.workouts)
+      .filter((w) => w.date >= fromDate && !doneDays.has(w.date));
     const workouts = [...kept, ...freshWorkouts];
     const ids = new Set(workouts.map((w) => w.id));
     const status = Object.fromEntries(Object.entries(state.status).filter(([id]) => ids.has(id)));
@@ -640,6 +669,109 @@ export function regeneratePlan(
 ): EditResult<PlanState> {
   if (activePause(state)) return fail('pause', 'paused');
   return regenerateFrom(state, input, regenerationStart(state, today));
+}
+
+// ---------------------------------------------------------------------------------------------
+// Irregular weeks & travel (CLAUDE.md "Real-life & seasonal adaptation")
+
+/** The new plan state plus the input to store with it (it now carries the override / travel). */
+export interface AdjustResult {
+  state: PlanState;
+  input: PlanInput;
+}
+
+/**
+ * Rebuilds the weeks from `fromDate` to `toDate` (whole weeks, from today at the earliest) with the
+ * new input; every other week stays as it is. Spacing towards the kept Monday after is respected.
+ */
+function rebuildWeeks(
+  state: PlanState,
+  input: PlanInput,
+  fromDate: string,
+  toDate: string,
+  today: string,
+): EditResult<AdjustResult> {
+  if (activePause(state)) return fail('pause', 'paused');
+  const range = planRange(state.plan);
+  const monday = (iso: string) => day(iso) - weekdayOf(day(iso));
+  const start = [toIsoDate(monday(fromDate)), regenerationStart(state, today), range.first].reduce(
+    (a, b) => (a > b ? a : b),
+  );
+  const end = [toIsoDate(monday(toDate) + 6), range.last].reduce((a, b) => (a < b ? a : b));
+  if (start > end) return { ok: true, value: { state, input } };
+  const result = regenerateFrom(state, input, start, end < range.last ? { until: end } : {});
+  return result.ok ? { ok: true, value: { state: result.value, input } } : result;
+}
+
+/**
+ * "This week is different": other minutes per day and/or days away for the week starting on
+ * `weekStart` (a Monday). That week is rebuilt keeping its load as far as possible and every
+ * spacing rule; `null` removes the override and rebuilds the normal week ("reset week").
+ */
+export function setWeekOverride(
+  state: PlanState,
+  input: PlanInput,
+  weekStart: string,
+  override: Omit<WeekOverride, 'weekStart'> | null,
+  today: string,
+): EditResult<AdjustResult> {
+  const monday = parseIsoDate(weekStart);
+  if (monday === null || weekdayOf(monday) !== 0) return fail('date', 'invalidDate');
+  const range = planRange(state.plan);
+  if (toIsoDate(monday + 6) < range.first || weekStart > range.last)
+    return fail('date', 'outsidePlan');
+  if (toIsoDate(monday + 6) < today) return fail('date', 'invalidDate');
+  const others = (input.availability.weekOverrides ?? []).filter((o) => o.weekStart !== weekStart);
+  const weekOverrides = override === null ? others : [...others, { ...override, weekStart }];
+  const availability = { ...input.availability, weekOverrides };
+  return rebuildWeeks(state, { ...input, availability }, weekStart, weekStart, today);
+}
+
+/** The week override for the week starting on `weekStart`, if any. */
+export function weekOverrideOf(input: PlanInput, weekStart: string): WeekOverride | null {
+  return input.availability.weekOverrides?.find((o) => o.weekStart === weekStart) ?? null;
+}
+
+/**
+ * Sets the travel periods (travel mode). Every week touched by an old or new period is rebuilt –
+ * strength with hotel equipment, time-based runs, bike/swim alternatives; the rest stays.
+ */
+export function setTravel(
+  state: PlanState,
+  input: PlanInput,
+  travel: readonly TravelPeriod[],
+  today: string,
+): EditResult<AdjustResult> {
+  if (
+    travel.some(
+      (t) =>
+        parseIsoDate(t.startDate) === null ||
+        parseIsoDate(t.endDate) === null ||
+        t.endDate < t.startDate,
+    )
+  ) {
+    return fail('date', 'invalidDate');
+  }
+  const before = input.availability.travel ?? [];
+  const key = (t: TravelPeriod) => JSON.stringify(t);
+  const changed = [
+    ...before.filter((t) => !travel.some((n) => key(n) === key(t))),
+    ...travel.filter((t) => !before.some((o) => key(o) === key(t))),
+  ];
+  const next: PlanInput = { ...input, availability: { ...input.availability, travel } };
+  if (changed.length === 0) return { ok: true, value: { state, input: next } };
+  const from = changed.map((t) => t.startDate).reduce((a, b) => (a < b ? a : b));
+  const to = changed.map((t) => t.endDate).reduce((a, b) => (a > b ? a : b));
+  return rebuildWeeks(state, next, from, to, today);
+}
+
+/** Travel periods that are not over yet (for the travel mode toggle). */
+export function activeTravel(input: PlanInput, today: string): TravelPeriod | null {
+  return (
+    (input.availability.travel ?? [])
+      .filter((t) => t.endDate >= today)
+      .sort((a, b) => a.startDate.localeCompare(b.startDate))[0] ?? null
+  );
 }
 
 // ---------------------------------------------------------------------------------------------
