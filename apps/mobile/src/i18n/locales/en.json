@@ -318,7 +318,8 @@
     "subscription": "Subscription",
     "account": "Account",
     "privacy": "Privacy",
-    "accountGroup": "Account & privacy"
+    "accountGroup": "Account & privacy",
+    "signIn": "Sign in"
   },
   "why": {
     "run": {
@@ -1942,6 +1943,47 @@
         "title": "Privacy",
         "body": "What is stored, where, and how to export or delete it."
       }
+    }
+  },
+  "auth": {
+    "signIn": {
+      "title": "Sign in",
+      "intro": "Your plan is saved to your account and synced across your devices.",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "invalidEmail": "Enter a valid email address.",
+      "sendLink": "Email me a sign-in link",
+      "linkSent": "We sent a sign-in link to {{email}}. Open it on this phone, or enter the 6-digit code from the email.",
+      "code": "Code from the email",
+      "verifyCode": "Sign in with code",
+      "otherEmail": "Use another email",
+      "or": "or",
+      "google": "Continue with Google",
+      "later": "Later (development)",
+      "failed": "Sign-in didn’t work. Please try again.",
+      "notConfigured": "Accounts are not set up in this build yet. Your plan stays on this device."
+    },
+    "callback": {
+      "signingIn": "Signing you in…",
+      "failed": "This sign-in link is invalid or has expired.",
+      "again": "Back to sign-in"
+    },
+    "account": {
+      "title": "Account",
+      "signedInAs": "Signed in as",
+      "sync": "Sync",
+      "syncIdle": "Up to date",
+      "syncNever": "Not synced yet",
+      "syncSyncing": "Syncing…",
+      "syncOffline": "Offline – changes sync when you’re back online",
+      "syncError": "Sync failed – it will try again",
+      "lastSynced": "Last synced {{time}}",
+      "syncNow": "Sync now",
+      "signOut": "Sign out",
+      "unsyncedTitle": "Changes not synced",
+      "unsyncedMessage": "Some changes on this phone haven’t reached your account yet. If you sign out now, they are lost.",
+      "signOutAnyway": "Sign out anyway",
+      "signOutFailed": "Couldn’t sign out. Please try again."
     }
   }
 }

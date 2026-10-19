@@ -11,6 +11,8 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useDatabaseMigrations } from '@/data/db/use-database-migrations';
 import { queryClient } from '@/data/query-client';
+import { useBackgroundSync } from '@/data/sync/use-background-sync';
+import { useAuthListener, useSessionStore } from '@/features/auth/session-store';
 import { fontFamilies, toNavigationTheme, useTheme } from '@/ui';
 
 void SplashScreen.preventAutoHideAsync();
@@ -18,6 +20,7 @@ void SplashScreen.preventAutoHideAsync();
 export default function RootLayout() {
   const theme = useTheme();
   const { success, error } = useDatabaseMigrations();
+  useAuthListener();
   // Archivo 400/500 for body and UI, the static Peakr-Display instance (800 / width 112) for headlines.
   const [fontsLoaded, fontError] = useFonts({
     [fontFamilies.display]: require('@peakr/theme/fonts/Peakr-Display.ttf'),
@@ -37,6 +40,7 @@ export default function RootLayout() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
+        <BackgroundSync />
         <ThemeProvider value={toNavigationTheme(theme)}>
           <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
           <Stack screenOptions={{ headerShown: false }} />
@@ -44,4 +48,11 @@ export default function RootLayout() {
       </QueryClientProvider>
     </GestureHandlerRootView>
   );
+}
+
+/** Syncs SQLite with Supabase while someone is signed in (inside the query client for refreshes). */
+function BackgroundSync() {
+  const userId = useSessionStore((s) => s.session?.user.id ?? null);
+  useBackgroundSync(userId);
+  return null;
 }

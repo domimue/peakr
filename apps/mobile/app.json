@@ -9,7 +9,8 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "bundleIdentifier": "com.peakr.app",
-      "supportsTablet": false
+      "supportsTablet": false,
+      "usesAppleSignIn": true
     },
     "android": {
       "package": "com.peakr.app",
@@ -41,6 +42,7 @@
         }
       ],
       "expo-sqlite",
+      "expo-apple-authentication",
       "expo-localization",
       [
         "./plugins/with-windows-cmake",

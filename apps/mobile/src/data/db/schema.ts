@@ -68,7 +68,10 @@ export const plans = sqliteTable('plans', {
   /** Regenerations so far (prefix of new workout ids). */
   revision: integer('revision').notNull(),
   createdAt: integer('created_at').notNull(),
+  /** Last edit on this device or the synced server version (decides sync conflicts). */
   updatedAt: integer('updated_at').notNull(),
+  /** Plan, weeks or pauses changed since the last push (Phase 6 sync). */
+  dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
 });
 
 export const planWeeks = sqliteTable(
@@ -98,6 +101,10 @@ export const planWorkouts = sqliteTable(
     date: text('date').notNull(),
     status: text('status').$type<WorkoutStatus>().notNull(),
     data: text('data', { mode: 'json' }).$type<Workout>().notNull(),
+    /** Last change of this workout, epoch ms – "last write wins" per workout when syncing. */
+    updatedAt: integer('updated_at').notNull().default(0),
+    /** Changed since the last push. */
+    dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
   },
   (t) => [
     primaryKey({ columns: [t.planId, t.id] }),
@@ -113,3 +120,19 @@ export const planPauses = sqliteTable('plan_pauses', {
   startDate: text('start_date').notNull(),
   endDate: text('end_date'),
 });
+
+// ---------------------------------------------------------------------------------------------
+// Sync (Phase 6)
+
+/** Locally deleted plans / workouts that still have to be deleted on the server. */
+export const syncTombstones = sqliteTable(
+  'sync_tombstones',
+  {
+    entity: text('entity').$type<'plan' | 'workout'>().notNull(),
+    planId: text('plan_id').notNull(),
+    /** Workout id; the plan id again for plans. */
+    id: text('id').notNull(),
+    deletedAt: integer('deleted_at').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.entity, t.planId, t.id] })],
+);
