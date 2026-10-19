@@ -45,6 +45,13 @@
       "expo-apple-authentication",
       "expo-localization",
       [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/android-icon-monochrome.png",
+          "enableBackgroundRemoteNotifications": true
+        }
+      ],
+      [
         "./plugins/with-windows-cmake",
         {
           "version": "4.1.2"

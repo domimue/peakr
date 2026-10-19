@@ -69,7 +69,7 @@ function fromWorkoutRow(row: WorkoutRow): SyncWorkout {
   };
 }
 
-function check(error: { message: string } | null, what: string): void {
+export function check(error: { message: string } | null, what: string): void {
   if (error) throw new Error(`${what}: ${error.message}`);
 }
 
@@ -166,11 +166,11 @@ export interface RemoteChanges {
 /** Rows written in parallel can commit slightly out of order; re-reading a minute is harmless. */
 const OVERLAP_MS = 60_000;
 
-function since(cursor: string | null): string {
+export function since(cursor: string | null): string {
   return cursor ? iso(Date.parse(cursor) - OVERLAP_MS) : iso(0);
 }
 
-async function fetchPaged<T extends { server_updated_at: string }>(
+export async function fetchPaged<T extends { server_updated_at: string }>(
   query: (
     from: number,
     to: number,

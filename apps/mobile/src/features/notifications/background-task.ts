@@ -1,0 +1,46 @@
+import * as Notifications from 'expo-notifications';
+import * as TaskManager from 'expo-task-manager';
+import { Platform } from 'react-native';
+
+import { supabase } from '@/data/supabase';
+import { requestSync } from '@/data/sync/use-background-sync';
+
+/**
+ * A push about a new activity wakes the app – also when it is closed – and it syncs the activity
+ * into SQLite and the plan (marked done / week rebalanced) before the user opens it. Defined at
+ * module scope (imported by the root layout), as TaskManager requires.
+ */
+
+export const ACTIVITY_SYNC_TASK = 'peakr-activity-sync';
+
+TaskManager.defineTask(ACTIVITY_SYNC_TASK, async () => {
+  try {
+    const session = await supabase?.auth.getSession();
+    const userId = session?.data.session?.user.id;
+    if (userId) await requestSync(userId);
+    return Notifications.BackgroundNotificationTaskResult.NewData;
+  } catch (error) {
+    console.warn('Background activity sync failed', error);
+    return Notifications.BackgroundNotificationTaskResult.Failed;
+  }
+});
+
+/** In the foreground the in-app notice already says it; no system banner for activity pushes. */
+Notifications.setNotificationHandler({
+  handleNotification: async (notification) => {
+    const isActivity = notification.request.content.data?.type === 'activity';
+    return {
+      shouldShowBanner: !isActivity,
+      shouldShowList: !isActivity,
+      shouldPlaySound: false,
+      shouldSetBadge: false,
+    };
+  },
+});
+
+export function registerBackgroundSync(): void {
+  if (Platform.OS === 'web') return;
+  Notifications.registerTaskAsync(ACTIVITY_SYNC_TASK).catch((error: unknown) =>
+    console.warn('Background notification task not registered', error),
+  );
+}

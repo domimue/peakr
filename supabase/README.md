@@ -7,7 +7,9 @@ Security, and Edge Functions for everything that needs a secret.
 | ------------------------ | --------------------------------------------------------------------- |
 | `migrations/`            | SQL schema. Never edit a migration that was already pushed.            |
 | `functions/oauth/`       | OAuth with third-party services (Strava first): start, callback, disconnect |
-| `functions/_shared/`     | Token encryption, signed OAuth state, provider registry               |
+| `functions/strava-webhook/` | Strava Webhook Events API: validation + activity/athlete events    |
+| `functions/strava-sync/` | "Sync now" (user) and the nightly catch-up (pg_cron)                  |
+| `functions/_shared/`     | Token encryption, signed OAuth state, provider registry, Strava import, Expo push |
 | `templates/`             | Sign-in emails (link **and** 6-digit code)                            |
 | `config.toml`            | Local CLI config; the hosted project is configured in the dashboard   |
 
@@ -21,6 +23,8 @@ Security, and Edge Functions for everything that needs a secret.
 | `routes`             | the app                        | own route library, never visible to others                  |
 | `integrations`       | Edge Functions only            | metadata of connected services; the user can read own rows  |
 | `integration_tokens` | Edge Functions only            | AES-GCM encrypted tokens; no access for app or website      |
+| `activities`         | Edge Functions only            | one row per source record; own rows readable, Realtime on   |
+| `push_tokens`        | the app (own device)           | Expo push tokens + "notify me" per device                   |
 | `waitlist`           | the website (insert only)      | Phase 1b                                                    |
 
 Sync (app side: `apps/mobile/src/data/sync`): SQLite stays the source for the UI. Every edit marks
@@ -35,6 +39,8 @@ pnpm exec supabase login
 pnpm exec supabase link --project-ref <your-project-ref>
 pnpm exec supabase db push
 pnpm exec supabase functions deploy oauth
+pnpm exec supabase functions deploy strava-webhook
+pnpm exec supabase functions deploy strava-sync
 pnpm exec supabase secrets set --env-file supabase/functions/.env
 ```
 
@@ -83,8 +89,67 @@ no SHA-1 fingerprint) is needed.
 
 ### Strava (integration)
 
-<https://www.strava.com/settings/api>: create the app; _Authorization Callback Domain_ =
-`<project-ref>.supabase.co`. Client ID and secret go into the Edge Function secrets.
+How an activity travels: Strava → `strava-webhook` (stores it in `activities`, sends a silent Expo
+push) → the app gets it via Realtime (open) or the push (closed) → SQLite → `@peakr/engine`
+merges sources, marks the planned session done or rebalances the week. `strava-sync` is the
+"sync now" button and, at 03:30 UTC, the nightly catch-up for missed webhooks.
+
+**1. Register the app** – <https://www.strava.com/settings/api> (needs a Strava subscription on
+the account that owns the app):
+
+| Field                          | Value                                                       |
+| ------------------------------ | ----------------------------------------------------------- |
+| Application Name               | `Peakr` (must not contain "Strava")                         |
+| Category                       | Training                                                    |
+| Club                           | empty                                                       |
+| Website                        | `https://peakr.ch` (your website)                           |
+| Application Description        | e.g. "Training plans that adapt to your Strava activities." |
+| Authorization Callback Domain  | `<project-ref>.supabase.co` (domain only, no `https://`)    |
+
+Upload the app icon, accept the API Agreement, then copy **Client ID** and **Client Secret** into
+the Edge Function secrets `STRAVA_CLIENT_ID` / `STRAVA_CLIENT_SECRET`. New apps run in
+single-player mode (only the owner's account can connect); raise the capacity in the API settings
+and submit the app for Strava's review before launch. Strava's brand guidelines require the
+official "Connect with Strava" button and the "Powered by Strava" logo – replace the plain button
+in `connections-screen.tsx` with the official assets before submitting.
+
+**2. Secrets** (dashboard → Edge Functions → Secrets, or `supabase secrets set …`):
+`STRAVA_WEBHOOK_VERIFY_TOKEN` (any long random string), `CRON_SECRET` (another one), optional
+`EXPO_ACCESS_TOKEN`. Deploy all three functions (commands above).
+
+**3. Create the webhook subscription** (once per Strava app, after the functions are deployed –
+Strava calls the callback right away and expects the answer within two seconds):
+
+```bash
+curl -X POST https://www.strava.com/api/v3/push_subscriptions   -F client_id=<STRAVA_CLIENT_ID>   -F client_secret=<STRAVA_CLIENT_SECRET>   -F callback_url=https://<project-ref>.supabase.co/functions/v1/strava-webhook   -F verify_token=<STRAVA_WEBHOOK_VERIFY_TOKEN>
+```
+
+The answer is `{"id": 123456}`. Store it as the secret `STRAVA_SUBSCRIPTION_ID` (events with
+another id are then rejected). Check or remove the subscription:
+
+```bash
+curl "https://www.strava.com/api/v3/push_subscriptions?client_id=<ID>&client_secret=<SECRET>"
+curl -X DELETE "https://www.strava.com/api/v3/push_subscriptions/<subscription-id>?client_id=<ID>&client_secret=<SECRET>"
+```
+
+**4. Nightly catch-up** – the migration schedules the pg_cron job; it reads the project URL and the
+cron secret from Vault. Run once in the SQL Editor:
+
+```sql
+select vault.create_secret('https://<project-ref>.supabase.co', 'project_url');
+select vault.create_secret('<the same value as CRON_SECRET>', 'cron_secret');
+```
+
+Check runs with `select * from cron.job_run_details order by start_time desc limit 5;`.
+
+**5. Push to the app** (wakes a closed app when an activity arrives): run `eas init` in
+`apps/mobile` once (adds the EAS `projectId` to `app.json`), upload the FCM V1 service-account
+key in EAS (`eas credentials` → Android → Push Notifications) and, for iOS, an APNs key. Without
+it everything still works while the app is open (Realtime) and on the next start.
+
+**Strava rules** (API Agreement): activities are used only to adapt that athlete's own plan,
+are never shown to other users (RLS) and never used to train AI/ML models. Disconnecting, a
+deauthorisation at Strava and account deletion delete the tokens and every imported activity.
 
 ## Reading the waitlist
 

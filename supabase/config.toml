@@ -410,6 +410,14 @@ deno_version = 2
 [functions.oauth]
 verify_jwt = false
 
+# Strava Webhook Events API: Strava sends no JWT (validation token + subscription id instead).
+[functions.strava-webhook]
+verify_jwt = false
+
+# "Sync now" (user JWT, checked in the function) and the nightly catch-up (cron secret).
+[functions.strava-sync]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

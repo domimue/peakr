@@ -71,7 +71,7 @@ export function ProfileScreen() {
     },
   ];
   const account: Row[] = [
-    { icon: 'connections', title: t('profile.connections'), href: soon('connections'), soon: true },
+    { icon: 'connections', title: t('profile.connections'), href: '/integrations' },
     {
       icon: 'subscription',
       title: t('profile.subscription'),

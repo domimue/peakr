@@ -405,7 +405,9 @@
     "travelWeek": "Travel week – hotel-room strength, runs by time and alternatives for rides and swims.",
     "travelStrength": "Travel: bodyweight and band exercises you can do in a hotel room.",
     "travelReplaced": "Travel: the planned {{type}} session is replaced by an easy session of similar load you can do there.",
-    "travelDropped": "Travel: the planned {{type}} session has no alternative at your travel location."
+    "travelDropped": "Travel: the planned {{type}} session has no alternative at your travel location.",
+    "absorbed": "Shorter: an extra {{minutes}}-minute activity this week already covers part of the load.",
+    "unplannedActivity": "Extra activity counted: {{minutes}} min (load {{load}})."
   },
   "steps": {
     "continuous": "Continuous easy swimming",
@@ -1849,7 +1851,9 @@
     "indoorIncline": "Treadmill at {{incline}} % incline – same steps and load as outside.",
     "indoorSameLoad": "Same steps and the same load as outside.",
     "limitHint": "Heart rate is your target. Pace is a limit: no faster than {{pace}}.",
-    "limitHintNoPace": "Heart rate is your target – keep it easy, whatever the pace."
+    "limitHintNoPace": "Heart rate is your target – keep it easy, whatever the pace.",
+    "synced": "Synced from {{source}} · {{time}} · {{actual}}",
+    "avgHr": "⌀ {{value}} bpm"
   },
   "progress": {
     "title": "Progress",
@@ -1984,6 +1988,75 @@
       "unsyncedMessage": "Some changes on this phone haven’t reached your account yet. If you sign out now, they are lost.",
       "signOutAnyway": "Sign out anyway",
       "signOutFailed": "Couldn’t sign out. Please try again."
+    }
+  },
+  "activities": {
+    "sport": {
+      "run": "Run",
+      "bike": "Ride",
+      "swim": "Swim",
+      "walk": "Walk",
+      "xcski": "XC ski session",
+      "skitour": "Ski tour",
+      "snowshoe": "Snowshoe hike"
+    },
+    "source": {
+      "strava": "Strava",
+      "garmin": "Garmin",
+      "coros": "COROS",
+      "suunto": "Suunto",
+      "apple": "Apple Watch",
+      "healthconnect": "Health Connect",
+      "healthkit": "Apple Health"
+    },
+    "notice": {
+      "matched": "{{sport}} synced from {{source}} – {{day}}'s session marked as done",
+      "matchedToday": "{{sport}} synced from {{source}} – today's session marked as done",
+      "unplanned": "{{sport}} synced from {{source}} – counted towards this week's load",
+      "unplannedAdjusted": "{{sport}} synced from {{source}} – counted as extra training, the rest of the week is a little easier",
+      "many_one": "{{count}} activity synced from {{source}}",
+      "many_other": "{{count}} activities synced from {{source}}"
+    }
+  },
+  "connections": {
+    "title": "Connections",
+    "signInFirst": "Sign in to connect Strava – your activities are linked to your account.",
+    "connected": "Connected",
+    "notConnected": "Not connected",
+    "needsReconnect": "Reconnect needed",
+    "stravaHint": "New runs, rides and swims appear automatically, mark the planned session as done and adapt the rest of your week.",
+    "lastSynced": "Last synced {{time}}",
+    "neverSynced": "No activity synced yet",
+    "connectStrava": "Connect with Strava",
+    "syncNow": "Sync now",
+    "syncDone_one": "{{count}} activity checked.",
+    "syncDone_other": "{{count}} activities checked.",
+    "syncFailed": "Sync failed. Try again in a moment.",
+    "rateLimited": "Strava is busy right now. Try again in 15 minutes.",
+    "disconnect": "Disconnect Strava",
+    "disconnectTitle": "Disconnect Strava?",
+    "disconnectMessage": "Peakr's access is revoked at Strava and all imported activities are deleted. Sessions already marked as done stay done.",
+    "disconnected": "Strava is disconnected and its data deleted.",
+    "disconnectFailed": "Could not disconnect. Check your connection and try again.",
+    "alerts": "Notify me when an activity syncs",
+    "alertsHint": "Otherwise you see a short note the next time you open Peakr.",
+    "alertsOff": "Off",
+    "alertsOn": "On",
+    "privacy": "Your Strava activities are used only to adapt your own plan. They are never shown to anyone else and never used to train AI models.",
+    "poweredBy": "Powered by Strava",
+    "result": {
+      "connected": "Strava is connected. Recent activities are being imported.",
+      "denied": "Strava was not connected – activity access is needed to adapt your plan.",
+      "error": "Connecting Strava failed. Please try again."
+    },
+    "ago": {
+      "now": "just now",
+      "minutes_one": "{{count}} minute ago",
+      "minutes_other": "{{count}} minutes ago",
+      "hours_one": "{{count}} hour ago",
+      "hours_other": "{{count}} hours ago",
+      "days_one": "{{count}} day ago",
+      "days_other": "{{count}} days ago"
     }
   }
 }

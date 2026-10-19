@@ -29,6 +29,13 @@
       "when": 1792442356851,
       "tag": "0003_sync",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1792445550275,
+      "tag": "0004_activities",
+      "breakpoints": true
     }
   ]
 }

@@ -273,7 +273,7 @@ function score(violations: readonly RuleViolation[]): number {
 // Plan rebuilding helpers
 
 /** Puts workouts back into their weeks (by date), recomputes week totals and the §11 flags. */
-function rebuild(plan: Plan, workouts: readonly Workout[], experience: Experience): Plan {
+export function rebuild(plan: Plan, workouts: readonly Workout[], experience: Experience): Plan {
   const sorted = [...workouts].sort((a, b) => a.date.localeCompare(b.date));
   const weeks: PlanWeek[] = plan.weeks.map((w) => {
     const start = day(w.startDate);

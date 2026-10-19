@@ -1,7 +1,9 @@
 import type {
+  ActivitySource,
   CustomExercise,
   Goal,
   HrZoneInput,
+  ImportedSport,
   PauseReason,
   Phase,
   PlanInput,
@@ -136,3 +138,45 @@ export const syncTombstones = sqliteTable(
   },
   (t) => [primaryKey({ columns: [t.entity, t.planId, t.id] })],
 );
+
+// ---------------------------------------------------------------------------------------------
+// Imported activities (Phase 7). One row per source record (Strava now; watch providers and the
+// phone's health data later). `@peakr/engine` merges records of the same workout on read.
+
+export const activities = sqliteTable(
+  'activities',
+  {
+    source: text('source').$type<ActivitySource>().notNull(),
+    externalId: text('external_id').notNull(),
+    sport: text('sport').$type<ImportedSport>().notNull(),
+    /** ISO timestamp (UTC). */
+    startTime: text('start_time').notNull(),
+    /** Local calendar date of the start. */
+    date: text('date').notNull(),
+    durationSec: integer('duration_sec').notNull(),
+    distanceM: real('distance_m'),
+    elevationGainM: real('elevation_gain_m'),
+    avgHr: real('avg_hr'),
+    maxHr: real('max_hr'),
+    swimPaceSecPer100m: real('swim_pace_sec_per_100m'),
+    /** Encoded GPS polyline for the route thumbnail (Progress history). */
+    polyline: text('polyline'),
+    name: text('name'),
+    indoor: integer('indoor', { mode: 'boolean' }).notNull(),
+    commute: integer('commute', { mode: 'boolean' }).notNull(),
+    /** When this device received it, epoch ms ("synced …"). */
+    importedAt: integer('imported_at').notNull(),
+    /** Matched to the plan or absorbed as unplanned – happens once per activity. */
+    handled: integer('handled', { mode: 'boolean' }).notNull().default(false),
+  },
+  (t) => [primaryKey({ columns: [t.source, t.externalId] }), index('activities_date').on(t.date)],
+);
+
+/** Which activity fulfilled which planned workout (by any of the activity's source keys). */
+export const activityLinks = sqliteTable('activity_links', {
+  /** `<source>:<externalId>`. */
+  activityKey: text('activity_key').primaryKey(),
+  planId: text('plan_id').notNull(),
+  workoutId: text('workout_id').notNull(),
+  linkedAt: integer('linked_at').notNull(),
+});

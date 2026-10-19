@@ -19,3 +19,16 @@ jest.mock('expo-haptics', () => ({
   notificationAsync: jest.fn(() => Promise.resolve()),
   NotificationFeedbackType: { Success: 'success', Warning: 'warning', Error: 'error' },
 }));
+
+// Push notifications and background tasks are native-only.
+jest.mock('expo-notifications', () => ({
+  AndroidImportance: { DEFAULT: 3 },
+  BackgroundNotificationTaskResult: { NewData: 0, NoData: 1, Failed: 2 },
+  getPermissionsAsync: jest.fn(() => Promise.resolve({ granted: false, canAskAgain: true })),
+  requestPermissionsAsync: jest.fn(() => Promise.resolve({ granted: false })),
+  getExpoPushTokenAsync: jest.fn(() => Promise.resolve({ data: 'ExponentPushToken[test]' })),
+  setNotificationChannelAsync: jest.fn(() => Promise.resolve(null)),
+  setNotificationHandler: jest.fn(),
+  registerTaskAsync: jest.fn(() => Promise.resolve()),
+}));
+jest.mock('expo-task-manager', () => ({ defineTask: jest.fn() }));

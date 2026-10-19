@@ -176,3 +176,23 @@ export {
   type WeekProgress,
   type WeekTag,
 } from './plan/summary';
+export {
+  ACTIVITY_SOURCES,
+  activityKey,
+  activityKeys,
+  activityLoad,
+  activityZone,
+  dedupeActivities,
+  IMPORTED_SPORTS,
+  isHardActivity,
+  isSameActivity,
+  matchActivities,
+  type Activity,
+  type ActivityLink,
+  type ActivitySource,
+  type ImportedSport,
+  type MatchResult,
+  type SourceActivity,
+  type SourceRef,
+} from './plan/activities';
+export { absorbActivity, type AbsorbChange, type AbsorbResult } from './plan/absorb';
