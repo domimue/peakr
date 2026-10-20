@@ -9,12 +9,14 @@ import { useActivityRecords } from '@/features/activities/queries';
 import { usePlan, usePlanActions } from '@/features/plan/queries';
 import { Button, Card, ListState, Screen, spacing, StatTile, Text } from '@/ui';
 
+import { HomeStartCard } from '../components/home-start-card';
 import { useStreams } from '../queries';
 
 /**
  * Terrain profile (CLAUDE.md "Terrain intelligence" §1): the home terrain from the quiz next to
  * what the user's recent outdoor runs and rides show – gain per km and typical climbs. The user
- * can adopt the learned terrain; the remaining plan is then generated again.
+ * can adopt the learned terrain; the remaining plan is then generated again. The home start point
+ * for route matching is set here too.
  */
 export function TerrainProfileScreen() {
   const { t } = useTranslation();
@@ -119,6 +121,7 @@ export function TerrainProfileScreen() {
           ) : null}
         </View>
       )}
+      <HomeStartCard />
     </Screen>
   );
 }

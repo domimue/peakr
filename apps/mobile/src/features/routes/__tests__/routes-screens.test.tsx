@@ -26,6 +26,9 @@ import {
   pointsFromActivity,
   routeFromPoints,
 } from '../import';
+import { formatLatLon, parseLatLon } from '../start-point';
+import { HomeStartCard } from '../components/home-start-card';
+import { RouteDetailScreen } from '../screens/route-detail-screen';
 import { RouteImportScreen } from '../screens/route-import-screen';
 import { RouteLibraryScreen } from '../screens/route-library-screen';
 import { RoutePickerScreen } from '../screens/route-picker-screen';
@@ -102,8 +105,14 @@ function gpxOf(points: readonly GpxPoint[], name = 'Hausrunde'): string {
   return `<gpx><trk><name>${name}</name><type>running</type><trkseg>${body}</trkseg></trk></gpx>`;
 }
 
-function addRoute(id: string, half: number, source: 'gpx' | 'strava' = 'gpx', name = id) {
-  const draft = routeFromPoints(loop(half), name, 'run', source);
+function addRoute(
+  id: string,
+  half: number,
+  source: 'gpx' | 'strava' = 'gpx',
+  name = id,
+  lonShift = 0,
+) {
+  const draft = routeFromPoints(loop(half, lonShift), name, 'run', source);
   routes.store.routes.push({ ...draft, id, createdAt: routes.store.routes.length, updatedAt: 0 });
 }
 
@@ -171,6 +180,16 @@ describe('helpers', () => {
       'https://www.komoot.com/user/abc',
     );
     expect(normalizeKomootProfileUrl('https://example.com/user/1')).toBeNull();
+  });
+
+  it('reads and formats start point coordinates', () => {
+    expect(parseLatLon('47.3769, 8.5417')).toEqual({ lat: 47.3769, lon: 8.5417 });
+    expect(parseLatLon(' -33.9;18.42 ')).toEqual({ lat: -33.9, lon: 18.42 });
+    expect(parseLatLon('47.3769 8.5417')).toEqual({ lat: 47.3769, lon: 8.5417 });
+    expect(parseLatLon('95, 8')).toBeNull();
+    expect(parseLatLon('47, 190')).toBeNull();
+    expect(parseLatLon('Zurich')).toBeNull();
+    expect(formatLatLon({ lat: 47.376912345, lon: 8.5 })).toBe('47.37691, 8.5');
   });
 
   it('takes elevation from the stream when its track matches', () => {
@@ -295,6 +314,36 @@ describe('choosing a route for a workout', () => {
       ).toBe('home'),
     );
     expect(router.back).toHaveBeenCalled();
+  });
+
+  // Same loop twice; "a-far" starts ~7.5 km east of home and wins the id tie without a start.
+  function nearAndFar() {
+    storePlan();
+    addRoute('a-far', 4000, 'gpx', 'Far loop', 0.1);
+    addRoute('b-near', 4000, 'gpx', 'Near loop');
+    return easyRunId();
+  }
+  const order = () =>
+    screen
+      .getAllByTestId(/^choose-(a-far|b-near)$/)
+      .map((el) => (el.props as { testID: string }).testID);
+
+  it('ignores the distance from the start while no home start point is set', async () => {
+    await renderWithQuery(<RoutePickerScreen workoutId={nearAndFar()} />);
+    expect(await screen.findByText('Near loop')).toBeOnTheScreen();
+    expect(order()).toEqual(['choose-a-far', 'choose-b-near']);
+    expect(screen.getByTestId('choose-start')).toHaveTextContent(/^Set your home start point/);
+  });
+
+  it('ranks routes near the home start point first', async () => {
+    const id = nearAndFar();
+    routes.store.homeStart = { lat: 47.37, lon: 8.54 };
+    await renderWithQuery(<RoutePickerScreen workoutId={id} />);
+    expect(await screen.findByText(/^Routes near your home start point/)).toBeOnTheScreen();
+    expect(order()).toEqual(['choose-b-near', 'choose-a-far']);
+    expect(screen.getByText(/far from your start/)).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('choose-start'));
+    expect(router.push).toHaveBeenCalledWith('/training/terrain');
   });
 
   it('shows map, profile, expected time and the pace limit per km on the workout', async () => {
@@ -434,6 +483,40 @@ describe('routes from Strava', () => {
     storePlan();
     await renderWithQuery(<TerrainProfileScreen />);
     expect(await screen.findByText('Not enough activities yet')).toBeOnTheScreen();
+  });
+});
+
+describe('home start point', () => {
+  it('stores valid coordinates only and can remove them', async () => {
+    await renderWithQuery(<HomeStartCard />);
+    const field = await screen.findByLabelText('Coordinates (latitude, longitude)');
+    await fireEvent.changeText(field, 'Zurich');
+    await fireEvent.press(screen.getByText('Save'));
+    expect(screen.getByText(/^Enter latitude and longitude/)).toBeOnTheScreen();
+    expect(routes.store.homeStart).toBeNull();
+    await fireEvent.changeText(field, '47.3769, 8.5417');
+    await fireEvent.press(screen.getByText('Save'));
+    await waitFor(() => expect(routes.store.homeStart).toEqual({ lat: 47.3769, lon: 8.5417 }));
+    await fireEvent.press(await screen.findByText('Remove'));
+    await waitFor(() => expect(routes.store.homeStart).toBeNull());
+  });
+
+  it('is shown in the terrain profile', async () => {
+    storePlan();
+    routes.store.homeStart = { lat: 47.37, lon: 8.54 };
+    await renderWithQuery(<TerrainProfileScreen />);
+    expect(await screen.findByDisplayValue('47.37, 8.54')).toBeOnTheScreen();
+  });
+
+  it('can be taken from the start of a library route', async () => {
+    addRoute('home', 2000, 'gpx', 'Home loop');
+    (useLocalSearchParams as jest.Mock).mockReturnValue({ id: 'home' });
+    await renderWithQuery(<RouteDetailScreen />);
+    await fireEvent.press(
+      await screen.findByText('Use the start of this route as my home start point'),
+    );
+    await waitFor(() => expect(routes.store.homeStart).toEqual({ lat: 47.37, lon: 8.54 }));
+    expect(await screen.findByTestId('route-is-home')).toBeOnTheScreen();
   });
 });
 

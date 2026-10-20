@@ -16,7 +16,7 @@ import { usePlan, usePlanActions } from '@/features/plan/queries';
 import { Button, Icon, ListState, radius, Screen, spacing, Text, useTheme } from '@/ui';
 
 import { gainPerKm } from '../import';
-import { useRoutes } from '../queries';
+import { useHomeStart, useRoutes } from '../queries';
 import { RouteRow } from './route-library-screen';
 
 const OPTIONS = 3;
@@ -48,10 +48,11 @@ export function RoutePickerScreen({ workoutId }: { workoutId: string }) {
   const { t } = useTranslation();
   const { data: stored } = usePlan();
   const { data: routes, isPending } = useRoutes();
+  const { data: home, isPending: homePending } = useHomeStart();
   const actions = usePlanActions();
   const w = stored ? findWorkout(stored.state.plan, workoutId) : undefined;
 
-  if (isPending || !stored) {
+  if (isPending || homePending || !stored) {
     return (
       <Screen>
         <ListState kind="loading" label={t('common.loading')} />
@@ -71,15 +72,25 @@ export function RoutePickerScreen({ workoutId }: { workoutId: string }) {
   };
   const all = routes ?? [];
   const byId = new Map(all.map((r) => [r.id, r]));
-  // The user's start point is not known yet (no location permission): start distance is ignored.
+  // Without a home start point, distance from the start is ignored.
+  const start = home ?? null;
   const rank = (list: StoredRoute[]) =>
-    rankRoutes(list.map(matchable), w, stored.input.profile, null, OPTIONS);
+    rankRoutes(list.map(matchable), w, stored.input.profile, start, OPTIONS);
   const own = rank(all.filter((r) => r.source !== 'strava'));
   const recognised = rank(all.filter((r) => r.source === 'strava'));
 
   return (
     <Screen>
       <Text tone="secondary">{t('routes.choose.intro')}</Text>
+      <Pressable
+        accessibilityRole="link"
+        onPress={() => router.push('/training/terrain')}
+        testID="choose-start"
+      >
+        <Text variant="caption" tone="secondary">
+          {start ? t('routes.choose.fromHome') : t('routes.choose.noStart')}
+        </Text>
+      </Pressable>
       <Group
         title={t('routes.choose.own')}
         matches={own}

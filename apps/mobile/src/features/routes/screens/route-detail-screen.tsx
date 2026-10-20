@@ -7,10 +7,19 @@ import { Button, ListState, Screen, spacing, StatTile, Text, TextField, useTheme
 
 import { ElevationChart } from '../components/elevation-chart';
 import { RouteMap } from '../components/route-map';
-import { useDeleteRoute, useRenameRoute, useRoute } from '../queries';
+import {
+  useDeleteRoute,
+  useHomeStart,
+  useRenameRoute,
+  useRoute,
+  useSaveHomeStart,
+} from '../queries';
 import { routeColor } from './route-library-screen';
 
-/** One library route: map, elevation profile, figures, climbs; rename and delete. */
+/**
+ * One library route: map, elevation profile, figures, climbs; rename, delete, use its start as the
+ * home start point.
+ */
 export function RouteDetailScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -18,6 +27,8 @@ export function RouteDetailScreen() {
   const { data: route, isPending } = useRoute(id);
   const rename = useRenameRoute();
   const remove = useDeleteRoute();
+  const { data: home } = useHomeStart();
+  const saveHome = useSaveHomeStart();
   const [name, setName] = useState<string | null>(null);
 
   if (isPending) {
@@ -114,6 +125,18 @@ export function RouteDetailScreen() {
           rename.mutate({ id: route.id, name: trimmed }, { onSuccess: () => setName(null) })
         }
       />
+      {home && home.lat === route.start.lat && home.lon === route.start.lon ? (
+        <Text variant="caption" tone="secondary" testID="route-is-home">
+          {t('routes.start.isHome')}
+        </Text>
+      ) : (
+        <Button
+          variant="secondary"
+          label={t('routes.start.useRoute')}
+          disabled={saveHome.isPending}
+          onPress={() => saveHome.mutate(route.start)}
+        />
+      )}
       <Button variant="danger" label={t('routes.delete')} onPress={onDelete} />
     </Screen>
   );
