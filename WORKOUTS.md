@@ -432,6 +432,23 @@ Slots are filled in this priority: long → key quality → second quality → s
 | Advanced (race history, ≥ 4 sessions/week) | 5 |
 Race time / CSS / FTP adjust zones, not levels.
 
+**Start level from recent activities** (optional Strava baseline, CLAUDE.md "Baseline from past activities"): the class is derived **per sport** from the last 60 days – sessions/week, weekly minutes and longest session must all reach the thresholds (`planConfig.baseline.levels`), e.g. run intermediate ≥ 2/week, ≥ 90 min, ≥ 30 min; advanced ≥ 4/week, ≥ 240 min, ≥ 75 min. Below the minimum number of activities the quiz answer stays. The user can change every class on the summary screen. The same baseline sets week 1 to the current weekly load (within the capacity of the availability, never below the beginner share) and the first long session to the typical weekly longest session.
+
+Which baseline activities count per derived value (reference data only – never history, load, records or plan completion):
+| Value | Counts | Left out | Minimum |
+|---|---|---|---|
+| Volume, frequency, longest session | all, incl. indoor/treadmill, manual, without HR | – | 3 activities over ≥ 2 full weeks |
+| Terrain (gain per km) | outdoor run/bike with distance and gain | indoor, manual | 3 |
+| Easy pace (grade-adjusted) | outdoor runs ≥ 1 km; easy = avg HR ≤ top of Z2 (Strava zones if the user set them), otherwise the slowest third | treadmill, manual, races | 4 runs, 3 easy |
+| Pace–HR relation (Theil–Sen) | outdoor runs ≥ 1 km with HR | treadmill, manual, races | 4 |
+| HRmax | 2nd highest max HR; used only above the age estimate | manual | 3 |
+| LTHR | hard runs (else rides): 95 % of the best 20 min, or avg HR of 20–60 min efforts ≥ 85 % HRmax | manual, no HR, swims | 2 efforts |
+| CSS (estimate) | fastest third of swims ≥ 400 m × 0.97 | manual | 3 |
+| Weekly load | all (no HR → Zone 2), trimmed mean of the last 4 full weeks | – | as volume |
+| Resting HR | not available from Strava – quiz/zone settings only | | |
+
+Preselection: everything is ticked except Strava races and sessions far longer than the rest of the sport (> median + 3 × MAD and > 2.5 × median). Hard sessions stay ticked because LTHR needs them. The user's own entries always beat derived values.
+
 **After each completed session of a levelled type:**
 - Completed, targets met (HR/pace/power within range ≥ 80 % of work time), RPE ≤ planned → **+1 level** next time (max +1 per week per type).
 - Completed but RPE above planned or targets missed → **hold**.

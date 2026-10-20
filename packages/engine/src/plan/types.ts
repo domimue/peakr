@@ -116,6 +116,26 @@ export interface UserProfile {
   benchmarks?: boolean;
   /** Regular commutes, placed before everything else as easy sessions. */
   commutes?: Commute[];
+  /**
+   * Calibration from recent activities (reference data, CLAUDE.md "Baseline from past
+   * activities"). The user's own entries above always win over these values.
+   */
+  baseline?: PlanBaseline;
+}
+
+/** Values the plan takes from the Strava baseline instead of the quiz defaults. */
+export interface PlanBaseline {
+  /** Starting level class per sport (§10); falls back to `experience`. */
+  experience?: Partial<Record<Sport, Experience>>;
+  /** Current weekly load: week 1 starts here (within the capacity of the availability). */
+  startLoad?: number;
+  /** Starting duration of the long session per sport. */
+  longMin?: Partial<Record<Sport, number>>;
+  thresholdPaceSecPerKm?: number;
+  cssPacePer100mSec?: number;
+  /** Observed HRmax (only when above the age estimate) and LTHR estimate for the HR zones. */
+  hrMax?: number;
+  lthr?: number;
 }
 
 /** A regular commute (CLAUDE.md "Commuting"). */

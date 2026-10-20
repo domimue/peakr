@@ -9,6 +9,7 @@ import {
   totalDurationSec,
 } from './load';
 import { defaultRestSec } from './strength-reps';
+import { sportExperience } from './levels';
 import { planSessionTerrain } from './terrain';
 import type {
   Block,
@@ -44,9 +45,13 @@ export function athleteFor(profile: UserProfile, goal: GoalKind): Athlete {
     profile,
     goal,
     thresholdPaceSecPerKm:
-      profile.thresholdPaceSecPerKm ?? planConfig.paces.thresholdSecPerKm[profile.experience],
+      profile.thresholdPaceSecPerKm ??
+      profile.baseline?.thresholdPaceSecPerKm ??
+      planConfig.paces.thresholdSecPerKm[sportExperience(profile, 'run')],
     cssPacePer100mSec:
-      profile.cssPacePer100mSec ?? planConfig.paces.cssSecPer100m[profile.experience],
+      profile.cssPacePer100mSec ??
+      profile.baseline?.cssPacePer100mSec ??
+      planConfig.paces.cssSecPer100m[sportExperience(profile, 'swim')],
     pool: profile.poolLength ?? 25,
   };
 }

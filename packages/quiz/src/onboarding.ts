@@ -9,6 +9,7 @@ import {
   realisticRaceTimeRange,
   requiredSports,
   SPORTS,
+  thresholdFromEasyPace,
   zoneConfig,
   type Availability,
   type Commute,
@@ -729,8 +730,7 @@ export function thresholdPaceOf(a: QuizAnswers): number | undefined {
   }
   const easy = num(a, Q.runEasyPace);
   if (str(a, Q.runReference) === 'easyPace' && easy !== undefined) {
-    const [z2Slow, z2Fast] = zoneConfig.run.paceZoneBoundaries;
-    return Math.round(easy / ((z2Slow + z2Fast) / 2));
+    return thresholdFromEasyPace(easy);
   }
   return undefined;
 }

@@ -118,3 +118,12 @@ export function analyzeRaceResult(
     },
   };
 }
+
+/**
+ * Threshold pace from a typical easy (Zone 2) pace: easy pace sits in the middle of the Z2 pace
+ * band, which is defined as a multiple of threshold pace.
+ */
+export function thresholdFromEasyPace(easyPaceSecPerKm: number): number {
+  const [z2Slow, z2Fast] = cfg.paceZoneBoundaries;
+  return Math.round(easyPaceSecPerKm / ((z2Slow + z2Fast) / 2));
+}

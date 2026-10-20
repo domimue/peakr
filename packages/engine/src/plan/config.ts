@@ -404,6 +404,68 @@ export const planConfig = {
     /** Learned terrain profile: activities of the last n days, at least m of them. */
     profile: { windowDays: 90, minActivities: 3 },
   },
+  /**
+   * Plan calibration from recent activities (CLAUDE.md "Baseline from past activities"). Which
+   * activities count per value is documented in `baseline/derive.ts` and WORKOUTS.md §10.
+   */
+  baseline: {
+    /** Only activities of the last n days are read, never older. */
+    windowDays: 60,
+    /** At least this many full weeks must be covered for weekly volume and week-1 load. */
+    minWeeks: 2,
+    /** Week-1 load: trimmed mean over the last n full weeks. */
+    recentWeeks: 4,
+    trim: 0.25,
+    /** Minimum number of activities per derived value; below: "not enough data". */
+    min: {
+      volume: 3,
+      terrain: 3,
+      easyRuns: 4,
+      easySubset: 3,
+      paceHr: 4,
+      hrMax: 3,
+      lthrEfforts: 2,
+      swims: 3,
+    },
+    /**
+     * Outliers: unticked when longer than median + k × MAD of the sport and at least this multiple
+     * of its median duration (the weekly long session is not an outlier).
+     */
+    outlierMadFactor: 3,
+    outlierMinFactor: 2.5,
+    /** Runs shorter than this are not used for paces. */
+    minRunDistanceM: 1000,
+    /** HRmax: the n-th highest observed value (protects against strap spikes). */
+    hrMaxRank: 2,
+    /** LTHR: Friel – 95 % of the best 20-minute average HR. */
+    lthrFrom20MinFactor: 0.95,
+    /** Fallback: average HR of hard efforts of this duration (at least this share of HRmax). */
+    lthrEffort: { minSec: 20 * 60, maxSec: 60 * 60, minShareOfHrMax: 0.85 },
+    /** CSS estimate: fastest third of swims ≥ this distance, pace × factor. */
+    cssMinSwimM: 400,
+    cssFactor: 0.97,
+    /** Level class per sport from sessions per week, weekly minutes and longest session. */
+    levels: {
+      run: {
+        intermediate: { sessions: 2, weeklyMin: 90, longestMin: 30 },
+        advanced: { sessions: 4, weeklyMin: 240, longestMin: 75 },
+      },
+      bike: {
+        intermediate: { sessions: 2, weeklyMin: 150, longestMin: 60 },
+        advanced: { sessions: 3, weeklyMin: 360, longestMin: 150 },
+      },
+      swim: {
+        intermediate: { sessions: 2, weeklyMin: 60, longestMin: 30 },
+        advanced: { sessions: 3, weeklyMin: 150, longestMin: 50 },
+      },
+    } satisfies Record<
+      Sport,
+      Record<
+        'intermediate' | 'advanced',
+        { sessions: number; weeklyMin: number; longestMin: number }
+      >
+    >,
+  },
 } as const;
 
 export type PlanConfig = typeof planConfig;
