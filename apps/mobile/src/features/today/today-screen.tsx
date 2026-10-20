@@ -5,15 +5,18 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { todayIso } from '@/data/ids';
-import { Button, Card, Icon, ListState, radius, spacing, Text, useTheme } from '@/ui';
+import { Button, Card, Icon, ListState, spacing, Text, useTheme } from '@/ui';
 import { sessionDoneHaptic } from '@/ui/haptics';
 
-import { formatDate, initialWeek, weekOfPlan } from '../plan/calendar';
+import { formatDate, initialWeek, mondayOf, weekOfPlan } from '../plan/calendar';
 import { WeekProgressCard } from '../plan/components/week-progress-card';
 import { WeekStrip } from '../plan/components/week-strip';
 import { WorkoutCard } from '../plan/components/workout-card';
 import { usePlanUiStore } from '../plan/plan-ui-store';
 import { usePlan, usePlanActions } from '../plan/queries';
+import { WeatherChip } from '../weather/components/weather-chip';
+import { WeatherHintCard } from '../weather/components/weather-hint-card';
+import { useWorkoutWeather } from '../weather/queries';
 
 const workoutHref = (id: string) => `/training/workout/${encodeURIComponent(id)}` as const;
 
@@ -94,7 +97,7 @@ export function TodayScreen() {
           router.push('/plan');
         }}
       />
-      <WeatherChip />
+      <WeatherChip date={today} />
 
       {pause ? (
         <Card testID="pause-banner">
@@ -135,19 +138,25 @@ export function TodayScreen() {
         </Card>
       ) : (
         sessions.map((w) => (
-          <WorkoutCard
-            key={w.id}
-            workout={w}
-            status={statusOf(state, w.id)}
-            profile={input.profile}
-            outline={false}
-            onPress={() => router.push(workoutHref(w.id))}
-          />
+          <View key={w.id} style={styles.session}>
+            <WorkoutCard
+              workout={w}
+              status={statusOf(state, w.id)}
+              profile={input.profile}
+              outline={false}
+              onPress={() => router.push(workoutHref(w.id))}
+            />
+            <SessionWeatherHint workout={w} />
+          </View>
         ))
       )}
 
       {commutes.length > 0 && !pause ? (
-        <CommuteCard commutes={commutes} state={state} onToggle={actions.setStatus} />
+        <>
+          <CommuteCard commutes={commutes} state={state} onToggle={actions.setStatus} />
+          {/* Both ways of a commute share the weather: one hint is enough. */}
+          {commutes[0] ? <SessionWeatherHint workout={commutes[0]} /> : null}
+        </>
       ) : null}
 
       {week ? (
@@ -211,22 +220,33 @@ function Shell({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** Weather comes with the weather check (later phase); the chip shows where it will appear. */
-function WeatherChip() {
-  const { t } = useTranslation();
-  const { colors } = useTheme();
+/** The weather hint under a session, with its options wired to the plan. */
+function SessionWeatherHint({ workout }: { workout: Workout }) {
+  const weather = useWorkoutWeather(workout);
+  const actions = usePlanActions();
+  const setFeedback = usePlanUiStore((s) => s.setFeedback);
+  const showWeek = usePlanUiStore((s) => s.showWeek);
+  if (!weather) return null;
   return (
-    <View
-      style={[styles.chip, { borderColor: colors.border }]}
-      accessible
-      accessibilityLabel={t('today.weatherSoon')}
-      testID="weather-chip"
-    >
-      <Icon name="weather" size={16} color={colors.textMuted} />
-      <Text variant="caption" tone="secondary">
-        {t('today.weatherSoon')}
-      </Text>
-    </View>
+    <WeatherHintCard
+      workout={workout}
+      weather={weather}
+      onIndoor={() => router.push(`${workoutHref(workout.id)}?setting=indoor`)}
+      onMove={(date) => {
+        const result = actions.move(workout.id, date);
+        if (!result.ok) return;
+        const { warnings, suggestion } = result.value;
+        setFeedback(
+          warnings.length > 0 || suggestion
+            ? { workoutId: workout.id, toDate: date, warnings, suggestion }
+            : null,
+        );
+        showWeek(mondayOf(date));
+        router.push('/plan');
+      }}
+      onPickDay={() => router.push(`${workoutHref(workout.id)}?move=1`)}
+      onSkip={() => actions.setStatus(workout.id, 'skipped')}
+    />
   );
 }
 
@@ -279,16 +299,7 @@ const styles = StyleSheet.create({
   inline: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   flex: { flex: 1 },
   strong: { fontWeight: '600' },
-  chip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    alignSelf: 'flex-start',
-    gap: spacing.xs,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: spacing.xs,
-  },
+  session: { gap: spacing.sm },
   insights: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   insight: { flexGrow: 1, flexBasis: 160 },
   actions: { gap: spacing.sm },

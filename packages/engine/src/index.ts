@@ -166,7 +166,13 @@ export {
   workoutType,
 } from './plan/workout-type';
 export { annotateWeeks, weekKind } from './plan/week-facts';
-export { indoorVersion, type IndoorKind, type IndoorVersion } from './plan/indoor';
+export {
+  indoorVersion,
+  treadmillSpeedKmh,
+  type IndoorKind,
+  type IndoorVersion,
+} from './plan/indoor';
+export * from './weather';
 export {
   historyByMonth,
   performance,

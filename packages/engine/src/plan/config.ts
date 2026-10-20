@@ -405,6 +405,49 @@ export const planConfig = {
     profile: { windowDays: 90, minActivities: 3 },
   },
   /**
+   * Indoor versions of outdoor sessions (CLAUDE.md "Weather check", WORKOUTS.md §3–5). The
+   * treadmill does not feel like the road: no air resistance, no descents, warmer and monotonous –
+   * so it gets an incline, notes for heat and belt ramp-up, and long or downhill runs prefer
+   * "move to another day".
+   */
+  indoor: {
+    /** 1 % replaces the missing air resistance on the flat. */
+    treadmillFlatInclinePct: 1,
+    treadmillHillInclinePct: 6,
+    treadmillMaxInclinePct: 8,
+    /** Long treadmill runs from this length get the "split it into two halves" note. */
+    treadmillSplitFromMin: 75,
+    /** Longer runs than this prefer moving to another day over the treadmill. */
+    treadmillPreferMoveFromMin: 90,
+    /** Endurance rides are capped indoors (WORKOUTS.md §4) … */
+    trainerMaxMin: 90,
+    /** … and count denser: no coasting, no stops (1 min indoors ≈ 1.2 min outside). */
+    trainerDensity: 1.2,
+  },
+  /**
+   * Weather check – rain, snow, ice, storm only, no heat logic (CLAUDE.md "Real-life & seasonal
+   * adaptation" 4). Thresholds per hour of the session; `null` = this reason never applies.
+   */
+  weather: {
+    /** Heavy rain: mm in one hour, or this total over the session. */
+    heavyRainMmPerHour: { run: 4, bike: 2.5, swim: null, winter: null },
+    heavyRainSessionMm: { run: 8, bike: 5, swim: null, winter: null },
+    /** Snowfall in cm per hour (any real snow on a bike, more for a run). */
+    snowCmPerHour: { run: 1, bike: 0.2, swim: null, winter: null },
+    /** Wind gusts in km/h (falling branches, crosswinds on the bike, waves in open water). */
+    stormGustKmh: { run: 65, bike: 50, swim: 40, winter: 70 },
+    /** Ice: precipitation while at or below this temperature … */
+    iceTempC: 0.5,
+    iceMinPrecipMm: 0.1,
+    /** … or freezing temperature after this much rain in the hours before (black ice). */
+    blackIceLookbackHours: 6,
+    blackIceWetMm: 0.5,
+    /** Session time when the user has not set one (local hour). */
+    defaultSessionHour: 18,
+    /** Days to look at for "move to another day". */
+    moveOptions: 3,
+  },
+  /**
    * Plan calibration from recent activities (CLAUDE.md "Baseline from past activities"). Which
    * activities count per value is documented in `baseline/derive.ts` and WORKOUTS.md §10.
    */

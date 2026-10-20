@@ -10,6 +10,7 @@ Security, and Edge Functions for everything that needs a secret.
 | `functions/strava-webhook/` | Strava Webhook Events API: validation + activity/athlete events    |
 | `functions/strava-sync/` | "Sync now", 180-day history, streams on request (user) and the nightly catch-up (pg_cron) |
 | `functions/strava-baseline/` | Baseline for plan calibration: last 60 days of runs/rides/swims, reference only |
+| `functions/weather/`     | Weather check: hourly forecast per ~5 km cell (MeteoSwiss for Switzerland, Open-Meteo elsewhere), cached per hour |
 | `functions/delete-account/` | Account deletion: revokes Strava, deletes all rows and the auth user |
 | `functions/_shared/`     | Token encryption, signed OAuth state, provider registry, Strava import, Expo push |
 | `templates/`             | Sign-in emails (link **and** 6-digit code)                            |
@@ -30,6 +31,7 @@ Security, and Edge Functions for everything that needs a secret.
 | `strava_routes`      | Edge Functions only            | routes planned in Strava (rides, runs) with their GPX; own rows readable |
 | `baseline_activities` | Edge Functions only           | reference-only Strava activities (last 60 days) for plan calibration; never synced as history, no Realtime; own rows readable |
 | `baseline_imports`   | Edge Functions only            | last baseline import per user + custom Strava HR zones; own row readable |
+| `weather_cache`      | Edge Functions only            | forecasts per ~5 km grid cell and UTC hour; no user id, no access for app or website |
 | `push_tokens`        | the app (own device)           | Expo push tokens + "notify me" per device                   |
 | `waitlist`           | the website (insert only)      | Phase 1b                                                    |
 
@@ -49,6 +51,7 @@ pnpm exec supabase functions deploy strava-webhook
 pnpm exec supabase functions deploy strava-sync
 pnpm exec supabase functions deploy delete-account
 pnpm exec supabase functions deploy strava-baseline
+pnpm exec supabase functions deploy weather
 pnpm exec supabase secrets set --env-file supabase/functions/.env
 ```
 
@@ -74,7 +77,9 @@ New schema changes go into a new file: `pnpm exec supabase migration new <name>`
    linking** (Authentication → Sign In / Providers), so Google sign-in can turn the anonymous user
    into the account. Deploy the new function `strava-baseline` too (see Commands).
 7. **Edge Functions → Secrets**: `TOKEN_ENCRYPTION_KEY`, `OAUTH_STATE_SECRET`,
-   `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET` (see `functions/.env.example`).
+   `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET` (see `functions/.env.example`). Before launch also
+   `OPEN_METEO_API_KEY` (Phase 8c): without it the weather check uses Open-Meteo's free API, which
+   is for non-commercial use only.
 8. **Project Settings → API keys**: project URL and **publishable** key into
    `apps/mobile/.env.local` (see `apps/mobile/.env.example`) and into the EAS environment
    variables. Never the secret / service-role key.
