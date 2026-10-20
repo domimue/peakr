@@ -31,6 +31,7 @@ describe('legal pages', () => {
       expect(screen.getByRole('heading', { level: 2, name: heading })).toBeDefined();
     }
     expect(screen.getByText(/never used to train artificial intelligence/)).toBeDefined();
+    expect(screen.getByText(/stored separately as reference data only/)).toBeDefined();
     expect(screen.getByText(/only load after you have given your consent/)).toBeDefined();
   });
 

@@ -285,7 +285,7 @@
         },
         {
           "heading": "Strava",
-          "body": "If you connect Strava, we receive an access token, the activities you record (for example sport, start time, duration, distance, elevation, heart rate and route) and the routes you planned in Strava. For outdoor runs and rides we also store the recorded activity streams – distance, altitude, time, heart rate and GPS track, reduced to about one point every 25 metres – to evaluate your sessions against the terrain. When you connect, we import up to 180 days of your past activities so the app can recognise the routes you run and ride regularly. We use this data only to adapt your own plan, build your own route library and mark sessions as done. It is never shown to other users and never used to train artificial intelligence or machine learning models (as required by the Strava API Agreement). You can disconnect Strava at any time in the app or in your Strava settings; we then delete the token, the imported activities, activity streams and Strava routes and stop importing. Routes you already have in your route library stay there until you delete them or your account."
+          "body": "If you connect Strava, we receive an access token, the activities you record (for example sport, start time, duration, distance, elevation, heart rate and route) and the routes you planned in Strava. For outdoor runs and rides we also store the recorded activity streams – distance, altitude, time, heart rate and GPS track, reduced to about one point every 25 metres – to evaluate your sessions against the terrain. When you connect, we import up to 180 days of your past activities so the app can recognise the routes you run and ride regularly. When you create or recalibrate your plan, you can also let us read your runs, rides and swims of the last 60 days and the heart-rate zones you set in Strava; you see the list and choose which activities to use. These are stored separately as reference data only: they calibrate the starting point of your plan (for example weekly volume, easy pace and heart-rate zones), and they are never added to your training history, never counted as completed sessions and never shown in your progress. This reference data is deleted when you disconnect Strava or delete your account. We use this data only to adapt your own plan, build your own route library and mark sessions as done. It is never shown to other users and never used to train artificial intelligence or machine learning models (as required by the Strava API Agreement). You can disconnect Strava at any time in the app or in your Strava settings; we then delete the token, the imported activities, activity streams and Strava routes and stop importing. Routes you already have in your route library stay there until you delete them or your account."
         },
         {
           "heading": "Maps (MapTiler)",
@@ -619,7 +619,7 @@
     "deletedItems": [
       "Your account and login (email address, sign-in with Google or Apple)",
       "Your profile, quiz answers, training zones and your training plan",
-      "Your synced activities and workout history",
+      "Your synced activities and workout history, and the reference activities used to calibrate your plan",
       "Integration tokens – we also revoke Peakr’s access to your Strava account",
       "Push notification tokens of your devices"
     ],
