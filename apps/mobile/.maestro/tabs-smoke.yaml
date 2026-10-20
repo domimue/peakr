@@ -1,9 +1,10 @@
-# All five tabs open and show their main content (Phase 5c).
+# All five tabs open and show their main content; Plan switches between weeks and calendar
+# (Phase 5c).
 #
 # Same setup as plan-drag-drop.yaml: development build + Metro running.
 #   maestro test apps/mobile/.maestro/tabs-smoke.yaml
 appId: com.peakr.app
-name: Tabs – Today, Plan, Calendar, Progress, Profile
+name: Tabs – Today, Plan, Gym, Progress, Profile
 tags:
   - tabs
 env:
@@ -51,7 +52,15 @@ env:
 - assertVisible:
     id: week-strip
 - tapOn: Plan
+# "Use as my plan" left the Plan tab on its calendar view.
+- assertVisible:
+    id: calendar-week-0
+- tapOn: Weeks
+- assertVisible:
+    id: week-progress-0
 - assertVisible: Week 1 of .*
+- tapOn: Gym
+- assertVisible: Your gym workspace
 - tapOn: Progress
 - assertVisible: History
 - tapOn: Performance

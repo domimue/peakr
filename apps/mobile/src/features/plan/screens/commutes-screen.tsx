@@ -21,7 +21,7 @@ import { Button, Card, Icon, Screen, spacing, Text, useTheme } from '@/ui';
 import { QuestionInput } from '../../onboarding/question-input';
 import { addDays, formatDate } from '../calendar';
 import { usePlan, usePlanActions } from '../queries';
-import { issueText } from './plan-screen';
+import { issueText } from '../issue-text';
 
 const Q = QUESTION_IDS;
 const IDS: readonly string[] = [Q.commuteSport, Q.commuteMinutes, Q.commuteDays, Q.commuteBothWays];

@@ -10,7 +10,7 @@ import { Button, Card, ChoiceList, Screen, Text, useTheme } from '@/ui';
 import { QuestionInput } from '../../onboarding/question-input';
 import { formatDate } from '../calendar';
 import { usePlan, usePlanActions } from '../queries';
-import { issueText } from './plan-screen';
+import { issueText } from '../issue-text';
 
 const REASONS: PauseReason[] = ['illness', 'injury', 'holiday'];
 

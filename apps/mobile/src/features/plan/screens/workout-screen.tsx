@@ -51,7 +51,7 @@ import { workoutKm } from '../components/workout-card';
 import { calendarTitle, kindIcon, typeColor, typeName } from '../kind';
 import { usePlanUiStore } from '../plan-ui-store';
 import { usePlan, usePlanActions } from '../queries';
-import { issueText } from './plan-screen';
+import { issueText } from '../issue-text';
 
 export interface WorkoutScreenProps {
   id: string;

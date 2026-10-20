@@ -3,7 +3,10 @@ import { useTranslation } from 'react-i18next';
 
 import { useTheme } from '@/ui';
 
-/** Five tabs (CLAUDE.md "UI patterns"): Today, Plan, Calendar, Progress, Profile. */
+/**
+ * Five tabs (CLAUDE.md "UI patterns"): Today, Plan, Gym, Progress, Profile. The calendar is a view
+ * inside Plan.
+ */
 export default function TabsLayout() {
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -23,9 +26,9 @@ export default function TabsLayout() {
         <NativeTabs.Trigger.Label>{t('tabs.plan')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="list.bullet.rectangle" md="view_agenda" />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="calendar">
-        <NativeTabs.Trigger.Label>{t('tabs.calendar')}</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="calendar" md="calendar_month" />
+      <NativeTabs.Trigger name="gym">
+        <NativeTabs.Trigger.Label>{t('tabs.gym')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="dumbbell" md="fitness_center" />
       </NativeTabs.Trigger>
       <NativeTabs.Trigger name="progress">
         <NativeTabs.Trigger.Label>{t('tabs.progress')}</NativeTabs.Trigger.Label>

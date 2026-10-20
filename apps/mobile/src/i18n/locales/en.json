@@ -12,11 +12,11 @@
     "retry": "Try again"
   },
   "tabs": {
-    "plan": "Plan",
-    "profile": "Profile",
     "today": "Today",
-    "calendar": "Calendar",
-    "progress": "Progress"
+    "plan": "Plan",
+    "gym": "Gym",
+    "progress": "Progress",
+    "profile": "Profile"
   },
   "plan": {
     "title": "Your plan",
@@ -220,7 +220,11 @@
     "noWeeks": "This plan has no weeks yet.",
     "expandHint": "Shows the sessions of this week",
     "collapseHint": "Hides the sessions of this week",
-    "openInCalendar": "Open in calendar"
+    "openInCalendar": "Open in calendar",
+    "views": {
+      "weeks": "Weeks",
+      "calendar": "Calendar"
+    }
   },
   "fields": {
     "age": "Age",
@@ -1807,7 +1811,6 @@
     "seeWeek": "See this week"
   },
   "calendar": {
-    "title": "Calendar",
     "add": "Add",
     "addA11y": "Add a session on {{date}}",
     "resetWeek": "Reset week",
@@ -2128,5 +2131,29 @@
     "save": "Save zones",
     "saved": "Saved. Your plan's targets now use these zones.",
     "fixErrors": "Please fix the highlighted fields before saving."
+  },
+  "gym": {
+    "title": "Gym",
+    "previewTitle": "Your gym workspace",
+    "previewBody": "A full strength log inside Peakr, as an add-on to your plan or on its own. Planned strength sessions open here, pre-filled.",
+    "features": {
+      "library": {
+        "title": "Exercise library",
+        "body": "Every exercise with a description and the muscles it trains."
+      },
+      "routines": {
+        "title": "Routine builder",
+        "body": "Build your own routines and splits, with supersets."
+      },
+      "session": {
+        "title": "Live session",
+        "body": "Log weight, reps and RPE per set, with rest timer and plate calculator – works offline."
+      },
+      "history": {
+        "title": "History & records",
+        "body": "Personal records and volume per exercise and muscle group."
+      }
+    },
+    "availableNow": "Available now"
   }
 }

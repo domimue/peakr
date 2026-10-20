@@ -7,6 +7,7 @@ import { StyleSheet, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { todayIso } from '@/data/ids';
+import { usePlanUiStore } from '@/features/plan/plan-ui-store';
 import { useCreatePlan } from '@/features/plan/queries';
 import { useActiveWorkoutStore } from '@/features/strength/active-workout-store';
 import { Badge, Button, Card, Screen, SegmentedControl, spacing, Text, useTheme } from '@/ui';
@@ -50,7 +51,12 @@ export function PlanPreviewScreen() {
               startDate: planStartDate(todayIso()),
               ...(p.targetDate ? { targetDate: liveTargetDate(p.targetDate) } : {}),
             },
-            { onSuccess: () => router.replace('/calendar') },
+            {
+              onSuccess: () => {
+                usePlanUiStore.getState().setView('calendar');
+                router.replace('/plan');
+              },
+            },
           );
         }}
       />

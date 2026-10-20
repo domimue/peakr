@@ -49,8 +49,6 @@ export function ProfileScreen() {
     { icon: 'winter', title: t('plan.winter.title'), href: '/training/winter' },
     { icon: 'book', title: t('workoutTypes.title'), href: '/training/workout-types' },
     { icon: 'strength', title: t('strength.setup.title'), href: '/strength/setup' },
-    { icon: 'structure', title: t('strength.routines.title'), href: '/strength/routines' },
-    { icon: 'sessions', title: t('strength.quickLog.title'), href: '/strength/quick-log' },
   ];
   const settings: Row[] = [
     {

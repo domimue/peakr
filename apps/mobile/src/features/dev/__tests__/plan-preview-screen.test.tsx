@@ -26,7 +26,7 @@ describe('dev plan preview', () => {
     const replace = jest.spyOn(router, 'replace').mockImplementation(() => undefined);
     await renderWithQuery(<PlanPreviewScreen />);
     await fireEvent.press(screen.getByText('Use as my plan'));
-    await waitFor(() => expect(replace).toHaveBeenCalledWith('/calendar'));
+    await waitFor(() => expect(replace).toHaveBeenCalledWith('/plan'));
     const stored = mock.store.plan;
     expect(stored?.input.goal).toEqual({ kind: 'half' });
     expect(stored?.state.plan.weeks.length).toBe(12);

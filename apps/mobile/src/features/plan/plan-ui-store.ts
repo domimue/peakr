@@ -10,18 +10,26 @@ export interface MoveFeedback {
   suggestion: RebalanceSuggestion | null;
 }
 
+/** The two views of the Plan tab (segmented control). */
+export type PlanView = 'weeks' | 'calendar';
+
 interface PlanUiState {
+  view: PlanView;
   /** Monday of the first week the Calendar shows (null: the current week). */
   weekStart: string | null;
   feedback: MoveFeedback | null;
+  setView: (view: PlanView) => void;
+  /** Switches the Plan tab to the calendar, starting at that week. */
   showWeek: (monday: string) => void;
   setFeedback: (feedback: MoveFeedback | null) => void;
 }
 
-/** Calendar UI state (survives switching tabs and opening a workout). */
+/** Plan tab UI state (survives switching tabs and opening a workout). */
 export const usePlanUiStore = create<PlanUiState>()((set) => ({
+  view: 'weeks',
   weekStart: null,
   feedback: null,
-  showWeek: (weekStart) => set({ weekStart }),
+  setView: (view) => set({ view }),
+  showWeek: (weekStart) => set({ weekStart, view: 'calendar' }),
   setFeedback: (feedback) => set({ feedback }),
 }));
