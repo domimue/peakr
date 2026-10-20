@@ -16,7 +16,16 @@ import { renderWithQuery } from '@/test-utils/render-with-query';
 import { redirectSystemPath } from '../../../../app/+native-intent';
 import { KomootCard } from '../../integrations/screens/komoot-card';
 import { normalizeKomootProfileUrl } from '../../integrations/komoot';
-import { gpxSport, nameFromUri, pointsFromActivity, routeFromPoints } from '../import';
+import { stravaRouteDraft, stravaRouteId } from '@/data/routes/build';
+
+import {
+  classifySharedText,
+  gpxSport,
+  isKomootGpx,
+  nameFromUri,
+  pointsFromActivity,
+  routeFromPoints,
+} from '../import';
 import { RouteImportScreen } from '../screens/route-import-screen';
 import { RouteLibraryScreen } from '../screens/route-library-screen';
 import { RoutePickerScreen } from '../screens/route-picker-screen';
@@ -120,6 +129,31 @@ describe('helpers', () => {
     expect(nameFromUri('file:///cache/Morning%20loop.GPX')).toBe('Morning loop');
   });
 
+  it('recognises Komoot GPX files and shared Komoot links', () => {
+    expect(
+      isKomootGpx('<?xml version="1.0"?><gpx version="1.1" creator="https://www.komoot.de">'),
+    ).toBe(true);
+    expect(isKomootGpx('<gpx creator="Garmin Connect">')).toBe(false);
+    expect(classifySharedText('Check out this tour https://www.komoot.com/tour/123?ref=x')).toEqual(
+      {
+        kind: 'komootLink',
+      },
+    );
+    expect(classifySharedText('  <gpx><trk/></gpx>')).toEqual({
+      kind: 'gpx',
+      xml: '<gpx><trk/></gpx>',
+    });
+    expect(classifySharedText('hello')).toEqual({ kind: 'other' });
+  });
+
+  it('turns a route planned in Strava into a library route with a stable id', () => {
+    const draft = stravaRouteDraft('987', 'Uetliberg', 'bike', gpxOf(loop(3000)));
+    expect(draft).toMatchObject({ name: 'Uetliberg', sport: 'bike', source: 'strava_route' });
+    expect(draft?.sourceKeys).toEqual(['strava-route:987']);
+    expect(stravaRouteId('987')).toBe('strava-route-987');
+    expect(stravaRouteDraft('1', 'x', 'run', '<gpx></gpx>')).toBeNull();
+  });
+
   it('sends opened GPX files to the import and leaves other links alone', () => {
     expect(redirectSystemPath({ path: 'content://x/route.gpx', initial: true })).toBe(
       '/routes/import?uri=content%3A%2F%2Fx%2Froute.gpx',
@@ -176,6 +210,9 @@ describe('route library', () => {
     expect(screen.getByText('Long loop')).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('Recognised'));
     expect(screen.queryByText('Short loop')).toBeNull();
+    await fireEvent.press(screen.getByText('Planned in Strava'));
+    expect(screen.getByText('No route matches these filters.')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('Recognised'));
     await fireEvent.press(screen.getByText('Ride'));
     expect(screen.getByText('No route matches these filters.')).toBeOnTheScreen();
   });
@@ -199,6 +236,34 @@ describe('GPX import', () => {
     });
     expect(routes.store.routes[0]?.distanceM).toBeGreaterThan(4900);
     expect(router.replace).toHaveBeenCalled();
+  });
+
+  it('keeps name, distance and elevation of a GPX shared from Komoot', async () => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({ uri: 'content://com.komoot/files/42' });
+    (File as unknown as jest.Mock).mockImplementation(() => ({
+      text: () =>
+        Promise.resolve(
+          gpxOf(loop(2500), 'Rigi Panoramaweg').replace(
+            '<gpx>',
+            '<gpx creator="https://www.komoot.de">',
+          ),
+        ),
+    }));
+    await renderWithQuery(<RouteImportScreen />);
+    expect(await screen.findByDisplayValue('Rigi Panoramaweg')).toBeOnTheScreen();
+    expect(screen.getByTestId('import-summary')).toHaveTextContent(
+      /^5 km · \d+ m up · \d+ m down · From Komoot \(GPX\)$/,
+    );
+    await fireEvent.press(screen.getByText('Add to my routes'));
+    await waitFor(() => expect(routes.store.routes[0]?.source).toBe('komoot'));
+  });
+
+  it('explains a shared Komoot link instead of reading it', async () => {
+    (useLocalSearchParams as jest.Mock).mockReturnValue({
+      text: 'https://www.komoot.com/tour/123456',
+    });
+    await renderWithQuery(<RouteImportScreen />);
+    expect(await screen.findByTestId('import-error')).toHaveTextContent(/Export as GPX file/);
   });
 
   it('explains files without a track', async () => {

@@ -42,12 +42,14 @@ export type SyncKey =
   | 'sync.activitiesCursor'
   | 'sync.routesCursor'
   | 'sync.streamsCursor'
+  | 'sync.stravaRoutesCursor'
   | 'sync.userId';
 const SYNC_KEYS: SyncKey[] = [
   'sync.cursor',
   'sync.activitiesCursor',
   'sync.routesCursor',
   'sync.streamsCursor',
+  'sync.stravaRoutesCursor',
   'sync.userId',
 ];
 

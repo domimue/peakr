@@ -9,7 +9,14 @@ import { Button, ChipGroup, ListState, Screen, spacing, Text, TextField, useThem
 
 import { ElevationChart } from '../components/elevation-chart';
 import { RouteMap } from '../components/route-map';
-import { draftFromGpx, nameFromUri, pickGpxFile, readFileText, type RouteDraft } from '../import';
+import {
+  classifySharedText,
+  draftFromGpx,
+  nameFromUri,
+  pickGpxFile,
+  readFileText,
+  type RouteDraft,
+} from '../import';
 import { useSaveRoute } from '../queries';
 import { routeColor, routeFacts } from './route-library-screen';
 
@@ -20,27 +27,32 @@ type State =
   | { kind: 'ready'; draft: RouteDraft };
 
 /**
- * GPX import: from the document picker, or from a file shared / opened with Peakr (`uri`
- * parameter). Shows the route before it is saved; the user names it and picks run or ride.
+ * GPX import: from the document picker, or from a file shared into / opened with Peakr (`uri`;
+ * shared text arrives as `text`). This is also the Komoot path: export the tour as GPX in the
+ * Komoot app and share it to Peakr. The confirmation shows name, distance, elevation and the
+ * source before anything is saved; the user can rename it and pick run or ride.
  */
 export function RouteImportScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const params = useLocalSearchParams<{ uri?: string }>();
+  const params = useLocalSearchParams<{ uri?: string; text?: string }>();
   const save = useSaveRoute();
   const [picked, setPicked] = useState<State | null>(null);
   const [nameDraft, setNameDraft] = useState<string | null>(null);
   const [sportDraft, setSportDraft] = useState<RouteSport | null>(null);
 
+  function fromXml(xml: string, fileName: string): State {
+    const result = draftFromGpx(xml, fileName || t('routes.import.defaultName'));
+    if (!result.ok) {
+      const code = result.issues[0]?.code ?? 'gpxNoPoints';
+      return { kind: 'error', message: t(`validation.${code}`) };
+    }
+    return { kind: 'ready', draft: result.value };
+  }
+
   async function load(uri: string, fileName: string): Promise<State> {
     try {
-      const xml = await readFileText(uri);
-      const result = draftFromGpx(xml, fileName || t('routes.import.defaultName'));
-      if (!result.ok) {
-        const code = result.issues[0]?.code ?? 'gpxNoPoints';
-        return { kind: 'error', message: t(`validation.${code}`) };
-      }
-      return { kind: 'ready', draft: result.value };
+      return fromXml(await readFileText(uri), fileName);
     } catch (error) {
       console.warn('GPX import failed', error);
       return { kind: 'error', message: t('routes.import.readError') };
@@ -64,8 +76,22 @@ export function RouteImportScreen() {
     setPicked(await load(file.uri, nameFromUri(file.name)));
   }
 
-  const state: State =
-    picked ?? (params.uri === undefined ? { kind: 'idle' } : (shared.data ?? { kind: 'loading' }));
+  function fromText(text: string): State {
+    const shared = classifySharedText(text);
+    if (shared.kind === 'gpx') return fromXml(shared.xml, '');
+    return {
+      kind: 'error',
+      message: t(
+        shared.kind === 'komootLink' ? 'routes.import.komootLink' : 'routes.import.notGpx',
+      ),
+    };
+  }
+
+  let state: State;
+  if (picked) state = picked;
+  else if (params.uri !== undefined) state = shared.data ?? { kind: 'loading' };
+  else if (params.text !== undefined) state = fromText(params.text);
+  else state = { kind: 'idle' };
   const name = nameDraft ?? (state.kind === 'ready' ? state.draft.name : '');
   const sport = sportDraft ?? (state.kind === 'ready' ? state.draft.sport : 'run');
   const trimmed = name.trim();
@@ -88,8 +114,12 @@ export function RouteImportScreen() {
       {state.kind === 'ready' ? (
         <View style={styles.gap} testID="import-preview">
           <RouteMap polyline={state.draft.polyline} color={routeColor(colors, sport)} />
-          <Text variant="caption" tone="secondary">
-            {routeFacts(t, state.draft)}
+          <Text variant="label" accessibilityRole="header" testID="import-summary">
+            {[
+              routeFacts(t, state.draft),
+              t('routes.meters', { value: state.draft.lossM }) + ' ' + t('routes.down'),
+              t(`routes.source.${state.draft.source}`),
+            ].join(' · ')}
           </Text>
           <ElevationChart
             profile={state.draft.profile}

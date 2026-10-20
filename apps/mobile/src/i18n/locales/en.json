@@ -2181,7 +2181,7 @@
     "detailTitle": "Route",
     "importGpx": "Import GPX file",
     "empty": "No routes yet",
-    "emptyHint": "Import a GPX file or let Peakr find the routes you run and ride most often on Strava.",
+    "emptyHint": "Import a GPX file (also from Komoot), plan routes in Strava, or let Peakr find the routes you run and ride most often.",
     "noMatch": "No route matches these filters.",
     "notFound": "This route no longer exists.",
     "mapLabel": "Map of the route",
@@ -2198,7 +2198,8 @@
     "source": {
       "gpx": "GPX import",
       "strava": "Recognised from Strava",
-      "komoot": "Komoot"
+      "komoot": "From Komoot (GPX)",
+      "strava_route": "Planned in Strava"
     },
     "terrain": {
       "flat": "Flat",
@@ -2216,7 +2217,8 @@
       "recognised": "Recognised",
       "short": "Short",
       "medium": "Medium",
-      "long": "Long"
+      "long": "Long",
+      "planned": "Planned in Strava"
     },
     "stats": {
       "distance": "Distance",
@@ -2232,12 +2234,14 @@
     },
     "import": {
       "title": "Import route",
-      "intro": "Choose a GPX file from Komoot, Strava, Garmin or any other app. You can also open a GPX file with Peakr from your files app.",
+      "intro": "Choose a GPX file or share one into Peakr. From Komoot: open the tour in the Komoot app, export it as a GPX file and share it with Peakr – name, distance and elevation are kept.",
       "pick": "Choose GPX file",
       "another": "Choose another file",
       "save": "Add to my routes",
       "defaultName": "Imported route",
-      "readError": "The file could not be read. Is it a GPX file?"
+      "readError": "The file could not be read. Is it a GPX file?",
+      "komootLink": "This is a link to a Komoot tour. Peakr cannot read Komoot links. In the Komoot app, open the tour, choose “Export as GPX file” and share that file with Peakr.",
+      "notGpx": "Peakr can import GPX files only. Share the route as a GPX file."
     },
     "recognise": {
       "title": "Routes from Strava",
@@ -2306,7 +2310,8 @@
         "tooFlat": "flatter than planned",
         "farFromStart": "far from your start"
       }
-    }
+    },
+    "down": "down"
   },
   "terrainProfile": {
     "title": "Terrain profile",

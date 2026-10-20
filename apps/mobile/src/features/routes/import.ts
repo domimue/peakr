@@ -1,7 +1,5 @@
 import {
-  buildRouteProfile,
   decodePolyline,
-  encodePolyline,
   parseGpx,
   type GpxField,
   type GpxPoint,
@@ -11,44 +9,25 @@ import {
 import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 
-import type { RouteSource } from '@/data/db/schema';
-import type { NewRoute, StoredRoute, StoredStream } from '@/data/repositories/route-repository';
+import type { StoredRoute, StoredStream } from '@/data/repositories/route-repository';
+import { routeFromPoints, type RouteDraft } from '@/data/routes/build';
 
 /**
  * Route import (CLAUDE.md "Route sources": own library). GPX files come from the document picker
  * or the share sheet ("Open with Peakr"); recognised routes from the most recent activity on them.
  */
 
-export type RouteDraft = Omit<NewRoute, 'id'>;
-
-/** Builds a library route from track points (profile, simplified track, stats, climbs). */
-export function routeFromPoints(
-  points: readonly GpxPoint[],
-  name: string,
-  sport: RouteSport,
-  source: RouteSource,
-  sourceKeys: string[] = [],
-): RouteDraft {
-  const p = buildRouteProfile(points);
-  return {
-    name,
-    sport,
-    source,
-    distanceM: p.distanceM,
-    gainM: p.gainM,
-    lossM: p.lossM,
-    start: p.start,
-    polyline: encodePolyline(p.track),
-    profile: p.profile,
-    climbs: p.climbs,
-    sourceKeys,
-  };
-}
+export { routeFromPoints, type RouteDraft } from '@/data/routes/build';
 
 /** Sport hint of a GPX file (`<type>`); runs unless it says cycling. */
 export function gpxSport(xml: string): RouteSport {
   const type = /<type>\s*([^<]*)<\/type>/i.exec(xml)?.[1]?.toLowerCase() ?? '';
   return /cycl|bik|ride|velo/.test(type) ? 'bike' : 'run';
+}
+
+/** Komoot writes itself into the GPX header (`creator="https://www.komoot.de"`). */
+export function isKomootGpx(xml: string): boolean {
+  return /<gpx\b[^>]*\bcreator\s*=\s*["'][^"']*komoot/i.test(xml.slice(0, 2000));
 }
 
 export function draftFromGpx(xml: string, fallbackName: string): Result<RouteDraft, GpxField> {
@@ -60,9 +39,22 @@ export function draftFromGpx(xml: string, fallbackName: string): Result<RouteDra
       parsed.value.points,
       parsed.value.name ?? fallbackName,
       gpxSport(xml),
-      'gpx',
+      isKomootGpx(xml) ? 'komoot' : 'gpx',
     ),
   };
+}
+
+export type SharedText = { kind: 'gpx'; xml: string } | { kind: 'komootLink' } | { kind: 'other' };
+
+/**
+ * Text shared into Peakr instead of a file: some apps share the GPX itself as text; Komoot's
+ * "Share" sends a link, which Peakr never fetches (no scraping) – the user exports the GPX instead.
+ */
+export function classifySharedText(text: string): SharedText {
+  const trimmed = text.trim();
+  if (trimmed.startsWith('<') && /<gpx\b/i.test(trimmed)) return { kind: 'gpx', xml: trimmed };
+  if (/komoot\.(com|de)\/[^\s]*tour\//i.test(trimmed)) return { kind: 'komootLink' };
+  return { kind: 'other' };
 }
 
 /** "Morning loop.gpx" → "Morning loop". */

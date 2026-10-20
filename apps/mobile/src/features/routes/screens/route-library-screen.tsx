@@ -23,7 +23,14 @@ import { gainPerKm } from '../import';
 import { useRoutes } from '../queries';
 
 type SportFilter = 'all' | RouteSport;
-type SourceFilter = 'all' | 'own' | 'recognised';
+type SourceFilter = 'all' | 'own' | 'planned' | 'recognised';
+
+/** Which library source each filter shows. */
+const SOURCES: Record<Exclude<SourceFilter, 'all'>, readonly StoredRoute['source'][]> = {
+  own: ['gpx', 'komoot'],
+  planned: ['strava_route'],
+  recognised: ['strava'],
+};
 type DistanceFilter = 'all' | 'short' | 'medium' | 'long';
 type HillFilter = 'all' | Terrain;
 
@@ -62,7 +69,7 @@ export function RouteLibraryScreen() {
   const visible = (routes ?? []).filter(
     (r) =>
       (sport === 'all' || r.sport === sport) &&
-      (source === 'all' || (source === 'recognised') === (r.source === 'strava')) &&
+      (source === 'all' || SOURCES[source].includes(r.source)) &&
       (distance === 'all' || distanceBand(r) === distance) &&
       (hills === 'all' || classifyTerrain(r.sport, gainPerKm(r)) === hills),
   );
@@ -131,6 +138,7 @@ export function RouteLibraryScreen() {
             options={[
               { value: 'all', label: t('routes.filter.all') },
               { value: 'own', label: t('routes.filter.own') },
+              { value: 'planned', label: t('routes.filter.planned') },
               { value: 'recognised', label: t('routes.filter.recognised') },
             ]}
             selected={[source]}

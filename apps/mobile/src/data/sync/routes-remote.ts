@@ -166,3 +166,50 @@ export async function pullStreams(
   }
   return { upserts, deletes, cursor: newest(rows, cursor) };
 }
+
+// ---------------------------------------------------------------------------------------------
+// Routes the user planned in Strava (table `strava_routes`, written by the Strava import with
+// the route exported as GPX; read-only for the app).
+
+interface StravaRouteRow {
+  external_id: string;
+  name: string | null;
+  sport: RouteSport | null;
+  gpx: string | null;
+  deleted: boolean;
+  server_updated_at: string;
+}
+
+export interface StravaRouteChange {
+  externalId: string;
+  name: string;
+  sport: RouteSport;
+  /** Null: deleted at Strava (or no longer a run / ride). */
+  gpx: string | null;
+}
+
+export async function pullStravaRoutes(
+  client: SupabaseClient,
+  cursor: string | null,
+): Promise<{ changes: StravaRouteChange[]; cursor: string | null }> {
+  const after = since(cursor);
+  const rows = await fetchPaged<StravaRouteRow>(
+    (from, to) =>
+      client
+        .from('strava_routes')
+        .select('external_id, name, sport, gpx, deleted, server_updated_at')
+        .gt('server_updated_at', after)
+        .order('server_updated_at')
+        .order('external_id')
+        .range(from, to)
+        .overrideTypes<StravaRouteRow[], { merge: false }>(),
+    'pull strava routes',
+  );
+  const changes = rows.map((row) => ({
+    externalId: row.external_id,
+    name: row.name ?? '',
+    sport: row.sport ?? 'run',
+    gpx: row.deleted || !row.sport ? null : row.gpx,
+  }));
+  return { changes, cursor: newest(rows, cursor) };
+}
