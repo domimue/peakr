@@ -1983,7 +1983,20 @@
       "unsyncedTitle": "Changes not synced",
       "unsyncedMessage": "Some changes on this phone haven’t reached your account yet. If you sign out now, they are lost.",
       "signOutAnyway": "Sign out anyway",
-      "signOutFailed": "Couldn’t sign out. Please try again."
+      "signOutFailed": "Couldn’t sign out. Please try again.",
+      "delete": {
+        "button": "Delete account",
+        "title": "Delete your account?",
+        "data": "Your account and all its data are removed for good: profile, quiz answers, training zones, your plan, synced activities, strength logs and connections. Peakr’s access to Strava is revoked. This can’t be undone.",
+        "subscription": "Deleting your account does not cancel an active subscription. Cancel it separately in Google Play or the App Store (or in the customer portal if you subscribed on the website).",
+        "manageGooglePlay": "Open Google Play subscriptions",
+        "manageAppStore": "Open App Store subscriptions",
+        "confirmLabel": "Type {{word}} to confirm",
+        "confirm": "Delete account permanently",
+        "deleting": "Deleting…",
+        "offline": "You’re offline. Nothing was deleted – connect to the internet and try again.",
+        "failed": "Your account couldn’t be deleted. Nothing was removed from this phone – please try again."
+      }
     }
   },
   "activities": {

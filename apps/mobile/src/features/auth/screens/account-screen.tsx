@@ -2,21 +2,36 @@ import { useQueryClient } from '@tanstack/react-query';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert } from 'react-native';
+import { Alert, Linking, Platform } from 'react-native';
 
 import { requestSync, useSyncStore, type SyncStatus } from '@/data/sync/use-background-sync';
-import { Button, Card, Screen, Text } from '@/ui';
+import { useQuizStore } from '@/features/onboarding/quiz-store';
+import { Button, Card, Screen, Text, TextField } from '@/ui';
 
-import { signOut } from '../auth';
+import { deleteAccount, signOut, type DeleteAccountResult } from '../auth';
 import { useSessionStore } from '../session-store';
 
-/** Profile → Account: who is signed in, sync state, sign out. Account deletion follows later. */
+/** The word the user types to confirm the deletion (not translated, like the website says). */
+export const DELETE_CONFIRMATION = 'DELETE';
+
+/** Where an app subscription is cancelled – deleting the account does not cancel it. */
+const SUBSCRIPTIONS_URL =
+  Platform.OS === 'ios'
+    ? 'https://apps.apple.com/account/subscriptions'
+    : 'https://play.google.com/store/account/subscriptions';
+
+/** Profile → Account: who is signed in, sync state, sign out, delete account. */
 export function AccountScreen() {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
   const session = useSessionStore((s) => s.session);
   const { status, lastSyncedAt } = useSyncStore();
   const [busy, setBusy] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const [confirmText, setConfirmText] = useState('');
+  const [deleteError, setDeleteError] = useState<Exclude<DeleteAccountResult, 'deleted'> | null>(
+    null,
+  );
   const userId = session?.user.id ?? null;
 
   const statusText: Record<SyncStatus, string> = {
@@ -59,6 +74,32 @@ export function AccountScreen() {
     }
   }
 
+  async function doDelete() {
+    setBusy(true);
+    setDeleteError(null);
+    try {
+      const result = await deleteAccount();
+      if (result !== 'deleted') {
+        setDeleteError(result);
+        return;
+      }
+      await useQuizStore.getState().reset();
+      queryClient.clear();
+      router.replace('/onboarding');
+    } catch (e) {
+      console.warn('Account deletion failed', e);
+      setDeleteError('failed');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function cancelDelete() {
+    setConfirming(false);
+    setConfirmText('');
+    setDeleteError(null);
+  }
+
   if (!session) {
     return (
       <Screen>
@@ -97,6 +138,54 @@ export function AccountScreen() {
         disabled={busy}
         onPress={() => void doSignOut(false)}
       />
+      {confirming ? (
+        <Card>
+          <Text variant="heading">{t('auth.account.delete.title')}</Text>
+          <Text>{t('auth.account.delete.data')}</Text>
+          <Text>{t('auth.account.delete.subscription')}</Text>
+          <Button
+            variant="secondary"
+            label={t(
+              Platform.OS === 'ios'
+                ? 'auth.account.delete.manageAppStore'
+                : 'auth.account.delete.manageGooglePlay',
+            )}
+            onPress={() => void Linking.openURL(SUBSCRIPTIONS_URL)}
+          />
+          <TextField
+            label={t('auth.account.delete.confirmLabel', { word: DELETE_CONFIRMATION })}
+            value={confirmText}
+            onChangeText={setConfirmText}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            editable={!busy}
+          />
+          {deleteError ? (
+            <Text tone="danger" accessibilityLiveRegion="polite">
+              {t(`auth.account.delete.${deleteError}`)}
+            </Text>
+          ) : null}
+          <Button
+            variant="danger"
+            label={busy ? t('auth.account.delete.deleting') : t('auth.account.delete.confirm')}
+            disabled={busy || confirmText.trim() !== DELETE_CONFIRMATION}
+            onPress={() => void doDelete()}
+          />
+          <Button
+            variant="secondary"
+            label={t('common.cancel')}
+            disabled={busy}
+            onPress={cancelDelete}
+          />
+        </Card>
+      ) : (
+        <Button
+          variant="danger"
+          label={t('auth.account.delete.button')}
+          disabled={busy}
+          onPress={() => setConfirming(true)}
+        />
+      )}
     </Screen>
   );
 }
