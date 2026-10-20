@@ -25,6 +25,7 @@ function renderCalendar() {
 
 jest.mock('@/data/repositories/plan-repository');
 jest.mock('@/data/repositories/activity-repository');
+jest.mock('@/data/repositories/route-repository');
 
 const mock = repo as unknown as typeof import('@/data/repositories/__mocks__/plan-repository');
 const activityMock =
@@ -433,7 +434,7 @@ describe('workout detail', () => {
     expect(screen.getAllByText(/no faster than \d+:\d\d\/km$/).length).toBeGreaterThan(0);
 
     await fireEvent.press(screen.getByLabelText('Choose route'));
-    expect(router.push).toHaveBeenCalledWith('/coming-soon/routes');
+    expect(router.push).toHaveBeenCalledWith('/training/route/2026-10-26-1');
     await fireEvent.press(screen.getByLabelText('Link activity'));
     expect(router.push).toHaveBeenCalledWith('/coming-soon/linkActivity');
     await fireEvent.press(screen.getByLabelText('Warm-up'));

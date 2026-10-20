@@ -1,6 +1,9 @@
 import type {
   ActivitySource,
+  ActivityStream,
+  Climb,
   CustomExercise,
+  ElevationPoint,
   Goal,
   HrZoneInput,
   ImportedSport,
@@ -9,6 +12,7 @@ import type {
   PlanInput,
   PlanNote,
   RoutineExercise,
+  RouteSport,
   StrengthLog,
   Workout,
   WorkoutStatus,
@@ -188,3 +192,48 @@ export const activityLinks = sqliteTable('activity_links', {
   workoutId: text('workout_id').notNull(),
   linkedAt: integer('linked_at').notNull(),
 });
+
+// ---------------------------------------------------------------------------------------------
+// Routes (Phase 8, CLAUDE.md "Terrain intelligence"). The user's route library – imported GPX
+// files and routes recognised from past activities – and the recorded streams of activities
+// (distance, time, altitude, heart rate) for the grade-adjusted evaluation.
+
+export type RouteSource = 'gpx' | 'strava' | 'strava_route' | 'komoot';
+
+export const routes = sqliteTable('routes', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  sport: text('sport').$type<RouteSport>().notNull(),
+  source: text('source').$type<RouteSource>().notNull(),
+  distanceM: real('distance_m').notNull(),
+  gainM: real('gain_m').notNull(),
+  lossM: real('loss_m').notNull(),
+  startLat: real('start_lat').notNull(),
+  startLon: real('start_lon').notNull(),
+  /** Simplified track as an encoded polyline (map, thumbnail). */
+  polyline: text('polyline').notNull(),
+  /** Smoothed elevation every 25 m. */
+  profile: text('profile', { mode: 'json' }).$type<ElevationPoint[]>().notNull(),
+  climbs: text('climbs', { mode: 'json' }).$type<Climb[]>().notNull(),
+  /** Recognised routes: the activity keys it was recognised from (not suggested again). */
+  sourceKeys: text('source_keys', { mode: 'json' }).$type<string[]>().notNull(),
+  createdAt: integer('created_at').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+  /** Changed since the last push. */
+  dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+  /** Deleted locally; removed for good once the deletion is pushed. */
+  deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
+});
+
+/** Recorded streams of an imported activity (one per source record, read-only). */
+export const activityStreams = sqliteTable(
+  'activity_streams',
+  {
+    source: text('source').$type<ActivitySource>().notNull(),
+    externalId: text('external_id').notNull(),
+    data: text('data', { mode: 'json' }).$type<ActivityStream>().notNull(),
+    /** GPS track at stream resolution (encoded polyline), if any. */
+    latlng: text('latlng'),
+  },
+  (t) => [primaryKey({ columns: [t.source, t.externalId] })],
+);

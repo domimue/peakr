@@ -24,7 +24,7 @@ export function durationText(t: TFunction, w: Pick<Workout, 'duration'>): string
     : t('workoutText.minutesRange', { min: minMin, max: maxMin });
 }
 
-function zoneNumber(target: Target): number | null {
+export function zoneNumber(target: Target): number | null {
   const m = /^Z(\d)$/.exec(target.value);
   return target.kind === 'hrZone' && m ? Number(m[1]) : null;
 }

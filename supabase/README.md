@@ -8,7 +8,7 @@ Security, and Edge Functions for everything that needs a secret.
 | `migrations/`            | SQL schema. Never edit a migration that was already pushed.            |
 | `functions/oauth/`       | OAuth with third-party services (Strava first): start, callback, disconnect |
 | `functions/strava-webhook/` | Strava Webhook Events API: validation + activity/athlete events    |
-| `functions/strava-sync/` | "Sync now" (user) and the nightly catch-up (pg_cron)                  |
+| `functions/strava-sync/` | "Sync now", 180-day history, streams on request (user) and the nightly catch-up (pg_cron) |
 | `functions/delete-account/` | Account deletion: revokes Strava, deletes all rows and the auth user |
 | `functions/_shared/`     | Token encryption, signed OAuth state, provider registry, Strava import, Expo push |
 | `templates/`             | Sign-in emails (link **and** 6-digit code)                            |
@@ -21,10 +21,12 @@ Security, and Edge Functions for everything that needs a secret.
 | `profiles`           | trigger on sign-up, the user   | one row per user                                            |
 | `plans`              | the app (sync)                 | weeks + pauses as JSON; soft delete, deletion is final      |
 | `workouts`           | the app (sync)                 | one row per planned workout; last write wins per workout    |
-| `routes`             | the app                        | own route library, never visible to others                  |
+| `routes`             | the app (sync)                 | own route library (GPX, recognised Strava routes); soft delete, last write wins |
 | `integrations`       | Edge Functions only            | metadata of connected services; the user can read own rows  |
 | `integration_tokens` | Edge Functions only            | AES-GCM encrypted tokens; no access for app or website      |
 | `activities`         | Edge Functions only            | one row per source record; own rows readable, Realtime on   |
+| `activity_streams`   | Edge Functions only            | distance/altitude/time/HR of outdoor runs and rides, ~25 m apart; own rows readable |
+| `strava_routes`      | Edge Functions only            | routes planned in Strava (rides, runs) with their GPX; own rows readable |
 | `push_tokens`        | the app (own device)           | Expo push tokens + "notify me" per device                   |
 | `waitlist`           | the website (insert only)      | Phase 1b                                                    |
 
@@ -95,6 +97,24 @@ How an activity travels: Strava → `strava-webhook` (stores it in `activities`,
 push) → the app gets it via Realtime (open) or the push (closed) → SQLite → `@peakr/engine`
 merges sources, marks the planned session done or rebalances the week. `strava-sync` is the
 "sync now" button and, at 03:30 UTC, the nightly catch-up for missed webhooks.
+
+**Streams (terrain evaluation, route recognition):** for outdoor runs and rides the webhook import
+also fetches the activity's streams (distance, altitude, time, heart rate, GPS) and stores them in
+`activity_streams`, downsampled to ~25 m (`_shared/strava-streams.ts`). A failed stream request is
+logged and never fails the activity import. "Sync now" fetches missing streams for up to 10 new
+activities; the nightly catch-up and `POST /strava-sync/history` (summaries of the last 180 days,
+for route recognition) fetch none, so they do not spend Strava's rate limit. The app requests
+older streams in batches with `POST /strava-sync/streams` `{ "externalIds": [...] }` (max 10, only
+the user's own stored outdoor runs/rides). All three user routes answer `429 rate_limited` and
+`409 reconnect` like "sync now". Streams are tombstoned with their activity and on disconnect.
+
+**Strava routes** (planned in Strava's route builder): `strava_routes` mirrors the athlete's ride
+and run routes with the exported GPX. They are imported in the background after connecting, on
+"sync now" (`routes: { imported, removed }` in the answer), nightly and with
+`POST /strava-sync/routes` → `{ imported, removed }`: one list request per 50 routes, a GPX export
+only for new or changed routes, routes no longer listed become tombstones. Private routes need the
+`read_all` scope (requested since Phase 8); athletes who connected earlier see only public routes
+until they reconnect. The app copies them into `routes` with `source = 'strava_route'`.
 
 **1. Register the app** – <https://www.strava.com/settings/api> (needs a Strava subscription on
 the account that owns the app):

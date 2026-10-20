@@ -69,6 +69,9 @@
     "sportsRequired": "Choose at least one sport.",
     "goalNeedsSports": "This goal needs all of its disciplines – for a triathlon swim, bike and run.",
     "notEnoughAvailability": "Plan at least 2 days with 20 minutes or more.",
-    "underageWeightLoss": "The weight-loss goal is only available from age {{min}}."
+    "underageWeightLoss": "The weight-loss goal is only available from age {{min}}.",
+    "gpxEmpty": "The file is empty.",
+    "gpxNoPoints": "The file contains no track or route.",
+    "gpxTooLarge": "The file is too large to import."
   }
 }

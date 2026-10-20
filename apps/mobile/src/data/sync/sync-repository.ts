@@ -4,6 +4,7 @@ import { db } from '../db/client';
 import {
   activities,
   activityLinks,
+  activityStreams,
   appSettings,
   customExercises,
   planPauses,
@@ -11,6 +12,7 @@ import {
   planWeeks,
   planWorkouts,
   routines,
+  routes,
   strengthLogs,
   syncTombstones,
 } from '../db/schema';
@@ -35,8 +37,21 @@ function chunks<T>(rows: readonly T[]): T[][] {
 // --- Sync state (cursor, account) ------------------------------------------------------------
 
 /** Pull cursors (plans + workouts, activities) and the account the local data belongs to. */
-export type SyncKey = 'sync.cursor' | 'sync.activitiesCursor' | 'sync.userId';
-const SYNC_KEYS: SyncKey[] = ['sync.cursor', 'sync.activitiesCursor', 'sync.userId'];
+export type SyncKey =
+  | 'sync.cursor'
+  | 'sync.activitiesCursor'
+  | 'sync.routesCursor'
+  | 'sync.streamsCursor'
+  | 'sync.stravaRoutesCursor'
+  | 'sync.userId';
+const SYNC_KEYS: SyncKey[] = [
+  'sync.cursor',
+  'sync.activitiesCursor',
+  'sync.routesCursor',
+  'sync.streamsCursor',
+  'sync.stravaRoutesCursor',
+  'sync.userId',
+];
 
 export async function getSyncValue(key: SyncKey): Promise<string | null> {
   const row = await db.query.appSettings.findFirst({ where: eq(appSettings.key, key) });
@@ -317,9 +332,11 @@ export function clearSyncedData(): void {
   db.transaction((tx) => {
     clearPlans(tx);
     tx.delete(syncTombstones).run();
-    // Imported activities belong to the account too.
+    // Imported activities and the route library belong to the account too.
     tx.delete(activities).run();
     tx.delete(activityLinks).run();
+    tx.delete(activityStreams).run();
+    tx.delete(routes).run();
     tx.delete(appSettings).where(inArray(appSettings.key, SYNC_KEYS)).run();
   });
 }
@@ -334,6 +351,8 @@ export function clearAllLocalData(): void {
     tx.delete(syncTombstones).run();
     tx.delete(activities).run();
     tx.delete(activityLinks).run();
+    tx.delete(activityStreams).run();
+    tx.delete(routes).run();
     tx.delete(routines).run();
     tx.delete(customExercises).run();
     tx.delete(strengthLogs).run();

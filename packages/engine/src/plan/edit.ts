@@ -65,7 +65,7 @@ export interface PlanState {
 export type EditField = PlanField | 'workout' | 'date' | 'pause';
 
 /** Why an edit was refused (plus the `generatePlan` codes when a rebuild fails). */
-export type EditCode = 'notFound' | 'outsidePlan' | 'paused' | 'notPaused';
+export type EditCode = 'notFound' | 'outsidePlan' | 'paused' | 'notPaused' | 'noRoute';
 
 export interface EditIssue {
   field: EditField;
@@ -549,6 +549,31 @@ export function setWorkoutStatus(
   const next = Object.fromEntries(Object.entries(state.status).filter(([id]) => id !== workoutId));
   if (status !== 'planned') next[workoutId] = status;
   return { ok: true, value: { ...state, status: next } };
+}
+
+/**
+ * The route chosen for a run or ride (CLAUDE.md "Terrain intelligence" user flow); null = free
+ * session (time + HR only). Nothing else changes – the route only guides the session.
+ */
+export function setWorkoutRoute(
+  state: PlanState,
+  workoutId: string,
+  routeId: string | null,
+): EditResult<PlanState> {
+  const w = findWorkout(state.plan, workoutId);
+  if (!w) return fail('workout', 'notFound');
+  if (w.sport !== 'run' && w.sport !== 'bike') return fail('workout', 'noRoute');
+  const withRoute = (x: Workout): Workout => {
+    if (x.id !== workoutId) return x;
+    const next: Workout = { ...x, routeId: routeId ?? undefined };
+    if (routeId === null) delete next.routeId;
+    return next;
+  };
+  const weeks = state.plan.weeks.map((week) => ({
+    ...week,
+    workouts: week.workouts.map(withRoute),
+  }));
+  return { ok: true, value: { ...state, plan: { ...state.plan, weeks } } };
 }
 
 // ---------------------------------------------------------------------------------------------

@@ -14,7 +14,10 @@ export type ValidationCode =
   | 'sportsRequired'
   | 'goalNeedsSports'
   | 'notEnoughAvailability'
-  | 'underageWeightLoss';
+  | 'underageWeightLoss'
+  | 'gpxEmpty'
+  | 'gpxNoPoints'
+  | 'gpxTooLarge';
 
 export interface ValidationIssue<F extends string> {
   field: F;

@@ -58,6 +58,7 @@ const ICONS = {
   profile: { ios: 'person.crop.circle', android: 'person' },
   plus: { ios: 'plus', android: 'add' },
   route: { ios: 'map.fill', android: 'map' },
+  location: { ios: 'location.fill', android: 'my_location' },
   link: { ios: 'link', android: 'link' },
   warmup: { ios: 'flame.fill', android: 'local_fire_department' },
   watch: { ios: 'applewatch', android: 'watch' },

@@ -43,6 +43,13 @@
       "when": 1792451646909,
       "tag": "0005_strength_activities",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1792496021418,
+      "tag": "0006_routes",
+      "breakpoints": true
     }
   ]
 }

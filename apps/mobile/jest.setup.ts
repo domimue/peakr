@@ -9,6 +9,22 @@ setUpTests();
 jest.mock('victory-native', () => ({
   CartesianChart: () => null,
   Bar: () => null,
+  Area: () => null,
+  Line: () => null,
+}));
+
+// MapLibre is native-only; without a map style key the app shows the tile-less route shape anyway.
+jest.mock('@maplibre/maplibre-react-native', () => ({
+  Map: () => null,
+  Camera: () => null,
+  GeoJSONSource: () => null,
+  Layer: () => null,
+}));
+jest.mock('expo-document-picker', () => ({
+  getDocumentAsync: jest.fn(() => Promise.resolve({ canceled: true, assets: null })),
+}));
+jest.mock('expo-file-system', () => ({
+  File: jest.fn().mockImplementation(() => ({ text: jest.fn(() => Promise.resolve('')) })),
 }));
 jest.mock('@shopify/react-native-skia', () => ({
   DashPathEffect: () => null,
@@ -32,3 +48,12 @@ jest.mock('expo-notifications', () => ({
   registerTaskAsync: jest.fn(() => Promise.resolve()),
 }));
 jest.mock('expo-task-manager', () => ({ defineTask: jest.fn() }));
+
+// Location is native-only; tests set the permission answer and the position per case.
+jest.mock('expo-location', () => ({
+  Accuracy: { Balanced: 3 },
+  requestForegroundPermissionsAsync: jest.fn(() => Promise.resolve({ granted: false })),
+  getCurrentPositionAsync: jest.fn(() =>
+    Promise.resolve({ coords: { latitude: 47.3769, longitude: 8.5417 }, timestamp: 0 }),
+  ),
+}));

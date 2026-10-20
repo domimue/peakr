@@ -8,6 +8,7 @@
  *        Verifies the signed state, exchanges the code, stores the encrypted tokens and the
  *        integration metadata, then redirects to the app: peakr://integrations/<provider>?status=…
  *        Strava: the last 14 days of activities are imported right away, so the plan adapts at once.
+ *        Its planned routes (rides and runs) follow in the background.
  *   POST /oauth/disconnect  { provider }  (Authorization: user JWT)  → { ok }
  *        Revokes access at the provider and removes tokens and metadata (Strava: and every
  *        imported activity).
@@ -18,8 +19,15 @@
 
 import { decryptToken, encryptToken, signState, verifyState } from '../_shared/crypto.ts';
 import { getProvider, type TokenSet } from '../_shared/providers.ts';
-import { importSince, integrationForUser, removeStravaData } from '../_shared/strava.ts';
+import {
+  importSince,
+  importStravaRoutes,
+  integrationForUser,
+  removeStravaData,
+} from '../_shared/strava.ts';
 import { adminClient, json, userFromRequest } from '../_shared/supabase.ts';
+
+declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
 
 const BACKFILL_MS = 14 * 86_400_000;
 
@@ -84,12 +92,21 @@ async function storeTokens(
   if (tokenError) throw tokenError;
 }
 
-/** Recent activities right after connecting; a failure here must not fail the connection. */
+/**
+ * Recent activities right after connecting; a failure here must not fail the connection. The
+ * athlete's Strava routes follow after the response (one GPX export per route can take a while).
+ */
 async function backfillStrava(userId: string): Promise<void> {
   const admin = adminClient();
   try {
     const integration = await integrationForUser(admin, userId);
-    if (integration) await importSince(admin, integration, Date.now() - BACKFILL_MS, 1);
+    if (!integration) return;
+    await importSince(admin, integration, Date.now() - BACKFILL_MS, { maxPages: 1 });
+    EdgeRuntime.waitUntil(
+      importStravaRoutes(admin, integration).catch((error) =>
+        console.warn('Strava route import failed', String(error)),
+      ),
+    );
   } catch (error) {
     console.warn('Strava backfill failed', String(error));
   }

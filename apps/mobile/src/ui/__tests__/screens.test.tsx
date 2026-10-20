@@ -11,6 +11,8 @@ import { useSettingsStore } from '@/features/settings/settings-store';
 import { renderWithQuery } from '@/test-utils/render-with-query';
 
 jest.mock('@/data/repositories/plan-repository');
+jest.mock('@/data/repositories/route-repository');
+jest.mock('@/data/repositories/activity-repository');
 
 describe('tab screens without a plan', () => {
   it.each([

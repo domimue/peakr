@@ -44,6 +44,8 @@ export function ProfileScreen() {
       title: paused ? t('plan.pause.resume') : t('plan.pause.title'),
       href: '/training/pause',
     },
+    { icon: 'route', title: t('routes.title'), href: '/routes' },
+    { icon: 'hills', title: t('terrainProfile.title'), href: '/training/terrain' },
     { icon: 'commute', title: t('plan.commutes.title'), href: '/training/commutes' },
     { icon: 'travel', title: t('plan.travel.title'), href: '/training/travel' },
     { icon: 'winter', title: t('plan.winter.title'), href: '/training/winter' },

@@ -280,8 +280,16 @@
           "body": "The app stores your quiz answers, profile (such as age, heart rate values and availability), training zones, plan and workout history on your device. When you are signed in, this data is synchronised with our database so it is backed up and available on your other devices. We use it only to create and adapt your plan."
         },
         {
+          "heading": "Route library",
+          "body": "Your route library contains the routes you import as GPX files (for example shared from Komoot), routes you planned in Strava and routes the app recognises from your own past activities. For each route we store its name, sport, start point, track, distance and elevation profile. The library is kept on your device and, when you are signed in, synchronised with our database as a backup and for your other devices. We use it only to suggest routes for your own sessions and to evaluate them; it is never shown to other users. You can delete single routes in the app; all routes are deleted together with your account."
+        },
+        {
           "heading": "Strava",
-          "body": "If you connect Strava, we receive an access token and the activities you record (for example sport, start time, duration, distance, elevation, heart rate and route). We use this data only to adapt your own plan and to mark sessions as done. It is never shown to other users and never used to train artificial intelligence or machine learning models. You can disconnect Strava at any time in the app or in your Strava settings; we then delete the token and stop importing."
+          "body": "If you connect Strava, we receive an access token, the activities you record (for example sport, start time, duration, distance, elevation, heart rate and route) and the routes you planned in Strava. For outdoor runs and rides we also store the recorded activity streams – distance, altitude, time, heart rate and GPS track, reduced to about one point every 25 metres – to evaluate your sessions against the terrain. When you connect, we import up to 180 days of your past activities so the app can recognise the routes you run and ride regularly. We use this data only to adapt your own plan, build your own route library and mark sessions as done. It is never shown to other users and never used to train artificial intelligence or machine learning models (as required by the Strava API Agreement). You can disconnect Strava at any time in the app or in your Strava settings; we then delete the token, the imported activities, activity streams and Strava routes and stop importing. Routes you already have in your route library stay there until you delete them or your account."
+        },
+        {
+          "heading": "Maps (MapTiler)",
+          "body": "When the app shows a route map, it loads map tiles from MapTiler AG (api.maptiler.com, Switzerland). For this, your device's IP address and the map area being displayed are sent to MapTiler; we do not send them your account or other personal data. MapTiler uses this data only to deliver the map. The maps are based on OpenStreetMap data (© OpenStreetMap contributors, licensed under the Open Database License, ODbL). The legal basis is our legitimate interest in showing routes on a map (Art. 6(1)(f) GDPR)."
         },
         {
           "heading": "Push notifications",

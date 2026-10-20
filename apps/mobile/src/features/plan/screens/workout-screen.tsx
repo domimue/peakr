@@ -21,6 +21,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { todayIso } from '@/data/ids';
 import { useWorkoutActivity, type LinkedActivity } from '@/features/activities/queries';
+import { WorkoutEvaluation, WorkoutRoute } from '@/features/routes/components/workout-route';
 import { planHrZones } from '@/features/training-zones/resolve';
 import {
   Badge,
@@ -237,7 +238,8 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
           {
             icon: 'route' as const,
             label: t('workout.actions.route'),
-            onPress: () => router.push('/coming-soon/routes'),
+            onPress: () => router.push(`/training/route/${encodeURIComponent(w.id)}`),
+            active: w.routeId !== undefined,
           },
         ]
       : []),
@@ -353,6 +355,18 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
             {t(w.sport === 'strength' ? 'workout.warmupStrength' : 'workout.warmupEndurance')}
           </Text>
         </Section>
+      ) : null}
+
+      {routable && !useIndoor ? (
+        <WorkoutRoute workout={w} profile={input.profile} hrZones={hrZones} color={color} />
+      ) : null}
+      {linked ? (
+        <WorkoutEvaluation
+          workout={w}
+          activity={linked.activity}
+          profile={input.profile}
+          hrZones={hrZones}
+        />
       ) : null}
 
       {indoor && !outline ? (

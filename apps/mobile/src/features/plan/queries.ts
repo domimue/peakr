@@ -9,6 +9,7 @@ import {
   resumePlan,
   setTravel,
   setWeekOverride,
+  setWorkoutRoute,
   setWorkoutStatus,
   type AdjustResult,
   type Availability,
@@ -124,6 +125,11 @@ export function usePlanActions() {
         result = easeWorkout(result.value, id, stored.input);
       }
       return commit(result);
+    },
+    /** Route chosen for a run / ride; null = free session. */
+    setRoute(id: string, routeId: string | null): Edit {
+      if (!stored) return missing;
+      return commit(setWorkoutRoute(stored.state, id, routeId));
     },
     setStatus(id: string, status: WorkoutStatus): Edit {
       if (!stored) return missing;

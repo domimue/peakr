@@ -10,6 +10,7 @@ import { useIntegrations, type IntegrationInfo } from '../queries';
 import { ConnectionsScreen } from '../screens/connections-screen';
 
 jest.mock('../queries', () => ({ useIntegrations: jest.fn() }));
+jest.mock('@/data/repositories/route-repository');
 jest.mock('../api', () => ({
   connect: jest.fn(),
   disconnect: jest.fn(() => Promise.resolve(true)),

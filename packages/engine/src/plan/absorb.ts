@@ -1,5 +1,5 @@
 import type { HrZone } from '../hr';
-import { activityLoad, isHardActivity, type Activity } from './activities';
+import { activityLoad, isEccentricActivity, isHardActivity, type Activity } from './activities';
 import { planConfig } from './config';
 import { parseIsoDate, toIsoDate } from './dates';
 import {
@@ -37,6 +37,8 @@ export interface AbsorbResult {
   /** Load of the activity in the unified load model. */
   load: number;
   hard: boolean;
+  /** A long running descent: heavy leg strength on the next day was made light. */
+  eccentric: boolean;
   /** Easy sessions made shorter. */
   shortened: AbsorbChange[];
   /** Hard sessions on the next day made easy. */
@@ -83,7 +85,8 @@ export function absorbActivity(
 ): AbsorbResult {
   const load = activityLoad(activity, hrZones);
   const hard = isHardActivity(activity, hrZones);
-  const unchanged: AbsorbResult = { state, load, hard, shortened: [], eased: [] };
+  const eccentric = isEccentricActivity(activity);
+  const unchanged: AbsorbResult = { state, load, hard, eccentric, shortened: [], eased: [] };
   const date = day(activity.date);
   const week = state.plan.weeks.find(
     (w) => day(w.startDate) <= date && date < day(w.startDate) + 7,
@@ -102,6 +105,27 @@ export function absorbActivity(
       (w) => w.date === tomorrow && w.date >= today && w.hard && statusOf(next, w.id) === 'planned',
     );
     for (const w of hardTomorrow) {
+      const result = easeWorkout(next, w.id, input);
+      /* v8 ignore next -- the workout was just found in the plan */
+      if (!result.ok) continue;
+      next = result.value;
+      eased.push(w.id);
+    }
+  }
+
+  // 1b. A long running descent: no heavy legs the next day (CLAUDE.md "Terrain" §6).
+  if (eccentric) {
+    const tomorrow = toIsoDate(date + 1);
+    const heavyTomorrow = allWorkouts(next.plan).filter(
+      (w) =>
+        w.date === tomorrow &&
+        w.date >= today &&
+        w.sport === 'strength' &&
+        w.legLoad === 'heavy' &&
+        !eased.includes(w.id) &&
+        statusOf(next, w.id) === 'planned',
+    );
+    for (const w of heavyTomorrow) {
       const result = easeWorkout(next, w.id, input);
       /* v8 ignore next -- the workout was just found in the plan */
       if (!result.ok) continue;
@@ -149,5 +173,12 @@ export function absorbActivity(
       ? { ...w, notes: [...w.notes, { key: 'notes.unplannedActivity', params: noteParams }] }
       : w,
   );
-  return { state: { ...next, plan: { ...plan, weeks } }, load, hard, shortened, eased };
+  return {
+    state: { ...next, plan: { ...plan, weeks } },
+    load,
+    hard,
+    eccentric,
+    shortened,
+    eased,
+  };
 }

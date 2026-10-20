@@ -10,7 +10,28 @@
     "ios": {
       "bundleIdentifier": "com.peakr.app",
       "supportsTablet": false,
-      "usesAppleSignIn": true
+      "usesAppleSignIn": true,
+      "infoPlist": {
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeName": "GPX route",
+            "LSHandlerRank": "Alternate",
+            "LSItemContentTypes": ["com.topografix.gpx"]
+          }
+        ],
+        "UTImportedTypeDeclarations": [
+          {
+            "UTTypeIdentifier": "com.topografix.gpx",
+            "UTTypeDescription": "GPS Exchange Format",
+            "UTTypeConformsTo": ["public.xml"],
+            "UTTypeTagSpecification": {
+              "public.filename-extension": ["gpx"],
+              "public.mime-type": ["application/gpx+xml"]
+            }
+          }
+        ],
+        "LSSupportsOpeningDocumentsInPlace": false
+      }
     },
     "android": {
       "package": "com.peakr.app",
@@ -20,7 +41,33 @@
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "category": ["DEFAULT", "BROWSABLE"],
+          "data": [
+            {
+              "scheme": "content",
+              "mimeType": "application/gpx+xml"
+            },
+            {
+              "scheme": "file",
+              "mimeType": "application/gpx+xml"
+            },
+            {
+              "scheme": "content",
+              "mimeType": "application/octet-stream",
+              "pathPattern": ".*\\.gpx"
+            },
+            {
+              "scheme": "file",
+              "mimeType": "*/*",
+              "pathPattern": ".*\\.gpx"
+            }
+          ]
+        }
+      ]
     },
     "web": {
       "output": "single",
@@ -55,6 +102,19 @@
         "./plugins/with-windows-cmake",
         {
           "version": "4.1.2"
+        }
+      ],
+      "@maplibre/maplibre-react-native",
+      "./plugins/with-share-gpx",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Peakr uses your location once, when you tap “Use current location”, to save it as the start point for route suggestions. It is stored on this device only.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
         }
       ]
     ],

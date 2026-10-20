@@ -1,9 +1,12 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import * as activities from '../repositories/activity-repository';
+import * as routeRepo from '../repositories/route-repository';
 import { pullActivities } from './activities-remote';
 import { resolvePlan, resolveWorkouts } from './merge';
 import * as remote from './remote';
+import { stravaRouteDraft, stravaRouteId } from '../routes/build';
+import { pullRoutes, pullStravaRoutes, pullStreams, pushRoutes } from './routes-remote';
 import * as local from './sync-repository';
 
 /**
@@ -82,7 +85,68 @@ export async function syncOnce(
   } catch (error) {
     console.warn('Activity pull failed', error);
   }
+  // Route library and activity streams (Phase 8): same rule, failures do not stop the rest.
+  try {
+    changed = (await syncRoutes(client, userId)) || changed;
+  } catch (error) {
+    console.warn('Route sync failed', error);
+  }
+  try {
+    changed = (await pullStreamChanges(client)) || changed;
+  } catch (error) {
+    console.warn('Stream pull failed', error);
+  }
+  try {
+    changed = (await pullStravaRouteChanges(client)) || changed;
+  } catch (error) {
+    console.warn('Strava route pull failed', error);
+  }
   return { changed };
+}
+
+/**
+ * Routes planned in Strava land in the library on their own (stable id per Strava route, so an
+ * edited route replaces the old version and a deleted one disappears). The library push of the
+ * next sync backs them up like any other route.
+ */
+async function pullStravaRouteChanges(client: SupabaseClient): Promise<boolean> {
+  const cursor = await local.getSyncValue('sync.stravaRoutesCursor');
+  const { changes, cursor: next } = await pullStravaRoutes(client, cursor);
+  let changed = false;
+  for (const c of changes) {
+    const id = stravaRouteId(c.externalId);
+    const draft = c.gpx ? stravaRouteDraft(c.externalId, c.name, c.sport, c.gpx) : null;
+    if (draft) {
+      await routeRepo.saveRoute({ ...draft, id });
+      changed = true;
+    } else if (await routeRepo.getRoute(id)) {
+      await routeRepo.deleteRoute(id);
+      changed = true;
+    }
+  }
+  if (next && next !== cursor) await local.setSyncValue('sync.stravaRoutesCursor', next);
+  return changed;
+}
+
+async function syncRoutes(client: SupabaseClient, userId: string): Promise<boolean> {
+  const dirty = routeRepo.readDirtyRoutes();
+  if (dirty.length > 0) {
+    await pushRoutes(client, userId, dirty);
+    routeRepo.markRoutesPushed(dirty);
+  }
+  const cursor = await local.getSyncValue('sync.routesCursor');
+  const { routes, cursor: next } = await pullRoutes(client, cursor);
+  const changed = routes.length > 0 && routeRepo.applyRoutesFromServer(routes);
+  if (next && next !== cursor) await local.setSyncValue('sync.routesCursor', next);
+  return changed;
+}
+
+async function pullStreamChanges(client: SupabaseClient): Promise<boolean> {
+  const cursor = await local.getSyncValue('sync.streamsCursor');
+  const { upserts, deletes, cursor: next } = await pullStreams(client, cursor);
+  if (upserts.length > 0 || deletes.length > 0) routeRepo.applyStreams(upserts, deletes);
+  if (next && next !== cursor) await local.setSyncValue('sync.streamsCursor', next);
+  return upserts.length > 0 || deletes.length > 0;
 }
 
 async function pullActivityChanges(client: SupabaseClient): Promise<boolean> {
