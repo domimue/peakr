@@ -10,11 +10,12 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { newId } from '@/data/ids';
-import { Button, Card, IconBadge, Screen, spacing, Text, useTheme } from '@/ui';
+import { Button, Card, Screen, spacing, Text } from '@/ui';
 
 import { ExerciseForm } from '../exercise-form';
 import { ExerciseBrowser } from '../exercise-picker';
-import { exerciseTexts, PATTERN_ICONS } from '../exercise-text';
+import { exerciseTexts } from '../exercise-text';
+import { ExerciseFigure } from '../figures/exercise-figure';
 import { useDeleteGymExercise, useGymExercises, useSaveGymExercise } from '../queries';
 
 /** Gym → Library: every library and custom exercise, searchable and filterable. */
@@ -41,7 +42,6 @@ export function LibraryScreen() {
 /** One exercise: movement, muscles, equipment, instructions, cues and common mistakes. */
 export function ExerciseDetailScreen({ id }: { id: string }) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
   const custom = useGymExercises();
   const remove = useDeleteGymExercise();
   if (custom.isPending) return <Screen />;
@@ -59,9 +59,11 @@ export function ExerciseDetailScreen({ id }: { id: string }) {
     list.map((m) => t(`gym.muscles.${m}` as never)).join(', ');
   return (
     <Screen>
+      {/* Our own figure; real illustrations replace it later (docs/gym-illustrations.md). */}
+      <View style={styles.figure}>
+        <ExerciseFigure exercise={exercise} size={220} />
+      </View>
       <View style={styles.head}>
-        {/* Slot for a real illustration (docs/gym-illustrations.md); the pattern icon until then. */}
-        <IconBadge name={PATTERN_ICONS[exercise.pattern]} color={colors.typeStrength} size={56} />
         <View style={styles.flex}>
           <Text variant="title" accessibilityRole="header">
             {texts.name}
@@ -194,6 +196,7 @@ export function ExerciseEditScreen({ id, copyOf }: { id?: string; copyOf?: strin
 }
 
 const styles = StyleSheet.create({
+  figure: { alignItems: 'center' },
   head: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   flex: { flex: 1, gap: spacing.xs },
   card: { gap: spacing.sm },

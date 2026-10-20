@@ -10,10 +10,11 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { Button, ChipGroup, IconBadge, radius, spacing, Text, TextField, useTheme } from '@/ui';
+import { Button, ChipGroup, radius, spacing, Text, TextField, useTheme } from '@/ui';
 
 import { ExerciseForm } from './exercise-form';
-import { allExercises, exerciseTexts, PATTERN_ICONS, searchExercises } from './exercise-text';
+import { allExercises, exerciseTexts, searchExercises } from './exercise-text';
+import { ExerciseFigure } from './figures/exercise-figure';
 
 type Filter<T extends string> = T | 'all';
 
@@ -144,7 +145,7 @@ export function ExerciseRow({
         { backgroundColor: pressed ? colors.surface2 : colors.surface },
       ]}
     >
-      <IconBadge name={PATTERN_ICONS[exercise.pattern]} color={colors.typeStrength} size={32} />
+      <ExerciseFigure exercise={exercise} size={48} />
       <View style={styles.flex}>
         <Text style={styles.rowTitle}>{name}</Text>
         <Text variant="caption" tone="secondary">
