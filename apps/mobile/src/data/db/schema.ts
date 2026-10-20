@@ -4,6 +4,10 @@ import type {
   Climb,
   CustomExercise,
   ElevationPoint,
+  GymRoutineExercise,
+  GymSessionSource,
+  LegacyCustomExercise,
+  SetType,
   Goal,
   HrZone,
   HrZoneInput,
@@ -51,10 +55,10 @@ export const routines = sqliteTable('routines', {
   updatedAt: integer('updated_at').notNull(),
 });
 
-/** Exercises the user added to the library (§8.6). */
+/** Phase 3 custom exercises; read once by the gym migration (`gym_exercises` replaces it). */
 export const customExercises = sqliteTable('custom_exercises', {
   id: text('id').primaryKey(),
-  data: text('data', { mode: 'json' }).$type<CustomExercise>().notNull(),
+  data: text('data', { mode: 'json' }).$type<LegacyCustomExercise>().notNull(),
   createdAt: integer('created_at').notNull(),
 });
 
@@ -70,6 +74,94 @@ export const strengthLogs = sqliteTable('strength_logs', {
   log: text('log', { mode: 'json' }).$type<StrengthLog>().notNull(),
   createdAt: integer('created_at').notNull(),
 });
+
+// ---------------------------------------------------------------------------------------------
+// Gym workspace (Phase 8d, CLAUDE.md "Gym"). Offline first; ids are UUIDs and rows carry
+// `updated_at` / `deleted_at` so they can sync later. Weights in kg, distances in m.
+
+/** Custom exercises and user-edited copies of library exercises. */
+export const gymExercises = sqliteTable('gym_exercises', {
+  id: text('id').primaryKey(),
+  /** Copy of `data.name` for search and sorting. */
+  name: text('name').notNull(),
+  data: text('data', { mode: 'json' }).$type<CustomExercise>().notNull(),
+  updatedAt: integer('updated_at').notNull(),
+  deletedAt: integer('deleted_at'),
+});
+
+export const routineFolders = sqliteTable('routine_folders', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  position: integer('position').notNull(),
+  updatedAt: integer('updated_at').notNull(),
+  deletedAt: integer('deleted_at'),
+});
+
+export const gymRoutines = sqliteTable('gym_routines', {
+  id: text('id').primaryKey(),
+  name: text('name').notNull(),
+  notes: text('notes'),
+  folderId: text('folder_id'),
+  position: integer('position').notNull(),
+  archivedAt: integer('archived_at'),
+  durationMin: integer('duration_min'),
+  exercises: text('exercises', { mode: 'json' }).$type<GymRoutineExercise[]>().notNull(),
+  updatedAt: integer('updated_at').notNull(),
+  deletedAt: integer('deleted_at'),
+});
+
+export const gymSessions = sqliteTable(
+  'gym_sessions',
+  {
+    id: text('id').primaryKey(),
+    date: text('date').notNull(),
+    startedAt: integer('started_at').notNull(),
+    endedAt: integer('ended_at'),
+    title: text('title').notNull(),
+    kind: text('kind').$type<'detailed' | 'quick'>().notNull(),
+    durationMin: integer('duration_min'),
+    sessionRpe: real('session_rpe'),
+    legs: integer('legs', { mode: 'boolean' }),
+    notes: text('notes'),
+    routineId: text('routine_id'),
+    plannedWorkoutId: text('planned_workout_id'),
+    sourceId: text('source_id'),
+    source: text('source').$type<GymSessionSource>().notNull(),
+    externalId: text('external_id'),
+    updatedAt: integer('updated_at').notNull(),
+    deletedAt: integer('deleted_at'),
+  },
+  (t) => [
+    index('gym_sessions_started').on(t.startedAt),
+    index('gym_sessions_external').on(t.externalId),
+  ],
+);
+
+/** One row per set, written as soon as it is logged (nothing is lost if the app is killed). */
+export const gymSets = sqliteTable(
+  'gym_sets',
+  {
+    id: text('id').primaryKey(),
+    sessionId: text('session_id').notNull(),
+    exerciseId: text('exercise_id').notNull(),
+    setIndex: integer('set_index').notNull(),
+    setType: text('set_type').$type<SetType>().notNull(),
+    weightKg: real('weight_kg'),
+    reps: integer('reps'),
+    rpe: real('rpe'),
+    durationSec: integer('duration_sec'),
+    distanceM: real('distance_m'),
+    completed: integer('completed', { mode: 'boolean' }).notNull(),
+    loggedAt: integer('logged_at').notNull(),
+    notes: text('notes'),
+    updatedAt: integer('updated_at').notNull(),
+    deletedAt: integer('deleted_at'),
+  },
+  (t) => [
+    index('gym_sets_session').on(t.sessionId, t.setIndex),
+    index('gym_sets_exercise').on(t.exerciseId, t.loggedAt),
+  ],
+);
 
 // ---------------------------------------------------------------------------------------------
 // Training plan (Phase 5). One active plan; the engine works on the assembled `PlanState`.

@@ -6,16 +6,21 @@ import { strengthTemplates } from './strength';
 import { swimTemplates } from './swim';
 
 export {
+  copyInputOf,
   CUSTOM_PREFIX,
   EQUIPMENT,
   EXERCISE_PATTERNS,
   exercises,
   getExercise,
   hasEquipmentFor,
+  isCustomExercise,
   LOWER_BODY_PATTERNS,
+  MUSCLE_GROUPS,
   nextVariation,
+  parseExerciseRecords,
   progressionChains,
   resolveExercise,
+  TRACKING_MODES,
   validateCustomExercise,
   type CustomExercise,
   type CustomExerciseField,
@@ -23,6 +28,9 @@ export {
   type Equipment,
   type Exercise,
   type ExercisePattern,
+  type ExerciseRecord,
+  type MuscleGroup,
+  type TrackingMode,
 } from './exercises';
 export { raceSimulationLevel } from './multisport';
 export { splits, type SplitDef } from './strength';

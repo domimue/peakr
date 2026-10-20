@@ -1,72 +1,104 @@
-import { getExercise, hasEquipmentFor, equipmentFor } from '@peakr/engine';
+import {
+  equipmentFor,
+  getExercise,
+  hasEquipmentFor,
+  type CustomExercise,
+  type GymSession,
+  type GymSet,
+  type Workout,
+} from '@peakr/engine';
 
-import type { StrengthLogEntry } from '@/data/repositories/strength-repository';
+import type { GymHistory } from '@/data/repositories/gym-repository';
 import i18n from '@/i18n';
 
 import {
+  buildDetailedSession,
+  buildQuickSession,
   exerciseHowTo,
   exerciseName,
+  isTimed,
   lastSetsFor,
+  planWorkoutSession,
   prefillSession,
   routineSession,
   templateSession,
 } from '../session';
 
-const entry = (
-  date: string,
-  createdAt: number,
-  sets: StrengthLogEntry['log'],
-): StrengthLogEntry => ({
-  id: `${date}-${createdAt}`,
+const session = (id: string, date: string, startedAt: number): GymSession => ({
+  id,
   date,
+  startedAt,
   title: '',
-  sourceId: null,
-  log: sets,
-  createdAt,
+  kind: 'detailed',
+  source: 'app',
+});
+const set = (sessionId: string, setIndex: number, over: Partial<GymSet>): GymSet => ({
+  id: `${sessionId}-${setIndex}`,
+  sessionId,
+  exerciseId: 'goblet_squat',
+  setIndex,
+  setType: 'working',
+  completed: true,
+  loggedAt: 0,
+  ...over,
 });
 
-describe('strength session helpers', () => {
-  const logs = [
-    entry('2026-10-10', 1, {
-      kind: 'detailed',
-      durationMin: 40,
-      sets: [{ exerciseId: 'goblet_squat', reps: 12, weightKg: 20, rpe: 8 }],
-    }),
-    entry('2026-10-12', 2, { kind: 'quick', durationMin: 30, rpe: 7, legs: true }),
-    entry('2026-10-11', 3, {
-      kind: 'detailed',
-      durationMin: 40,
-      sets: [
-        { exerciseId: 'goblet_squat', reps: 12, weightKg: 24, rpe: 8 },
-        { exerciseId: 'goblet_squat', reps: 12, weightKg: 24, rpe: 8 },
-      ],
-    }),
-  ];
+describe('gym session helpers', () => {
+  const history: GymHistory = {
+    sessions: [
+      session('a', '2026-10-10', 1),
+      { ...session('q', '2026-10-12', 3), kind: 'quick', durationMin: 30, legs: true },
+      session('b', '2026-10-11', 2),
+    ],
+    sets: [
+      set('a', 0, { reps: 12, weightKg: 20, rpe: 8 }),
+      set('b', 0, { reps: 12, weightKg: 24, rpe: 8 }),
+      set('b', 1, { reps: 12, weightKg: 24, rpe: 8 }),
+      set('b', 2, { reps: 5, weightKg: 10, setType: 'warmup' }),
+    ],
+  };
 
-  it('finds the most recent detailed sets of an exercise', () => {
-    expect(lastSetsFor(logs, 'goblet_squat', '2026-10-18')).toEqual({
+  it('finds the most recent working sets of an exercise', () => {
+    expect(lastSetsFor(history, 'goblet_squat', '2026-10-18')).toEqual({
       sets: [
         { exerciseId: 'goblet_squat', reps: 12, weightKg: 24, rpe: 8 },
         { exerciseId: 'goblet_squat', reps: 12, weightKg: 24, rpe: 8 },
       ],
       daysSince: 7,
     });
-    expect(lastSetsFor(logs, 'push_up', '2026-10-18')).toBeNull();
+    expect(lastSetsFor(history, 'push_up', '2026-10-18')).toBeNull();
   });
 
   it('pre-fills a routine from last time (double progression, lower body +5 %)', () => {
-    const session = routineSession({
+    const s = routineSession({
       id: 'r',
       name: 'Legs',
-      durationMin: 40,
+      position: 0,
       exercises: [
-        { exerciseId: 'goblet_squat', sets: 2, reps: '8–12' },
-        { name: 'Sled push', sets: 1, reps: '20 m', weightKg: 40 },
+        {
+          id: 'e1',
+          exerciseId: 'goblet_squat',
+          targetSets: 2,
+          target: { kind: 'reps', min: 8, max: 12 },
+          restSec: 90,
+          supersetGroup: 'g',
+          notes: 'slow',
+        },
+        {
+          id: 'e2',
+          exerciseId: 'custom:sled',
+          targetSets: 1,
+          target: { kind: 'distance', m: 20 },
+          restSec: 120,
+          weightKg: 40,
+        },
       ],
     });
-    expect(session.sourceId).toBe('routine:r');
-    expect(session.exercises[1]).toMatchObject({ exerciseId: 'custom:r:1', name: 'Sled push' });
-    const prefill = prefillSession(session, logs, '2026-10-18', []);
+    expect(s).toMatchObject({ sourceId: 'routine:r', routineId: 'r', title: 'Legs' });
+    expect(s.durationMin).toBeGreaterThan(0);
+    expect(s.exercises[0]).toMatchObject({ reps: '8–12', supersetGroup: 'g', notes: 'slow' });
+    expect(s.exercises[1]).toMatchObject({ exerciseId: 'custom:sled', reps: '20 m', weightKg: 40 });
+    const prefill = prefillSession(s, history, '2026-10-18', []);
     expect(prefill[0]?.sets).toEqual([
       { reps: 8, weightKg: 25 },
       { reps: 8, weightKg: 25 },
@@ -85,18 +117,75 @@ describe('strength session helpers', () => {
     expect(() => templateSession('run.easy')).toThrow();
   });
 
+  it('keeps the planned workout and its routine', () => {
+    const w = {
+      id: 'w1',
+      templateId: 'routine:r9',
+      durationMin: 45,
+      exercises: [{ exerciseId: 'plank', sets: 3, reps: '30 s', restSec: 45 }],
+    } as unknown as Workout;
+    expect(planWorkoutSession(w)).toMatchObject({
+      plannedWorkoutId: 'w1',
+      routineId: 'r9',
+      sourceId: 'routine:r9',
+      exercises: [{ exerciseId: 'plank', reps: '30 s' }],
+    });
+    expect(isTimed('30 s')).toBe(true);
+    expect(isTimed('8–12')).toBe(false);
+  });
+
+  it('builds detailed and quick sessions', () => {
+    const s = {
+      ...routineSession({ id: 'r', name: 'Push', position: 0, exercises: [] }),
+      plannedWorkoutId: 'w',
+    };
+    const built = buildDetailedSession(
+      s,
+      [
+        { exerciseId: 'bench_press', weightKg: 60, reps: 8, rpe: 7 },
+        { exerciseId: 'plank', durationSec: 45 },
+      ],
+      { date: '2026-10-20', startedAt: 1000, endedAt: 61000, durationMin: 1 },
+    );
+    expect(built.session).toMatchObject({
+      date: '2026-10-20',
+      kind: 'detailed',
+      routineId: 'r',
+      plannedWorkoutId: 'w',
+      sourceId: 'routine:r',
+      title: 'Push',
+    });
+    expect(
+      built.sets.map((x) => [x.setIndex, x.sessionId === built.session.id, x.reps, x.durationSec]),
+    ).toEqual([
+      [0, true, 8, undefined],
+      [1, true, undefined, 45],
+    ]);
+    const quick = buildQuickSession({
+      date: '2026-10-20',
+      now: 3_600_000,
+      durationMin: 30,
+      rpe: 6,
+      legs: true,
+    });
+    expect(quick).toMatchObject({ kind: 'quick', startedAt: 1_800_000, sessionRpe: 6, legs: true });
+  });
+
   it('names library, custom and free-text exercises', () => {
     const t = i18n.t.bind(i18n);
-    const custom = [
+    const custom: CustomExercise[] = [
       {
         id: 'custom:sled',
         name: 'Sled push',
-        howTo: 'Push.',
-        pattern: 'squat' as const,
+        instructions: 'Push.',
+        pattern: 'squat',
+        primaryMuscles: [],
+        secondaryMuscles: [],
         muscles: [],
-        equipment: ['machine' as const],
-        legLoad: 'heavy' as const,
+        equipment: ['machine'],
+        legLoad: 'heavy',
         unilateral: false,
+        trackingMode: 'distance',
       },
     ];
     expect(exerciseName(t, 'back_squat', custom)).toBe('Back squat');

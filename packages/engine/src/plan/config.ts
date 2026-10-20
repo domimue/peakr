@@ -249,7 +249,19 @@ export const planConfig = {
     resumePauseDays: 7,
     /** Equipment each setting provides (§8.6); exercises need at least one of their items. */
     equipment: {
-      gym: ['barbell', 'dumbbell', 'kettlebell', 'machine', 'cable', 'band', 'bodyweight', 'box'],
+      gym: [
+        'barbell',
+        'ezBar',
+        'trapBar',
+        'dumbbell',
+        'kettlebell',
+        'machine',
+        'smith',
+        'cable',
+        'band',
+        'bodyweight',
+        'box',
+      ],
       home: ['dumbbell', 'kettlebell', 'band', 'bodyweight', 'box'],
       hotel: ['band', 'bodyweight'],
     } satisfies Record<StrengthEquipment, readonly Equipment[]>,

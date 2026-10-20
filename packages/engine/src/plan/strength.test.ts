@@ -92,10 +92,13 @@ const legRoutine: StrengthSetup = {
       id: 'custom:sled',
       name: 'Sled push',
       pattern: 'squat',
+      primaryMuscles: ['quads'],
+      secondaryMuscles: [],
       muscles: ['quads'],
       equipment: ['machine'],
       legLoad: 'heavy',
       unilateral: false,
+      trackingMode: 'distance',
     },
   ],
 };
@@ -334,10 +337,13 @@ describe('exercise library and custom exercises', () => {
     id: 'custom:sled',
     name: 'Sled push',
     pattern: 'squat',
+    primaryMuscles: [],
+    secondaryMuscles: [],
     muscles: [],
     equipment: ['machine'],
     legLoad: 'heavy',
     unilateral: false,
+    trackingMode: 'weightReps',
   };
 
   it('resolves library and custom exercises', () => {
@@ -353,11 +359,12 @@ describe('exercise library and custom exercises', () => {
       pattern: 'squat',
       equipment: ['machine', 'machine'],
       legLoad: 'heavy',
-      howTo: ' Push it. ',
+      instructions: ' Push it. ',
+      cues: [' Drive ', ''],
     });
     expect(ok).toEqual({
       ok: true,
-      value: { ...custom, id: 'custom:abc', howTo: 'Push it.' },
+      value: { ...custom, id: 'custom:abc', instructions: 'Push it.', cues: ['Drive'] },
     });
     const same = validateCustomExercise({
       id: 'custom:abc',
@@ -366,8 +373,9 @@ describe('exercise library and custom exercises', () => {
       equipment: ['band'],
       legLoad: 'none',
       unilateral: true,
-      muscles: ['core'],
-      howTo: ' ',
+      primaryMuscles: ['abs', 'abs'],
+      secondaryMuscles: ['abs', 'obliques'],
+      instructions: ' ',
     });
     expect(same).toEqual({
       ok: true,
@@ -378,7 +386,10 @@ describe('exercise library and custom exercises', () => {
         equipment: ['band'],
         legLoad: 'none',
         unilateral: true,
-        muscles: ['core'],
+        primaryMuscles: ['abs'],
+        secondaryMuscles: ['obliques'],
+        muscles: ['abs', 'obliques'],
+        trackingMode: 'weightReps',
       },
     });
     expect(
@@ -424,7 +435,8 @@ describe('exercise library and custom exercises', () => {
     const hotel = equipmentFor('hotel');
     const patterns = new Set(exercises.map((e) => e.pattern));
     for (const p of patterns) {
-      if (p === 'arms') continue; // borrowed from push/pull patterns
+      // Borrowed from other patterns (strength-equipment FALLBACK_PATTERNS).
+      if (p === 'arms' || p === 'carry') continue;
       expect(
         exercises.some((e) => e.pattern === p && hasEquipmentFor(e, hotel)),
         p,
@@ -499,10 +511,13 @@ describe('logging (§8.7)', () => {
         id: 'custom:c',
         name: 'C',
         pattern: 'core',
+        primaryMuscles: [],
+        secondaryMuscles: [],
         muscles: [],
         equipment: ['band'],
         legLoad: 'none',
         unilateral: false,
+        trackingMode: 'reps',
       },
     ];
     expect(

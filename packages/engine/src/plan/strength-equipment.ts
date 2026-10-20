@@ -16,6 +16,9 @@ const FALLBACK_PATTERNS: Partial<Record<ExercisePattern, ExercisePattern[]>> = {
   pullVertical: ['pullHorizontal'],
   pullHorizontal: ['pullVertical'],
   calf: ['plyometrics'],
+  fly: ['pushHorizontal'],
+  carry: ['core'],
+  legIsolation: ['lunge', 'squat'],
 };
 
 const LEG_ORDER: readonly LegLoad[] = ['none', 'light', 'heavy'];

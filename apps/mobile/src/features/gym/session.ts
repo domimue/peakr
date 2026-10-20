@@ -2,11 +2,17 @@ import {
   adaptToEquipment,
   defaultRestSec,
   getTemplate,
+  lastSetsOf,
+  parseReps,
   prefillExercise,
   resolveExercise,
+  routineMinutes,
+  targetToText,
   type CustomExercise,
   type ExercisePrefill,
-  type Routine,
+  type GymRoutine,
+  type GymSession,
+  type GymSet,
   type SetLog,
   type StrengthEquipment,
   type Workout,
@@ -14,44 +20,51 @@ import {
 import type { TFunction } from 'i18next';
 
 import { daysBetween, newId } from '@/data/ids';
-import type { StrengthLogEntry } from '@/data/repositories/strength-repository';
+import type { GymHistory } from '@/data/repositories/gym-repository';
 
-/** What the strength workout screen shows, whatever it was started from. */
+import { exerciseLabel, exerciseTexts } from './exercise-text';
+
+/** What the workout screen shows, whatever it was started from. */
 export interface SessionExercise {
   exerciseId: string;
-  /** Free-text name (imports, routine entries without a library exercise). */
+  /** Free-text name (unknown exercise ids). */
   name?: string;
   sets: number;
+  /** Prescription text (`"8–12"`, `"30 s"`). */
   reps: string;
   restSec: number;
   weightKg?: number;
+  supersetGroup?: string;
+  notes?: string;
 }
 
 export interface StrengthSession {
   /** Routine name, or empty for template / plan sessions (titled by type). */
   title: string;
-  /** `routine:<id>` or a template id – remembered with the log. */
+  /** `routine:<id>` or a template id – remembered with the session. */
   sourceId: string;
+  routineId?: string;
+  /** The planned workout this session fulfils. */
+  plannedWorkoutId?: string;
   durationMin: number;
   exercises: SessionExercise[];
 }
 
-export function routineSession(routine: Routine): StrengthSession {
+export function routineSession(routine: GymRoutine): StrengthSession {
   return {
     title: routine.name,
     sourceId: `routine:${routine.id}`,
-    durationMin: routine.durationMin,
-    exercises: routine.exercises.map((e, i) => {
-      const exerciseId = e.exerciseId ?? `custom:${routine.id}:${i}`;
-      return {
-        exerciseId,
-        name: e.name,
-        sets: e.sets,
-        reps: e.reps,
-        restSec: e.restSec ?? defaultRestSec(exerciseId, e.reps),
-        weightKg: e.weightKg,
-      };
-    }),
+    routineId: routine.id,
+    durationMin: routineMinutes(routine),
+    exercises: routine.exercises.map((e) => ({
+      exerciseId: e.exerciseId,
+      sets: e.targetSets,
+      reps: targetToText(e.target),
+      restSec: e.restSec,
+      ...(e.weightKg !== undefined ? { weightKg: e.weightKg } : {}),
+      ...(e.supersetGroup ? { supersetGroup: e.supersetGroup } : {}),
+      ...(e.notes ? { notes: e.notes } : {}),
+    })),
   };
 }
 
@@ -82,6 +95,10 @@ export function planWorkoutSession(workout: Workout): StrengthSession {
   return {
     title: '',
     sourceId: workout.templateId,
+    plannedWorkoutId: workout.id,
+    ...(workout.templateId.startsWith('routine:')
+      ? { routineId: workout.templateId.slice('routine:'.length) }
+      : {}),
     durationMin: workout.durationMin,
     exercises: (workout.exercises ?? []).map((e) => ({
       exerciseId: e.exerciseId,
@@ -93,32 +110,25 @@ export function planWorkoutSession(workout: Workout): StrengthSession {
   };
 }
 
-/** Sets of the most recent detailed log that contains the exercise, and how long ago it was. */
+/** Working sets of the most recent session that has the exercise, and how long ago it was. */
 export function lastSetsFor(
-  logs: readonly StrengthLogEntry[],
+  history: GymHistory,
   exerciseId: string,
   today: string,
 ): { sets: SetLog[]; daysSince: number } | null {
-  const sorted = [...logs].sort(
-    (a, b) => b.date.localeCompare(a.date) || b.createdAt - a.createdAt,
-  );
-  for (const entry of sorted) {
-    if (entry.log.kind !== 'detailed') continue;
-    const sets = entry.log.sets.filter((s) => s.exerciseId === exerciseId);
-    if (sets.length > 0) return { sets, daysSince: daysBetween(entry.date, today) };
-  }
-  return null;
+  const last = lastSetsOf(exerciseId, history.sessions, history.sets);
+  return last ? { sets: last.sets, daysSince: daysBetween(last.date, today) } : null;
 }
 
 /** Pre-filled sets for every exercise of a session (§8.5). */
 export function prefillSession(
   session: StrengthSession,
-  logs: readonly StrengthLogEntry[],
+  history: GymHistory,
   today: string,
   custom: readonly CustomExercise[],
 ): ExercisePrefill[] {
   return session.exercises.map((e) => {
-    const last = lastSetsFor(logs, e.exerciseId, today);
+    const last = lastSetsFor(history, e.exerciseId, today);
     return prefillExercise(e, last?.sets ?? [], { daysSinceLast: last?.daysSince, custom });
   });
 }
@@ -130,24 +140,93 @@ export function exerciseName(
   custom: readonly CustomExercise[],
   fallback?: string,
 ): string {
-  const ex = resolveExercise(exerciseId, custom);
-  if (ex && 'name' in ex) return ex.name;
-  if (ex) return t(`exercises.${exerciseId}.name` as never);
-  return fallback ?? exerciseId;
+  return exerciseLabel(t, exerciseId, custom, fallback);
 }
 
-/** How-to text of a library or custom exercise, if any. */
+/** Instructions of a library or custom exercise, if any. */
 export function exerciseHowTo(
   t: TFunction,
   exerciseId: string,
   custom: readonly CustomExercise[],
 ): string | undefined {
-  const ex = resolveExercise(exerciseId, custom);
-  if (ex && 'name' in ex) return ex.howTo;
-  return ex ? (t(`exercises.${exerciseId}.howTo` as never) as string) : undefined;
+  const exercise = resolveExercise(exerciseId, custom);
+  return exercise ? exerciseTexts(t, exercise).instructions : undefined;
 }
 
-/** A new log row with id and creation time. */
-export function newLogEntry(fields: Omit<StrengthLogEntry, 'id' | 'createdAt'>): StrengthLogEntry {
-  return { ...fields, id: newId(), createdAt: Date.now() };
+/** One set as entered in the workout screen. */
+export interface LoggedSet {
+  exerciseId: string;
+  weightKg?: number;
+  reps?: number;
+  durationSec?: number;
+  rpe?: number;
+}
+
+/** A finished detailed session from the sets the user ticked off. */
+export function buildDetailedSession(
+  session: StrengthSession,
+  sets: readonly LoggedSet[],
+  options: { date: string; startedAt: number; durationMin: number; endedAt?: number },
+): { session: GymSession; sets: GymSet[] } {
+  const id = newId();
+  const endedAt = options.endedAt ?? Date.now();
+  return {
+    session: {
+      id,
+      date: options.date,
+      startedAt: options.startedAt,
+      endedAt,
+      durationMin: options.durationMin,
+      title: session.title,
+      kind: 'detailed',
+      source: 'app',
+      sourceId: session.sourceId,
+      ...(session.routineId ? { routineId: session.routineId } : {}),
+      ...(session.plannedWorkoutId ? { plannedWorkoutId: session.plannedWorkoutId } : {}),
+    },
+    sets: sets.map((s, setIndex) => ({
+      id: newId(),
+      sessionId: id,
+      exerciseId: s.exerciseId,
+      setIndex,
+      setType: 'working',
+      completed: true,
+      loggedAt: endedAt,
+      ...(s.weightKg !== undefined ? { weightKg: s.weightKg } : {}),
+      ...(s.reps !== undefined ? { reps: s.reps } : {}),
+      ...(s.durationSec !== undefined ? { durationSec: s.durationSec } : {}),
+      ...(s.rpe !== undefined ? { rpe: s.rpe } : {}),
+    })),
+  };
+}
+
+/** A quick log (§8.7) as a gym session without sets. */
+export function buildQuickSession(fields: {
+  date: string;
+  now: number;
+  durationMin: number;
+  rpe: number;
+  legs: boolean;
+  sourceId?: string;
+  plannedWorkoutId?: string;
+}): GymSession {
+  return {
+    id: newId(),
+    date: fields.date,
+    startedAt: fields.now - fields.durationMin * 60000,
+    endedAt: fields.now,
+    durationMin: fields.durationMin,
+    title: '',
+    kind: 'quick',
+    sessionRpe: fields.rpe,
+    legs: fields.legs,
+    source: 'app',
+    ...(fields.sourceId ? { sourceId: fields.sourceId } : {}),
+    ...(fields.plannedWorkoutId ? { plannedWorkoutId: fields.plannedWorkoutId } : {}),
+  };
+}
+
+/** Whether a prescription is timed (`"30 s"`) rather than reps. */
+export function isTimed(reps: string): boolean {
+  return parseReps(reps)?.unit === 'sec';
 }

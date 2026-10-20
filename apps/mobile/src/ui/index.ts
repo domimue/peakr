@@ -22,3 +22,4 @@ export * from './components/list-state';
 export * from './components/segmented-progress';
 export * from './components/settings-row';
 export * from './components/stat-tile';
+export * from './components/sortable-list';

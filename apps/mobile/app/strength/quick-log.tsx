@@ -1,8 +1,7 @@
-import { useLocalSearchParams } from 'expo-router';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 
-import { QuickLogScreen } from '@/features/strength/screens/quick-log-screen';
-
-export default function QuickLogRoute() {
-  const { sourceId } = useLocalSearchParams<{ sourceId?: string }>();
-  return <QuickLogScreen sourceId={sourceId} />;
+/** Moved to the Gym workspace (Phase 8d). */
+export default function OldQuickLogRoute() {
+  const params = useLocalSearchParams<{ sourceId?: string }>();
+  return <Redirect href={{ pathname: '/gym/quick-log', params }} />;
 }

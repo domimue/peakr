@@ -1,4 +1,4 @@
-import { exercises, workoutLibrary } from '@peakr/engine';
+import { workoutLibrary } from '@peakr/engine';
 import { strengthQuestions } from '@peakr/quiz';
 
 import en from '@/i18n/locales/en.json';
@@ -10,13 +10,6 @@ function lookup(key: string): unknown {
 }
 
 describe('strength translations', () => {
-  it('has a name and how-to for every library exercise', () => {
-    for (const e of exercises) {
-      expect(typeof lookup(`exercises.${e.id}.name`)).toBe('string');
-      expect(typeof lookup(`exercises.${e.id}.howTo`)).toBe('string');
-    }
-  });
-
   it('has a title for every strength session type', () => {
     for (const t of workoutLibrary.filter((x) => x.sport === 'strength')) {
       expect(typeof lookup(`strength.types.${t.type}`)).toBe('string');

@@ -1,54 +1,51 @@
-import {
-  getTemplate,
-  parseReps,
-  type CustomExercise,
-  type ExercisePrefill,
-  type SetLog,
-} from '@peakr/engine';
+import { getTemplate, type CustomExercise, type ExercisePrefill, type SetLog } from '@peakr/engine';
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { todayIso } from '@/data/ids';
-import type { StrengthLogEntry } from '@/data/repositories/strength-repository';
+import type { GymHistory } from '@/data/repositories/gym-repository';
+import { usePlanActions } from '@/features/plan/queries';
+import { useStrengthSetup } from '@/features/strength/queries';
 import { Button, Card, Input, radius, Screen, spacing, Stepper, Text, useTheme } from '@/ui';
 
 import { useActiveWorkoutStore } from '../active-workout-store';
+import { useGymExercises, useGymHistory, useGymRoutines, useSaveGymSession } from '../queries';
 import {
-  useCustomExercises,
-  useRoutines,
-  useSaveStrengthLog,
-  useStrengthLogs,
-  useStrengthSetup,
-} from '../queries';
-import {
+  buildDetailedSession,
   exerciseHowTo,
   exerciseName,
+  isTimed,
   lastSetsFor,
-  newLogEntry,
   planWorkoutSession,
   prefillSession,
   routineSession,
   templateSession,
+  type LoggedSet,
   type StrengthSession,
 } from '../session';
 
-export interface StrengthWorkoutParams {
+export interface WorkoutParams {
   routineId?: string;
   templateId?: string;
+  /** The planned workout handed over from the plan (via the active-workout store). */
+  workoutId?: string;
 }
 
-/** Resolves what to train: a routine, a library session, or the planned workout handed over. */
-export function StrengthWorkoutScreen({ routineId, templateId }: StrengthWorkoutParams) {
+/**
+ * Gym session: resolves what to train – a routine, a library session, or the planned workout
+ * handed over from the plan, pre-filled from last time (§8.5).
+ */
+export function WorkoutScreen({ routineId, templateId, workoutId }: WorkoutParams) {
   const { t } = useTranslation();
   const planned = useActiveWorkoutStore((s) => s.workout);
   const setup = useStrengthSetup();
-  const routines = useRoutines();
-  const custom = useCustomExercises();
-  const logs = useStrengthLogs();
+  const routines = useGymRoutines();
+  const custom = useGymExercises();
+  const history = useGymHistory();
 
-  if (setup.isPending || routines.isPending || custom.isPending || logs.isPending)
+  if (setup.isPending || routines.isPending || custom.isPending || history.isPending)
     return <Screen />;
 
   let session: StrengthSession | null = null;
@@ -57,7 +54,7 @@ export function StrengthWorkoutScreen({ routineId, templateId }: StrengthWorkout
     session = routine ? routineSession(routine) : null;
   } else if (templateId) {
     session = templateSession(templateId, setup.data?.equipment);
-  } else if (planned?.sport === 'strength') {
+  } else if (planned?.sport === 'strength' && (!workoutId || planned.id === workoutId)) {
     session = planWorkoutSession(planned);
   }
   if (!session) {
@@ -80,7 +77,7 @@ export function StrengthWorkoutScreen({ routineId, templateId }: StrengthWorkout
     <WorkoutLogger
       session={{ ...session, title }}
       custom={custom.data ?? []}
-      logs={logs.data ?? []}
+      history={history.data ?? { sessions: [], sets: [] }}
     />
   );
 }
@@ -103,17 +100,19 @@ function parseNumber(text: string): number | undefined {
 function WorkoutLogger({
   session,
   custom,
-  logs,
+  history,
 }: {
   session: StrengthSession;
   custom: readonly CustomExercise[];
-  logs: readonly StrengthLogEntry[];
+  history: GymHistory;
 }) {
   const { t } = useTranslation();
-  const save = useSaveStrengthLog();
+  const save = useSaveGymSession();
+  const planActions = usePlanActions();
+  const [startedAt] = useState(() => Date.now());
   const today = todayIso();
   const prefill = useMemo(
-    () => prefillSession(session, logs, today, custom),
+    () => prefillSession(session, history, today, custom),
     // The session and history are fixed for this visit.
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
@@ -139,9 +138,9 @@ function WorkoutLogger({
     );
 
   const finish = () => {
-    const logged: SetLog[] = [];
+    const logged: LoggedSet[] = [];
     prefill.forEach((p, ei) => {
-      const timed = parseReps(session.exercises[ei]?.reps ?? '')?.unit === 'sec';
+      const timed = isTimed(session.exercises[ei]?.reps ?? '');
       for (const s of sets[ei] ?? []) {
         if (!s.done) continue;
         const value = parseNumber(s.value);
@@ -157,15 +156,12 @@ function WorkoutLogger({
       setError(t('strength.workout.noSets'));
       return;
     }
-    save.mutate(
-      newLogEntry({
-        date: today,
-        title: session.title,
-        sourceId: session.sourceId,
-        log: { kind: 'detailed', durationMin, sets: logged },
-      }),
-      { onSuccess: () => router.back() },
-    );
+    save.mutate(buildDetailedSession(session, logged, { date: today, startedAt, durationMin }), {
+      onSuccess: () => {
+        if (session.plannedWorkoutId) planActions.setStatus(session.plannedWorkoutId, 'done');
+        router.back();
+      },
+    });
   };
 
   return (
@@ -179,7 +175,7 @@ function WorkoutLogger({
           prefill={p}
           exercise={session.exercises[ei]}
           custom={custom}
-          last={lastSetsFor(logs, p.exerciseId, today)?.sets}
+          last={lastSetsFor(history, p.exerciseId, today)?.sets}
           sets={sets[ei] ?? []}
           onChange={(si, patch) => updateSet(ei, si, patch)}
         />
@@ -202,8 +198,11 @@ function WorkoutLogger({
         label={t('strength.workout.quickLogInstead')}
         onPress={() =>
           router.replace({
-            pathname: '/strength/quick-log',
-            params: { sourceId: session.sourceId },
+            pathname: '/gym/quick-log',
+            params: {
+              sourceId: session.sourceId,
+              ...(session.plannedWorkoutId ? { workoutId: session.plannedWorkoutId } : {}),
+            },
           })
         }
       />
@@ -231,7 +230,7 @@ function ExerciseCard({
   const [showHowTo, setShowHowTo] = useState(false);
   const name = exerciseName(t, prefill.exerciseId, custom, exercise?.name);
   const howTo = exerciseHowTo(t, prefill.exerciseId, custom);
-  const timed = parseReps(exercise?.reps ?? '')?.unit === 'sec';
+  const timed = isTimed(exercise?.reps ?? '');
   const valueLabel = timed ? t('strength.workout.seconds') : t('strength.workout.reps');
 
   return (

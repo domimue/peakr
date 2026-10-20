@@ -104,7 +104,8 @@
       "moveTo": "Move to",
       "notFound": "This workout is no longer in your plan.",
       "level": "Level {{level}}",
-      "outlineTitle": "Coming up"
+      "outlineTitle": "Coming up",
+      "startInGym": "Start in Gym"
     },
     "availability": {
       "title": "Availability",
@@ -1111,7 +1112,8 @@
       "pattern": "Movement",
       "all": "All",
       "createCustom": "Create your own",
-      "empty": "No exercise found. Create your own instead."
+      "empty": "No exercise found. Create your own instead.",
+      "equipment": "Equipment"
     },
     "custom": {
       "title": "Your own exercise",
@@ -1133,7 +1135,11 @@
       "arms": "Arms",
       "core": "Core",
       "plyometrics": "Plyometrics",
-      "mobility": "Mobility"
+      "mobility": "Mobility",
+      "legIsolation": "Leg isolation",
+      "fly": "Fly",
+      "carry": "Carry",
+      "other": "Other"
     },
     "equipment": {
       "barbell": "Barbell",
@@ -1143,7 +1149,10 @@
       "cable": "Cable",
       "band": "Band",
       "bodyweight": "Bodyweight",
-      "box": "Box"
+      "box": "Box",
+      "ezBar": "EZ bar",
+      "trapBar": "Trap bar",
+      "smith": "Smith machine"
     },
     "legLoad": {
       "none": "None",
@@ -1213,268 +1222,6 @@
       "kettlebell_b": "Kettlebell B",
       "bodyweight_a": "Bodyweight A",
       "bodyweight_b": "Bodyweight B"
-    }
-  },
-  "exercises": {
-    "back_squat": {
-      "name": "Back squat",
-      "howTo": "Bar on your upper back, feet shoulder-width. Sit down between your heels until your thighs are at least parallel, chest up, knees tracking over your toes. Drive up through the whole foot."
-    },
-    "front_squat": {
-      "name": "Front squat",
-      "howTo": "Bar resting on the front of your shoulders, elbows high. Squat straight down keeping your torso upright, then stand up without letting the elbows drop."
-    },
-    "goblet_squat": {
-      "name": "Goblet squat",
-      "howTo": "Hold a dumbbell or kettlebell at your chest. Squat down between your knees, elbows inside the knees, chest tall, then stand up."
-    },
-    "leg_press": {
-      "name": "Leg press",
-      "howTo": "Feet hip-width in the middle of the platform. Lower until your knees are at about 90°, keep your lower back on the pad, press back up without locking the knees."
-    },
-    "bodyweight_squat": {
-      "name": "Bodyweight squat",
-      "howTo": "Feet shoulder-width, arms forward for balance. Sit back and down as deep as you can with a flat back, then stand up tall."
-    },
-    "split_squat": {
-      "name": "Split squat",
-      "howTo": "Long stride stance. Lower the back knee straight down towards the floor, front shin roughly vertical, then push up through the front foot. Switch legs after the set."
-    },
-    "bulgarian_split_squat": {
-      "name": "Bulgarian split squat",
-      "howTo": "Rear foot on a bench behind you. Lower until the front thigh is about parallel, torso slightly forward, then drive up through the front heel."
-    },
-    "deadlift": {
-      "name": "Deadlift",
-      "howTo": "Bar over mid-foot, hip-width stance. Hinge to grip the bar, flat back, shoulders over the bar. Push the floor away and stand up tall, then lower with control."
-    },
-    "romanian_deadlift": {
-      "name": "Romanian deadlift",
-      "howTo": "Stand tall with the weight. Push your hips back with soft knees, sliding the weight down your thighs until you feel the hamstrings stretch, then drive the hips forward."
-    },
-    "single_leg_rdl": {
-      "name": "Single-leg Romanian deadlift",
-      "howTo": "Stand on one leg. Hinge forward while the free leg reaches back, hips square, back flat. Return to standing by squeezing the glute of the standing leg."
-    },
-    "hip_thrust": {
-      "name": "Hip thrust",
-      "howTo": "Upper back on a bench, weight across your hips, feet flat. Drive the hips up until your body is straight from shoulders to knees, pause, lower with control."
-    },
-    "glute_bridge": {
-      "name": "Glute bridge",
-      "howTo": "Lie on your back, knees bent, feet flat. Press through your heels and lift the hips until shoulders, hips and knees line up, squeeze, then lower."
-    },
-    "kettlebell_swing": {
-      "name": "Kettlebell swing",
-      "howTo": "Hike the bell back between your legs, then snap the hips forward to float it to chest height. Power comes from the hips, not the arms."
-    },
-    "good_morning": {
-      "name": "Good morning",
-      "howTo": "Bar on your upper back, soft knees. Push the hips back and lower your torso with a flat back until you feel the hamstrings, then return to standing."
-    },
-    "walking_lunge": {
-      "name": "Walking lunge",
-      "howTo": "Step forward into a lunge, back knee close to the floor, then step through into the next lunge with the other leg. Keep your torso upright."
-    },
-    "reverse_lunge": {
-      "name": "Reverse lunge",
-      "howTo": "Step one foot back and lower the back knee towards the floor. Push through the front foot to return. Alternate legs or finish one side first."
-    },
-    "step_up": {
-      "name": "Step-up",
-      "howTo": "Place one foot fully on a box or bench. Drive through that foot to stand up on top without pushing off the back leg, then step down slowly."
-    },
-    "lateral_lunge": {
-      "name": "Lateral lunge",
-      "howTo": "Take a wide step to the side and sit into that hip, keeping the other leg straight and both feet flat. Push back to the start."
-    },
-    "pistol_squat_progression": {
-      "name": "Pistol squat progression",
-      "howTo": "Stand on one leg, the other leg forward. Squat down as far as you control – to a box or holding a support at first – then stand up."
-    },
-    "standing_calf_raise": {
-      "name": "Standing calf raise",
-      "howTo": "Balls of your feet on a step. Rise as high as you can, pause, then lower the heels slowly below the step."
-    },
-    "bent_knee_calf_raise": {
-      "name": "Bent-knee calf raise",
-      "howTo": "Same as a calf raise but with the knees bent about 30°, which targets the soleus – important for runners."
-    },
-    "tibialis_raise": {
-      "name": "Tibialis raise",
-      "howTo": "Lean your back against a wall, heels about a foot away. Lift your toes as high as you can, then lower slowly."
-    },
-    "single_leg_hops": {
-      "name": "Single-leg hops in place",
-      "howTo": "Small, quick hops on one foot staying on the ball of the foot, knee slightly bent. Stay springy and quiet."
-    },
-    "bench_press": {
-      "name": "Bench press",
-      "howTo": "Lie on the bench, eyes under the bar, shoulder blades squeezed together. Lower the bar to mid-chest with control, then press it back up."
-    },
-    "dumbbell_press": {
-      "name": "Dumbbell press",
-      "howTo": "Lie on a bench with a dumbbell in each hand above your chest. Lower them to chest level, elbows at about 45°, then press up."
-    },
-    "incline_press": {
-      "name": "Incline press",
-      "howTo": "Bench set to 30–45°. Lower the weight to your upper chest and press it back up over your shoulders."
-    },
-    "push_up": {
-      "name": "Push-up",
-      "howTo": "Hands slightly wider than shoulders, body in a straight line. Lower your chest to just above the floor, then push back up."
-    },
-    "feet_elevated_push_up": {
-      "name": "Feet-elevated push-up",
-      "howTo": "Like a push-up with your feet on a bench or chair. Keep the body straight and lower your chest towards the floor."
-    },
-    "archer_push_up": {
-      "name": "Archer push-up",
-      "howTo": "Very wide hands. Lower towards one hand while the other arm stays almost straight, push back up and alternate sides."
-    },
-    "dips": {
-      "name": "Dips",
-      "howTo": "Support yourself on parallel bars or a sturdy bench. Lower until your shoulders are just below the elbows, then press back up."
-    },
-    "overhead_press": {
-      "name": "Overhead press",
-      "howTo": "Bar on the front of your shoulders, glutes and core tight. Press straight overhead, moving your head back slightly, finish with arms locked."
-    },
-    "dumbbell_shoulder_press": {
-      "name": "Dumbbell shoulder press",
-      "howTo": "Seated or standing, dumbbells at shoulder height. Press them overhead until the arms are straight, then lower with control."
-    },
-    "pike_push_up": {
-      "name": "Pike push-up",
-      "howTo": "Hips high in an inverted V. Bend the elbows to lower the top of your head towards the floor, then push back up."
-    },
-    "lateral_raise": {
-      "name": "Lateral raise",
-      "howTo": "Light dumbbells at your sides. Raise them out to shoulder height with slightly bent elbows, then lower slowly."
-    },
-    "barbell_row": {
-      "name": "Barbell row",
-      "howTo": "Hinge forward with a flat back. Pull the bar to your lower ribs, squeezing the shoulder blades, then lower with control."
-    },
-    "dumbbell_row": {
-      "name": "Dumbbell row",
-      "howTo": "One hand and knee on a bench. Pull the dumbbell towards your hip, elbow close to the body, then lower fully."
-    },
-    "seated_cable_row": {
-      "name": "Seated cable row",
-      "howTo": "Sit tall with a slight knee bend. Pull the handle to your stomach, shoulders down and back, then let the arms extend slowly."
-    },
-    "inverted_row": {
-      "name": "Inverted row",
-      "howTo": "Hang under a bar or sturdy table, body straight, heels on the floor. Pull your chest to the bar, then lower with control."
-    },
-    "face_pull": {
-      "name": "Face pull",
-      "howTo": "Rope or band at face height. Pull towards your forehead, elbows high and wide, then return slowly."
-    },
-    "pull_up": {
-      "name": "Pull-up",
-      "howTo": "Hang with an overhand grip slightly wider than shoulders. Pull your chest towards the bar, then lower all the way with control."
-    },
-    "chin_up": {
-      "name": "Chin-up",
-      "howTo": "Like a pull-up with palms facing you and hands shoulder-width. Pull your chin over the bar."
-    },
-    "lat_pulldown": {
-      "name": "Lat pulldown",
-      "howTo": "Sit with thighs under the pad. Pull the bar to your upper chest, leading with the elbows, then let it rise slowly."
-    },
-    "band_assisted_pull_up": {
-      "name": "Band-assisted pull-up",
-      "howTo": "Loop a band over the bar and put a knee or foot in it. Do pull-ups with the band's help; use lighter bands as you get stronger."
-    },
-    "biceps_curl": {
-      "name": "Biceps curl",
-      "howTo": "Elbows by your sides. Curl the weight up without swinging, squeeze, then lower slowly."
-    },
-    "hammer_curl": {
-      "name": "Hammer curl",
-      "howTo": "Like a biceps curl with palms facing each other throughout."
-    },
-    "triceps_pushdown": {
-      "name": "Triceps pushdown",
-      "howTo": "At a cable station, elbows pinned to your sides. Push the bar or rope down until the arms are straight, then let it rise."
-    },
-    "overhead_triceps_extension": {
-      "name": "Overhead triceps extension",
-      "howTo": "Hold one weight overhead with both hands. Lower it behind your head by bending the elbows, then extend back up."
-    },
-    "plank": {
-      "name": "Plank",
-      "howTo": "Forearms under your shoulders, body straight from head to heels. Brace your stomach and hold without letting the hips sag."
-    },
-    "side_plank": {
-      "name": "Side plank",
-      "howTo": "On one forearm, feet stacked. Lift the hips so your body forms a straight line and hold. Switch sides."
-    },
-    "dead_bug": {
-      "name": "Dead bug",
-      "howTo": "On your back, arms up, knees over hips. Slowly lower the opposite arm and leg while keeping your lower back on the floor, then switch."
-    },
-    "bird_dog": {
-      "name": "Bird dog",
-      "howTo": "On hands and knees, reach one arm forward and the opposite leg back until straight. Hold briefly, keep the hips level, switch sides."
-    },
-    "pallof_press": {
-      "name": "Pallof press",
-      "howTo": "Stand side-on to a cable or band at chest height. Press the handle straight out and resist the pull to rotate, then bring it back."
-    },
-    "hanging_knee_raise": {
-      "name": "Hanging knee raise",
-      "howTo": "Hang from a bar. Raise your knees towards your chest without swinging, then lower slowly."
-    },
-    "copenhagen_plank": {
-      "name": "Copenhagen plank",
-      "howTo": "Side plank with the top leg on a bench and the bottom leg free. Hold the hips up – a strong exercise for the adductors."
-    },
-    "ab_wheel": {
-      "name": "Ab wheel rollout",
-      "howTo": "Kneel holding the wheel. Roll forward as far as you can keep your back flat, then pull back using your core."
-    },
-    "pogo_hops": {
-      "name": "Pogo hops",
-      "howTo": "Quick, small two-footed jumps on the balls of your feet with stiff ankles, minimal ground contact time."
-    },
-    "box_jump": {
-      "name": "Box jump",
-      "howTo": "Swing your arms and jump onto a box, landing softly in a quarter squat. Step down – don't jump down."
-    },
-    "broad_jump": {
-      "name": "Broad jump",
-      "howTo": "Swing your arms and jump forward as far as you can, landing softly on both feet. Reset before each jump."
-    },
-    "bounding": {
-      "name": "Bounding",
-      "howTo": "Exaggerated running strides: drive the knee up and push off powerfully, spending as long as possible in the air."
-    },
-    "a_skips": {
-      "name": "A-skips",
-      "howTo": "Skip forward lifting one knee to hip height while the other foot strikes the ground under your hips. Rhythmic and light."
-    },
-    "hip_flexor_stretch": {
-      "name": "Hip flexor stretch",
-      "howTo": "Half-kneeling, tuck your pelvis and shift forward until you feel a stretch at the front of the back hip. Hold, then switch."
-    },
-    "ankle_dorsiflexion": {
-      "name": "Ankle dorsiflexion",
-      "howTo": "Half-kneeling facing a wall. Drive the front knee towards the wall without lifting the heel, then return."
-    },
-    "thoracic_rotation": {
-      "name": "Thoracic rotation",
-      "howTo": "On all fours, one hand behind your head. Rotate the elbow down and then up towards the ceiling, following it with your eyes."
-    },
-    "hips_90_90": {
-      "name": "90/90 hips",
-      "howTo": "Sit with both knees bent at 90°, one in front, one to the side. Rotate the knees to the other side without using your hands."
-    },
-    "hamstring_floss": {
-      "name": "Hamstring floss",
-      "howTo": "Lie on your back holding one leg behind the thigh. Straighten and bend the knee slowly while pointing and flexing the foot."
     }
   },
   "workoutText": {
@@ -2162,27 +1909,193 @@
   },
   "gym": {
     "title": "Gym",
-    "previewTitle": "Your gym workspace",
-    "previewBody": "A full strength log inside Peakr, as an add-on to your plan or on its own. Planned strength sessions open here, pre-filled.",
-    "features": {
-      "library": {
-        "title": "Exercise library",
-        "body": "Every exercise with a description and the muscles it trains."
-      },
-      "routines": {
-        "title": "Routine builder",
-        "body": "Build your own routines and splits, with supersets."
-      },
-      "session": {
-        "title": "Live session",
-        "body": "Log weight, reps and RPE per set, with rest timer and plate calculator – works offline."
-      },
-      "history": {
-        "title": "History & records",
-        "body": "Personal records and volume per exercise and muscle group."
+    "hub": {
+      "lastSession": "Last session",
+      "noSessions": "No session logged yet. Start a routine or log a session.",
+      "lastSummary": "{{sets}} sets · {{volume}} kg volume",
+      "train": "Train",
+      "library": "Library",
+      "routineCount_one": "{{count}} routine",
+      "routineCount_other": "{{count}} routines",
+      "exerciseCount_one": "{{count}} exercise",
+      "exerciseCount_other": "{{count}} exercises"
+    },
+    "library": {
+      "title": "Exercise library",
+      "intro": "Every exercise with how to do it, cues and the muscles it trains. Search by name, filter by movement or equipment.",
+      "count_one": "{{count}} exercise",
+      "count_other": "{{count}} exercises",
+      "custom": "Your own"
+    },
+    "exercise": {
+      "title": "Exercise",
+      "editTitle": "Edit exercise",
+      "notFound": "This exercise is no longer available.",
+      "unilateral": "One side at a time",
+      "primary": "Main muscles",
+      "secondary": "Also trains",
+      "edit": "Edit exercise",
+      "delete": "Delete exercise",
+      "editCopy": "Edit a copy",
+      "copyName": "{{name}} (my version)",
+      "copyIntro": "Library exercises stay as they are. Change anything in your own copy – it shows up next to the original."
+    },
+    "edit": {
+      "aliases": "Other names",
+      "aliasesHint": "Separated by commas – used by search and imports.",
+      "primaryMuscles": "Main muscles",
+      "secondaryMuscles": "Also trains",
+      "tracking": "What you log per set",
+      "unilateral": "One side at a time",
+      "instructions": "How to do it",
+      "cues": "Cues",
+      "mistakes": "Common mistakes",
+      "onePerLine": "One per line"
+    },
+    "tracking": {
+      "weightReps": "Weight and reps",
+      "reps": "Reps",
+      "time": "Time",
+      "distance": "Distance",
+      "weightTime": "Weight and time"
+    },
+    "muscles": {
+      "chest": "Chest",
+      "upper_back": "Upper back",
+      "lats": "Lats",
+      "lower_back": "Lower back",
+      "traps": "Traps",
+      "front_delts": "Front shoulders",
+      "side_delts": "Side shoulders",
+      "rear_delts": "Rear shoulders",
+      "biceps": "Biceps",
+      "triceps": "Triceps",
+      "forearms": "Forearms",
+      "abs": "Abs",
+      "obliques": "Obliques",
+      "quads": "Quads",
+      "hamstrings": "Hamstrings",
+      "glutes": "Glutes",
+      "adductors": "Inner thighs",
+      "abductors": "Outer hips",
+      "calves": "Calves",
+      "shins": "Shins",
+      "hip_flexors": "Hip flexors",
+      "neck": "Neck"
+    },
+    "routines": {
+      "folder": "Folder",
+      "noFolder": "No folder",
+      "newFolder": "New folder",
+      "folderName": "Folder name",
+      "renameFolder": "Edit folder {{name}}",
+      "deleteFolder": "Delete folder",
+      "deleteFolderHint": "The routines in it are kept and move to \"No folder\".",
+      "emptyFolder": "No routines in this folder.",
+      "copyName": "{{name}} (copy)",
+      "duplicate": "Duplicate",
+      "archive": "Archive",
+      "restore": "Restore",
+      "showArchived": "Show archived ({{count}})",
+      "hideArchived": "Hide archived",
+      "openRoutine": "Edit {{name}}",
+      "moreActions": "More actions for {{name}}",
+      "supersets_one": "{{count}} superset",
+      "supersets_other": "{{count}} supersets"
+    },
+    "builder": {
+      "notes": "Notes",
+      "exerciseNotes": "Note",
+      "targetRpe": "Target RPE",
+      "rpeInvalid": "1–10",
+      "targetInvalid": "e.g. 8–12, 10, 45 s or 20 m",
+      "supersetWithNext": "Superset with next",
+      "ungroup": "Leave superset",
+      "supersetLabel": "Superset {{letter}}",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "estimate": "Estimated from your sets: {{minutes}} min"
+    },
+    "starter": {
+      "title": "Start from a split",
+      "intro": "Ready routines to start with on day one. They land in their own folder – change anything you like.",
+      "add": "Add routines from a split",
+      "splits": {
+        "fullBody": "Full body",
+        "upperLower": "Upper / lower",
+        "pushPullLegs": "Push / pull / legs",
+        "bodyPart": "Body-part split"
       }
     },
-    "availableNow": "Available now"
+    "import": {
+      "title": "Import from another app",
+      "intro": "Bring your training history across with the CSV export your current gym app gives you – no paid plan or API key needed.",
+      "howToExport": "Hevy: Settings → Export data. Strong: Settings → Export data. Other apps work too – you map the columns yourself.",
+      "choose": "Choose CSV file",
+      "empty": "This file has no rows Peakr can read. Check that it is a CSV export.",
+      "preset": {
+        "hevy": "Hevy export detected",
+        "strong": "Strong export detected"
+      },
+      "noPreset": "Unknown format – check the columns below.",
+      "previewTitle": "Preview",
+      "missing": "Map these columns first: {{fields}}",
+      "previewCounts": "{{sessions}} workouts, {{sets}} sets",
+      "previewRange": "From {{from}} to {{to}}",
+      "kg": "{{value}} kg",
+      "issues_one": "{{count}} row skipped (line {{lines}})",
+      "issues_other": "{{count}} rows skipped (lines {{lines}}…)",
+      "columns": "Columns",
+      "fields": {
+        "sessionTitle": "Workout name",
+        "startTime": "Date / start time",
+        "endTime": "End time",
+        "sessionDuration": "Workout duration",
+        "exerciseName": "Exercise",
+        "setOrder": "Set number",
+        "setType": "Set type",
+        "weight": "Weight",
+        "reps": "Reps",
+        "distance": "Distance",
+        "duration": "Set time",
+        "rpe": "RPE",
+        "setNotes": "Set notes",
+        "sessionNotes": "Workout notes"
+      },
+      "noColumn": "—",
+      "weightUnit": "Weight unit in the file",
+      "lb": "lb",
+      "distanceUnit": "Distance unit in the file",
+      "dayFirst": "Dates are day first (18/01/2026)",
+      "next": "Next: match exercises",
+      "otherFile": "Choose another file",
+      "matchIntro": "{{matched}} exercises matched automatically, {{review}} to check.",
+      "status": {
+        "matched": "Matched",
+        "suggested": "Please check",
+        "unmatched": "Not in the library"
+      },
+      "setCount_one": "{{count}} set",
+      "setCount_other": "{{count}} sets",
+      "mapTo": "Import as",
+      "asCustom": "New own exercise",
+      "skip": "Don't import",
+      "searchLibrary": "Search the library",
+      "pickFor": "Choose the exercise for \"{{name}}\"",
+      "createRoutines": "Also create a routine for each workout name",
+      "routineFolder": "Imported",
+      "run": "Import",
+      "doneTitle": "Import finished",
+      "doneSessions_one": "{{count}} workout with {{sets}} sets imported.",
+      "doneSessions_other": "{{count}} workouts with {{sets}} sets imported.",
+      "doneExercises_one": "{{count}} new own exercise created.",
+      "doneExercises_other": "{{count}} new own exercises created.",
+      "doneRoutines_one": "{{count}} routine created.",
+      "doneRoutines_other": "{{count}} routines created.",
+      "doneSkipped_one": "{{count}} workout was imported before and skipped.",
+      "doneSkipped_other": "{{count}} workouts were imported before and skipped.",
+      "backToGym": "Back to the Gym"
+    }
   },
   "routes": {
     "title": "Routes",

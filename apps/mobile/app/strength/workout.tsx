@@ -1,11 +1,7 @@
-import { useLocalSearchParams } from 'expo-router';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 
-import { StrengthWorkoutScreen } from '@/features/strength/screens/strength-workout-screen';
-
-export default function StrengthWorkoutRoute() {
-  const { routineId, templateId } = useLocalSearchParams<{
-    routineId?: string;
-    templateId?: string;
-  }>();
-  return <StrengthWorkoutScreen routineId={routineId} templateId={templateId} />;
+/** Moved to the Gym workspace (Phase 8d). */
+export default function OldWorkoutRoute() {
+  const params = useLocalSearchParams<{ routineId?: string; templateId?: string }>();
+  return <Redirect href={{ pathname: '/gym/session', params }} />;
 }

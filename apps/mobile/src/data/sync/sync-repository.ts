@@ -8,10 +8,15 @@ import {
   appSettings,
   baselineActivities,
   customExercises,
+  gymExercises,
+  gymRoutines,
+  gymSessions,
+  gymSets,
   planPauses,
   plans,
   planWeeks,
   planWorkouts,
+  routineFolders,
   routines,
   routes,
   strengthLogs,
@@ -362,6 +367,11 @@ export function clearAllLocalData(): void {
     tx.delete(routines).run();
     tx.delete(customExercises).run();
     tx.delete(strengthLogs).run();
+    tx.delete(gymExercises).run();
+    tx.delete(routineFolders).run();
+    tx.delete(gymRoutines).run();
+    tx.delete(gymSessions).run();
+    tx.delete(gymSets).run();
     tx.delete(appSettings).run();
   });
 }

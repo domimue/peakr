@@ -1,0 +1,1502 @@
+[
+  {
+    "id": "back_squat",
+    "pattern": "squat",
+    "primary": ["quads", "glutes"],
+    "secondary": ["adductors", "lower_back", "abs"],
+    "equipment": ["barbell"],
+    "legLoad": "heavy",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "front_squat",
+    "pattern": "squat",
+    "primary": ["quads", "glutes"],
+    "secondary": ["abs", "upper_back"],
+    "equipment": ["barbell"],
+    "legLoad": "heavy",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "goblet_squat",
+    "pattern": "squat",
+    "primary": ["quads", "glutes"],
+    "secondary": ["abs"],
+    "equipment": ["dumbbell", "kettlebell"],
+    "legLoad": "light",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "leg_press",
+    "pattern": "squat",
+    "primary": ["quads", "glutes"],
+    "secondary": ["adductors", "hamstrings"],
+    "equipment": ["machine"],
+    "legLoad": "heavy",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "bodyweight_squat",
+    "pattern": "squat",
+    "primary": ["quads", "glutes"],
+    "secondary": ["abs"],
+    "equipment": ["bodyweight"],
+    "legLoad": "light",
+    "tracking": "reps"
+  },
+  {
+    "id": "split_squat",
+    "pattern": "squat",
+    "primary": ["quads", "glutes"],
+    "secondary": ["adductors"],
+    "equipment": ["bodyweight", "dumbbell"],
+    "legLoad": "light",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "bulgarian_split_squat",
+    "pattern": "squat",
+    "primary": ["quads", "glutes"],
+    "secondary": ["adductors", "hamstrings"],
+    "equipment": ["dumbbell", "bodyweight"],
+    "legLoad": "heavy",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "deadlift",
+    "pattern": "hinge",
+    "primary": ["hamstrings", "glutes", "lower_back"],
+    "secondary": ["quads", "traps", "forearms"],
+    "equipment": ["barbell"],
+    "legLoad": "heavy",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "romanian_deadlift",
+    "pattern": "hinge",
+    "primary": ["hamstrings", "glutes"],
+    "secondary": ["lower_back", "forearms"],
+    "equipment": ["barbell", "dumbbell"],
+    "legLoad": "heavy",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "single_leg_rdl",
+    "pattern": "hinge",
+    "primary": ["hamstrings", "glutes"],
+    "secondary": ["lower_back", "abs"],
+    "equipment": ["dumbbell", "kettlebell", "bodyweight"],
+    "legLoad": "light",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "hip_thrust",
+    "pattern": "hinge",
+    "primary": ["glutes"],
+    "secondary": ["hamstrings", "quads"],
+    "equipment": ["barbell", "bodyweight"],
+    "legLoad": "heavy",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "glute_bridge",
+    "pattern": "hinge",
+    "primary": ["glutes"],
+    "secondary": ["hamstrings"],
+    "equipment": ["bodyweight"],
+    "legLoad": "light",
+    "tracking": "reps"
+  },
+  {
+    "id": "kettlebell_swing",
+    "pattern": "hinge",
+    "primary": ["glutes", "hamstrings"],
+    "secondary": ["lower_back", "abs", "forearms"],
+    "equipment": ["kettlebell"],
+    "legLoad": "light",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "good_morning",
+    "pattern": "hinge",
+    "primary": ["hamstrings", "lower_back"],
+    "secondary": ["glutes"],
+    "equipment": ["barbell"],
+    "legLoad": "heavy",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "walking_lunge",
+    "pattern": "lunge",
+    "primary": ["quads", "glutes"],
+    "secondary": ["adductors", "hamstrings"],
+    "equipment": ["bodyweight", "dumbbell"],
+    "legLoad": "heavy",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "reverse_lunge",
+    "pattern": "lunge",
+    "primary": ["quads", "glutes"],
+    "secondary": ["adductors", "hamstrings"],
+    "equipment": ["bodyweight", "dumbbell"],
+    "legLoad": "light",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "step_up",
+    "pattern": "lunge",
+    "primary": ["quads", "glutes"],
+    "secondary": ["hamstrings"],
+    "equipment": ["box", "dumbbell"],
+    "legLoad": "light",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "lateral_lunge",
+    "pattern": "lunge",
+    "primary": ["adductors", "glutes"],
+    "secondary": ["quads"],
+    "equipment": ["bodyweight"],
+    "legLoad": "light",
+    "unilateral": true,
+    "tracking": "reps"
+  },
+  {
+    "id": "pistol_squat_progression",
+    "pattern": "lunge",
+    "primary": ["quads", "glutes"],
+    "secondary": ["abs", "adductors"],
+    "equipment": ["bodyweight"],
+    "legLoad": "heavy",
+    "unilateral": true,
+    "tracking": "reps"
+  },
+  {
+    "id": "standing_calf_raise",
+    "pattern": "calf",
+    "primary": ["calves"],
+    "equipment": ["bodyweight", "machine"],
+    "legLoad": "light",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "bent_knee_calf_raise",
+    "pattern": "calf",
+    "primary": ["calves"],
+    "equipment": ["bodyweight", "machine"],
+    "legLoad": "light",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "tibialis_raise",
+    "pattern": "calf",
+    "primary": ["shins"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "single_leg_hops",
+    "pattern": "calf",
+    "primary": ["calves"],
+    "secondary": ["quads"],
+    "equipment": ["bodyweight"],
+    "legLoad": "light",
+    "unilateral": true,
+    "tracking": "reps"
+  },
+  {
+    "id": "bench_press",
+    "pattern": "pushHorizontal",
+    "primary": ["chest", "triceps"],
+    "secondary": ["front_delts"],
+    "equipment": ["barbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "dumbbell_press",
+    "pattern": "pushHorizontal",
+    "primary": ["chest", "triceps"],
+    "secondary": ["front_delts"],
+    "equipment": ["dumbbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "incline_press",
+    "pattern": "pushHorizontal",
+    "primary": ["chest", "front_delts"],
+    "secondary": ["triceps"],
+    "equipment": ["barbell", "dumbbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "push_up",
+    "pattern": "pushHorizontal",
+    "primary": ["chest", "triceps"],
+    "secondary": ["front_delts", "abs"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "feet_elevated_push_up",
+    "pattern": "pushHorizontal",
+    "primary": ["chest", "front_delts"],
+    "secondary": ["triceps", "abs"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "archer_push_up",
+    "pattern": "pushHorizontal",
+    "primary": ["chest", "triceps"],
+    "secondary": ["front_delts", "abs"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "reps"
+  },
+  {
+    "id": "dips",
+    "pattern": "pushHorizontal",
+    "primary": ["chest", "triceps"],
+    "secondary": ["front_delts"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "overhead_press",
+    "pattern": "pushVertical",
+    "primary": ["front_delts", "triceps"],
+    "secondary": ["side_delts", "upper_back", "abs"],
+    "equipment": ["barbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "dumbbell_shoulder_press",
+    "pattern": "pushVertical",
+    "primary": ["front_delts", "triceps"],
+    "secondary": ["side_delts"],
+    "equipment": ["dumbbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "pike_push_up",
+    "pattern": "pushVertical",
+    "primary": ["front_delts", "triceps"],
+    "secondary": ["upper_back"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "lateral_raise",
+    "pattern": "pushVertical",
+    "primary": ["side_delts"],
+    "secondary": ["traps"],
+    "equipment": ["dumbbell", "cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "barbell_row",
+    "pattern": "pullHorizontal",
+    "primary": ["upper_back", "lats"],
+    "secondary": ["biceps", "rear_delts", "lower_back"],
+    "equipment": ["barbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "dumbbell_row",
+    "pattern": "pullHorizontal",
+    "primary": ["lats", "upper_back"],
+    "secondary": ["biceps", "rear_delts"],
+    "equipment": ["dumbbell"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "seated_cable_row",
+    "pattern": "pullHorizontal",
+    "primary": ["upper_back", "lats"],
+    "secondary": ["biceps", "rear_delts"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "inverted_row",
+    "pattern": "pullHorizontal",
+    "primary": ["upper_back", "lats"],
+    "secondary": ["biceps", "rear_delts", "abs"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "face_pull",
+    "pattern": "pullHorizontal",
+    "primary": ["rear_delts", "upper_back"],
+    "secondary": ["traps"],
+    "equipment": ["cable", "band"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "pull_up",
+    "pattern": "pullVertical",
+    "primary": ["lats"],
+    "secondary": ["biceps", "upper_back", "forearms"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "chin_up",
+    "pattern": "pullVertical",
+    "primary": ["lats", "biceps"],
+    "secondary": ["upper_back", "forearms"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "lat_pulldown",
+    "pattern": "pullVertical",
+    "primary": ["lats"],
+    "secondary": ["biceps", "upper_back", "rear_delts"],
+    "equipment": ["cable", "machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "band_assisted_pull_up",
+    "pattern": "pullVertical",
+    "primary": ["lats"],
+    "secondary": ["biceps", "upper_back"],
+    "equipment": ["band"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "biceps_curl",
+    "pattern": "arms",
+    "primary": ["biceps"],
+    "secondary": ["forearms"],
+    "equipment": ["dumbbell", "barbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "hammer_curl",
+    "pattern": "arms",
+    "primary": ["biceps", "forearms"],
+    "equipment": ["dumbbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "triceps_pushdown",
+    "pattern": "arms",
+    "primary": ["triceps"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "overhead_triceps_extension",
+    "pattern": "arms",
+    "primary": ["triceps"],
+    "equipment": ["dumbbell", "cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "plank",
+    "pattern": "core",
+    "primary": ["abs"],
+    "secondary": ["obliques", "front_delts"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "time"
+  },
+  {
+    "id": "side_plank",
+    "pattern": "core",
+    "primary": ["obliques", "abs"],
+    "secondary": ["abductors"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "time"
+  },
+  {
+    "id": "dead_bug",
+    "pattern": "core",
+    "primary": ["abs"],
+    "secondary": ["hip_flexors"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "bird_dog",
+    "pattern": "core",
+    "primary": ["abs", "lower_back"],
+    "secondary": ["glutes"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "pallof_press",
+    "pattern": "core",
+    "primary": ["obliques", "abs"],
+    "equipment": ["cable", "band"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "hanging_knee_raise",
+    "pattern": "core",
+    "primary": ["abs", "hip_flexors"],
+    "secondary": ["forearms"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "copenhagen_plank",
+    "pattern": "core",
+    "primary": ["adductors"],
+    "secondary": ["obliques", "abs"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "time"
+  },
+  {
+    "id": "ab_wheel",
+    "pattern": "core",
+    "primary": ["abs"],
+    "secondary": ["lats", "obliques"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "pogo_hops",
+    "pattern": "plyometrics",
+    "primary": ["calves"],
+    "secondary": ["quads"],
+    "equipment": ["bodyweight"],
+    "legLoad": "heavy",
+    "tracking": "reps"
+  },
+  {
+    "id": "box_jump",
+    "pattern": "plyometrics",
+    "primary": ["quads", "glutes"],
+    "secondary": ["calves", "hamstrings"],
+    "equipment": ["box"],
+    "legLoad": "heavy",
+    "tracking": "reps"
+  },
+  {
+    "id": "broad_jump",
+    "pattern": "plyometrics",
+    "primary": ["quads", "glutes"],
+    "secondary": ["hamstrings", "calves"],
+    "equipment": ["bodyweight"],
+    "legLoad": "heavy",
+    "tracking": "reps"
+  },
+  {
+    "id": "bounding",
+    "pattern": "plyometrics",
+    "primary": ["glutes", "calves"],
+    "secondary": ["quads", "hamstrings", "hip_flexors"],
+    "equipment": ["bodyweight"],
+    "legLoad": "heavy",
+    "unilateral": true,
+    "tracking": "distance"
+  },
+  {
+    "id": "a_skips",
+    "pattern": "plyometrics",
+    "primary": ["hip_flexors", "calves"],
+    "secondary": ["quads"],
+    "equipment": ["bodyweight"],
+    "legLoad": "light",
+    "tracking": "distance"
+  },
+  {
+    "id": "hip_flexor_stretch",
+    "pattern": "mobility",
+    "primary": ["hip_flexors"],
+    "secondary": ["quads"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "time"
+  },
+  {
+    "id": "ankle_dorsiflexion",
+    "pattern": "mobility",
+    "primary": ["calves"],
+    "secondary": ["shins"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "reps"
+  },
+  {
+    "id": "thoracic_rotation",
+    "pattern": "mobility",
+    "primary": ["upper_back"],
+    "secondary": ["obliques"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "hips_90_90",
+    "pattern": "mobility",
+    "primary": ["glutes"],
+    "secondary": ["adductors", "abductors"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "hamstring_floss",
+    "pattern": "mobility",
+    "primary": ["hamstrings"],
+    "secondary": ["calves"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "reps"
+  },
+  {
+    "id": "leg_extension",
+    "pattern": "legIsolation",
+    "primary": ["quads"],
+    "equipment": ["machine"],
+    "legLoad": "light",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "seated_leg_curl",
+    "pattern": "legIsolation",
+    "primary": ["hamstrings"],
+    "secondary": ["calves"],
+    "equipment": ["machine"],
+    "legLoad": "light",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "lying_leg_curl",
+    "pattern": "legIsolation",
+    "primary": ["hamstrings"],
+    "secondary": ["calves"],
+    "equipment": ["machine"],
+    "legLoad": "light",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "standing_leg_curl",
+    "pattern": "legIsolation",
+    "primary": ["hamstrings"],
+    "secondary": ["calves"],
+    "equipment": ["machine"],
+    "legLoad": "light",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "hip_abduction_machine",
+    "pattern": "legIsolation",
+    "primary": ["abductors", "glutes"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "hip_adduction_machine",
+    "pattern": "legIsolation",
+    "primary": ["adductors"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "hack_squat",
+    "pattern": "squat",
+    "primary": ["quads", "glutes"],
+    "secondary": ["adductors"],
+    "equipment": ["machine"],
+    "legLoad": "heavy",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "belt_squat",
+    "pattern": "squat",
+    "primary": ["quads", "glutes"],
+    "secondary": ["adductors"],
+    "equipment": ["machine"],
+    "legLoad": "heavy",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "smith_squat",
+    "pattern": "squat",
+    "primary": ["quads", "glutes"],
+    "secondary": ["adductors"],
+    "equipment": ["smith"],
+    "legLoad": "heavy",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "seated_leg_press",
+    "pattern": "squat",
+    "primary": ["quads", "glutes"],
+    "secondary": ["hamstrings"],
+    "equipment": ["machine"],
+    "legLoad": "heavy",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "single_leg_press",
+    "pattern": "squat",
+    "primary": ["quads", "glutes"],
+    "secondary": ["hamstrings"],
+    "equipment": ["machine"],
+    "legLoad": "heavy",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "glute_kickback_machine",
+    "pattern": "legIsolation",
+    "primary": ["glutes"],
+    "secondary": ["hamstrings"],
+    "equipment": ["machine"],
+    "legLoad": "light",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "hip_thrust_machine",
+    "pattern": "hinge",
+    "primary": ["glutes"],
+    "secondary": ["hamstrings"],
+    "equipment": ["machine"],
+    "legLoad": "heavy",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "seated_calf_raise",
+    "pattern": "calf",
+    "primary": ["calves"],
+    "equipment": ["machine"],
+    "legLoad": "light",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "leg_press_calf_raise",
+    "pattern": "calf",
+    "primary": ["calves"],
+    "equipment": ["machine"],
+    "legLoad": "light",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "back_extension_machine",
+    "pattern": "hinge",
+    "primary": ["lower_back"],
+    "secondary": ["glutes", "hamstrings"],
+    "equipment": ["machine"],
+    "legLoad": "light",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "hyperextension",
+    "pattern": "hinge",
+    "primary": ["lower_back", "glutes"],
+    "secondary": ["hamstrings"],
+    "equipment": ["machine"],
+    "legLoad": "light",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "reverse_hyperextension",
+    "pattern": "hinge",
+    "primary": ["glutes", "hamstrings"],
+    "secondary": ["lower_back"],
+    "equipment": ["machine"],
+    "legLoad": "light",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "chest_press_machine",
+    "pattern": "pushHorizontal",
+    "primary": ["chest", "triceps"],
+    "secondary": ["front_delts"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "incline_chest_press_machine",
+    "pattern": "pushHorizontal",
+    "primary": ["chest", "front_delts"],
+    "secondary": ["triceps"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "decline_chest_press_machine",
+    "pattern": "pushHorizontal",
+    "primary": ["chest", "triceps"],
+    "secondary": ["front_delts"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "pec_deck",
+    "pattern": "fly",
+    "primary": ["chest"],
+    "secondary": ["front_delts"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "rear_delt_fly_machine",
+    "pattern": "fly",
+    "primary": ["rear_delts", "upper_back"],
+    "secondary": ["traps"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "shoulder_press_machine",
+    "pattern": "pushVertical",
+    "primary": ["front_delts", "triceps"],
+    "secondary": ["side_delts"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "lateral_raise_machine",
+    "pattern": "pushVertical",
+    "primary": ["side_delts"],
+    "secondary": ["traps"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "seated_row_machine",
+    "pattern": "pullHorizontal",
+    "primary": ["upper_back", "lats"],
+    "secondary": ["biceps", "rear_delts"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "t_bar_row",
+    "pattern": "pullHorizontal",
+    "primary": ["upper_back", "lats"],
+    "secondary": ["biceps", "rear_delts", "lower_back"],
+    "equipment": ["machine", "barbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "high_row_machine",
+    "pattern": "pullHorizontal",
+    "primary": ["upper_back", "lats"],
+    "secondary": ["rear_delts", "biceps"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "machine_pulldown",
+    "pattern": "pullVertical",
+    "primary": ["lats"],
+    "secondary": ["biceps", "upper_back"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "assisted_pull_up_machine",
+    "pattern": "pullVertical",
+    "primary": ["lats"],
+    "secondary": ["biceps", "upper_back"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "assisted_dip_machine",
+    "pattern": "pushHorizontal",
+    "primary": ["chest", "triceps"],
+    "secondary": ["front_delts"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "pullover_machine",
+    "pattern": "pullVertical",
+    "primary": ["lats"],
+    "secondary": ["chest", "triceps"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "biceps_curl_machine",
+    "pattern": "arms",
+    "primary": ["biceps"],
+    "secondary": ["forearms"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "triceps_extension_machine",
+    "pattern": "arms",
+    "primary": ["triceps"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "seated_dip_machine",
+    "pattern": "arms",
+    "primary": ["triceps"],
+    "secondary": ["chest", "front_delts"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "ab_crunch_machine",
+    "pattern": "core",
+    "primary": ["abs"],
+    "secondary": ["obliques"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "torso_rotation_machine",
+    "pattern": "core",
+    "primary": ["obliques"],
+    "secondary": ["abs"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "neck_extension_machine",
+    "pattern": "core",
+    "primary": ["neck"],
+    "secondary": ["traps"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "neck_flexion_machine",
+    "pattern": "core",
+    "primary": ["neck"],
+    "equipment": ["machine"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "smith_bench_press",
+    "pattern": "pushHorizontal",
+    "primary": ["chest", "triceps"],
+    "secondary": ["front_delts"],
+    "equipment": ["smith"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "smith_incline_press",
+    "pattern": "pushHorizontal",
+    "primary": ["chest", "front_delts"],
+    "secondary": ["triceps"],
+    "equipment": ["smith"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "smith_shoulder_press",
+    "pattern": "pushVertical",
+    "primary": ["front_delts", "triceps"],
+    "secondary": ["side_delts"],
+    "equipment": ["smith"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_fly",
+    "pattern": "fly",
+    "primary": ["chest"],
+    "secondary": ["front_delts"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "low_cable_fly",
+    "pattern": "fly",
+    "primary": ["chest", "front_delts"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_chest_press",
+    "pattern": "pushHorizontal",
+    "primary": ["chest", "triceps"],
+    "secondary": ["front_delts", "abs"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "single_arm_cable_row",
+    "pattern": "pullHorizontal",
+    "primary": ["lats", "upper_back"],
+    "secondary": ["biceps", "rear_delts"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "single_arm_lat_pulldown",
+    "pattern": "pullVertical",
+    "primary": ["lats"],
+    "secondary": ["biceps"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "straight_arm_pulldown",
+    "pattern": "pullVertical",
+    "primary": ["lats"],
+    "secondary": ["triceps", "abs"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_lateral_raise",
+    "pattern": "pushVertical",
+    "primary": ["side_delts"],
+    "secondary": ["traps"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_rear_delt_fly",
+    "pattern": "fly",
+    "primary": ["rear_delts", "upper_back"],
+    "secondary": ["traps"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_front_raise",
+    "pattern": "pushVertical",
+    "primary": ["front_delts"],
+    "secondary": ["side_delts"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_upright_row",
+    "pattern": "pushVertical",
+    "primary": ["side_delts", "traps"],
+    "secondary": ["biceps"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_y_raise",
+    "pattern": "pushVertical",
+    "primary": ["side_delts", "traps"],
+    "secondary": ["rear_delts"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_external_rotation",
+    "pattern": "pullHorizontal",
+    "primary": ["rear_delts"],
+    "secondary": ["upper_back"],
+    "equipment": ["cable", "band"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_curl",
+    "pattern": "arms",
+    "primary": ["biceps"],
+    "secondary": ["forearms"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "rope_hammer_curl",
+    "pattern": "arms",
+    "primary": ["biceps", "forearms"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_overhead_triceps_extension",
+    "pattern": "arms",
+    "primary": ["triceps"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_triceps_kickback",
+    "pattern": "arms",
+    "primary": ["triceps"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_shrug",
+    "pattern": "arms",
+    "primary": ["traps"],
+    "secondary": ["forearms"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_crunch",
+    "pattern": "core",
+    "primary": ["abs"],
+    "secondary": ["obliques"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_woodchop",
+    "pattern": "core",
+    "primary": ["obliques"],
+    "secondary": ["abs", "front_delts"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_lift",
+    "pattern": "core",
+    "primary": ["obliques"],
+    "secondary": ["abs", "front_delts"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_glute_kickback",
+    "pattern": "legIsolation",
+    "primary": ["glutes"],
+    "secondary": ["hamstrings"],
+    "equipment": ["cable"],
+    "legLoad": "light",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_pull_through",
+    "pattern": "hinge",
+    "primary": ["glutes", "hamstrings"],
+    "secondary": ["lower_back"],
+    "equipment": ["cable"],
+    "legLoad": "light",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_hip_abduction",
+    "pattern": "legIsolation",
+    "primary": ["abductors", "glutes"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "cable_hip_adduction",
+    "pattern": "legIsolation",
+    "primary": ["adductors"],
+    "equipment": ["cable"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "trap_bar_deadlift",
+    "pattern": "hinge",
+    "primary": ["quads", "glutes", "hamstrings"],
+    "secondary": ["lower_back", "traps", "forearms"],
+    "equipment": ["trapBar"],
+    "legLoad": "heavy",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "sumo_deadlift",
+    "pattern": "hinge",
+    "primary": ["glutes", "adductors", "hamstrings"],
+    "secondary": ["quads", "lower_back", "forearms"],
+    "equipment": ["barbell"],
+    "legLoad": "heavy",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "close_grip_bench_press",
+    "pattern": "pushHorizontal",
+    "primary": ["triceps", "chest"],
+    "secondary": ["front_delts"],
+    "equipment": ["barbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "landmine_press",
+    "pattern": "pushVertical",
+    "primary": ["front_delts", "chest"],
+    "secondary": ["triceps", "abs"],
+    "equipment": ["barbell"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "upright_row",
+    "pattern": "pushVertical",
+    "primary": ["side_delts", "traps"],
+    "secondary": ["biceps"],
+    "equipment": ["barbell", "dumbbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "ez_bar_curl",
+    "pattern": "arms",
+    "primary": ["biceps"],
+    "secondary": ["forearms"],
+    "equipment": ["ezBar"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "preacher_curl",
+    "pattern": "arms",
+    "primary": ["biceps"],
+    "secondary": ["forearms"],
+    "equipment": ["ezBar", "dumbbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "skull_crusher",
+    "pattern": "arms",
+    "primary": ["triceps"],
+    "equipment": ["ezBar", "dumbbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "dumbbell_fly",
+    "pattern": "fly",
+    "primary": ["chest"],
+    "secondary": ["front_delts"],
+    "equipment": ["dumbbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "arnold_press",
+    "pattern": "pushVertical",
+    "primary": ["front_delts", "side_delts"],
+    "secondary": ["triceps"],
+    "equipment": ["dumbbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "shrug",
+    "pattern": "arms",
+    "primary": ["traps"],
+    "secondary": ["forearms"],
+    "equipment": ["dumbbell", "barbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "dumbbell_rear_delt_fly",
+    "pattern": "fly",
+    "primary": ["rear_delts", "upper_back"],
+    "secondary": ["traps"],
+    "equipment": ["dumbbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "dumbbell_pullover",
+    "pattern": "pullVertical",
+    "primary": ["lats", "chest"],
+    "secondary": ["triceps"],
+    "equipment": ["dumbbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "incline_dumbbell_curl",
+    "pattern": "arms",
+    "primary": ["biceps"],
+    "secondary": ["forearms"],
+    "equipment": ["dumbbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "concentration_curl",
+    "pattern": "arms",
+    "primary": ["biceps"],
+    "equipment": ["dumbbell"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "weightReps"
+  },
+  {
+    "id": "chest_supported_dumbbell_row",
+    "pattern": "pullHorizontal",
+    "primary": ["upper_back", "lats"],
+    "secondary": ["rear_delts", "biceps"],
+    "equipment": ["dumbbell"],
+    "legLoad": "none",
+    "tracking": "weightReps"
+  },
+  {
+    "id": "farmer_carry",
+    "pattern": "carry",
+    "primary": ["forearms", "traps"],
+    "secondary": ["abs", "obliques", "quads"],
+    "equipment": ["dumbbell", "kettlebell"],
+    "legLoad": "light",
+    "tracking": "weightTime"
+  },
+  {
+    "id": "suitcase_carry",
+    "pattern": "carry",
+    "primary": ["obliques", "forearms"],
+    "secondary": ["abs", "traps"],
+    "equipment": ["dumbbell", "kettlebell"],
+    "legLoad": "light",
+    "unilateral": true,
+    "tracking": "weightTime"
+  },
+  {
+    "id": "nordic_curl",
+    "pattern": "legIsolation",
+    "primary": ["hamstrings"],
+    "secondary": ["glutes"],
+    "equipment": ["bodyweight"],
+    "legLoad": "heavy",
+    "tracking": "reps"
+  },
+  {
+    "id": "hanging_leg_raise",
+    "pattern": "core",
+    "primary": ["abs", "hip_flexors"],
+    "secondary": ["forearms", "obliques"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "crunch",
+    "pattern": "core",
+    "primary": ["abs"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "reverse_crunch",
+    "pattern": "core",
+    "primary": ["abs"],
+    "secondary": ["hip_flexors"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "russian_twist",
+    "pattern": "core",
+    "primary": ["obliques"],
+    "secondary": ["abs"],
+    "equipment": ["bodyweight", "dumbbell"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "hollow_hold",
+    "pattern": "core",
+    "primary": ["abs"],
+    "secondary": ["hip_flexors"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "time"
+  },
+  {
+    "id": "wall_sit",
+    "pattern": "squat",
+    "primary": ["quads"],
+    "secondary": ["glutes"],
+    "equipment": ["bodyweight"],
+    "legLoad": "light",
+    "tracking": "time"
+  },
+  {
+    "id": "jump_squat",
+    "pattern": "plyometrics",
+    "primary": ["quads", "glutes"],
+    "secondary": ["calves"],
+    "equipment": ["bodyweight"],
+    "legLoad": "heavy",
+    "tracking": "reps"
+  },
+  {
+    "id": "lateral_bounds",
+    "pattern": "plyometrics",
+    "primary": ["glutes", "abductors"],
+    "secondary": ["quads", "calves"],
+    "equipment": ["bodyweight"],
+    "legLoad": "heavy",
+    "unilateral": true,
+    "tracking": "reps"
+  },
+  {
+    "id": "band_chest_fly",
+    "pattern": "fly",
+    "primary": ["chest"],
+    "secondary": ["front_delts"],
+    "equipment": ["band"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "band_pull_apart",
+    "pattern": "pullHorizontal",
+    "primary": ["rear_delts", "upper_back"],
+    "secondary": ["traps"],
+    "equipment": ["band"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "band_lateral_walk",
+    "pattern": "legIsolation",
+    "primary": ["abductors", "glutes"],
+    "equipment": ["band"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "turkish_get_up",
+    "pattern": "core",
+    "primary": ["abs", "obliques", "front_delts"],
+    "secondary": ["glutes", "quads"],
+    "equipment": ["kettlebell", "dumbbell"],
+    "legLoad": "light",
+    "unilateral": true,
+    "tracking": "reps"
+  },
+  {
+    "id": "worlds_greatest_stretch",
+    "pattern": "mobility",
+    "primary": ["hip_flexors", "hamstrings"],
+    "secondary": ["upper_back", "adductors"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "reps"
+  },
+  {
+    "id": "cat_cow",
+    "pattern": "mobility",
+    "primary": ["upper_back", "lower_back"],
+    "secondary": ["abs"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "tracking": "reps"
+  },
+  {
+    "id": "pigeon_stretch",
+    "pattern": "mobility",
+    "primary": ["glutes"],
+    "secondary": ["hip_flexors"],
+    "equipment": ["bodyweight"],
+    "legLoad": "none",
+    "unilateral": true,
+    "tracking": "time"
+  }
+]

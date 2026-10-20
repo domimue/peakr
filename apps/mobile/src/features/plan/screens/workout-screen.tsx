@@ -53,6 +53,8 @@ import {
 import { addDays, formatDate, mondayOf, weekDates } from '../calendar';
 import { workoutKm } from '../components/workout-card';
 import { calendarTitle, kindIcon, typeColor, typeName } from '../kind';
+import { useActiveWorkoutStore } from '@/features/gym/active-workout-store';
+
 import { usePlanUiStore } from '../plan-ui-store';
 import { usePlan, usePlanActions } from '../queries';
 import { issueText } from '../issue-text';
@@ -485,8 +487,24 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
       {error ? <Text style={{ color: colors.errorText }}>{error}</Text> : null}
 
       <View style={styles.actions}>
+        {status !== 'done' && w.sport === 'strength' ? (
+          // Planned strength opens into a Gym session, pre-filled with the prescribed exercises.
+          <Button
+            icon="strength"
+            label={t('plan.workout.startInGym')}
+            onPress={() => {
+              useActiveWorkoutStore.getState().setWorkout(w);
+              router.push({ pathname: '/gym/session', params: { workoutId: w.id } });
+            }}
+          />
+        ) : null}
         {status !== 'done' ? (
-          <Button icon="check" label={t('plan.workout.markDone')} onPress={markDone} />
+          <Button
+            icon="check"
+            variant={w.sport === 'strength' ? 'secondary' : 'primary'}
+            label={t('plan.workout.markDone')}
+            onPress={markDone}
+          />
         ) : (
           <Button
             icon="undo"

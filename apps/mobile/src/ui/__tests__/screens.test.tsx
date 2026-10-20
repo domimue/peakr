@@ -13,6 +13,7 @@ import { renderWithQuery } from '@/test-utils/render-with-query';
 jest.mock('@/data/repositories/plan-repository');
 jest.mock('@/data/repositories/route-repository');
 jest.mock('@/data/repositories/activity-repository');
+jest.mock('@/data/repositories/gym-repository');
 
 describe('tab screens without a plan', () => {
   it.each([
@@ -33,13 +34,15 @@ describe('tab screens without a plan', () => {
     usePlanUiStore.setState({ view: 'weeks' });
   });
 
-  it('Gym previews the add-on and links to routines and the quick log', async () => {
+  it('Gym opens the workspace: routines, library, quick log and import', async () => {
     const push = jest.spyOn(router, 'push').mockImplementation(() => undefined);
     await renderWithQuery(<GymScreen />);
-    expect(screen.getByTestId('gym-preview')).toBeOnTheScreen();
-    expect(screen.getByText('Coming soon')).toBeOnTheScreen();
+    expect(await screen.findByTestId('gym-last-session')).toBeOnTheScreen();
+    expect(screen.getByText(/No session logged yet/)).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('My routines'));
-    expect(push).toHaveBeenCalledWith('/strength/routines');
+    expect(push).toHaveBeenCalledWith('/gym/routines');
+    await fireEvent.press(screen.getByText('Exercise library'));
+    expect(push).toHaveBeenCalledWith('/gym/library');
     push.mockRestore();
   });
 

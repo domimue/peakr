@@ -6,13 +6,16 @@ import { useTranslation } from 'react-i18next';
 import { todayIso } from '@/data/ids';
 import { Button, Card, Screen, SegmentedControl, Stepper, Text } from '@/ui';
 
-import { useSaveStrengthLog } from '../queries';
-import { newLogEntry } from '../session';
+import { usePlanActions } from '@/features/plan/queries';
+
+import { useSaveGymSession } from '../queries';
+import { buildQuickSession } from '../session';
 
 /** Quick log (§8.7): duration, session RPE and whether the legs were trained. */
-export function QuickLogScreen({ sourceId }: { sourceId?: string }) {
+export function QuickLogScreen({ sourceId, workoutId }: { sourceId?: string; workoutId?: string }) {
   const { t } = useTranslation();
-  const save = useSaveStrengthLog();
+  const save = useSaveGymSession();
+  const planActions = usePlanActions();
   const [durationMin, setDurationMin] = useState(45);
   const [rpe, setRpe] = useState(7);
   const [legs, setLegs] = useState<'yes' | 'no'>('no');
@@ -68,13 +71,24 @@ export function QuickLogScreen({ sourceId }: { sourceId?: string }) {
         disabled={save.isPending}
         onPress={() =>
           save.mutate(
-            newLogEntry({
-              date: todayIso(),
-              title: '',
-              sourceId: sourceId ?? null,
-              log,
-            }),
-            { onSuccess: () => router.back() },
+            {
+              session: buildQuickSession({
+                date: todayIso(),
+                now: Date.now(),
+                durationMin,
+                rpe,
+                legs: legs === 'yes',
+                ...(sourceId ? { sourceId } : {}),
+                ...(workoutId ? { plannedWorkoutId: workoutId } : {}),
+              }),
+              sets: [],
+            },
+            {
+              onSuccess: () => {
+                if (workoutId) planActions.setStatus(workoutId, 'done');
+                router.back();
+              },
+            },
           )
         }
       />
