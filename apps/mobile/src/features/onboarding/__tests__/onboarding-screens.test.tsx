@@ -13,6 +13,7 @@ import { QuizScreen } from '../screens/quiz-screen';
 
 jest.mock('@/data/repositories/onboarding-repository');
 jest.mock('@/data/repositories/strength-repository');
+jest.mock('@/data/repositories/baseline-repository');
 jest.mock('@expo/ui/community/datetime-picker', () => ({ DateTimePicker: () => null }));
 jest.mock('expo-router', () => ({
   ...jest.requireActual('expo-router'),

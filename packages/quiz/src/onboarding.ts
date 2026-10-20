@@ -497,6 +497,12 @@ export interface QuizInsight {
 
 export interface QuizStep {
   id: string;
+  /**
+   * `baseline`: the optional "make my plan more accurate" step (Strava calibration, CLAUDE.md
+   * "Baseline from past activities"). It asks no question; each surface renders its own UI and may
+   * leave it out (the website offers it after sign-up instead).
+   */
+  kind?: 'questions' | 'baseline';
   /** Questions on this screen (hidden ones are skipped; a step without visible ones too). */
   questionIds: readonly string[];
   /** Personalised insight shown after the step, if there is something to say. */
@@ -636,6 +642,7 @@ export const ONBOARDING_STEPS: readonly QuizStep[] = [
   { id: 'strength', questionIds: [S.mode] },
   { id: 'strengthDetails', questionIds: [S.split, S.equipment, S.daysPerWeek, S.priority] },
   { id: 'experience', questionIds: [Q.experience] },
+  { id: 'baseline', kind: 'baseline', questionIds: [] },
   { id: 'run', questionIds: [Q.runReference, Q.runRaceTime, Q.runEasyPace], insight: runInsight },
   { id: 'bike', questionIds: [Q.bikeHours, Q.bikePowerMeter] },
   {
@@ -669,8 +676,13 @@ export function stepQuestions(step: QuizStep, answers: QuizAnswers): QuizQuestio
 }
 
 /** Steps the user sees for the current answers. */
-export function visibleSteps(answers: QuizAnswers): QuizStep[] {
-  return ONBOARDING_STEPS.filter((s) => stepQuestions(s, answers).length > 0);
+export function visibleSteps(
+  answers: QuizAnswers,
+  options: { baseline?: boolean } = {},
+): QuizStep[] {
+  return ONBOARDING_STEPS.filter((s) =>
+    s.kind === 'baseline' ? options.baseline === true : stepQuestions(s, answers).length > 0,
+  );
 }
 
 /** Answers with defaults (and without answers to hidden questions). */

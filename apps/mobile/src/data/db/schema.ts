@@ -5,14 +5,17 @@ import type {
   CustomExercise,
   ElevationPoint,
   Goal,
+  HrZone,
   HrZoneInput,
   ImportedSport,
+  OutlierReason,
   PauseReason,
   Phase,
   PlanInput,
   PlanNote,
   RoutineExercise,
   RouteSport,
+  Sport,
   StrengthLog,
   Workout,
   WorkoutStatus,
@@ -26,6 +29,11 @@ export interface StoredPlanInput extends PlanInput {
   hrZones?: HrZoneInput;
   /** Profile → Training zones: manual zones and the tests behind the pace zones. */
   zones?: StoredZoneSettings;
+  /**
+   * HR zones the user set on Strava themselves (baseline import). Used while they have no manual
+   * zones of their own; the derived baseline values live in `profile.baseline`.
+   */
+  stravaHrZones?: HrZone[];
 }
 
 /** Simple key/value store for local app settings (e.g. the strength setup as JSON). */
@@ -223,6 +231,32 @@ export const routes = sqliteTable('routes', {
   dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
   /** Deleted locally; removed for good once the deletion is pushed. */
   deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
+});
+
+// ---------------------------------------------------------------------------------------------
+// Baseline (Phase 8a, CLAUDE.md "Baseline from past activities"). Recent Strava activities read
+// once to calibrate the plan. Reference data only: deliberately its own table, never read by the
+// activity sync, matching, Progress history, load, records or plan completion.
+
+export const baselineActivities = sqliteTable('baseline_activities', {
+  externalId: text('external_id').primaryKey(),
+  sport: text('sport').$type<Sport>().notNull(),
+  name: text('name'),
+  /** Local calendar date of the start. */
+  date: text('date').notNull(),
+  durationSec: integer('duration_sec').notNull(),
+  distanceM: real('distance_m'),
+  elevationGainM: real('elevation_gain_m'),
+  avgHr: real('avg_hr'),
+  maxHr: real('max_hr'),
+  indoor: integer('indoor', { mode: 'boolean' }).notNull(),
+  manual: integer('manual', { mode: 'boolean' }).notNull(),
+  race: integer('race', { mode: 'boolean' }).notNull(),
+  best20MinHr: real('best_20min_hr'),
+  /** Ticked for the calibration (preselection, then the user's choice). */
+  selected: integer('selected', { mode: 'boolean' }).notNull(),
+  /** Why it was unticked by the preselection, if it was. */
+  outlier: text('outlier').$type<OutlierReason>(),
 });
 
 /** Recorded streams of an imported activity (one per source record, read-only). */

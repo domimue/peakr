@@ -6,6 +6,8 @@ import { StyleSheet, View } from 'react-native';
 
 import { todayIso } from '@/data/ids';
 import { authAvailable, selectAccountUserId, useSessionStore } from '@/features/auth/session-store';
+import { useBaselineStore } from '@/features/baseline/baseline-store';
+import { calibrateOnboarding } from '@/features/baseline/calibration';
 import { useQuizStore } from '@/features/onboarding/quiz-store';
 import { useCreatePlan } from '@/features/plan/queries';
 import { Badge, Button, Card, Screen, spacing, Text } from '@/ui';
@@ -22,15 +24,26 @@ export function PaywallScreen() {
 
   useEffect(() => {
     void hydrate();
+    void useBaselineStore.getState().hydrate();
   }, [hydrate]);
 
   // Until billing exists, development builds can start the plan without a purchase.
   const startWithoutPurchase = () => {
-    const input = toPlanInput(answers, todayIso());
+    const today = todayIso();
+    const input = toPlanInput(answers, today);
     if (!input.ok) return router.replace('/onboarding/quiz');
-    const { profile, goal, availability, startDate, targetDate, hrZones } = input.value;
+    const { profile, goal, availability, startDate, targetDate, hrZones, stravaHrZones } =
+      calibrateOnboarding(input.value, useBaselineStore.getState(), today);
     createPlan.mutate(
-      { profile, goal, availability, startDate, hrZones, ...(targetDate ? { targetDate } : {}) },
+      {
+        profile,
+        goal,
+        availability,
+        startDate,
+        hrZones,
+        ...(targetDate ? { targetDate } : {}),
+        ...(stravaHrZones ? { stravaHrZones } : {}),
+      },
       // App flow: purchase → account → plan. The plan made before sign-in moves into the account.
       { onSuccess: () => router.replace(authAvailable && !signedIn ? '/auth/sign-in' : '/today') },
     );

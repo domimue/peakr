@@ -6,6 +6,7 @@ import {
   activityLinks,
   activityStreams,
   appSettings,
+  baselineActivities,
   customExercises,
   planPauses,
   plans,
@@ -17,6 +18,7 @@ import {
   syncTombstones,
 } from '../db/schema';
 import { newId } from '../ids';
+import { BASELINE_KEY } from '../repositories/baseline-repository';
 import type { LocalVersion, PendingChanges, SyncPlan, SyncWorkout, Tombstone } from './types';
 
 /**
@@ -337,7 +339,10 @@ export function clearSyncedData(): void {
     tx.delete(activityLinks).run();
     tx.delete(activityStreams).run();
     tx.delete(routes).run();
-    tx.delete(appSettings).where(inArray(appSettings.key, SYNC_KEYS)).run();
+    tx.delete(baselineActivities).run();
+    tx.delete(appSettings)
+      .where(inArray(appSettings.key, [...SYNC_KEYS, BASELINE_KEY]))
+      .run();
   });
 }
 
@@ -353,6 +358,7 @@ export function clearAllLocalData(): void {
     tx.delete(activityLinks).run();
     tx.delete(activityStreams).run();
     tx.delete(routes).run();
+    tx.delete(baselineActivities).run();
     tx.delete(routines).run();
     tx.delete(customExercises).run();
     tx.delete(strengthLogs).run();

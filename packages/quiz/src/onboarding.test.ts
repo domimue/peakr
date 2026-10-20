@@ -95,6 +95,19 @@ function mapped(a: QuizAnswers): OnboardingResult {
   return r.value;
 }
 
+describe('baseline step', () => {
+  it('is only shown where the surface offers it, right after the level question', () => {
+    expect(stepIds(halfMarathon)).not.toContain('baseline');
+    const ids = visibleSteps(prepareAnswers(halfMarathon, TODAY), { baseline: true }).map(
+      (s) => s.id,
+    );
+    expect(ids[ids.indexOf('experience') + 1]).toBe('baseline');
+    const step = ONBOARDING_STEPS.find((s) => s.id === 'baseline');
+    expect(step?.kind).toBe('baseline');
+    expect(stepIssues(step as (typeof ONBOARDING_STEPS)[number], halfMarathon, TODAY)).toEqual([]);
+  });
+});
+
 describe('commute and winter sports', () => {
   it('no commute by default; the details only show for a commute', () => {
     expect(mapped(halfMarathon).profile.commutes).toBeUndefined();

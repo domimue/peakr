@@ -2151,7 +2151,13 @@
     },
     "save": "Save zones",
     "saved": "Saved. Your plan's targets now use these zones.",
-    "fixErrors": "Please fix the highlighted fields before saving."
+    "fixErrors": "Please fix the highlighted fields before saving.",
+    "baseline": {
+      "used": "From your recent Strava activities: {{values}}. Used where you have not entered your own value.",
+      "hrMax": "highest heart rate {{value}} bpm",
+      "lthr": "LTHR about {{value}} bpm",
+      "threshold": "threshold pace {{pace}} /km"
+    }
   },
   "gym": {
     "title": "Gym",
@@ -2349,5 +2355,92 @@
     "empty": "Not enough activities yet",
     "emptyHint": "Connect Strava and record a few outdoor runs or rides – your terrain profile appears here.",
     "connect": "Connections"
+  },
+  "baseline": {
+    "referenceOnly": "Reference only: these activities calibrate your plan. They are not added to your training history, load, records or completed sessions, and nobody else sees them.",
+    "km": "{{value}} km",
+    "meters": "{{value}} m",
+    "kmh": "{{value}} km/h",
+    "step": {
+      "title": "Make my plan more accurate",
+      "body": "Connect Strava and Peakr starts your plan from your recent training – your weekly volume, easy pace and heart rate – instead of estimates.",
+      "privacy": "Peakr reads only runs, rides and swims from the last 60 days, nothing older. They are used for your own plan only and never to train AI.",
+      "connect": "Connect Strava",
+      "loading": "Reading your last 60 days…",
+      "skip": "Skip",
+      "used_one": "{{count}} activity from the last 60 days calibrates your plan.",
+      "used_other": "{{count}} activities from the last 60 days calibrate your plan.",
+      "review": "Review values",
+      "importAgain": "Read again",
+      "reconnect": "Your Strava connection was removed when you signed in to your existing account. Connect Strava again to calibrate your plan."
+    },
+    "errors": {
+      "denied": "Strava access was not granted. You can try again or skip this step.",
+      "error": "Something went wrong. Try again or skip this step.",
+      "rate_limited": "Strava is busy right now. Try again in a few minutes or skip this step.",
+      "not_connected": "Strava is not connected yet.",
+      "reconnect": "Please connect Strava again."
+    },
+    "select": {
+      "title": "Your last 60 days",
+      "intro": "Untick anything that does not show your usual training. Races and unusually long sessions are unticked already.",
+      "all": "Select all ({{count}})",
+      "empty": "No runs, rides or swims in the last 60 days. Your plan starts from your quiz answers.",
+      "avgHr": "Ø {{value}} bpm",
+      "indoor": "indoor",
+      "manual": "manual entry",
+      "continue_one": "Continue with {{count}} activity",
+      "continue_other": "Continue with {{count}} activities"
+    },
+    "outlier": {
+      "race": "Unticked: marked as a race on Strava.",
+      "muchLonger": "Unticked: much longer than your other sessions."
+    },
+    "level": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced"
+    },
+    "summary": {
+      "title": "What Peakr derived",
+      "intro_one": "From {{count}} activity over {{weeks}} full weeks. Change anything that looks wrong – your entry always wins.",
+      "intro_other": "From {{count}} activities over {{weeks}} full weeks. Change anything that looks wrong – your entry always wins.",
+      "volume": "{{sessions}} sessions and {{minutes}} min a week, longest {{longest}} min",
+      "terrain": "Usual terrain: {{terrain}} ({{gain}} m per km)",
+      "level": "Starting level",
+      "longSession": "First long session",
+      "minutes": "{{value}} min",
+      "paces": "Paces",
+      "easyPace": "Easy pace (grade-adjusted)",
+      "paceHr": "At {{hr}} bpm about {{pace}}",
+      "css": "Swim CSS (estimate)",
+      "cssHint": "The 400 m / 200 m test in Training zones is more accurate.",
+      "heartRate": "Heart rate",
+      "hrMax": "Highest heart rate seen",
+      "hrMaxHint": "Your true maximum may be higher. Peakr uses it only when it is above the age estimate.",
+      "lthr": "Threshold heart rate (LTHR)",
+      "restingHr": "Resting heart rate is not available from Strava – enter it in Training zones.",
+      "stravaZones": "Your own heart-rate zones from Strava are used.",
+      "stravaZonesScope": "Reconnect Strava to use the heart-rate zones you set there.",
+      "stravaZonesDefault": "You use Strava’s default zones, so Peakr calculates your zones itself.",
+      "week1": "Week 1",
+      "weeklyLoad": "Current weekly load",
+      "weeklyLoadHint": "Training load points (duration × zone). Week 1 starts here, within the time you have.",
+      "from_one": "from {{count}} activity",
+      "from_other": "from {{count}} activities",
+      "notEnough": "Not enough data ({{count}} of {{needed}} activities needed)",
+      "notEnoughShort": "Not enough data",
+      "yourEntry": "your entry",
+      "edit": "Edit",
+      "save": "Save",
+      "cancel": "Cancel",
+      "reset": "Use derived value",
+      "done": "Done",
+      "apply": "Apply to my plan"
+    },
+    "recalibrate": {
+      "title": "Recalibrate from recent activities",
+      "hint": "Reads your last 60 days on Strava again. Reference only – nothing is added to your history."
+    }
   }
 }

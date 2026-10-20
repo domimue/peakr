@@ -8,6 +8,7 @@ import m0003 from './0003_sync.sql';
 import m0004 from './0004_activities.sql';
 import m0005 from './0005_strength_activities.sql';
 import m0006 from './0006_routes.sql';
+import m0007 from './0007_baseline.sql';
 
 export default {
   journal,
@@ -19,5 +20,6 @@ export default {
     m0004,
     m0005,
     m0006,
+    m0007,
   },
 };

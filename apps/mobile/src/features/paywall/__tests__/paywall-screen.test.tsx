@@ -12,6 +12,7 @@ jest.mock('@/data/supabase', () => ({
   supabase: { auth: { onAuthStateChange: jest.fn() } },
 }));
 jest.mock('@/data/repositories/onboarding-repository');
+jest.mock('@/data/repositories/baseline-repository');
 jest.mock('@peakr/quiz', () => ({
   ...jest.requireActual('@peakr/quiz'),
   toPlanInput: () => ({

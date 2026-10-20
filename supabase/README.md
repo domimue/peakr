@@ -70,8 +70,9 @@ New schema changes go into a new file: `pnpm exec supabase migration new <name>`
    `com.peakr.app`. The app uses the native iOS sheet, so no secret key is needed.
 6. **Authentication → Sign In / Providers → Anonymous sign-ins**: enable (Phase 8a). The
    onboarding quiz signs in anonymously so it can connect Strava and import the baseline before
-   the user has an account; `config.toml` only covers the local stack. Deploy the new function
-   `strava-baseline` too (see Commands).
+   the user has an account; `config.toml` only covers the local stack. Also enable **Manual
+   linking** (Authentication → Sign In / Providers), so Google sign-in can turn the anonymous user
+   into the account. Deploy the new function `strava-baseline` too (see Commands).
 7. **Edge Functions → Secrets**: `TOKEN_ENCRYPTION_KEY`, `OAUTH_STATE_SECRET`,
    `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET` (see `functions/.env.example`).
 8. **Project Settings → API keys**: project URL and **publishable** key into

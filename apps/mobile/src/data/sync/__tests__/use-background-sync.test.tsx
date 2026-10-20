@@ -24,6 +24,9 @@ jest.mock('../../supabase', () => {
 });
 jest.mock('../sync', () => ({ syncOnce: jest.fn(async () => ({ changed: false })) }));
 jest.mock('../changes', () => ({ onLocalChange: jest.fn(() => () => undefined) }));
+jest.mock('@/features/baseline/api', () => ({
+  dropRevokedBaseline: jest.fn(async () => undefined),
+}));
 jest.mock('../../activities/process', () => ({
   processNewActivities: jest.fn(async () => []),
 }));
