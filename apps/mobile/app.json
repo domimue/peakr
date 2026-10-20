@@ -105,7 +105,18 @@
         }
       ],
       "@maplibre/maplibre-react-native",
-      "./plugins/with-share-gpx"
+      "./plugins/with-share-gpx",
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Peakr uses your location once, when you tap “Use current location”, to save it as the start point for route suggestions. It is stored on this device only.",
+          "locationAlwaysAndWhenInUsePermission": false,
+          "locationAlwaysPermission": false,
+          "isIosBackgroundLocationEnabled": false,
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

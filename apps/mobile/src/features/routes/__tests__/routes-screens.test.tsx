@@ -1,6 +1,7 @@
 import { allWorkouts, encodePolyline, generatePlan, type GpxPoint } from '@peakr/engine';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { File } from 'expo-file-system';
+import * as Location from 'expo-location';
 import { router, useLocalSearchParams } from 'expo-router';
 
 import type { StoredPlanInput } from '@/data/db/schema';
@@ -499,6 +500,32 @@ describe('home start point', () => {
     await waitFor(() => expect(routes.store.homeStart).toEqual({ lat: 47.3769, lon: 8.5417 }));
     await fireEvent.press(await screen.findByText('Remove'));
     await waitFor(() => expect(routes.store.homeStart).toBeNull());
+  });
+
+  it('uses the current location once the permission is granted', async () => {
+    (Location.requestForegroundPermissionsAsync as jest.Mock).mockResolvedValueOnce({
+      granted: true,
+    });
+    await renderWithQuery(<HomeStartCard />);
+    expect(Location.requestForegroundPermissionsAsync).not.toHaveBeenCalled();
+    await fireEvent.press(await screen.findByText('Use current location'));
+    await waitFor(() => expect(routes.store.homeStart).toEqual({ lat: 47.3769, lon: 8.5417 }));
+    expect(await screen.findByDisplayValue('47.3769, 8.5417')).toBeOnTheScreen();
+  });
+
+  it('explains a denied permission and a missing position', async () => {
+    await renderWithQuery(<HomeStartCard />);
+    await fireEvent.press(await screen.findByText('Use current location'));
+    expect(await screen.findByTestId('location-error')).toHaveTextContent(
+      /^Location permission was not granted/,
+    );
+    (Location.requestForegroundPermissionsAsync as jest.Mock).mockResolvedValueOnce({
+      granted: true,
+    });
+    (Location.getCurrentPositionAsync as jest.Mock).mockRejectedValueOnce(new Error('off'));
+    await fireEvent.press(screen.getByText('Use current location'));
+    expect(await screen.findByText(/^Your location could not be found/)).toBeOnTheScreen();
+    expect(routes.store.homeStart).toBeNull();
   });
 
   it('is shown in the terrain profile', async () => {

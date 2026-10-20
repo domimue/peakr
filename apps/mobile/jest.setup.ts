@@ -48,3 +48,12 @@ jest.mock('expo-notifications', () => ({
   registerTaskAsync: jest.fn(() => Promise.resolve()),
 }));
 jest.mock('expo-task-manager', () => ({ defineTask: jest.fn() }));
+
+// Location is native-only; tests set the permission answer and the position per case.
+jest.mock('expo-location', () => ({
+  Accuracy: { Balanced: 3 },
+  requestForegroundPermissionsAsync: jest.fn(() => Promise.resolve({ granted: false })),
+  getCurrentPositionAsync: jest.fn(() =>
+    Promise.resolve({ coords: { latitude: 47.3769, longitude: 8.5417 }, timestamp: 0 }),
+  ),
+}));

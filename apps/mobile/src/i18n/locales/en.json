@@ -2322,7 +2322,14 @@
       "clear": "Remove",
       "privacy": "Stored on this device only.",
       "useRoute": "Use the start of this route as my home start point",
-      "isHome": "This route starts at your home start point."
+      "isHome": "This route starts at your home start point.",
+      "location": {
+        "explain": "Or use where you are now: Peakr asks for location permission when you tap, reads your position once and saves it here. It does not track you.",
+        "use": "Use current location",
+        "locating": "Finding your location…",
+        "denied": "Location permission was not granted. Allow it in the system settings or enter coordinates instead.",
+        "unavailable": "Your location could not be found. Check that location services are on, or enter coordinates instead."
+      }
     }
   },
   "terrainProfile": {
