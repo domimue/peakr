@@ -1,67 +1,79 @@
+import { exercises, summarizeSession } from '@peakr/engine';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
-import {
-  Badge,
-  Card,
-  IconBadge,
-  Screen,
-  SettingsGroup,
-  SettingsRow,
-  spacing,
-  Text,
-  useTheme,
-  type IconName,
-} from '@/ui';
+import { Card, IconBadge, Screen, SettingsGroup, SettingsRow, spacing, Text, useTheme } from '@/ui';
 
-/** What the Gym add-on will contain (CLAUDE.md "Gym"), shown as a preview until it ships. */
-const FEATURES: readonly { key: string; icon: IconName }[] = [
-  { key: 'library', icon: 'book' },
-  { key: 'routines', icon: 'structure' },
-  { key: 'session', icon: 'intervals' },
-  { key: 'history', icon: 'trophy' },
-];
+import { useGymExercises, useGymHistory, useGymRoutines } from './queries';
 
 /**
- * Gym tab: placeholder until the strength workspace (Phases 8d–8f). It previews the add-on rather
- * than hiding the tab, and links to what already exists – own routines and the quick log.
+ * Gym tab: the strength workspace (CLAUDE.md "Gym") – routines, exercise library, logging and the
+ * import from another gym app. Live-session extras, history and statistics follow in later phases.
  */
 export function GymScreen() {
   const { t } = useTranslation();
   const { colors } = useTheme();
+  const routines = useGymRoutines();
+  const custom = useGymExercises();
+  const history = useGymHistory();
+  const activeRoutines = (routines.data ?? []).filter((r) => r.archivedAt === undefined);
+  const last = history.data?.sessions[0];
+  const lastSummary =
+    last && history.data
+      ? summarizeSession(last, history.data.sets, history.data.sets, custom.data)
+      : null;
+
   return (
     <Screen title={t('gym.title')}>
-      <Card style={styles.preview} testID="gym-preview">
+      <Card style={styles.card} testID="gym-last-session">
         <View style={styles.head}>
-          <Text variant="heading" style={styles.flex}>
-            {t('gym.previewTitle')}
-          </Text>
-          <Badge label={t('comingSoon.label')} />
-        </View>
-        <Text tone="secondary">{t('gym.previewBody')}</Text>
-        {FEATURES.map(({ key, icon }) => (
-          <View key={key} style={styles.feature}>
-            <IconBadge name={icon} color={colors.typeStrength} size={32} />
-            <View style={styles.flex}>
-              <Text variant="label">{t(`gym.features.${key}.title` as never)}</Text>
-              <Text variant="caption" tone="secondary">
-                {t(`gym.features.${key}.body` as never)}
-              </Text>
-            </View>
+          <IconBadge name="strength" color={colors.typeStrength} size={40} />
+          <View style={styles.flex}>
+            <Text variant="heading">{t('gym.hub.lastSession')}</Text>
+            <Text variant="caption" tone="secondary">
+              {last && lastSummary
+                ? [
+                    last.title || t('strength.quickLog.title'),
+                    last.date,
+                    last.kind === 'detailed'
+                      ? t('gym.hub.lastSummary', {
+                          sets: lastSummary.sets,
+                          volume: Math.round(lastSummary.volumeKg),
+                        })
+                      : t('strength.minutes', { count: lastSummary.durationMin }),
+                  ].join(' · ')
+                : t('gym.hub.noSessions')}
+            </Text>
           </View>
-        ))}
+        </View>
       </Card>
-      <SettingsGroup title={t('gym.availableNow')}>
+      <SettingsGroup title={t('gym.hub.train')}>
         <SettingsRow
           icon="structure"
           title={t('strength.routines.title')}
-          onPress={() => router.push('/strength/routines')}
+          value={t('gym.hub.routineCount', { count: activeRoutines.length })}
+          onPress={() => router.push('/gym/routines')}
         />
         <SettingsRow
           icon="sessions"
           title={t('strength.quickLog.title')}
-          onPress={() => router.push('/strength/quick-log')}
+          onPress={() => router.push('/gym/quick-log')}
+        />
+      </SettingsGroup>
+      <SettingsGroup title={t('gym.hub.library')}>
+        <SettingsRow
+          icon="book"
+          title={t('gym.library.title')}
+          value={t('gym.hub.exerciseCount', {
+            count: exercises.length + (custom.data?.length ?? 0),
+          })}
+          onPress={() => router.push('/gym/library')}
+        />
+        <SettingsRow
+          icon="upload"
+          title={t('gym.import.title')}
+          onPress={() => router.push('/gym/import')}
         />
       </SettingsGroup>
     </Screen>
@@ -69,8 +81,7 @@ export function GymScreen() {
 }
 
 const styles = StyleSheet.create({
-  preview: { gap: spacing.md },
-  head: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  feature: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  flex: { flex: 1 },
+  card: { gap: spacing.sm },
+  head: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  flex: { flex: 1, gap: 2 },
 });

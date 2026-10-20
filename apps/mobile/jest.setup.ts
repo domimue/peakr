@@ -46,13 +46,23 @@ jest.mock('expo-notifications', () => ({
   setNotificationChannelAsync: jest.fn(() => Promise.resolve(null)),
   setNotificationHandler: jest.fn(),
   registerTaskAsync: jest.fn(() => Promise.resolve()),
+  SchedulableTriggerInputTypes: { DATE: 'date' },
+  getAllScheduledNotificationsAsync: jest.fn(() => Promise.resolve([])),
+  cancelScheduledNotificationAsync: jest.fn(() => Promise.resolve()),
+  scheduleNotificationAsync: jest.fn(() => Promise.resolve('id')),
+  addNotificationResponseReceivedListener: jest.fn(() => ({ remove: jest.fn() })),
 }));
 jest.mock('expo-task-manager', () => ({ defineTask: jest.fn() }));
+
+// Weather settings and the cached forecast live in SQLite; every test gets the in-memory version.
+jest.mock('@/data/repositories/weather-repository');
 
 // Location is native-only; tests set the permission answer and the position per case.
 jest.mock('expo-location', () => ({
   Accuracy: { Balanced: 3 },
   requestForegroundPermissionsAsync: jest.fn(() => Promise.resolve({ granted: false })),
+  getForegroundPermissionsAsync: jest.fn(() => Promise.resolve({ granted: false })),
+  getLastKnownPositionAsync: jest.fn(() => Promise.resolve(null)),
   getCurrentPositionAsync: jest.fn(() =>
     Promise.resolve({ coords: { latitude: 47.3769, longitude: 8.5417 }, timestamp: 0 }),
   ),

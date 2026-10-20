@@ -9,7 +9,7 @@ import { router } from 'expo-router';
 import { todayIso } from '@/data/ids';
 import { usePlanUiStore } from '@/features/plan/plan-ui-store';
 import { useCreatePlan } from '@/features/plan/queries';
-import { useActiveWorkoutStore } from '@/features/strength/active-workout-store';
+import { useActiveWorkoutStore } from '@/features/gym/active-workout-store';
 import { Badge, Button, Card, Screen, SegmentedControl, spacing, Text, useTheme } from '@/ui';
 
 import { liveTargetDate, PLAN_PRESETS, PREVIEW_START, type PresetId } from './plan-presets';
@@ -142,7 +142,7 @@ function WorkoutRow({ workout: w }: { workout: Workout }) {
           label={t('dev.planPreview.openStrength')}
           onPress={() => {
             useActiveWorkoutStore.getState().setWorkout(w);
-            router.push('/strength/workout');
+            router.push('/gym/session');
           }}
         />
       ) : null}

@@ -24,14 +24,14 @@ export function StrengthSetupScreen() {
         onSave={(value) =>
           save.mutate(value, {
             onSuccess: () =>
-              value.mode === 'routines' ? router.push('/strength/routines') : router.back(),
+              value.mode === 'routines' ? router.push('/gym/routines') : router.back(),
           })
         }
       />
       <LinkRow
         title={t('strength.routines.title')}
         hint={t('strength.routines.entryHint')}
-        onPress={() => router.push('/strength/routines')}
+        onPress={() => router.push('/gym/routines')}
       />
     </Screen>
   );

@@ -1,0 +1,1329 @@
+{
+  "back_squat": {
+    "name": "Back squat",
+    "aliases": ["barbell squat", "high bar squat", "low bar squat", "squat"],
+    "instructions": "Bar on your upper back, feet shoulder-width. Sit down between your heels until your thighs are at least parallel, chest up, knees tracking over your toes. Drive up through the whole foot.",
+    "cues": ["Brace before you go down", "Knees follow the toes", "Push the floor away"],
+    "mistakes": [
+      "Heels lifting off the floor",
+      "Knees caving in on the way up",
+      "Cutting depth as the weight goes up"
+    ]
+  },
+  "front_squat": {
+    "name": "Front squat",
+    "aliases": ["barbell front squat"],
+    "instructions": "Bar resting on the front of your shoulders, elbows high. Squat straight down keeping your torso upright, then stand up without letting the elbows drop.",
+    "cues": ["Elbows high the whole time", "Sit straight down", "Stay tall through the chest"],
+    "mistakes": [
+      "Elbows dropping so the bar rolls forward",
+      "Rounding the upper back",
+      "Rising hips first"
+    ]
+  },
+  "goblet_squat": {
+    "name": "Goblet squat",
+    "aliases": ["dumbbell goblet squat", "kettlebell goblet squat"],
+    "instructions": "Hold a dumbbell or kettlebell at your chest. Squat down between your knees, elbows inside the knees, chest tall, then stand up.",
+    "cues": ["Weight tight to the chest", "Elbows between the knees", "Sit down, not back"],
+    "mistakes": [
+      "Letting the weight drift away from the body",
+      "Heels coming up",
+      "Rounding forward at the bottom"
+    ]
+  },
+  "leg_press": {
+    "name": "Leg press",
+    "aliases": ["45 degree leg press", "sled leg press", "incline leg press"],
+    "instructions": "Feet hip-width in the middle of the platform. Lower until your knees are at about 90°, keep your lower back on the pad, press back up without locking the knees.",
+    "cues": [
+      "Lower back stays on the pad",
+      "Press through the whole foot",
+      "Stop just short of locking out"
+    ],
+    "mistakes": [
+      "Hips curling off the seat at the bottom",
+      "Locking the knees hard",
+      "Bouncing out of the bottom"
+    ]
+  },
+  "bodyweight_squat": {
+    "name": "Bodyweight squat",
+    "aliases": ["air squat", "squat (bodyweight)"],
+    "instructions": "Feet shoulder-width, arms forward for balance. Sit back and down as deep as you can with a flat back, then stand up tall.",
+    "cues": [
+      "Arms forward as a counterweight",
+      "Knees track over the toes",
+      "Stand all the way up"
+    ],
+    "mistakes": ["Heels lifting", "Rounding the lower back at the bottom", "Rushing the reps"]
+  },
+  "split_squat": {
+    "name": "Split squat",
+    "aliases": ["static lunge", "dumbbell split squat"],
+    "instructions": "Long stride stance. Lower the back knee straight down towards the floor, front shin roughly vertical, then push up through the front foot. Switch legs after the set.",
+    "cues": ["Back knee straight down", "Weight on the front foot", "Hips square to the front"],
+    "mistakes": ["Stance too short", "Pushing off the back foot", "Front knee caving in"]
+  },
+  "bulgarian_split_squat": {
+    "name": "Bulgarian split squat",
+    "aliases": ["rear foot elevated split squat", "rfess"],
+    "instructions": "Rear foot on a bench behind you. Lower until the front thigh is about parallel, torso slightly forward, then drive up through the front heel.",
+    "cues": [
+      "Front foot far enough forward",
+      "Slight forward lean is fine",
+      "Drive through the front heel"
+    ],
+    "mistakes": [
+      "Standing too close to the bench",
+      "Pushing off the back foot",
+      "Front knee collapsing inward"
+    ]
+  },
+  "deadlift": {
+    "name": "Deadlift",
+    "aliases": ["conventional deadlift", "barbell deadlift"],
+    "instructions": "Bar over mid-foot, hip-width stance. Hinge to grip the bar, flat back, shoulders over the bar. Push the floor away and stand up tall, then lower with control.",
+    "cues": [
+      "Bar stays in contact with the legs",
+      "Brace, then push the floor away",
+      "Hips and shoulders rise together"
+    ],
+    "mistakes": [
+      "Rounding the lower back",
+      "Bar drifting away from the shins",
+      "Jerking the bar off the floor"
+    ]
+  },
+  "romanian_deadlift": {
+    "name": "Romanian deadlift",
+    "aliases": ["rdl", "stiff leg deadlift"],
+    "instructions": "Stand tall with the weight. Push your hips back with soft knees, sliding the weight down your thighs until you feel the hamstrings stretch, then drive the hips forward.",
+    "cues": [
+      "Hips go back, not down",
+      "Weight slides along the thighs",
+      "Stop when the hamstrings stretch"
+    ],
+    "mistakes": [
+      "Bending the knees into a squat",
+      "Rounding the back to go lower",
+      "Hyperextending at the top"
+    ]
+  },
+  "single_leg_rdl": {
+    "name": "Single-leg Romanian deadlift",
+    "aliases": ["single leg rdl", "one leg deadlift"],
+    "instructions": "Stand on one leg. Hinge forward while the free leg reaches back, hips square, back flat. Return to standing by squeezing the glute of the standing leg.",
+    "cues": [
+      "Hips stay square to the floor",
+      "Reach back with the free heel",
+      "Soft knee on the standing leg"
+    ],
+    "mistakes": ["Opening the hip to the side", "Rounding the back", "Rushing and losing balance"]
+  },
+  "hip_thrust": {
+    "name": "Hip thrust",
+    "aliases": ["barbell hip thrust", "glute thrust"],
+    "instructions": "Upper back on a bench, weight across your hips, feet flat. Drive the hips up until your body is straight from shoulders to knees, pause, lower with control.",
+    "cues": [
+      "Chin tucked, ribs down",
+      "Shins vertical at the top",
+      "Squeeze the glutes for a second"
+    ],
+    "mistakes": [
+      "Arching the lower back at the top",
+      "Feet too far away so hamstrings take over",
+      "Half reps"
+    ]
+  },
+  "glute_bridge": {
+    "name": "Glute bridge",
+    "aliases": ["floor bridge", "hip raise"],
+    "instructions": "Lie on your back, knees bent, feet flat. Press through your heels and lift the hips until shoulders, hips and knees line up, squeeze, then lower.",
+    "cues": ["Push through the heels", "Ribs down", "Pause at the top"],
+    "mistakes": ["Arching the lower back", "Feet too far from the hips", "Dropping fast"]
+  },
+  "kettlebell_swing": {
+    "name": "Kettlebell swing",
+    "aliases": ["russian swing", "kb swing"],
+    "instructions": "Hike the bell back between your legs, then snap the hips forward to float it to chest height. Power comes from the hips, not the arms.",
+    "cues": ["Hike it back high between the legs", "Snap the hips forward", "Arms are just ropes"],
+    "mistakes": ["Squatting the swing", "Lifting with the arms", "Leaning back at the top"]
+  },
+  "good_morning": {
+    "name": "Good morning",
+    "aliases": ["barbell good morning"],
+    "instructions": "Bar on your upper back, soft knees. Push the hips back and lower your torso with a flat back until you feel the hamstrings, then return to standing.",
+    "cues": ["Soft knees throughout", "Hips back as the chest goes down", "Keep the back flat"],
+    "mistakes": ["Rounding the back", "Going too heavy too soon", "Bending the knees into a squat"]
+  },
+  "walking_lunge": {
+    "name": "Walking lunge",
+    "aliases": ["dumbbell walking lunge", "lunges"],
+    "instructions": "Step forward into a lunge, back knee close to the floor, then step through into the next lunge with the other leg. Keep your torso upright.",
+    "cues": ["Long, controlled steps", "Back knee close to the floor", "Torso upright"],
+    "mistakes": ["Steps too short", "Front knee caving in", "Pushing mostly off the back foot"]
+  },
+  "reverse_lunge": {
+    "name": "Reverse lunge",
+    "aliases": ["backward lunge", "dumbbell reverse lunge"],
+    "instructions": "Step one foot back and lower the back knee towards the floor. Push through the front foot to return. Alternate legs or finish one side first.",
+    "cues": [
+      "Step back far enough",
+      "Most weight on the front foot",
+      "Drive up through the front heel"
+    ],
+    "mistakes": ["Stepping back too short", "Leaning far forward", "Wobbling hips"]
+  },
+  "step_up": {
+    "name": "Step-up",
+    "aliases": ["box step up", "dumbbell step up"],
+    "instructions": "Place one foot fully on a box or bench. Drive through that foot to stand up on top without pushing off the back leg, then step down slowly.",
+    "cues": ["Whole foot on the box", "Stand up with the top leg only", "Lower slowly"],
+    "mistakes": ["Pushing off the bottom foot", "Box too high for control", "Knee caving in"]
+  },
+  "lateral_lunge": {
+    "name": "Lateral lunge",
+    "aliases": ["side lunge", "cossack lunge"],
+    "instructions": "Take a wide step to the side and sit into that hip, keeping the other leg straight and both feet flat. Push back to the start.",
+    "cues": ["Sit into the working hip", "Other leg straight", "Both feet flat"],
+    "mistakes": ["Knee shooting past the toes inward", "Rounding the back", "Heel lifting"]
+  },
+  "pistol_squat_progression": {
+    "name": "Pistol squat progression",
+    "aliases": ["pistol squat", "single leg squat", "box pistol"],
+    "instructions": "Stand on one leg, the other leg forward. Squat down as far as you control – to a box or holding a support at first – then stand up.",
+    "cues": ["Reach the arms forward", "Control the way down", "Use a box or support first"],
+    "mistakes": ["Dropping into the bottom", "Heel lifting", "Knee caving in"]
+  },
+  "standing_calf_raise": {
+    "name": "Standing calf raise",
+    "aliases": ["calf raise", "machine calf raise"],
+    "instructions": "Balls of your feet on a step. Rise as high as you can, pause, then lower the heels slowly below the step.",
+    "cues": ["Full stretch at the bottom", "Rise onto the big toe", "Pause at the top"],
+    "mistakes": ["Bouncing at the bottom", "Bending the knees to help", "Short range of motion"]
+  },
+  "bent_knee_calf_raise": {
+    "name": "Bent-knee calf raise",
+    "aliases": ["soleus raise", "bent knee calf raise"],
+    "instructions": "Same as a calf raise but with the knees bent about 30°, which targets the soleus – important for runners.",
+    "cues": ["Keep the knee angle fixed", "Slow on the way down", "Full range"],
+    "mistakes": ["Straightening the knees", "Bouncing", "Rolling to the outside of the foot"]
+  },
+  "tibialis_raise": {
+    "name": "Tibialis raise",
+    "aliases": ["tib raise", "toe raise"],
+    "instructions": "Lean your back against a wall, heels about a foot away. Lift your toes as high as you can, then lower slowly.",
+    "cues": ["Back flat against the wall", "Lift the toes as high as possible", "Lower slowly"],
+    "mistakes": ["Heels too close to the wall", "Rushing the reps", "Bending the knees"]
+  },
+  "single_leg_hops": {
+    "name": "Single-leg hops in place",
+    "aliases": ["single leg pogo", "hops"],
+    "instructions": "Small, quick hops on one foot staying on the ball of the foot, knee slightly bent. Stay springy and quiet.",
+    "cues": ["Stay on the ball of the foot", "Quick and quiet", "Knee slightly bent"],
+    "mistakes": ["Landing on the heel", "Sinking deep on each landing", "Losing hip control"]
+  },
+  "bench_press": {
+    "name": "Bench press",
+    "aliases": ["barbell bench press", "flat bench press", "bench"],
+    "instructions": "Lie on the bench, eyes under the bar, shoulder blades squeezed together. Lower the bar to mid-chest with control, then press it back up.",
+    "cues": ["Shoulder blades pinned back", "Bar to mid-chest", "Feet planted, push the floor"],
+    "mistakes": [
+      "Bouncing the bar off the chest",
+      "Elbows flared to 90°",
+      "Hips lifting off the bench"
+    ]
+  },
+  "dumbbell_press": {
+    "name": "Dumbbell press",
+    "aliases": ["dumbbell bench press", "db bench"],
+    "instructions": "Lie on a bench with a dumbbell in each hand above your chest. Lower them to chest level, elbows at about 45°, then press up.",
+    "cues": ["Elbows at about 45°", "Lower to chest level", "Press up and slightly in"],
+    "mistakes": ["Dumbbells drifting too wide", "Half reps", "Arching off the bench"]
+  },
+  "incline_press": {
+    "name": "Incline press",
+    "aliases": ["incline bench press", "incline dumbbell press"],
+    "instructions": "Bench set to 30–45°. Lower the weight to your upper chest and press it back up over your shoulders.",
+    "cues": ["Bench at 30–45°", "Lower to the upper chest", "Shoulder blades back"],
+    "mistakes": ["Bench too steep so it becomes a shoulder press", "Flared elbows", "Bouncing"]
+  },
+  "push_up": {
+    "name": "Push-up",
+    "aliases": ["press up", "pushup"],
+    "instructions": "Hands slightly wider than shoulders, body in a straight line. Lower your chest to just above the floor, then push back up.",
+    "cues": ["Body in one straight line", "Elbows at about 45°", "Chest leads the way down"],
+    "mistakes": ["Hips sagging", "Head poking forward", "Half reps"]
+  },
+  "feet_elevated_push_up": {
+    "name": "Feet-elevated push-up",
+    "aliases": ["decline push up"],
+    "instructions": "Like a push-up with your feet on a bench or chair. Keep the body straight and lower your chest towards the floor.",
+    "cues": ["Brace the core", "Hands under the shoulders", "Full range"],
+    "mistakes": ["Hips sagging", "Elbows flaring", "Feet too high too soon"]
+  },
+  "archer_push_up": {
+    "name": "Archer push-up",
+    "aliases": ["archer pushup"],
+    "instructions": "Very wide hands. Lower towards one hand while the other arm stays almost straight, push back up and alternate sides.",
+    "cues": ["Very wide hands", "Shift towards one hand", "Assisting arm stays almost straight"],
+    "mistakes": ["Rotating the hips", "Bending both arms equally", "Rushing"]
+  },
+  "dips": {
+    "name": "Dips",
+    "aliases": ["parallel bar dips", "chest dips", "bench dips"],
+    "instructions": "Support yourself on parallel bars or a sturdy bench. Lower until your shoulders are just below the elbows, then press back up.",
+    "cues": [
+      "Shoulders down, away from the ears",
+      "Lower to just below the elbows",
+      "Slight forward lean for chest"
+    ],
+    "mistakes": ["Dropping too deep", "Shrugging shoulders", "Swinging the legs"]
+  },
+  "overhead_press": {
+    "name": "Overhead press",
+    "aliases": ["military press", "strict press", "barbell shoulder press"],
+    "instructions": "Bar on the front of your shoulders, glutes and core tight. Press straight overhead, moving your head back slightly, finish with arms locked.",
+    "cues": ["Squeeze the glutes", "Head through at the top", "Bar path straight up"],
+    "mistakes": ["Leaning back to press", "Pressing around the face", "Soft lockout"]
+  },
+  "dumbbell_shoulder_press": {
+    "name": "Dumbbell shoulder press",
+    "aliases": ["seated dumbbell press", "db shoulder press"],
+    "instructions": "Seated or standing, dumbbells at shoulder height. Press them overhead until the arms are straight, then lower with control.",
+    "cues": ["Start at shoulder height", "Press up and slightly in", "Ribs down"],
+    "mistakes": ["Arching the lower back", "Elbows dropping too low", "Half reps"]
+  },
+  "pike_push_up": {
+    "name": "Pike push-up",
+    "aliases": ["pike pushup"],
+    "instructions": "Hips high in an inverted V. Bend the elbows to lower the top of your head towards the floor, then push back up.",
+    "cues": ["Hips high", "Head to a point in front of the hands", "Push the floor away"],
+    "mistakes": [
+      "Hips dropping into a regular push-up",
+      "Elbows flaring wide",
+      "Head going straight down between the hands"
+    ]
+  },
+  "lateral_raise": {
+    "name": "Lateral raise",
+    "aliases": ["side raise", "dumbbell lateral raise", "side lateral raise"],
+    "instructions": "Light dumbbells at your sides. Raise them out to shoulder height with slightly bent elbows, then lower slowly.",
+    "cues": ["Lead with the elbows", "Stop at shoulder height", "Slow on the way down"],
+    "mistakes": ["Swinging the weight up", "Shrugging the shoulders", "Going too heavy"]
+  },
+  "barbell_row": {
+    "name": "Barbell row",
+    "aliases": ["bent over row", "pendlay row"],
+    "instructions": "Hinge forward with a flat back. Pull the bar to your lower ribs, squeezing the shoulder blades, then lower with control.",
+    "cues": ["Flat back, hinged forward", "Pull to the lower ribs", "Squeeze the shoulder blades"],
+    "mistakes": ["Standing up more with each rep", "Jerking the weight", "Rounding the back"]
+  },
+  "dumbbell_row": {
+    "name": "Dumbbell row",
+    "aliases": ["one arm dumbbell row", "single arm row"],
+    "instructions": "One hand and knee on a bench. Pull the dumbbell towards your hip, elbow close to the body, then lower fully.",
+    "cues": ["Pull towards the hip", "Elbow close to the body", "Full stretch at the bottom"],
+    "mistakes": ["Twisting the torso to lift", "Pulling to the shoulder", "Short range"]
+  },
+  "seated_cable_row": {
+    "name": "Seated cable row",
+    "aliases": ["cable row", "low row", "seated row (cable)"],
+    "instructions": "Sit tall with a slight knee bend. Pull the handle to your stomach, shoulders down and back, then let the arms extend slowly.",
+    "cues": ["Sit tall", "Shoulders down and back", "Let the arms extend fully"],
+    "mistakes": ["Rocking the torso back and forth", "Shrugging", "Letting the weight stack slam"]
+  },
+  "inverted_row": {
+    "name": "Inverted row",
+    "aliases": ["australian pull up", "bodyweight row", "ring row"],
+    "instructions": "Hang under a bar or sturdy table, body straight, heels on the floor. Pull your chest to the bar, then lower with control.",
+    "cues": ["Body straight like a plank", "Chest to the bar", "Lower with control"],
+    "mistakes": ["Hips sagging", "Reaching with the chin", "Short range"]
+  },
+  "face_pull": {
+    "name": "Face pull",
+    "aliases": ["rope face pull", "cable face pull"],
+    "instructions": "Rope or band at face height. Pull towards your forehead, elbows high and wide, then return slowly.",
+    "cues": [
+      "Elbows high and wide",
+      "Pull towards the forehead",
+      "Rotate the hands back at the end"
+    ],
+    "mistakes": ["Pulling to the chest", "Leaning back to move the weight", "Going too heavy"]
+  },
+  "pull_up": {
+    "name": "Pull-up",
+    "aliases": ["pullup", "overhand pull up"],
+    "instructions": "Hang with an overhand grip slightly wider than shoulders. Pull your chest towards the bar, then lower all the way with control.",
+    "cues": ["Start from a full hang", "Drive the elbows down", "Chest towards the bar"],
+    "mistakes": ["Kipping or swinging", "Half reps", "Shrugging at the top"]
+  },
+  "chin_up": {
+    "name": "Chin-up",
+    "aliases": ["chinup", "underhand pull up"],
+    "instructions": "Like a pull-up with palms facing you and hands shoulder-width. Pull your chin over the bar.",
+    "cues": ["Palms facing you", "Elbows drive down to the ribs", "Full hang at the bottom"],
+    "mistakes": ["Swinging", "Reaching with the chin", "Partial reps"]
+  },
+  "lat_pulldown": {
+    "name": "Lat pulldown",
+    "aliases": ["pulldown", "wide grip pulldown", "lat pull down (cable)"],
+    "instructions": "Sit with thighs under the pad. Pull the bar to your upper chest, leading with the elbows, then let it rise slowly.",
+    "cues": ["Chest up, slight lean back", "Pull to the upper chest", "Lead with the elbows"],
+    "mistakes": [
+      "Pulling behind the neck",
+      "Leaning far back to use momentum",
+      "Letting the bar fly up"
+    ]
+  },
+  "band_assisted_pull_up": {
+    "name": "Band-assisted pull-up",
+    "aliases": ["assisted pull up (band)"],
+    "instructions": "Loop a band over the bar and put a knee or foot in it. Do pull-ups with the band's help; use lighter bands as you get stronger.",
+    "cues": ["Band anchored securely", "Control the way down", "Use a lighter band over time"],
+    "mistakes": [
+      "Bouncing out of the bottom with the band",
+      "Half reps",
+      "Band slipping off the foot"
+    ]
+  },
+  "biceps_curl": {
+    "name": "Biceps curl",
+    "aliases": ["bicep curl", "dumbbell curl", "barbell curl"],
+    "instructions": "Elbows by your sides. Curl the weight up without swinging, squeeze, then lower slowly.",
+    "cues": ["Elbows fixed at the sides", "Squeeze at the top", "Lower slowly"],
+    "mistakes": ["Swinging the torso", "Elbows drifting forward", "Dropping the weight"]
+  },
+  "hammer_curl": {
+    "name": "Hammer curl",
+    "aliases": ["dumbbell hammer curl", "neutral grip curl"],
+    "instructions": "Like a biceps curl with palms facing each other throughout.",
+    "cues": ["Thumbs up throughout", "Elbows by the sides", "Control the way down"],
+    "mistakes": ["Swinging", "Shoulders rolling forward", "Rushing"]
+  },
+  "triceps_pushdown": {
+    "name": "Triceps pushdown",
+    "aliases": ["tricep pushdown", "rope pushdown", "cable pushdown"],
+    "instructions": "At a cable station, elbows pinned to your sides. Push the bar or rope down until the arms are straight, then let it rise.",
+    "cues": ["Elbows pinned to the sides", "Full lockout", "Let it rise slowly"],
+    "mistakes": ["Elbows moving forward", "Leaning over the bar", "Using the shoulders"]
+  },
+  "overhead_triceps_extension": {
+    "name": "Overhead triceps extension",
+    "aliases": ["overhead extension", "french press"],
+    "instructions": "Hold one weight overhead with both hands. Lower it behind your head by bending the elbows, then extend back up.",
+    "cues": ["Elbows point forward", "Deep stretch behind the head", "Ribs down"],
+    "mistakes": ["Elbows flaring wide", "Arching the lower back", "Short range"]
+  },
+  "plank": {
+    "name": "Plank",
+    "aliases": ["front plank", "forearm plank"],
+    "instructions": "Forearms under your shoulders, body straight from head to heels. Brace your stomach and hold without letting the hips sag.",
+    "cues": ["Squeeze glutes and quads", "Ribs down", "Breathe while you hold"],
+    "mistakes": ["Hips sagging", "Hips piked high", "Holding the breath"]
+  },
+  "side_plank": {
+    "name": "Side plank",
+    "aliases": [],
+    "instructions": "On one forearm, feet stacked. Lift the hips so your body forms a straight line and hold. Switch sides.",
+    "cues": ["Elbow under the shoulder", "Body in one line", "Push the hips up"],
+    "mistakes": ["Hips dropping", "Rolling forward", "Shoulder shrugged to the ear"]
+  },
+  "dead_bug": {
+    "name": "Dead bug",
+    "aliases": [],
+    "instructions": "On your back, arms up, knees over hips. Slowly lower the opposite arm and leg while keeping your lower back on the floor, then switch.",
+    "cues": ["Lower back stays on the floor", "Move slowly", "Exhale as you reach"],
+    "mistakes": ["Back arching off the floor", "Moving fast", "Holding the breath"]
+  },
+  "bird_dog": {
+    "name": "Bird dog",
+    "aliases": [],
+    "instructions": "On hands and knees, reach one arm forward and the opposite leg back until straight. Hold briefly, keep the hips level, switch sides.",
+    "cues": ["Hips stay level", "Reach long, not high", "Pause at full extension"],
+    "mistakes": ["Rotating the hips", "Arching the back", "Rushing"]
+  },
+  "pallof_press": {
+    "name": "Pallof press",
+    "aliases": ["anti rotation press"],
+    "instructions": "Stand side-on to a cable or band at chest height. Press the handle straight out and resist the pull to rotate, then bring it back.",
+    "cues": ["Stand side-on to the anchor", "Press straight out", "Resist the rotation"],
+    "mistakes": ["Letting the torso turn", "Standing too close", "Shrugging"]
+  },
+  "hanging_knee_raise": {
+    "name": "Hanging knee raise",
+    "aliases": ["knee raise", "captains chair knee raise"],
+    "instructions": "Hang from a bar. Raise your knees towards your chest without swinging, then lower slowly.",
+    "cues": ["Start from a still hang", "Curl the pelvis up", "Lower slowly"],
+    "mistakes": [
+      "Swinging",
+      "Only lifting the knees without curling the pelvis",
+      "Dropping down fast"
+    ]
+  },
+  "copenhagen_plank": {
+    "name": "Copenhagen plank",
+    "aliases": ["copenhagen adductor"],
+    "instructions": "Side plank with the top leg on a bench and the bottom leg free. Hold the hips up – a strong exercise for the adductors.",
+    "cues": ["Top leg on the bench", "Hips in line", "Start with the knee on the bench"],
+    "mistakes": ["Hips sagging", "Rolling forward", "Going straight to the long-lever version"]
+  },
+  "ab_wheel": {
+    "name": "Ab wheel rollout",
+    "aliases": ["ab rollout", "wheel rollout"],
+    "instructions": "Kneel holding the wheel. Roll forward as far as you can keep your back flat, then pull back using your core.",
+    "cues": [
+      "Tuck the pelvis",
+      "Roll only as far as the back stays flat",
+      "Pull back with the core"
+    ],
+    "mistakes": ["Lower back sagging", "Bending at the hips to return", "Going too far too soon"]
+  },
+  "pogo_hops": {
+    "name": "Pogo hops",
+    "aliases": ["pogos", "ankle hops"],
+    "instructions": "Quick, small two-footed jumps on the balls of your feet with stiff ankles, minimal ground contact time.",
+    "cues": ["Stiff ankles", "Short ground contact", "Stay tall"],
+    "mistakes": ["Bending the knees a lot", "Landing on the heels", "Too slow"]
+  },
+  "box_jump": {
+    "name": "Box jump",
+    "aliases": [],
+    "instructions": "Swing your arms and jump onto a box, landing softly in a quarter squat. Step down – don't jump down.",
+    "cues": ["Swing the arms", "Land softly in a quarter squat", "Step down"],
+    "mistakes": [
+      "Box too high so you land in a deep squat",
+      "Jumping down",
+      "Knees caving on landing"
+    ]
+  },
+  "broad_jump": {
+    "name": "Broad jump",
+    "aliases": ["standing long jump"],
+    "instructions": "Swing your arms and jump forward as far as you can, landing softly on both feet. Reset before each jump.",
+    "cues": ["Load the hips", "Jump out, not up", "Stick the landing"],
+    "mistakes": ["Landing stiff-legged", "Knees caving", "No reset between jumps"]
+  },
+  "bounding": {
+    "name": "Bounding",
+    "aliases": [],
+    "instructions": "Exaggerated running strides: drive the knee up and push off powerfully, spending as long as possible in the air.",
+    "cues": ["Drive the knee up", "Push off powerfully", "Hang in the air"],
+    "mistakes": ["Running instead of bounding", "Landing on the heel", "Short strides"]
+  },
+  "a_skips": {
+    "name": "A-skips",
+    "aliases": ["a skip", "running drill"],
+    "instructions": "Skip forward lifting one knee to hip height while the other foot strikes the ground under your hips. Rhythmic and light.",
+    "cues": ["Knee to hip height", "Foot lands under the hips", "Light and rhythmic"],
+    "mistakes": ["Leaning back", "Landing in front of the body", "Stiff arms"]
+  },
+  "hip_flexor_stretch": {
+    "name": "Hip flexor stretch",
+    "aliases": ["kneeling hip flexor stretch", "couch stretch"],
+    "instructions": "Half-kneeling, tuck your pelvis and shift forward until you feel a stretch at the front of the back hip. Hold, then switch.",
+    "cues": ["Tuck the pelvis first", "Shift forward gently", "Squeeze the back glute"],
+    "mistakes": ["Arching the lower back", "Pushing too far forward", "Bouncing"]
+  },
+  "ankle_dorsiflexion": {
+    "name": "Ankle dorsiflexion",
+    "aliases": ["knee to wall", "ankle mobility"],
+    "instructions": "Half-kneeling facing a wall. Drive the front knee towards the wall without lifting the heel, then return.",
+    "cues": ["Heel stays down", "Knee over the middle toes", "Move slowly"],
+    "mistakes": ["Heel lifting", "Knee collapsing inward", "Rushing"]
+  },
+  "thoracic_rotation": {
+    "name": "Thoracic rotation",
+    "aliases": ["open book", "t-spine rotation"],
+    "instructions": "On all fours, one hand behind your head. Rotate the elbow down and then up towards the ceiling, following it with your eyes.",
+    "cues": ["Hips stay still", "Follow the elbow with the eyes", "Breathe out as you open"],
+    "mistakes": ["Rotating from the lower back", "Moving too fast", "Shifting the hips"]
+  },
+  "hips_90_90": {
+    "name": "90/90 hips",
+    "aliases": ["90 90 hip switch"],
+    "instructions": "Sit with both knees bent at 90°, one in front, one to the side. Rotate the knees to the other side without using your hands.",
+    "cues": ["Sit tall", "Rotate from the hips", "Use hands only if needed"],
+    "mistakes": ["Slumping", "Forcing range", "Leaning far back"]
+  },
+  "hamstring_floss": {
+    "name": "Hamstring floss",
+    "aliases": ["hamstring flossing", "nerve floss"],
+    "instructions": "Lie on your back holding one leg behind the thigh. Straighten and bend the knee slowly while pointing and flexing the foot.",
+    "cues": ["Hold behind the thigh", "Straighten slowly", "Point and flex the foot"],
+    "mistakes": ["Forcing into pain", "Lifting the hips", "Moving too fast"]
+  },
+  "leg_extension": {
+    "name": "Leg extension",
+    "aliases": ["leg extension (machine)", "quad extension", "knee extension"],
+    "instructions": "Line your knee joint up with the machine pivot and set the shin pad just above the ankles. Straighten the legs until the knees are fully extended, pause, then lower under control.",
+    "cues": ["Knees line up with the pivot", "Pause at the top", "Lower for two to three seconds"],
+    "mistakes": [
+      "Kicking the weight up",
+      "Lifting the hips off the seat",
+      "Letting the stack crash down"
+    ]
+  },
+  "seated_leg_curl": {
+    "name": "Seated leg curl",
+    "aliases": ["seated leg curl (machine)", "seated hamstring curl"],
+    "instructions": "Knees in line with the pivot, the thigh pad locked down firmly, the lower pad just above the heels. Pull the heels down and under the seat, pause, then let the legs extend slowly.",
+    "cues": ["Thigh pad tight on the legs", "Pull the heels under you", "Control the return"],
+    "mistakes": ["Hips sliding forward on the seat", "Short range at the bottom", "Using momentum"]
+  },
+  "lying_leg_curl": {
+    "name": "Lying leg curl",
+    "aliases": ["lying leg curl (machine)", "prone leg curl"],
+    "instructions": "Lie face down with the knees just off the bench and the pad above the heels. Curl the heels towards the glutes while keeping the hips pressed down, then lower slowly.",
+    "cues": ["Hips stay on the pad", "Curl all the way up", "Slow on the way down"],
+    "mistakes": ["Hips lifting off the bench", "Jerking the weight up", "Half reps"]
+  },
+  "standing_leg_curl": {
+    "name": "Standing leg curl",
+    "aliases": ["single leg curl", "standing hamstring curl"],
+    "instructions": "Stand facing the machine with one leg behind the pad. Curl the heel up towards the glute, keeping the thigh still, then lower slowly. Finish one side before switching.",
+    "cues": ["Thigh stays vertical", "Squeeze at the top", "Stand tall"],
+    "mistakes": ["Swinging the hip back", "Leaning on the machine to help", "Rushing the reps"]
+  },
+  "hip_abduction_machine": {
+    "name": "Hip abduction machine",
+    "aliases": ["abductor machine", "outer thigh machine", "hip abduction (machine)"],
+    "instructions": "Sit with the pads on the outside of your knees. Push the legs apart as far as you control, pause, then let them come back together slowly.",
+    "cues": ["Sit tall against the back rest", "Push out with the knees", "Slow return"],
+    "mistakes": ["Using momentum", "Letting the weights slam together", "Leaning forward to cheat"]
+  },
+  "hip_adduction_machine": {
+    "name": "Hip adduction machine",
+    "aliases": ["adductor machine", "inner thigh machine", "hip adduction (machine)"],
+    "instructions": "Sit with the pads on the inside of your knees, starting at a comfortable stretch. Squeeze the legs together, pause, then open them slowly.",
+    "cues": [
+      "Start with a comfortable stretch",
+      "Squeeze the knees together",
+      "Control the opening"
+    ],
+    "mistakes": ["Starting too wide", "Bouncing out of the stretch", "Rushing"]
+  },
+  "hack_squat": {
+    "name": "Hack squat",
+    "aliases": ["hack squat (machine)", "machine hack squat"],
+    "instructions": "Back and shoulders against the pads, feet shoulder-width in the middle of the platform. Unlock, squat down until the thighs are at least parallel, then drive back up through the whole foot.",
+    "cues": ["Back stays on the pad", "Knees follow the toes", "Push through the whole foot"],
+    "mistakes": ["Heels lifting", "Locking out hard at the top", "Shallow reps"]
+  },
+  "belt_squat": {
+    "name": "Belt squat",
+    "aliases": ["belt squat (machine)"],
+    "instructions": "Attach the belt around your hips and stand on the platform. Squat down with an upright torso, then stand up. The load sits on the hips, not the spine.",
+    "cues": ["Stay upright", "Sit between the heels", "Stand all the way up"],
+    "mistakes": ["Belt riding up the waist", "Knees caving in", "Cutting depth"]
+  },
+  "smith_squat": {
+    "name": "Smith machine squat",
+    "aliases": ["smith squat", "squat (smith machine)"],
+    "instructions": "Bar on your upper back in the Smith machine, feet slightly in front of the bar. Unlock the hooks, squat down with control and stand back up.",
+    "cues": ["Feet slightly forward", "Brace before each rep", "Rack the hooks safely"],
+    "mistakes": [
+      "Feet directly under the bar",
+      "Forgetting where the safety stops are",
+      "Bouncing at the bottom"
+    ]
+  },
+  "seated_leg_press": {
+    "name": "Seated leg press",
+    "aliases": ["horizontal leg press", "leg press (machine)", "selectorised leg press"],
+    "instructions": "Sit with the back against the pad and feet hip-width on the platform. Bend the knees towards your chest, then press out until the legs are almost straight.",
+    "cues": [
+      "Back flat on the pad",
+      "Feet in the middle of the platform",
+      "Stop short of locking out"
+    ],
+    "mistakes": ["Lower back rounding at the bottom", "Locking the knees", "Knees caving in"]
+  },
+  "single_leg_press": {
+    "name": "Single-leg press",
+    "aliases": ["single leg leg press", "one leg press"],
+    "instructions": "Set up as for the leg press with one foot in the middle of the platform. Lower under control and press back up. Use a lighter weight than for both legs.",
+    "cues": ["Foot centred on the platform", "Hips stay level", "Control the bottom"],
+    "mistakes": ["Pelvis twisting", "Going too deep and rounding the back", "Too much weight"]
+  },
+  "glute_kickback_machine": {
+    "name": "Glute kickback machine",
+    "aliases": ["glute machine", "kickback (machine)", "hip extension machine"],
+    "instructions": "Set up on the machine with the working foot on the plate or pad. Drive the leg back by squeezing the glute, without arching the lower back, then return slowly.",
+    "cues": ["Ribs down, back neutral", "Squeeze the glute at the end", "Slow return"],
+    "mistakes": ["Arching the lower back", "Swinging the leg", "Rushing"]
+  },
+  "hip_thrust_machine": {
+    "name": "Hip thrust machine",
+    "aliases": ["glute drive", "machine hip thrust", "hip thrust (machine)"],
+    "instructions": "Sit with the belt or pad across your hips and upper back against the pad. Drive the hips up until the body is straight from shoulders to knees, pause, lower with control.",
+    "cues": ["Chin tucked", "Shins vertical at the top", "Pause and squeeze"],
+    "mistakes": ["Overarching at the top", "Feet too far forward", "Half reps"]
+  },
+  "seated_calf_raise": {
+    "name": "Seated calf raise",
+    "aliases": ["seated calf raise (machine)", "calf raise seated"],
+    "instructions": "Sit with the pad on your lower thighs and the balls of your feet on the platform. Lower the heels for a full stretch, then rise as high as you can.",
+    "cues": ["Full stretch at the bottom", "Pause at the top", "Slow tempo"],
+    "mistakes": ["Bouncing", "Short range", "Rocking the torso"]
+  },
+  "leg_press_calf_raise": {
+    "name": "Leg press calf raise",
+    "aliases": ["calf press", "calf press on leg press"],
+    "instructions": "On the leg press, put the balls of your feet on the bottom edge of the platform, legs almost straight. Push the platform away with your toes, then let the heels come back for a stretch.",
+    "cues": ["Knees soft but fixed", "Full range", "Keep the safety handles in reach"],
+    "mistakes": ["Bending the knees to help", "Feet slipping off the edge", "Bouncing"]
+  },
+  "back_extension_machine": {
+    "name": "Back extension machine",
+    "aliases": ["lower back machine", "lumbar extension", "back extension (machine)"],
+    "instructions": "Sit with the pad on your upper back and the hips fixed by the belt or pads. Extend the back slowly against the resistance to an upright position, then return with control.",
+    "cues": ["Slow and controlled", "Move through the lower back", "No jerking"],
+    "mistakes": ["Throwing the weight back", "Overextending past upright", "Using too much weight"]
+  },
+  "hyperextension": {
+    "name": "Back extension",
+    "aliases": ["hyperextension", "45 degree back extension", "roman chair back extension"],
+    "instructions": "On a 45° back extension bench, the pad just below the hip bones. Hinge forward with a flat back, then rise until your body is in a straight line. Hold a plate for more load.",
+    "cues": ["Hinge at the hips", "Squeeze the glutes to come up", "Stop at a straight line"],
+    "mistakes": [
+      "Hyperextending at the top",
+      "Rounding the back",
+      "Pad too high so the hips cannot hinge"
+    ]
+  },
+  "reverse_hyperextension": {
+    "name": "Reverse hyperextension",
+    "aliases": ["reverse hyper"],
+    "instructions": "Lie face down on the bench with the hips at the edge and hold on. Lift the straight legs up to body level with the glutes, then lower with control.",
+    "cues": ["Hold on firmly", "Lift with the glutes", "Control the swing"],
+    "mistakes": ["Swinging the legs", "Arching hard at the top", "Too much weight too soon"]
+  },
+  "chest_press_machine": {
+    "name": "Chest press machine",
+    "aliases": ["seated chest press", "chest press (machine)", "machine bench press"],
+    "instructions": "Set the seat so the handles are at mid-chest height. Shoulder blades back against the pad, press the handles forward until the arms are almost straight, then return slowly.",
+    "cues": ["Handles at mid-chest", "Shoulder blades back", "Slow return"],
+    "mistakes": ["Seat too low or too high", "Shoulders rolling forward", "Locking out hard"]
+  },
+  "incline_chest_press_machine": {
+    "name": "Incline chest press machine",
+    "aliases": ["incline press (machine)", "incline machine press"],
+    "instructions": "Sit with the handles at upper-chest height. Press up and forward, keeping the shoulder blades back, then lower with control.",
+    "cues": ["Handles at upper-chest height", "Chest up", "Control the stretch"],
+    "mistakes": ["Shrugging", "Arching off the back rest", "Bouncing out of the stretch"]
+  },
+  "decline_chest_press_machine": {
+    "name": "Decline chest press machine",
+    "aliases": ["decline press (machine)", "dip press machine"],
+    "instructions": "Sit tall with the handles at lower-chest height. Press forward and slightly down until the arms are almost straight, then return slowly.",
+    "cues": ["Shoulders down", "Press down and forward", "Slow return"],
+    "mistakes": ["Shrugging", "Leaning forward off the pad", "Locking out hard"]
+  },
+  "pec_deck": {
+    "name": "Pec deck",
+    "aliases": ["chest fly (machine)", "butterfly", "machine fly"],
+    "instructions": "Sit tall with the handles or pads at chest height, elbows slightly bent. Bring the arms together in an arc in front of the chest, squeeze, then open slowly to a comfortable stretch.",
+    "cues": [
+      "Elbows slightly bent and fixed",
+      "Squeeze in the middle",
+      "Open only to a comfortable stretch"
+    ],
+    "mistakes": [
+      "Opening too far behind the body",
+      "Turning it into a press",
+      "Shoulders rolling forward"
+    ]
+  },
+  "rear_delt_fly_machine": {
+    "name": "Reverse fly machine",
+    "aliases": ["reverse pec deck", "rear delt fly (machine)", "rear delt machine"],
+    "instructions": "Sit facing the pad, handles at shoulder height. Push the arms back and out in a wide arc with slightly bent elbows, pause, then return slowly.",
+    "cues": ["Lead with the back of the hands", "Keep the shoulders down", "Pause at the back"],
+    "mistakes": ["Shrugging", "Pulling with the arms like a row", "Too much weight"]
+  },
+  "shoulder_press_machine": {
+    "name": "Shoulder press machine",
+    "aliases": [
+      "machine shoulder press",
+      "shoulder press (machine)",
+      "seated overhead press machine"
+    ],
+    "instructions": "Set the seat so the handles start at about shoulder height. Press up until the arms are straight without locking hard, then lower under control.",
+    "cues": ["Back against the pad", "Press straight up", "Control the way down"],
+    "mistakes": [
+      "Arching away from the pad",
+      "Seat set too high for full range",
+      "Locking out hard"
+    ]
+  },
+  "lateral_raise_machine": {
+    "name": "Lateral raise machine",
+    "aliases": ["lateral raise (machine)", "machine side raise", "deltoid machine"],
+    "instructions": "Sit with the pads on the outside of your upper arms. Raise the arms out to the side to shoulder height, pause, then lower slowly.",
+    "cues": ["Lead with the elbows", "Shoulders down", "Slow on the way down"],
+    "mistakes": [
+      "Shrugging the weight up",
+      "Swinging",
+      "Going above shoulder height with a heavy load"
+    ]
+  },
+  "seated_row_machine": {
+    "name": "Seated row machine",
+    "aliases": ["chest supported row (machine)", "machine row", "seated row (machine)"],
+    "instructions": "Chest against the pad, handles at arm's length. Pull the elbows back past the body, squeeze the shoulder blades, then let the arms extend fully.",
+    "cues": ["Chest stays on the pad", "Squeeze the shoulder blades", "Full stretch forward"],
+    "mistakes": ["Leaving the chest pad to jerk the weight", "Shrugging", "Short range"]
+  },
+  "t_bar_row": {
+    "name": "T-bar row",
+    "aliases": ["t bar row", "chest supported t bar row", "landmine row"],
+    "instructions": "On a T-bar station or with a landmine handle, hinge forward with a flat back or lie on the chest pad. Pull the handle to the lower chest, then lower with control.",
+    "cues": ["Flat back or chest on the pad", "Elbows back, not out", "Lower all the way"],
+    "mistakes": ["Rounding the back", "Standing up with each rep", "Jerking the weight"]
+  },
+  "high_row_machine": {
+    "name": "High row machine",
+    "aliases": ["high row (machine)", "iso high row", "plate loaded high row"],
+    "instructions": "Sit with the thighs under the pad and grab the handles above and in front of you. Pull down and back towards the chest, elbows wide, then return slowly.",
+    "cues": ["Pull down and back", "Shoulder blades together", "Full stretch at the top"],
+    "mistakes": ["Leaning far back", "Shrugging", "Letting the handles yank the arms up"]
+  },
+  "machine_pulldown": {
+    "name": "Machine pulldown",
+    "aliases": ["pulldown machine", "plate loaded pulldown", "iso lateral pulldown"],
+    "instructions": "Sit with the thighs under the pad and grab the handles overhead. Drive the elbows down towards the ribs, then let the arms rise to a full stretch.",
+    "cues": ["Elbows down to the ribs", "Chest up", "Full stretch at the top"],
+    "mistakes": ["Leaning far back", "Pulling with the hands instead of the elbows", "Short range"]
+  },
+  "assisted_pull_up_machine": {
+    "name": "Assisted pull-up machine",
+    "aliases": ["assisted pull up (machine)", "gravitron", "assisted chin up"],
+    "instructions": "Kneel or stand on the platform; the selected weight helps you up. Pull until the chin is over the handles, then lower all the way. Less assistance means harder.",
+    "cues": ["Full hang at the bottom", "Drive the elbows down", "Reduce assistance over time"],
+    "mistakes": ["Bouncing off the platform", "Half reps", "Too much assistance for too long"]
+  },
+  "assisted_dip_machine": {
+    "name": "Assisted dip machine",
+    "aliases": ["assisted dip (machine)", "assisted dips"],
+    "instructions": "Kneel on the platform and grip the dip handles. Lower until the shoulders are just below the elbows, then press up. Less assistance means harder.",
+    "cues": ["Shoulders down", "Slight forward lean", "Controlled depth"],
+    "mistakes": ["Dropping too deep", "Shrugging", "Bouncing off the platform"]
+  },
+  "pullover_machine": {
+    "name": "Pullover machine",
+    "aliases": ["machine pullover", "lat pullover (machine)"],
+    "instructions": "Sit with the elbows on the pads and the shoulders lined up with the pivot. Pull the elbows down in an arc towards the body, pause, then let them rise slowly to a full stretch.",
+    "cues": [
+      "Shoulder in line with the pivot",
+      "Push with the elbows, not the hands",
+      "Slow stretch at the top"
+    ],
+    "mistakes": [
+      "Gripping hard and pulling with the arms",
+      "Rushing the stretch",
+      "Seat height wrong"
+    ]
+  },
+  "biceps_curl_machine": {
+    "name": "Biceps curl machine",
+    "aliases": ["preacher curl machine", "bicep curl (machine)", "machine curl"],
+    "instructions": "Set the seat so the upper arms lie flat on the pad and the elbows line up with the pivot. Curl the handles up, squeeze, then lower to almost straight arms.",
+    "cues": ["Elbows in line with the pivot", "Upper arms stay on the pad", "Slow on the way down"],
+    "mistakes": ["Lifting the elbows off the pad", "Short range at the bottom", "Swinging"]
+  },
+  "triceps_extension_machine": {
+    "name": "Triceps extension machine",
+    "aliases": ["triceps machine", "tricep extension (machine)"],
+    "instructions": "Set the seat so the elbows line up with the pivot. Push the handles down or forward until the arms are straight, then return slowly.",
+    "cues": ["Elbows fixed on the pad", "Full lockout", "Slow return"],
+    "mistakes": ["Elbows lifting", "Using the shoulders", "Short range"]
+  },
+  "seated_dip_machine": {
+    "name": "Seated dip machine",
+    "aliases": ["triceps dip machine", "seated dip (machine)"],
+    "instructions": "Sit tall with the handles at your sides. Press them down until the arms are straight, keeping the shoulders down, then let them rise slowly.",
+    "cues": ["Shoulders down", "Elbows close to the body", "Full lockout"],
+    "mistakes": ["Shrugging", "Leaning far forward", "Short range"]
+  },
+  "ab_crunch_machine": {
+    "name": "Ab crunch machine",
+    "aliases": ["crunch machine", "abdominal machine", "ab crunch (machine)"],
+    "instructions": "Sit with the pads on your chest or the handles by your head. Curl the ribs down towards the hips, pause, then return slowly.",
+    "cues": ["Curl the spine, do not hinge", "Exhale as you crunch", "Slow return"],
+    "mistakes": ["Pulling with the arms", "Using momentum", "Hinging only at the hips"]
+  },
+  "torso_rotation_machine": {
+    "name": "Torso rotation machine",
+    "aliases": ["rotary torso", "rotation machine"],
+    "instructions": "Sit with the legs or chest fixed and rotate your torso against the resistance through a comfortable range, then return slowly. Do both sides.",
+    "cues": ["Hips stay fixed", "Rotate from the trunk", "Small, controlled range"],
+    "mistakes": ["Swinging", "Forcing the end range", "Too much weight"]
+  },
+  "neck_extension_machine": {
+    "name": "Neck extension machine",
+    "aliases": ["neck machine", "cervical extension"],
+    "instructions": "Sit with the back of your head against the pad. Slowly move the head back against the resistance to a neutral position, then return. Use a light weight.",
+    "cues": ["Very light weight", "Slow in both directions", "Stay in a pain-free range"],
+    "mistakes": ["Jerking the head", "Too much weight", "Moving through the shoulders"]
+  },
+  "neck_flexion_machine": {
+    "name": "Neck flexion machine",
+    "aliases": ["neck flexion", "cervical flexion"],
+    "instructions": "Sit with your forehead against the pad. Slowly bring the chin towards the chest against the resistance, then return. Use a light weight.",
+    "cues": ["Very light weight", "Slow and smooth", "Pain-free range only"],
+    "mistakes": ["Jerking", "Rounding the upper back to help", "Too much weight"]
+  },
+  "smith_bench_press": {
+    "name": "Smith machine bench press",
+    "aliases": ["smith bench", "bench press (smith machine)"],
+    "instructions": "Lie on a bench under the Smith bar so it lowers to mid-chest. Unlock, lower with control to the chest, press back up and rack the hooks.",
+    "cues": ["Bar lands on mid-chest", "Shoulder blades back", "Know where the hooks are"],
+    "mistakes": ["Bench in the wrong position", "Bouncing", "Flared elbows"]
+  },
+  "smith_incline_press": {
+    "name": "Smith machine incline press",
+    "aliases": ["incline press (smith machine)", "smith incline"],
+    "instructions": "Set an incline bench at 30–45° under the Smith bar so it lowers to the upper chest. Lower with control, press up, rack safely.",
+    "cues": ["Bench at 30–45°", "Bar to the upper chest", "Shoulder blades back"],
+    "mistakes": ["Bench too steep", "Bouncing", "Shrugging"]
+  },
+  "smith_shoulder_press": {
+    "name": "Smith machine shoulder press",
+    "aliases": ["shoulder press (smith machine)", "smith overhead press"],
+    "instructions": "Sit on an upright bench under the Smith bar. Lower the bar to about chin height in front of the face, then press back up.",
+    "cues": ["Bar in front of the face", "Ribs down", "Full lockout without slamming"],
+    "mistakes": ["Lowering behind the neck", "Arching away from the bench", "Partial reps"]
+  },
+  "cable_fly": {
+    "name": "Cable fly",
+    "aliases": ["cable crossover", "standing cable fly", "cable fly (high to low)"],
+    "instructions": "Set both pulleys high, take a handle in each hand and step forward into a split stance. Bring the hands together in front of the lower chest in a wide arc, then open slowly.",
+    "cues": ["Slight bend in the elbows", "Hug a big tree", "Squeeze where the hands meet"],
+    "mistakes": [
+      "Bending and straightening the elbows like a press",
+      "Opening too far back",
+      "Leaning forward too much"
+    ]
+  },
+  "low_cable_fly": {
+    "name": "Low-to-high cable fly",
+    "aliases": ["low cable fly", "incline cable fly", "cable fly (low to high)"],
+    "instructions": "Set both pulleys low. From a split stance, sweep the handles up and together to upper-chest height, then lower slowly.",
+    "cues": ["Palms face up and in", "Finish at upper-chest height", "Control the way down"],
+    "mistakes": ["Shrugging at the top", "Turning it into a front raise", "Elbows locked straight"]
+  },
+  "cable_chest_press": {
+    "name": "Standing cable chest press",
+    "aliases": ["cable press", "cable chest press"],
+    "instructions": "Pulleys at chest height behind you, a handle in each hand, split stance. Press the handles forward and slightly together, then return with control.",
+    "cues": ["Brace the core", "Press forward and in", "Do not let the cables pull you back"],
+    "mistakes": ["Leaning far forward", "Elbows flaring", "Rushing the return"]
+  },
+  "single_arm_cable_row": {
+    "name": "Single-arm cable row",
+    "aliases": ["one arm cable row", "single arm row (cable)"],
+    "instructions": "Pulley at chest height or below, handle in one hand. Row the elbow back past the body, squeeze, then reach forward and let the shoulder blade move. Do both sides.",
+    "cues": ["Elbow close to the body", "Reach forward for the stretch", "Little torso rotation"],
+    "mistakes": ["Twisting a lot to move the weight", "Shrugging", "Short range"]
+  },
+  "single_arm_lat_pulldown": {
+    "name": "Single-arm lat pulldown",
+    "aliases": ["one arm pulldown", "single arm pulldown (cable)"],
+    "instructions": "Kneel or sit under a high pulley with one handle. Pull the elbow down towards the hip, then let the arm rise to a full stretch. Do both sides.",
+    "cues": ["Elbow to the hip", "Full stretch at the top", "Torso still"],
+    "mistakes": ["Leaning to the side", "Pulling with the hand", "Short range"]
+  },
+  "straight_arm_pulldown": {
+    "name": "Straight-arm pulldown",
+    "aliases": ["straight arm lat pulldown", "cable pullover"],
+    "instructions": "High pulley with a bar or rope. Hinge slightly, arms almost straight. Sweep the hands down to the thighs using the lats, then let them rise slowly.",
+    "cues": ["Arms stay almost straight", "Pull down to the thighs", "Ribs down"],
+    "mistakes": ["Bending the elbows into a pushdown", "Rocking the body", "Shrugging"]
+  },
+  "cable_lateral_raise": {
+    "name": "Cable lateral raise",
+    "aliases": ["single arm cable lateral raise", "lateral raise (cable)"],
+    "instructions": "Low pulley, stand side-on and take the handle with the far hand. Raise the arm out to shoulder height, then lower slowly. Do both sides.",
+    "cues": ["Lead with the elbow", "Stop at shoulder height", "Constant tension"],
+    "mistakes": ["Leaning away a lot", "Shrugging", "Swinging"]
+  },
+  "cable_rear_delt_fly": {
+    "name": "Cable reverse fly",
+    "aliases": ["cable rear delt fly", "reverse cable crossover"],
+    "instructions": "Pulleys at shoulder height, cross the cables and hold the left handle in the right hand and vice versa. Pull the arms out and back in a wide arc, then return slowly.",
+    "cues": ["Arms wide, elbows soft", "Shoulders down", "Pause at the back"],
+    "mistakes": ["Pulling like a row", "Shrugging", "Too much weight"]
+  },
+  "cable_front_raise": {
+    "name": "Cable front raise",
+    "aliases": ["front raise (cable)"],
+    "instructions": "Low pulley behind or between the feet, bar or rope in both hands. Raise the arms in front to shoulder height, then lower slowly.",
+    "cues": ["Arms almost straight", "Stop at shoulder height", "Ribs down"],
+    "mistakes": ["Leaning back", "Swinging", "Raising too high"]
+  },
+  "cable_upright_row": {
+    "name": "Cable upright row",
+    "aliases": ["upright row (cable)"],
+    "instructions": "Low pulley with a bar or rope. Pull the handle up along the body to lower-chest height, elbows leading and slightly above the hands, then lower slowly.",
+    "cues": [
+      "Elbows lead the movement",
+      "Stop at lower-chest height",
+      "Wide grip is friendlier for the shoulders"
+    ],
+    "mistakes": ["Pulling to the chin", "Narrow grip with pinching shoulders", "Using momentum"]
+  },
+  "cable_y_raise": {
+    "name": "Cable Y-raise",
+    "aliases": ["y raise (cable)"],
+    "instructions": "Low pulleys crossed in front of you. Raise the arms up and out into a Y above shoulder height, thumbs up, then lower slowly. Use a light weight.",
+    "cues": ["Thumbs up", "Arms make a Y", "Light and controlled"],
+    "mistakes": ["Shrugging", "Arching the back", "Too heavy"]
+  },
+  "cable_external_rotation": {
+    "name": "Cable external rotation",
+    "aliases": ["external rotation (cable)", "band external rotation"],
+    "instructions": "Pulley at elbow height, stand side-on with the elbow tucked against the body at 90°. Rotate the forearm out away from the body, then return slowly. Do both sides.",
+    "cues": ["Elbow stays tucked", "Small, slow movement", "Light weight"],
+    "mistakes": ["Elbow drifting away from the body", "Twisting the torso", "Too heavy"]
+  },
+  "cable_curl": {
+    "name": "Cable curl",
+    "aliases": ["bicep curl (cable)", "straight bar cable curl"],
+    "instructions": "Low pulley with a bar. Elbows by your sides, curl the bar up, squeeze, then lower slowly.",
+    "cues": ["Elbows fixed", "Constant tension", "Slow on the way down"],
+    "mistakes": ["Leaning back", "Elbows drifting forward", "Short range"]
+  },
+  "rope_hammer_curl": {
+    "name": "Rope hammer curl",
+    "aliases": ["cable hammer curl", "hammer curl (cable)"],
+    "instructions": "Low pulley with a rope. Thumbs up, curl the rope towards the shoulders, then lower slowly.",
+    "cues": ["Thumbs up throughout", "Elbows by the sides", "Squeeze at the top"],
+    "mistakes": ["Swinging", "Shoulders rolling forward", "Rushing"]
+  },
+  "cable_overhead_triceps_extension": {
+    "name": "Cable overhead triceps extension",
+    "aliases": ["overhead cable extension", "rope overhead extension"],
+    "instructions": "Rope on a high or low pulley, face away and hold the rope behind the head. Extend the arms forward and up until straight, then bend the elbows slowly for a deep stretch.",
+    "cues": ["Elbows point forward", "Deep stretch", "Full lockout"],
+    "mistakes": ["Elbows flaring wide", "Arching the back", "Short range"]
+  },
+  "cable_triceps_kickback": {
+    "name": "Cable triceps kickback",
+    "aliases": ["triceps kickback (cable)"],
+    "instructions": "Low pulley, hinge forward with the upper arm parallel to the body. Extend the elbow until the arm is straight, then return slowly. Do both sides.",
+    "cues": ["Upper arm stays still", "Full lockout", "Light weight"],
+    "mistakes": ["Swinging the upper arm", "Short range", "Rushing"]
+  },
+  "cable_shrug": {
+    "name": "Cable shrug",
+    "aliases": ["shrug (cable)"],
+    "instructions": "Low pulley with a bar. Stand tall and lift the shoulders straight up towards the ears, pause, then lower fully.",
+    "cues": ["Straight up, no rolling", "Pause at the top", "Arms stay long"],
+    "mistakes": ["Rolling the shoulders", "Bending the elbows", "Short range"]
+  },
+  "cable_crunch": {
+    "name": "Cable crunch",
+    "aliases": ["kneeling cable crunch", "rope crunch"],
+    "instructions": "Kneel under a high pulley holding a rope beside your head. Curl the ribs down towards the hips, pause, then return slowly.",
+    "cues": ["Curl the spine", "Hips stay still", "Exhale as you crunch"],
+    "mistakes": ["Sitting back onto the heels", "Pulling with the arms", "Using momentum"]
+  },
+  "cable_woodchop": {
+    "name": "Cable woodchop",
+    "aliases": ["woodchopper", "high to low chop"],
+    "instructions": "High pulley, stand side-on. Pull the handle diagonally down across the body to the opposite hip, turning through the trunk, then return slowly. Do both sides.",
+    "cues": ["Move from the trunk", "Arms stay long", "Pivot the back foot"],
+    "mistakes": ["Pulling with the arms only", "Rounding the back", "Too heavy"]
+  },
+  "cable_lift": {
+    "name": "Cable lift",
+    "aliases": ["low to high chop", "reverse woodchop"],
+    "instructions": "Low pulley, stand side-on. Lift the handle diagonally from the low hip up across the body to above the opposite shoulder, then return slowly. Do both sides.",
+    "cues": ["Drive from the legs and trunk", "Arms stay long", "Stand tall at the top"],
+    "mistakes": ["Arching the back at the top", "Pulling with the arms only", "Rushing"]
+  },
+  "cable_glute_kickback": {
+    "name": "Cable glute kickback",
+    "aliases": ["glute kickback (cable)", "cable kickback"],
+    "instructions": "Ankle strap on a low pulley. Hold the frame, hinge slightly and drive the working leg back by squeezing the glute, then return slowly.",
+    "cues": ["Squeeze the glute", "Back stays neutral", "Slow return"],
+    "mistakes": ["Arching the lower back", "Swinging the leg", "Kicking too high"]
+  },
+  "cable_pull_through": {
+    "name": "Cable pull-through",
+    "aliases": ["pull through"],
+    "instructions": "Low pulley with a rope between your legs, face away. Hinge back with soft knees, then drive the hips forward to stand tall and squeeze the glutes.",
+    "cues": ["Hips back, not down", "Arms are just ropes", "Squeeze at the top"],
+    "mistakes": ["Squatting it", "Pulling with the arms", "Leaning back at the top"]
+  },
+  "cable_hip_abduction": {
+    "name": "Cable hip abduction",
+    "aliases": ["standing hip abduction (cable)"],
+    "instructions": "Ankle strap on the far ankle, stand side-on to a low pulley. Lift the leg out to the side, then return slowly. Do both sides.",
+    "cues": ["Stand tall", "Lead with the heel", "Slow return"],
+    "mistakes": ["Leaning the torso", "Swinging", "Turning the toes up"]
+  },
+  "cable_hip_adduction": {
+    "name": "Cable hip adduction",
+    "aliases": ["standing hip adduction (cable)"],
+    "instructions": "Ankle strap on the near ankle, stand side-on to a low pulley. Bring the leg across in front of the standing leg, then return slowly. Do both sides.",
+    "cues": ["Stand tall", "Controlled range", "Slow return"],
+    "mistakes": ["Swinging", "Leaning", "Going too heavy"]
+  },
+  "trap_bar_deadlift": {
+    "name": "Trap bar deadlift",
+    "aliases": ["hex bar deadlift", "trap bar deadlift"],
+    "instructions": "Stand inside the trap bar, grip the handles at your sides. Brace, push the floor away and stand up tall, then lower with control.",
+    "cues": ["Chest up, back flat", "Push the floor away", "Hips and shoulders rise together"],
+    "mistakes": ["Rounding the back", "Hips shooting up first", "Jerking off the floor"]
+  },
+  "sumo_deadlift": {
+    "name": "Sumo deadlift",
+    "aliases": ["wide stance deadlift"],
+    "instructions": "Wide stance with the toes turned out, hands inside the knees. Push the knees out, brace and stand up with the bar close, then lower with control.",
+    "cues": ["Knees pushed out", "Chest up", "Bar close to the body"],
+    "mistakes": ["Knees caving in", "Hips rising first", "Rounding the back"]
+  },
+  "close_grip_bench_press": {
+    "name": "Close-grip bench press",
+    "aliases": ["close grip bench", "narrow grip bench press"],
+    "instructions": "Bench press with the hands about shoulder-width. Elbows stay close to the body as you lower to the lower chest, then press up.",
+    "cues": ["Hands shoulder-width", "Elbows tucked", "Lower to the lower chest"],
+    "mistakes": ["Grip too narrow so the wrists bend", "Elbows flaring", "Bouncing"]
+  },
+  "landmine_press": {
+    "name": "Landmine press",
+    "aliases": ["single arm landmine press"],
+    "instructions": "One end of a barbell in a landmine or corner. Hold the other end at the shoulder and press it up and forward until the arm is straight, then lower. Do both sides.",
+    "cues": ["Brace the core", "Press up and forward", "Ribs down"],
+    "mistakes": ["Leaning back", "Twisting to press", "Shrugging"]
+  },
+  "upright_row": {
+    "name": "Upright row",
+    "aliases": ["barbell upright row", "dumbbell upright row"],
+    "instructions": "Hold the weight in front of the thighs with a grip wider than shoulder-width. Pull up along the body to lower-chest height, elbows leading, then lower slowly.",
+    "cues": ["Wide grip", "Elbows lead", "Stop at lower-chest height"],
+    "mistakes": ["Pulling up to the chin", "Narrow grip", "Swinging"]
+  },
+  "ez_bar_curl": {
+    "name": "EZ-bar curl",
+    "aliases": ["ez curl", "curl (ez bar)"],
+    "instructions": "Hold the EZ bar on the angled grips, elbows by your sides. Curl up, squeeze, then lower slowly.",
+    "cues": ["Elbows fixed", "Squeeze at the top", "Slow on the way down"],
+    "mistakes": ["Swinging the torso", "Elbows drifting forward", "Dropping the bar"]
+  },
+  "preacher_curl": {
+    "name": "Preacher curl",
+    "aliases": ["scott curl", "preacher curl (ez bar)"],
+    "instructions": "Upper arms flat on the preacher pad. Curl the weight up, then lower until the arms are almost straight.",
+    "cues": [
+      "Armpits snug against the pad",
+      "Control the bottom",
+      "Do not fully relax at the bottom"
+    ],
+    "mistakes": ["Lifting the elbows off the pad", "Dropping into the bottom", "Short range"]
+  },
+  "skull_crusher": {
+    "name": "Skull crusher",
+    "aliases": ["lying triceps extension", "ez bar skull crusher"],
+    "instructions": "Lie on a bench holding the weight above the shoulders. Bend only the elbows to lower it towards the forehead or just behind the head, then extend.",
+    "cues": ["Upper arms angled slightly back", "Only the elbows move", "Control the lowering"],
+    "mistakes": ["Elbows flaring wide", "Turning it into a press", "Lowering too fast"]
+  },
+  "dumbbell_fly": {
+    "name": "Dumbbell fly",
+    "aliases": ["flat dumbbell fly", "incline dumbbell fly"],
+    "instructions": "Lie on a flat or incline bench with dumbbells above the chest, palms facing. Open the arms in a wide arc with soft elbows to a comfortable stretch, then bring them back together.",
+    "cues": ["Elbows soft and fixed", "Open to a comfortable stretch", "Squeeze at the top"],
+    "mistakes": ["Bending the elbows into a press", "Dropping too deep", "Too heavy"]
+  },
+  "arnold_press": {
+    "name": "Arnold press",
+    "aliases": ["rotating shoulder press"],
+    "instructions": "Start with dumbbells in front of the shoulders, palms facing you. Press up while rotating the palms to face forward, then reverse on the way down.",
+    "cues": ["Rotate as you press", "Ribs down", "Full range"],
+    "mistakes": ["Arching the back", "Rushing the rotation", "Half reps"]
+  },
+  "shrug": {
+    "name": "Shrug",
+    "aliases": ["dumbbell shrug", "barbell shrug"],
+    "instructions": "Hold the weights at your sides or in front. Lift the shoulders straight up towards the ears, pause, then lower fully.",
+    "cues": ["Straight up and down", "Pause at the top", "Arms stay long"],
+    "mistakes": ["Rolling the shoulders", "Bending the elbows", "Short range"]
+  },
+  "dumbbell_rear_delt_fly": {
+    "name": "Bent-over reverse fly",
+    "aliases": ["rear delt fly (dumbbell)", "bent over lateral raise"],
+    "instructions": "Hinge forward with a flat back, dumbbells hanging below the chest. Raise the arms out to the side with soft elbows, pause, then lower slowly.",
+    "cues": ["Flat back", "Lead with the back of the hands", "Light weight"],
+    "mistakes": ["Standing up as you lift", "Shrugging", "Swinging"]
+  },
+  "dumbbell_pullover": {
+    "name": "Dumbbell pullover",
+    "aliases": ["pullover (dumbbell)"],
+    "instructions": "Lie across or along a bench holding one dumbbell above the chest with both hands. Lower it behind the head in an arc with soft elbows, then pull it back over the chest.",
+    "cues": ["Elbows soft and fixed", "Ribs down", "Stretch, then pull back"],
+    "mistakes": ["Bending the elbows a lot", "Arching the back", "Going too deep"]
+  },
+  "incline_dumbbell_curl": {
+    "name": "Incline dumbbell curl",
+    "aliases": ["incline curl"],
+    "instructions": "Lie back on an incline bench with the arms hanging straight down. Curl the dumbbells up without moving the upper arms, then lower slowly.",
+    "cues": ["Arms hang straight down", "Upper arms stay still", "Full stretch at the bottom"],
+    "mistakes": ["Shoulders rolling forward", "Swinging", "Short range"]
+  },
+  "concentration_curl": {
+    "name": "Concentration curl",
+    "aliases": ["seated concentration curl"],
+    "instructions": "Sit with the elbow braced against the inner thigh. Curl the dumbbell up, squeeze, then lower slowly. Do both sides.",
+    "cues": ["Elbow braced", "Squeeze at the top", "Slow lowering"],
+    "mistakes": ["Lifting the elbow off the leg", "Swinging", "Rushing"]
+  },
+  "chest_supported_dumbbell_row": {
+    "name": "Chest-supported dumbbell row",
+    "aliases": ["incline dumbbell row", "seal row (dumbbell)"],
+    "instructions": "Lie face down on an incline bench with dumbbells hanging. Row the elbows back past the body, squeeze the shoulder blades, then lower fully.",
+    "cues": [
+      "Chest stays on the bench",
+      "Squeeze the shoulder blades",
+      "Full stretch at the bottom"
+    ],
+    "mistakes": ["Lifting the chest off the bench", "Shrugging", "Short range"]
+  },
+  "farmer_carry": {
+    "name": "Farmer's carry",
+    "aliases": ["farmers walk", "farmer walk"],
+    "instructions": "Pick up a heavy weight in each hand and walk with short, quick steps, standing tall with the shoulders down. Put the weights down with a flat back.",
+    "cues": ["Stand tall", "Shoulders down and back", "Short, quick steps"],
+    "mistakes": ["Leaning to one side", "Shrugging", "Rounding the back when picking up"]
+  },
+  "suitcase_carry": {
+    "name": "Suitcase carry",
+    "aliases": ["single arm farmers walk", "one arm carry"],
+    "instructions": "Hold one heavy weight in one hand and walk tall without leaning towards it. Switch hands halfway.",
+    "cues": ["Do not lean", "Brace the trunk", "Shoulders level"],
+    "mistakes": ["Leaning towards or away from the weight", "Shrugging", "Rushing"]
+  },
+  "nordic_curl": {
+    "name": "Nordic hamstring curl",
+    "aliases": ["nordic curl", "nordic hamstring curl"],
+    "instructions": "Kneel with the ankles anchored. Keeping hips and body straight, lower yourself forward as slowly as you can, catch yourself with the hands and push back up.",
+    "cues": [
+      "Body straight from knees to head",
+      "Lower as slowly as possible",
+      "Use the hands to come back up"
+    ],
+    "mistakes": ["Bending at the hips", "Dropping fast", "Doing too many too soon"]
+  },
+  "hanging_leg_raise": {
+    "name": "Hanging leg raise",
+    "aliases": ["straight leg raise (hanging)", "toes to bar progression"],
+    "instructions": "Hang from a bar and lift the straight legs to at least hip height, curling the pelvis up, then lower slowly.",
+    "cues": ["Start from a still hang", "Curl the pelvis", "Lower slowly"],
+    "mistakes": ["Swinging", "Bending the knees to cheat", "Dropping fast"]
+  },
+  "crunch": {
+    "name": "Crunch",
+    "aliases": ["sit up", "ab crunch"],
+    "instructions": "Lie on your back with the knees bent. Curl the head and shoulders off the floor by bringing the ribs towards the hips, then lower slowly.",
+    "cues": ["Ribs towards hips", "Chin slightly tucked", "Exhale as you crunch"],
+    "mistakes": ["Pulling on the neck", "Using momentum", "Lifting the lower back"]
+  },
+  "reverse_crunch": {
+    "name": "Reverse crunch",
+    "aliases": ["lying knee raise"],
+    "instructions": "Lie on your back, knees bent at 90°. Curl the hips off the floor towards the ribs, then lower slowly.",
+    "cues": ["Curl the pelvis", "Slow on the way down", "Arms flat for support"],
+    "mistakes": ["Swinging the legs", "Arching the back on the way down", "Rushing"]
+  },
+  "russian_twist": {
+    "name": "Russian twist",
+    "aliases": ["seated twist"],
+    "instructions": "Sit leaning back slightly with a tall spine, feet on or off the floor. Rotate the torso side to side, touching the floor beside the hip.",
+    "cues": ["Tall spine", "Rotate from the ribs", "Controlled pace"],
+    "mistakes": ["Rounding the back", "Moving only the arms", "Going too fast"]
+  },
+  "hollow_hold": {
+    "name": "Hollow hold",
+    "aliases": ["hollow body hold"],
+    "instructions": "Lie on your back, press the lower back into the floor and lift the shoulders and legs a little. Hold the shape and breathe.",
+    "cues": ["Lower back pressed down", "Arms and legs long", "Bend the knees to make it easier"],
+    "mistakes": ["Lower back lifting", "Holding the breath", "Legs too low for your strength"]
+  },
+  "wall_sit": {
+    "name": "Wall sit",
+    "aliases": ["wall squat"],
+    "instructions": "Slide down a wall until the knees are at about 90° and hold, back flat against the wall.",
+    "cues": ["Knees over the ankles", "Back flat on the wall", "Breathe"],
+    "mistakes": ["Hands pushing on the thighs", "Hips higher than the knees", "Holding the breath"]
+  },
+  "jump_squat": {
+    "name": "Jump squat",
+    "aliases": ["squat jump"],
+    "instructions": "Squat down to a quarter or half squat, then jump as high as you can. Land softly and go straight into the next rep.",
+    "cues": ["Land softly", "Knees follow the toes", "Explode up"],
+    "mistakes": ["Landing stiff", "Knees caving in", "Going too deep"]
+  },
+  "lateral_bounds": {
+    "name": "Lateral bounds",
+    "aliases": ["skater jumps", "skaters"],
+    "instructions": "Jump sideways from one leg to the other, landing softly and holding briefly before the next bound.",
+    "cues": ["Push off sideways", "Stick the landing", "Knee over the toes"],
+    "mistakes": ["Knee caving in on landing", "Rushing", "Landing on the heel"]
+  },
+  "band_chest_fly": {
+    "name": "Band chest fly",
+    "aliases": ["resistance band fly", "banded fly"],
+    "instructions": "Anchor a band behind you at chest height, or wrap it around your back, a handle in each hand. Bring the arms together in front of the chest in a wide arc, then open slowly.",
+    "cues": ["Elbows slightly bent", "Squeeze in the middle", "Control the opening"],
+    "mistakes": ["Turning it into a press", "Shrugging", "Letting the band snap back"]
+  },
+  "band_pull_apart": {
+    "name": "Band pull-apart",
+    "aliases": ["pull apart", "band pull apart"],
+    "instructions": "Hold a band in front at shoulder height, arms straight. Pull the band apart until it touches the chest, then return slowly.",
+    "cues": ["Arms stay straight", "Shoulders down", "Squeeze the shoulder blades"],
+    "mistakes": ["Shrugging", "Bending the elbows", "Leaning back"]
+  },
+  "band_lateral_walk": {
+    "name": "Band lateral walk",
+    "aliases": ["monster walk", "lateral band walk", "crab walk"],
+    "instructions": "Band around the legs above the knees or at the ankles. In a quarter squat, step sideways keeping tension on the band. Walk both directions.",
+    "cues": ["Stay low", "Keep tension on the band", "Toes forward"],
+    "mistakes": ["Feet coming together", "Standing up tall", "Rocking the torso"]
+  },
+  "turkish_get_up": {
+    "name": "Turkish get-up",
+    "aliases": ["get up", "tgu"],
+    "instructions": "Lie down holding a weight straight up in one hand. Get up to standing in steps while keeping the arm vertical and your eyes on the weight, then reverse to the floor.",
+    "cues": ["Arm stays vertical", "Eyes on the weight", "Slow and step by step"],
+    "mistakes": [
+      "Bent elbow under the weight",
+      "Rushing",
+      "Too heavy before the pattern is learned"
+    ]
+  },
+  "worlds_greatest_stretch": {
+    "name": "Lunge with rotation",
+    "aliases": ["lunge stretch with rotation", "spiderman lunge"],
+    "instructions": "From a long lunge, put the inside hand on the floor, drop the elbow towards the front foot, then rotate the other arm to the ceiling. Do both sides.",
+    "cues": ["Long lunge", "Rotate from the upper back", "Breathe into each position"],
+    "mistakes": ["Short stance", "Rushing", "Back knee collapsing"]
+  },
+  "cat_cow": {
+    "name": "Cat-cow",
+    "aliases": ["spinal flexion extension"],
+    "instructions": "On hands and knees, slowly round the back up towards the ceiling, then let it sink while lifting the chest. Move with your breath.",
+    "cues": ["Move segment by segment", "Breathe with the movement", "Slow"],
+    "mistakes": ["Moving only the neck", "Rushing", "Forcing the end range"]
+  },
+  "pigeon_stretch": {
+    "name": "Pigeon stretch",
+    "aliases": ["pigeon pose", "figure four stretch"],
+    "instructions": "From all fours, bring one knee forward behind the hand with the shin angled across, the back leg long. Sink the hips and hold. Do both sides.",
+    "cues": ["Hips square", "Support with the hands", "Ease in gently"],
+    "mistakes": ["Forcing the knee", "Hips tilting to one side", "Holding the breath"]
+  }
+}

@@ -1,8 +1,7 @@
-import { useLocalSearchParams } from 'expo-router';
+import { Redirect, useLocalSearchParams } from 'expo-router';
 
-import { RoutineBuilderScreen } from '@/features/strength/screens/routine-builder-screen';
-
-export default function RoutineBuilderRoute() {
+/** Moved to the Gym workspace (Phase 8d). */
+export default function OldRoutineBuilderRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  return <RoutineBuilderScreen key={id} id={id} />;
+  return <Redirect href={{ pathname: '/gym/routines/[id]', params: { id } }} />;
 }

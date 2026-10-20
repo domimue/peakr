@@ -159,7 +159,7 @@ export function ForecastScreen() {
           <LinkRow
             title={t('quiz.forecast.buildRoutines')}
             hint={t('quiz.forecast.buildRoutinesHint')}
-            onPress={() => router.push('/strength/routines/new')}
+            onPress={() => router.push({ pathname: '/gym/routines/[id]', params: { id: 'new' } })}
           />
         ) : null}
 

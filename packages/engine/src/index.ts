@@ -76,6 +76,7 @@ export {
   type WorkoutStatus,
 } from './plan/edit';
 export {
+  copyInputOf,
   CUSTOM_PREFIX,
   EQUIPMENT,
   EXERCISE_PATTERNS,
@@ -83,11 +84,14 @@ export {
   getExercise,
   getTemplate,
   hasEquipmentFor,
+  isCustomExercise,
   LOWER_BODY_PATTERNS,
+  MUSCLE_GROUPS,
   nextVariation,
   progressionChains,
   resolveExercise,
   splits,
+  TRACKING_MODES,
   validateCustomExercise,
   workoutLibrary,
   type CustomExercise,
@@ -96,8 +100,11 @@ export {
   type Equipment,
   type Exercise,
   type ExercisePattern,
+  type MuscleGroup,
   type SplitDef,
+  type TrackingMode,
 } from './plan/library';
+export * from './gym';
 export { adaptToEquipment, equipmentFor, type AdaptedSession } from './plan/strength-equipment';
 export {
   prefillExercise,
@@ -166,7 +173,13 @@ export {
   workoutType,
 } from './plan/workout-type';
 export { annotateWeeks, weekKind } from './plan/week-facts';
-export { indoorVersion, type IndoorKind, type IndoorVersion } from './plan/indoor';
+export {
+  indoorVersion,
+  treadmillSpeedKmh,
+  type IndoorKind,
+  type IndoorVersion,
+} from './plan/indoor';
+export * from './weather';
 export {
   historyByMonth,
   performance,

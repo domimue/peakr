@@ -165,7 +165,7 @@ Every template must be exportable to FIT (all watch providers) and WorkoutKit (A
 | 3 | 3 × 5′ |
 | 4 | 15′ continuous descent |
 
-Indoor alternatives: easy/long → treadmill same time (1 % incline, or matched to planned gradient); hills → treadmill 6–8 %; intervals/tempo → treadmill same structure.
+Indoor alternatives: easy/long → treadmill same time (1 % incline, or matched to planned gradient); hills → treadmill 6–8 %; intervals/tempo → treadmill same structure. The treadmill is adapted, not copied: heart rate leads (it runs higher indoors – fan), the pace limit is shown as km/h, reps start once the belt is at speed, runs ≥ 75 min may be split in two halves, and runs > 90 min or with long descents (no decline on a treadmill) offer "move to another day" first.
 
 ---
 
@@ -312,7 +312,7 @@ Strength is a first-class sport. The user chooses **how** they want to do streng
 |---|---|
 | **Peakr programme** | A ready programme that follows the endurance phases (§8.4) |
 | **My split** | User picks a split, the engine fills the days: Full body, Upper/Lower, **Push/Pull/Legs**, Body-part split (Chest, Back, Shoulders, Arms, Legs), Glutes & legs focus, Runner's strength, Core & mobility, Kettlebell/home dumbbells, Bodyweight/hotel |
-| **My own routines** | User builds routines (exercises, sets, reps/weight or time, rest) or imports them (Hevy); the engine schedules them |
+| **My own routines** | User builds routines (exercises, sets, reps/weight or time, rest) or imports them (CSV export from another gym app, §8.7); the engine schedules them |
 | **Free / log only** | No planned strength sessions; user logs whatever they do (detailed or quick log). Logged sessions still count towards load and spacing rules |
 
 Each mode can be combined with a **strength priority**: `endurance first` (default when a race goal exists), `balanced`, `strength first` (keeps strength volume during build/peak, endurance adapts instead).
@@ -356,9 +356,21 @@ Each mode can be combined with a **strength priority**: `endurance first` (defau
 - Deload in recovery weeks: −40 % sets, same weights.
 - After a pause: resume at 80–90 % of previous weights.
 
-### 8.6 Exercise library (starter set, extendable; users can add custom exercises)
+### 8.6 Exercise library (our own content, extendable; users can add custom exercises)
 
-Fields: `id, name, pattern, muscles[], equipment[] (barbell, dumbbell, kettlebell, machine, cable, band, bodyweight, box), legLoad, unilateral, howToKey, videoUrl?`
+The library is our own work (no data, wording or images from another app): structure in `packages/engine/src/plan/library/exercises.json`, texts in the app's locale files under `exercises.<id>`. At least 150 exercises, machines and cable stations first (generic names, no brands – what Swiss gyms typically have: selectorised and plate-loaded machines, cable stations, Smith machine, back and neck machines, circuit machines).
+
+Fields:
+- Structure: `id, pattern, primaryMuscles[], secondaryMuscles[], equipment[], legLoad, unilateral, trackingMode, illustration?`
+- Texts (i18n): `name, aliases[], instructions, cues[] (2–3), mistakes[]`
+- `pattern`: squat, hinge, lunge, legIsolation (leg extension / curl, hip ab- and adduction), calf, pushHorizontal, pushVertical, fly, pullHorizontal, pullVertical, arms, core, carry, plyometrics, mobility; `other` only for custom exercises. Lower-body patterns for progression: squat, hinge, lunge, legIsolation, calf, plyometrics.
+- `equipment[]`: barbell, ezBar, trapBar, dumbbell, kettlebell, machine, smith, cable, band, bodyweight, box. The gym setting has all of them; home and hotel as before.
+- `primaryMuscles` / `secondaryMuscles` from a fixed list (chest, upper_back, lats, lower_back, traps, front/side/rear delts, biceps, triceps, forearms, abs, obliques, quads, hamstrings, glutes, adductors, abductors, calves, shins, hip_flexors, neck). Sets per muscle group count primary muscles 1, secondary 0.5.
+- `trackingMode`: what a set records by default – weightReps, reps, time, distance, weightTime.
+- `illustration`: slot for a real illustration (docs/gym-illustrations.md); until then every exercise shows the symbol of its pattern.
+- Custom exercises carry their texts inline; an edited copy of a library exercise keeps `basedOn` (the library id).
+
+Starter set (the full library builds on these, ids stay stable):
 
 | Pattern | Exercises |
 |---|---|
@@ -377,13 +389,13 @@ Fields: `id, name, pattern, muscles[], equipment[] (barbell, dumbbell, kettlebel
 
 ### 8.7 Logging & imports
 
-- **Detailed log**: sets × reps × weight (or time), RPE per set or per session; from planned routines pre-filled.
+- **Detailed log**: one row per set – exercise, set type (warm-up, working, drop, failure), weight, reps, RPE, time or distance, completed flag – stored in kg and metres (lb and miles converted on input and display); from planned routines pre-filled. Volume (Σ weight × reps), totals and personal records count completed sets that are not warm-ups.
 - **Quick log**: duration + session RPE + "legs yes/no".
 - **Watch**: strength activities from Garmin (Activity API, incl. exercise sets when the watch recorded them), COROS, Suunto, Apple Watch (HealthKit) arrive via the normal import pipeline. Pushing strength workouts to watches: Garmin and Apple (WorkoutKit) where supported; COROS push does not support strength → shown in the app only.
-- **Hevy**: Hevy's public API uses a **personal API key** (Hevy Pro required, no OAuth). User pastes the key in Profile → Connections → Hevy; stored encrypted server-side; Edge Function polls workouts (no webhooks documented) → imported with exercises, sets, weights; Hevy routines can be imported as "My own routines". Writing routines back to Hevy only if the API supports it (verify before building).
+- **Other gym apps (CSV import)**: the path that ships is the CSV export the other app gives its own users, imported in Gym → Import – no paid plan or API key on the user's side. Hevy and Strong exports are detected by their headers; any other format works through the column mapping (with a preview). Weight unit (kg/lb), distance unit and day-first dates are chosen in the mapping. Exercise names are matched fuzzily against the library (names and aliases); clear matches are taken, close ones are suggested for confirmation, unmatched names become custom exercises. Confirmed names are remembered for the next import, sessions imported before are skipped, and optionally one routine per workout name is created. An API connection (e.g. Hevy's personal API key behind Hevy Pro) stays behind a feature flag and is never the only way in.
 - **Strava** `WeightTraining` / `Workout` activities: duration + HR only → quick-log style.
 - **Health Connect / HealthKit** strength sessions: duration + calories → quick-log style.
-- Deduplication as in CLAUDE.md (same start ±5 min); a detailed source (Hevy, Garmin with sets) wins over a summary source.
+- Deduplication as in CLAUDE.md (same start ±5 min); a detailed source (a gym session with sets, Garmin with sets) wins over a summary source.
 
 ---
 

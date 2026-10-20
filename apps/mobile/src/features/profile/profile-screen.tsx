@@ -5,6 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { useSessionStore } from '@/features/auth/session-store';
 import { usePlan } from '@/features/plan/queries';
 import { useSettingsStore, type ThemePreference } from '@/features/settings/settings-store';
+import { useWeatherSettings } from '@/features/weather/queries';
 import { Screen, SegmentedControl, SettingsGroup, SettingsRow, type IconName } from '@/ui';
 
 import type { ComingSoonTopic } from './coming-soon-screen';
@@ -28,6 +29,7 @@ export function ProfileScreen() {
   const themePreference = useSettingsStore((s) => s.themePreference);
   const setThemePreference = useSettingsStore((s) => s.setThemePreference);
   const { data: stored } = usePlan();
+  const { data: weather } = useWeatherSettings();
   const session = useSessionStore((s) => (s.isAnonymous ? null : s.session));
   const paused = stored ? activePause(stored.state) !== null : false;
 
@@ -61,6 +63,12 @@ export function ProfileScreen() {
       soon: true,
     },
     { icon: 'heart', title: t('profile.hrZones'), href: '/training/zones' },
+    {
+      icon: 'weather',
+      title: t('weather.settings.title'),
+      value: weather?.enabled ? t('weather.settings.on') : t('weather.settings.off'),
+      href: '/training/weather',
+    },
     { icon: 'bell', title: t('profile.notifications'), href: soon('notifications'), soon: true },
     {
       icon: 'language',

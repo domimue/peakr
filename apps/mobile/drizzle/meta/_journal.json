@@ -57,6 +57,13 @@
       "when": 1792505608131,
       "tag": "0007_baseline",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1792524093678,
+      "tag": "0008_gym",
+      "breakpoints": true
     }
   ]
 }

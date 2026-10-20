@@ -1,3 +1,6 @@
-import { RoutineListScreen } from '@/features/strength/screens/routine-list-screen';
+import { Redirect } from 'expo-router';
 
-export default RoutineListScreen;
+/** Moved to the Gym workspace (Phase 8d). */
+export default function OldRoutinesRoute() {
+  return <Redirect href="/gym/routines" />;
+}
