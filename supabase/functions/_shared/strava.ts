@@ -4,6 +4,7 @@ import { decryptToken, encryptToken } from './crypto.ts';
 import { getProvider } from './providers.ts';
 import { pushToUser } from './push.ts';
 import { mapStravaActivity, type ActivityRow, type StravaActivity } from './strava-map.ts';
+import { mapStravaStreams, type StravaStreams } from './strava-streams.ts';
 
 /**
  * Strava activity import shared by the webhook, "sync now" and the nightly catch-up. Activities are
@@ -152,6 +153,32 @@ const TOMBSTONE = {
   polyline: null,
 };
 
+/** A deleted stream keeps no data either. */
+const STREAM_TOMBSTONE = {
+  deleted: true,
+  distance_m: null,
+  altitude_m: null,
+  time_s: null,
+  heartrate: null,
+  latlng: null,
+};
+
+async function deleteStreams(
+  admin: SupabaseClient,
+  userId: string,
+  externalId?: string,
+): Promise<void> {
+  let query = admin
+    .from('activity_streams')
+    .update(STREAM_TOMBSTONE)
+    .eq('user_id', userId)
+    .eq('source', 'strava')
+    .eq('deleted', false);
+  if (externalId !== undefined) query = query.eq('external_id', externalId);
+  const { error } = await query;
+  if (error) throw error;
+}
+
 export async function deleteActivity(
   admin: SupabaseClient,
   userId: string,
@@ -164,6 +191,69 @@ export async function deleteActivity(
     .eq('source', 'strava')
     .eq('external_id', externalId);
   if (error) throw error;
+  await deleteStreams(admin, userId, externalId);
+}
+
+/** Only outdoor runs and rides have an elevation profile worth evaluating per km. */
+export function wantsStreams(row: { sport: string | null; indoor: boolean }): boolean {
+  return (row.sport === 'run' || row.sport === 'bike') && !row.indoor;
+}
+
+const STREAM_KEYS = 'distance,altitude,time,heartrate,latlng';
+
+/**
+ * Fetches the activity's streams and stores them downsampled (an activity without a usable
+ * elevation profile loses any stored stream). Throws only on Strava's rate limit (429) and an
+ * invalid token (401), so callers can stop; any other failure is logged and returns false – the
+ * activity itself is stored either way.
+ */
+export async function importStreams(
+  admin: SupabaseClient,
+  token: string,
+  userId: string,
+  externalId: string,
+): Promise<boolean> {
+  try {
+    const streams = await get<StravaStreams>(
+      token,
+      `/activities/${encodeURIComponent(externalId)}/streams?keys=${STREAM_KEYS}&key_by_type=true`,
+    );
+    const row = mapStravaStreams(userId, externalId, streams);
+    if (!row) {
+      await deleteStreams(admin, userId, externalId);
+      return false;
+    }
+    const { error } = await admin
+      .from('activity_streams')
+      .upsert(row, { onConflict: 'user_id,source,external_id' });
+    if (error) throw error;
+    return true;
+  } catch (e) {
+    if (e instanceof StravaError && (e.status === 429 || e.status === 401)) throw e;
+    // The error text can contain Strava's response; the status is enough to debug.
+    const status = (e as { status?: number }).status;
+    console.warn('Strava streams import failed', externalId, status ?? String(e));
+    return false;
+  }
+}
+
+/** Of the given activities, those that have no stored stream yet. */
+async function withoutStreams(
+  admin: SupabaseClient,
+  userId: string,
+  externalIds: string[],
+): Promise<string[]> {
+  if (externalIds.length === 0) return [];
+  const { data, error } = await admin
+    .from('activity_streams')
+    .select('external_id')
+    .eq('user_id', userId)
+    .eq('source', 'strava')
+    .eq('deleted', false)
+    .in('external_id', externalIds);
+  if (error) throw error;
+  const stored = new Set((data ?? []).map((r) => r.external_id as string));
+  return externalIds.filter((id) => !stored.has(id));
 }
 
 async function touchSynced(admin: SupabaseClient, integration: StravaIntegration): Promise<void> {
@@ -184,7 +274,8 @@ const SPORT_NAMES: Record<string, string> = {
 
 /**
  * Webhook `create` / `update`: fetches the activity and stores it (an activity that is no longer
- * a supported sport is removed). New activities wake the user's devices with a push.
+ * a supported sport is removed). Outdoor runs and rides also get their streams (elevation profile
+ * for the per-km evaluation). New activities wake the user's devices with a push.
  */
 export async function importActivity(
   admin: SupabaseClient,
@@ -210,6 +301,8 @@ export async function importActivity(
     return;
   }
   await upsert(admin, [row]);
+  if (wantsStreams(row)) await importStreams(admin, token, integration.user_id, row.external_id);
+  else await deleteStreams(admin, integration.user_id, row.external_id);
   await touchSynced(admin, integration);
   if (isNew) {
     await pushToUser(
@@ -224,6 +317,17 @@ export async function importActivity(
   }
 }
 
+export interface ImportOptions {
+  /** List pages of 100 activities. */
+  maxPages?: number;
+  /**
+   * At most this many outdoor runs/rides without a stored stream also get their streams fetched
+   * (one request each). 0 = summaries only – the history import, which would otherwise spend
+   * Strava's rate limit on hundreds of activities; the app asks `strava-sync/streams` instead.
+   */
+  maxStreams?: number;
+}
+
 /**
  * Pulls the athlete's activities since `afterMs` (list endpoint, which already carries the summary
  * polyline and heart rate – one request per 100 activities). Returns how many were stored.
@@ -232,11 +336,12 @@ export async function importSince(
   admin: SupabaseClient,
   integration: StravaIntegration,
   afterMs: number,
-  maxPages = 3,
+  { maxPages = 3, maxStreams = 0 }: ImportOptions = {},
 ): Promise<number> {
   const token = await accessToken(admin, integration);
   const after = Math.floor(afterMs / 1000);
   let stored = 0;
+  const outdoor: string[] = [];
   for (let page = 1; page <= maxPages; page++) {
     const list = await get<StravaActivity[]>(
       token,
@@ -247,15 +352,23 @@ export async function importSince(
       .filter((r): r is ActivityRow => r !== null);
     await upsert(admin, rows);
     stored += rows.length;
+    outdoor.push(...rows.filter(wantsStreams).map((r) => r.external_id));
     if (list.length < 100) break;
+  }
+  if (maxStreams > 0) {
+    // Newest first (the list is oldest first).
+    const missing = await withoutStreams(admin, integration.user_id, outdoor.reverse());
+    for (const id of missing.slice(0, maxStreams)) {
+      await importStreams(admin, token, integration.user_id, id);
+    }
   }
   await touchSynced(admin, integration);
   return stored;
 }
 
 /**
- * Disconnect, deauthorisation at Strava, account deletion: removes Strava's data. Activities become
- * tombstones without any data, so the user's devices delete them too.
+ * Disconnect, deauthorisation at Strava, account deletion: removes Strava's data. Activities and
+ * their streams become tombstones without any data, so the user's devices delete them too.
  */
 export async function removeStravaData(admin: SupabaseClient, userId: string): Promise<void> {
   const { error } = await admin
@@ -265,6 +378,7 @@ export async function removeStravaData(admin: SupabaseClient, userId: string): P
     .eq('source', 'strava')
     .eq('deleted', false);
   if (error) throw error;
+  await deleteStreams(admin, userId);
   await admin.from('integrations').delete().eq('user_id', userId).eq('provider', 'strava');
 }
 

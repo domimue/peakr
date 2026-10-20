@@ -89,7 +89,8 @@ async function backfillStrava(userId: string): Promise<void> {
   const admin = adminClient();
   try {
     const integration = await integrationForUser(admin, userId);
-    if (integration) await importSince(admin, integration, Date.now() - BACKFILL_MS, 1);
+    if (integration)
+      await importSince(admin, integration, Date.now() - BACKFILL_MS, { maxPages: 1 });
   } catch (error) {
     console.warn('Strava backfill failed', String(error));
   }
