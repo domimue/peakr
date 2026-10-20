@@ -9,6 +9,7 @@ export { toNavigationTheme } from './navigation-theme';
 export {
   buttonTokens,
   fontFamilies,
+  fontSizes,
   numeric,
   radius,
   spacing,

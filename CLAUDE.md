@@ -27,6 +27,7 @@ A mobile app for **Android and iOS** that covers everything around fitness and w
 - **Tools** – index page plus one page per calculator (heart-rate zones, Zone 2, pace & race predictor, swim CSS). Free, no login, each with an SEO text and a CTA into the quiz. These are the **only** place the calculators exist as standalone tools.
 - **Quiz funnel** – the shared quiz, forecast, paywall, checkout, success/"Get the app".
 - **Account** – login, subscription status, Stripe customer portal, account deletion request.
+- **Get the app** – reached from the checkout success page, the account page and the header. One button that opens the installed app and otherwise leads to the store, plus the official Google Play and App Store badges and a QR code on desktop. Technically this is Android App Links and iOS Universal Links on our own domain; the store is the fallback, never the first stop for someone who already has the app.
 - **Legal** – Impressum / legal notice (Swiss sole proprietorship: name, address, email), Privacy policy (GDPR/revDSG, Supabase, Stripe, Strava and other integrations, analytics), Terms of service (subscription, trial, auto-renewal, right of withdrawal), Cookie notice if analytics are used. Linked from the footer on every page.
 
 ### App-only flow
@@ -72,12 +73,14 @@ The engine must treat disciplines generically (a list of selected sports), never
 /apps/mobile            – Expo app (Expo Router)
   /app                  – routes: (tabs)/plan, (tabs)/tools, (tabs)/profile, onboarding/*, paywall, ...
   /src/features         – tools, onboarding, plan, routes, integrations, settings, nutrition, body
-  /src/ui               – design system, theme (light/dark), shared components
+  /src/ui               – design system, theme (dark by default, light optional), shared components, brand logo components
   /src/data             – sqlite schema (Drizzle), repositories, sync, Supabase client
   /src/i18n             – locales/en.json (+ de, fr, it, es later)
 /packages/engine        – pure TypeScript training + energy engine, no React/RN imports, heavily unit tested
 /packages/quiz          – shared quiz definition: questions, validation, branching, insights, i18n keys (no UI)
 /packages/i18n          – shared translation files used by web and app
+/packages/theme         – design tokens (colours, spacing, radii, typography, zone + workout-type colours), logo geometry, Peakr-Display font; pure TypeScript, no RN/web deps
+/tools/brand-assets     – generates app icon, adaptive/monochrome icon, splash, favicons, PWA icons, OG image (`pnpm brand:assets`)
 /supabase               – migrations, edge functions
 ```
 
@@ -162,6 +165,7 @@ The engine must treat disciplines generically (a list of selected sports), never
 - **Two tiers** (one subscription group, so users can switch):
   - **Training** (target ~7.90/month or ~59/year): full plan, calendar editing, regeneration, pause, routes, integrations, exports.
   - **Training + Nutrition** (target ~11.90/month or ~89/year): everything in Training plus nutrition tracking with barcode scan, energy balance, body tracking. Until the nutrition part ships, this tier is shown as "coming soon".
+- **Gym add-on** (entitlement `gym`, target ~3.90/month or ~29/year): the strength workspace described under "Gym". It is an **add-on, not a tier** – it can be bought alongside either tier, and also on its own by someone who only wants gym tracking. Because a store subscription group allows only one active subscription at a time, the add-on lives in its **own subscription group** on iOS and as its own product on Google Play. Same 7-day trial rules.
 - **7-day free trial**: the user **starts the subscription right after the forecast** and enters payment details upfront (Google Play / App Store / Stripe). Nothing is charged for 7 days; the paywall states the exact first charge date. **One day before the trial ends** the app sends a reminder (push + email) with the charge date, amount and a direct link to cancel. One trial per user/account.
 - Paywall appears **after** the quiz and forecast, on the web (Stripe) and in the app (in-app purchase). Entitlements handled via RevenueCat (`training`, `plus`) regardless of where the user paid.
 - **Manage subscription in the app** (Profile → Subscription): see current tier, price, next billing date and trial status; **upgrade/downgrade** between Training and Training + Nutrition and switch monthly/yearly (via the store's subscription change flow; web subscribers via the Stripe customer portal); **cancel easily** without deleting the account (deep link to the store's cancel screen for app purchases, Stripe portal for web purchases). After cancelling, access stays until the end of the paid period; afterwards the user keeps the account, history and free tools, the plan becomes read-only.
@@ -180,14 +184,64 @@ The engine must treat disciplines generically (a list of selected sports), never
 - Stay iOS-compatible from day one: only use libraries that support both platforms; put unavoidable platform code behind one interface with `.android.ts` / `.ios.ts` files (e.g. health data); no Android-only UI patterns.
 - iOS-specific items for later: HealthKit, Sign in with Apple, App Store products in RevenueCat, App Store review.
 
+## Branding & design tokens
+All colours, spacing, radii, font sizes, zone colours and workout-type colours come from **/packages/theme**. No hex values anywhere else in code (`pnpm lint` runs `scripts/check-hex-colors.mjs`). The web maps the tokens in `tailwind.config.ts` (classes like `bg-surface`, `text-muted`) and transpiles the package (`transpilePackages` in `next.config.ts`, otherwise the Vercel build breaks); the app imports them into `src/ui/theme`.
+
+**Palette "Volt"**
+```
+volt #D4FF3A · voltPressed #BFE81F · ink #0B0D10 · white #FFFFFF
+dark:  bg #0B0D10, surface #14171C, surface2 #1C2027, border #2A2F38, text #FFFFFF, textMuted #9AA3AE, accent #D4FF3A, onAccent #0B0D10
+light: bg #FFFFFF, surface #F4F6EC, surface2 #E9ECDF, border #DADFCE, text #0B0D10, textMuted #5A6270, accent #D4FF3A, onAccent #0B0D10
+status: error #FF5A4E, warning #FFB020, info #5B8CFF (fills/icons; text on light backgrounds uses the darker *Text tokens)
+```
+- **The app is dark by default**; light mode is optional (user setting). Web pages may be light, but header and hero are dark with Volt.
+- Primary button: Volt fill, Ink text, radius 14, min height 48. Secondary: transparent, 1.5 border in `border`, text in `text`.
+- Volt sparingly: one primary accent per screen. No gradients, no glows. Volt is never a line or text on light backgrounds (`accentLine` is Ink there).
+- **Heart-rate zones** and **workout types** are their own colour scales in the theme (see "UI patterns"); steps differ in hue and lightness, never rely on colour alone.
+- Text contrast at least 4.5:1 (unit-tested in /packages/theme).
+
+**Logo "Pulse Peak"** – a heart-rate line whose spike forms a mountain peak. Exact geometry, never change, never rebuild as outline, never distort; stroke always 10/120 of the size:
+`<polyline points="6,82 30,82 38,70 45,92 60,22 75,92 82,70 90,82 114,82" fill="none" stroke="currentColor" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>` in viewBox 0 0 120 120. Web: inline SVG with `currentColor`; app: `react-native-svg` with a `color` prop.
+- Wordmark "peakr", always lowercase: Archivo 800, width 112 %, tracking −0.03em. Static instance `packages/theme/fonts/Peakr-Display.ttf` (generated by `packages/theme/scripts/make-display-font.py` with fontTools `varLib.instancer`), used in app and web (`next/font/local`); also exported as outlined paths (`packages/theme/assets/wordmark.svg`).
+- Lockup: mark left, wordmark right, vertically centred; proportions mark 64 / font size 50 / gap 14, scaled together.
+- Components with the same API in app and web: `<PeakrMark size color />`, `<PeakrWordmark height color />`, `<PeakrLogo variant="lockup|mark|wordmark" tone="onLight|onDark" />`.
+- Colours: on Ink → mark Volt, wordmark white. On light → mark and wordmark Ink. On a Volt surface → mark Ink.
+- App icon, adaptive/monochrome icon, splash, favicons, PWA icons and OG image are generated by `pnpm brand:assets` – never edit them by hand. theme-color `#0B0D10`.
+
+**Typography**
+- Archivo for headlines and UI (SIL Open Font License, `packages/theme/fonts/OFL.txt`, listed in the app's third-party notices).
+- Headlines: Peakr-Display (800, width 112 %), tracking −0.02em. Body: Archivo 400–500, width 100 %.
+- Numbers in training data: `tabular-nums`.
+- Type scale: 12 / 14 / 16 / 20 / 24 / 32 / 44.
+
+## Gym (strength add-on)
+A full gym-logging workspace inside Peakr, good enough that a user cancels their separate gym-tracking app. Its own tab, its own data model, its own entitlement (`gym`).
+
+- **What it is**: exercise library, routine builder, a live session screen (log every set with weight, reps and RPE, rest timer, supersets, plate calculator), full history, personal records and volume statistics per exercise and per muscle group.
+- **Relationship to the plan**: planned strength sessions from the training engine open directly into a Gym session, pre-filled with the prescribed exercises. Users without the add-on still see the planned session and can mark it done with duration and effort – they just cannot log sets, keep history or see statistics. The endurance plan never depends on the add-on.
+- **Free-standing use**: the Gym area works on its own, without an endurance plan, so a pure strength user is a valid customer. Completed gym sessions still feed the unified load model (CLAUDE.md "Training engine rules") when a plan exists.
+- **Offline first**: gyms have poor reception. A session is fully usable offline and syncs afterwards; nothing is lost if the app is killed mid-session.
+- **Sharing**: a finished session can be posted to Strava as a real weight-training activity with its sets, not as a generic workout (see "Integrations"), and written to Health Connect / HealthKit.
+- **Own work only**: the exercise library, its descriptions and all illustrations are our own or come from a source whose licence we have checked. No content, database or interface is copied from another gym app.
+
+## Growth & SEO (website)
+- The **website is the main acquisition channel**, the app stores are secondary. Every page has one job and one call to action into the quiz.
+- Search intents to own: the free calculators (heart-rate zones, Zone 2, pace, swim CSS), plans by goal (5k, 10k, half, marathon, triathlon, lose weight, cycling), and the differentiators (hybrid training, terrain/elevation, training + nutrition).
+- Technical baseline on every page: one canonical URL, unique title and description, structured data where it applies, an Open Graph image, and good Core Web Vitals. Locales (de, fr, it, es) get `hreflang` only once actually translated.
+- **Consent first**: no analytics or ad script loads before the visitor has consented (GDPR and revDSG). Nothing about the product depends on tracking.
+- **Attribution is stored server-side**: UTM parameters, `gclid` and referrer are captured on the first visit, carried through the anonymous quiz session and written onto the user and the subscription. Conversions (trial started, trial converted) are reported from the Stripe and RevenueCat webhooks, not from the browser.
+- One shared **event schema** for web and app: `quiz_start`, `quiz_step`, `quiz_complete`, `forecast_view`, `paywall_view`, `checkout_start`, `trial_start`, `trial_convert`, `app_open_first`.
+- App store listing optimisation (title, subtitle, keywords, screenshots) is handled in the store, not here.
+
 ## UI patterns (app)
 These are the conventions every screen follows. They are patterns common to training apps, implemented in **our own** visual language (Volt palette, Archivo, Peakr logo) – never a copy of another app's layout, icons, illustrations, gradients or wording.
 
-- **Navigation**: five bottom tabs – **Today, Plan, Calendar, Progress, Profile**.
+- **Navigation**: five bottom tabs – **Today, Plan, Gym, Progress, Profile**. The week list and the day-by-day calendar are two views inside Plan (segmented control), so the Gym add-on gets a tab of its own without a sixth icon.
 - **Workout type colours**: every workout type owns a colour token (easy/recovery, long, tempo/threshold, intervals/VO2, hills, race/test, strength, cross-training/winter, commute). It appears as a bar on the left edge of every workout card, as the dot under a day in the week strip, and as the tint of the workout screen header. The tokens must be distinguishable in hue **and** lightness, must not be confusable with the brand accent (Volt is reserved for primary actions), and colour never carries meaning alone – the type is always named in text too.
 - **Today**: week strip Mon–Sun with today marked and a coloured dot under every day that has a session; weather chip; today's session as a card; week summary with segmented progress ("Sessions 2/4", "Distance 12/29 km"); insights; one primary action.
 - **Plan**: one card per week – date range, "Week 3 of 12", a tick when the week is complete, a segmented bar with one segment per session, sessions done/planned and distance done/planned, and a tag when the week is special (recovery, travel, race week).
-- **Calendar**: weeks as sections with the week's total; one row per day; empty days offer "add"; sessions as compact chips with the type colour; "reset week" undoes manual changes.
+- **Plan → Calendar view**: weeks as sections with the week's total; one row per day; empty days offer "add"; sessions as compact chips with the type colour; "reset week" undoes manual changes.
+- **Gym**: the strength workspace (see "Gym"). Without the add-on the tab shows a preview and the paywall, never a hidden icon.
 - **Workout detail**: header tinted in the type colour with week, date, title and subtitle; **duration as a range** (e.g. 30–35 min); a line showing when it was last sent to the watch; a row of quick actions (choose route, link activity, warm-up, skip); outdoor/indoor toggle; numbered steps, each with its target and one line of explanation; the "why this session" text; one primary CTA. For easy sessions the pace is phrased as a **limit, not a target** ("no faster than …"), with HR as the real target.
 - **Progress**: two sections. *History* – activities grouped by month with month totals, each card with a small route thumbnail drawn from the GPS trace, distance, time, average pace and the type colour. *Performance* – period picker, summary figures, a bar chart per week with an average line, personal bests, and lifetime totals.
 - **Profile**: grouped setting rows with icons (training, units, heart-rate zones, notifications, language, appearance, connections, subscription, account, privacy).

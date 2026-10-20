@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { numeric, radius, spacing, useTheme } from '../theme';
+import { fontSizes, numeric, radius, spacing, useTheme } from '../theme';
 import { Text } from './text';
 
 export interface StepperProps {
@@ -75,6 +75,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  sign: { fontSize: 20, fontWeight: '600' },
+  sign: { fontSize: fontSizes.lg, fontWeight: '600' },
   value: { ...numeric, minWidth: 56, textAlign: 'center', fontWeight: '500' },
 });

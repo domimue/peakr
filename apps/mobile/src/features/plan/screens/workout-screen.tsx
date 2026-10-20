@@ -551,7 +551,7 @@ const styles = StyleSheet.create({
   stepNumber: {
     minWidth: 28,
     height: 28,
-    borderRadius: 14,
+    borderRadius: radius.pill,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',
