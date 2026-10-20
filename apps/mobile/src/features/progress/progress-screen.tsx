@@ -14,6 +14,8 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { todayIso } from '@/data/ids';
+import { useLinkedActivities } from '@/features/activities/queries';
+import { RouteShape } from '@/features/routes/components/route-shape';
 import { Card, ListState, radius, SegmentedControl, spacing, StatTile, Text, useTheme } from '@/ui';
 
 import { formatDate } from '../plan/calendar';
@@ -95,6 +97,7 @@ export function ProgressScreen() {
 function History() {
   const { t, i18n } = useTranslation();
   const { data: stored } = usePlan();
+  const { data: linked } = useLinkedActivities();
   if (!stored) return null;
   const months = historyByMonth(stored.state, stored.input.profile);
   if (months.length === 0) {
@@ -127,9 +130,16 @@ function History() {
                 {totals}
               </Text>
             </View>
-            {m.entries.map((e) => (
-              <HistoryCard key={e.workout.id} entry={e} />
-            ))}
+            {m.entries.map((e) => {
+              const activity = linked?.get(e.workout.id)?.activity;
+              return (
+                <HistoryCard
+                  key={e.workout.id}
+                  entry={e}
+                  polyline={activity && !activity.indoor ? activity.polyline : null}
+                />
+              );
+            })}
           </View>
         );
       })}
@@ -137,7 +147,7 @@ function History() {
   );
 }
 
-function HistoryCard({ entry }: { entry: HistoryEntry }) {
+function HistoryCard({ entry, polyline }: { entry: HistoryEntry; polyline: string | null }) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const w = entry.workout;
@@ -166,6 +176,14 @@ function HistoryCard({ entry }: { entry: HistoryEntry }) {
       testID={`history-${w.id}`}
     >
       <View style={[styles.bar, { backgroundColor: typeColor(colors, w) }]} />
+      {polyline ? (
+        <RouteShape
+          track={polyline}
+          size={44}
+          color={typeColor(colors, w)}
+          testID={`history-route-${w.id}`}
+        />
+      ) : null}
       <View style={styles.flex}>
         <Text style={styles.strong}>{title}</Text>
         <Text variant="caption" tone="secondary">

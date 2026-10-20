@@ -9,7 +9,8 @@
     "back": "Back",
     "loading": "Loading…",
     "loadError": "Couldn’t load your data.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "save": "Save"
   },
   "tabs": {
     "today": "Today",
@@ -1585,7 +1586,17 @@
       "description": "Typeface by the Archivo Project Authors (Omnibus-Type). The Peakr wordmark and headlines use a static instance (weight 800, width 112 %).",
       "license": "Licensed under the SIL Open Font License, Version 1.1."
     },
-    "openFoodFacts": "More notices (e.g. Open Food Facts) are added here when those features ship."
+    "openFoodFacts": "More notices (e.g. Open Food Facts) are added here when those features ship.",
+    "maplibre": {
+      "name": "MapLibre Native",
+      "description": "Map rendering for route maps.",
+      "license": "Licensed under the BSD 2-Clause License."
+    },
+    "maps": {
+      "name": "Map data",
+      "description": "Route maps use the MapTiler Outdoor style. © MapTiler © OpenStreetMap contributors.",
+      "license": "OpenStreetMap data is available under the Open Database License (ODbL)."
+    }
   },
   "workoutTypes": {
     "title": "Workout types",
@@ -2073,6 +2084,12 @@
       "hours_other": "{{count}} hours ago",
       "days_one": "{{count}} day ago",
       "days_other": "{{count}} days ago"
+    },
+    "komoot": {
+      "hint": "Save your Komoot profile so Peakr knows where your tours live. To use a Komoot tour as a route, export it as GPX in Komoot and import it in Routes.",
+      "profileUrl": "Komoot profile link",
+      "invalid": "That is not a Komoot profile link (komoot.com/user/…).",
+      "apiSoon": "Direct import coming soon"
     }
   },
   "trainingZones": {
@@ -2158,5 +2175,154 @@
       }
     },
     "availableNow": "Available now"
+  },
+  "routes": {
+    "title": "Routes",
+    "detailTitle": "Route",
+    "importGpx": "Import GPX file",
+    "empty": "No routes yet",
+    "emptyHint": "Import a GPX file or let Peakr find the routes you run and ride most often on Strava.",
+    "noMatch": "No route matches these filters.",
+    "notFound": "This route no longer exists.",
+    "mapLabel": "Map of the route",
+    "name": "Name",
+    "gain": "{{value}} m up",
+    "meters": "{{value}} m",
+    "delete": "Delete route",
+    "deleteTitle": "Delete route?",
+    "deleteMessage": "“{{name}}” is removed from your library on all devices.",
+    "sport": {
+      "run": "Run",
+      "bike": "Ride"
+    },
+    "source": {
+      "gpx": "GPX import",
+      "strava": "Recognised from Strava",
+      "komoot": "Komoot"
+    },
+    "terrain": {
+      "flat": "Flat",
+      "rolling": "Rolling",
+      "hilly": "Hilly",
+      "mountainous": "Mountainous"
+    },
+    "filter": {
+      "sport": "Sport",
+      "source": "Source",
+      "distance": "Distance",
+      "hills": "Hilliness",
+      "all": "All",
+      "own": "Imported",
+      "recognised": "Recognised",
+      "short": "Short",
+      "medium": "Medium",
+      "long": "Long"
+    },
+    "stats": {
+      "distance": "Distance",
+      "gain": "Up",
+      "loss": "Down"
+    },
+    "elevation": {
+      "summary": "{{gain}} m up, {{loss}} m down, between {{min}} and {{max}} m"
+    },
+    "climbs": {
+      "title": "Climbs",
+      "item": "From km {{from}}: {{length}} m at {{avg}} % (max {{max}} %), {{gain}} m up"
+    },
+    "import": {
+      "title": "Import route",
+      "intro": "Choose a GPX file from Komoot, Strava, Garmin or any other app. You can also open a GPX file with Peakr from your files app.",
+      "pick": "Choose GPX file",
+      "another": "Choose another file",
+      "save": "Add to my routes",
+      "defaultName": "Imported route",
+      "readError": "The file could not be read. Is it a GPX file?"
+    },
+    "recognise": {
+      "title": "Routes from Strava",
+      "open": "Find my routes on Strava",
+      "intro": "Peakr looks at the runs and rides you recorded and suggests the routes you did at least twice. Your activities are only used for your own plan and library.",
+      "search": "Search the last 6 months",
+      "signIn": "Sign in and connect Strava to find your routes.",
+      "failed": "Strava could not be searched right now. Please try again later.",
+      "none": "No recurring routes found yet",
+      "noneHint": "Routes appear here once you recorded the same run or ride at least twice.",
+      "last": "Last done on {{date}}",
+      "add": "Add",
+      "addedMessage": "Added to your routes.",
+      "defaultName": "{{sport}} {{km}} km",
+      "noElevation": "Added without an elevation profile – Strava had no elevation data for it.",
+      "times_one": "{{count}} time",
+      "times_other": "{{count}} times"
+    },
+    "pace": {
+      "km": "km",
+      "gradient": "Gradient",
+      "target": "Target",
+      "range": "{{fast}}–{{slow}} /km",
+      "noFasterThan": "no faster than {{pace}} /km",
+      "primaryHint": "Pace per km, adjusted to the gradient. Uphill slower, downhill at most a little faster.",
+      "limitHint": "Heart rate leads ({{hr}}). The pace per km is only a limit, adjusted to the gradient."
+    },
+    "eval": {
+      "pace": "Pace",
+      "gap": "GAP",
+      "plan": "Plan",
+      "speed": "Speed",
+      "hr": "HR",
+      "kmh": "{{value}} km/h",
+      "verdict": {
+        "inRange": "✓",
+        "faster": "↑ faster",
+        "slower": "↓ slower"
+      },
+      "title": "Grade-adjusted evaluation",
+      "elevation": "{{gain}} m up, {{loss}} m down",
+      "gapTotal": "Grade-adjusted pace {{pace}} /km",
+      "inZone": "{{share}} % of the time in the target zone"
+    },
+    "choose": {
+      "title": "Choose route",
+      "intro": "Pick a route for this session. Peakr adjusts the expected time and the pace per km to its hills.",
+      "own": "My routes",
+      "recognised": "Recognised from Strava",
+      "noOwn": "No suitable imported route. Import a GPX file in Routes.",
+      "noRecognised": "No suitable recognised route yet.",
+      "free": "Free session",
+      "freeHint": "No route – just time and heart rate.",
+      "library": "Open route library",
+      "selected": "Selected",
+      "expected": "≈ {{duration}}",
+      "expectedLabel": "Expected time",
+      "durationRange": "{{min}}–{{max}} min",
+      "openRoute": "Show route details",
+      "reason": {
+        "wrongSport": "other sport",
+        "noClimb": "no suitable climb",
+        "tooLong": "longer than planned",
+        "tooShort": "shorter than planned",
+        "tooHilly": "hillier than planned",
+        "tooFlat": "flatter than planned",
+        "farFromStart": "far from your start"
+      }
+    }
+  },
+  "terrainProfile": {
+    "title": "Terrain profile",
+    "intro": "How hilly your training really is, learned from your outdoor runs and rides of the last 90 days. Peakr uses it to plan how hilly your sessions should be.",
+    "quiz": "Your answer in the quiz: {{terrain}}",
+    "learned": "Your recent activities: {{terrain}}",
+    "basis_one": "Based on {{count}} activity",
+    "basis_other": "Based on {{count}} activities",
+    "gainPerKm": "{{value}} m/km",
+    "climbs": "Typical climbs",
+    "climb": "{{length}} m at {{avg}} %, {{gain}} m up",
+    "adopt": "Use “{{terrain}}” for my plan",
+    "adopted": "Your plan now uses this terrain from today on.",
+    "adoptFailed": "The plan could not be updated (is it paused?).",
+    "empty": "Not enough activities yet",
+    "emptyHint": "Connect Strava and record a few outdoor runs or rides – your terrain profile appears here.",
+    "connect": "Connections"
   }
 }

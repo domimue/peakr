@@ -9,6 +9,22 @@ setUpTests();
 jest.mock('victory-native', () => ({
   CartesianChart: () => null,
   Bar: () => null,
+  Area: () => null,
+  Line: () => null,
+}));
+
+// MapLibre is native-only; without a map style key the app shows the tile-less route shape anyway.
+jest.mock('@maplibre/maplibre-react-native', () => ({
+  Map: () => null,
+  Camera: () => null,
+  GeoJSONSource: () => null,
+  Layer: () => null,
+}));
+jest.mock('expo-document-picker', () => ({
+  getDocumentAsync: jest.fn(() => Promise.resolve({ canceled: true, assets: null })),
+}));
+jest.mock('expo-file-system', () => ({
+  File: jest.fn().mockImplementation(() => ({ text: jest.fn(() => Promise.resolve('')) })),
 }));
 jest.mock('@shopify/react-native-skia', () => ({
   DashPathEffect: () => null,

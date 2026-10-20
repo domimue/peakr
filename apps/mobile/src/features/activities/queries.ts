@@ -39,3 +39,11 @@ export function useWorkoutActivity(workoutId: string): LinkedActivity | null {
   const { data } = useLinkedActivities();
   return data?.get(workoutId) ?? null;
 }
+
+/** Every imported source record (route recognition, terrain profile). */
+export function useActivityRecords() {
+  return useQuery({
+    queryKey: [...activityQueryKeys.all, 'records'],
+    queryFn: repo.listActivities,
+  });
+}

@@ -45,11 +45,8 @@ export async function disconnect(provider: Provider): Promise<boolean> {
 
 export type SyncNowResult = { ok: true; imported: number } | { ok: false; reason: string };
 
-/** "Sync now": the server pulls activities from Strava since the last import. */
-export async function syncStravaNow(): Promise<SyncNowResult> {
-  const { data, error } = await client().functions.invoke<{ imported: number }>('strava-sync', {
-    body: {},
-  });
+async function invokeSync(path: string, body: object): Promise<SyncNowResult> {
+  const { data, error } = await client().functions.invoke<{ imported: number }>(path, { body });
   if (!error && data) return { ok: true, imported: data.imported };
   let reason = 'error';
   try {
@@ -59,4 +56,26 @@ export async function syncStravaNow(): Promise<SyncNowResult> {
     // Not JSON (network error).
   }
   return { ok: false, reason };
+}
+
+/** "Sync now": the server pulls activities from Strava since the last import. */
+export function syncStravaNow(): Promise<SyncNowResult> {
+  return invokeSync('strava-sync', {});
+}
+
+/**
+ * Route recognition: the server imports the summaries of the last 180 days (one Strava call per
+ * 100 activities), so routes run before Peakr was connected can be recognised too.
+ */
+export function importStravaHistory(): Promise<SyncNowResult> {
+  return invokeSync('strava-sync/history', {});
+}
+
+/** Elevation streams of up to 10 activities that were imported without them. */
+export async function fetchStravaStreams(externalIds: readonly string[]): Promise<boolean> {
+  const { data, error } = await client().functions.invoke<{ stored: string[] }>(
+    'strava-sync/streams',
+    { body: { externalIds: externalIds.slice(0, 10) } },
+  );
+  return !error && (data?.stored.length ?? 0) > 0;
 }

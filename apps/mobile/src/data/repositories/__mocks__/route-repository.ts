@@ -9,11 +9,13 @@ export type { NewRoute, StoredRoute, StoredStream, SyncRoute } from '../route-re
 export const store = {
   routes: [] as StoredRoute[],
   streams: [] as StoredStream[],
+  komoot: null as string | null,
 };
 
 export function resetStore(): void {
   store.routes = [];
   store.streams = [];
+  store.komoot = null;
 }
 
 const same = (a: SourceRef, b: SourceRef) => a.source === b.source && a.externalId === b.externalId;
@@ -58,3 +60,9 @@ export const applyStreams = jest.fn(
     store.streams.push(...upserts);
   },
 );
+
+export const getKomootProfileUrl = jest.fn(async () => store.komoot);
+
+export const saveKomootProfileUrl = jest.fn(async (url: string | null) => {
+  store.komoot = url;
+});

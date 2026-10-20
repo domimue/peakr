@@ -148,7 +148,7 @@ export async function pullStreams(
   const deletes: SourceRef[] = [];
   for (const row of rows) {
     const ref = { source: row.source, externalId: row.external_id };
-    if (row.deleted || !row.distance_m || !row.altitude_m || !row.time_s) {
+    if (row.deleted || !row.distance_m || !row.altitude_m) {
       deletes.push(ref);
       continue;
     }
@@ -157,7 +157,8 @@ export async function pullStreams(
       data: {
         distanceM: row.distance_m,
         altitudeM: row.altitude_m,
-        timeS: row.time_s,
+        // Without times the profile still serves the route library; evaluation needs them.
+        timeS: row.time_s ?? [],
         heartrate: row.heartrate,
       },
       latlng: row.latlng,

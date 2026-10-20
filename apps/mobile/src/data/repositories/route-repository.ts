@@ -2,7 +2,7 @@ import type { ActivityStream, Climb, ElevationPoint, RouteSport, SourceRef } fro
 import { and, eq, inArray } from 'drizzle-orm';
 
 import { db } from '../db/client';
-import { activityStreams, routes, type RouteSource } from '../db/schema';
+import { activityStreams, appSettings, routes, type RouteSource } from '../db/schema';
 
 /**
  * The user's route library (imported GPX files, routes recognised from Strava) and the recorded
@@ -179,4 +179,25 @@ export function applyStreams(upserts: readonly StoredStream[], deletes: readonly
         .run();
     }
   });
+}
+
+// ---------------------------------------------------------------------------------------------
+// Komoot profile URL (Phase 1 of the Komoot integration: stored only, never fetched)
+
+const KOMOOT_KEY = 'komoot.profileUrl';
+
+export async function getKomootProfileUrl(): Promise<string | null> {
+  const row = await db.query.appSettings.findFirst({ where: eq(appSettings.key, KOMOOT_KEY) });
+  return row?.value ?? null;
+}
+
+export async function saveKomootProfileUrl(url: string | null): Promise<void> {
+  if (url === null) {
+    await db.delete(appSettings).where(eq(appSettings.key, KOMOOT_KEY));
+    return;
+  }
+  await db
+    .insert(appSettings)
+    .values({ key: KOMOOT_KEY, value: url })
+    .onConflictDoUpdate({ target: appSettings.key, set: { value: url } });
 }

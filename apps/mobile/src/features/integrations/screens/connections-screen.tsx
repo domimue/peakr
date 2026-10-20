@@ -11,6 +11,7 @@ import { registerPushToken, setActivityAlerts, usePushStore } from '@/features/n
 import { Button, Card, Icon, Screen, SegmentedControl, spacing, Text, useTheme } from '@/ui';
 
 import { connect, disconnect, syncStravaNow, type ConnectResult } from '../api';
+import { KomootCard } from './komoot-card';
 import { useIntegrations } from '../queries';
 
 export interface ConnectionsScreenProps {
@@ -195,6 +196,8 @@ export function ConnectionsScreen({ result }: ConnectionsScreenProps) {
           onPress={() => void onConnect()}
         />
       )}
+
+      <KomootCard />
 
       <Text variant="caption" tone="secondary">
         {t('connections.privacy')}
