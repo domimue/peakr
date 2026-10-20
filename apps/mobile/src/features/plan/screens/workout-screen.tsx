@@ -8,6 +8,7 @@ import {
   paceLimitSecPerKm,
   planRange,
   statusOf,
+  treadmillSpeedKmh,
   workoutKind,
   type Block,
   type HrZone,
@@ -23,6 +24,8 @@ import { todayIso } from '@/data/ids';
 import { useWorkoutActivity, type LinkedActivity } from '@/features/activities/queries';
 import { WorkoutEvaluation, WorkoutRoute } from '@/features/routes/components/workout-route';
 import { planHrZones } from '@/features/training-zones/resolve';
+import { WeatherHintCard } from '@/features/weather/components/weather-hint-card';
+import { useWorkoutWeather } from '@/features/weather/queries';
 import {
   Badge,
   Button,
@@ -58,9 +61,11 @@ export interface WorkoutScreenProps {
   id: string;
   /** Opened via "move" (accessibility action): the day picker is shown right away. */
   startMoving?: boolean;
+  /** Opened from a weather hint's "indoor" option. */
+  initialSetting?: Setting;
 }
 
-type Setting = 'outdoor' | 'indoor';
+export type Setting = 'outdoor' | 'indoor';
 
 interface StepItem {
   key: string;
@@ -153,7 +158,7 @@ function actualText(t: TFunction, { activity: a }: LinkedActivity): string {
  * indoor, numbered steps with target and explanation, "why this session" and one primary action.
  * Easy sessions phrase pace as a limit ("no faster than …") with HR as the real target.
  */
-export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
+export function WorkoutScreen({ id, startMoving = false, initialSetting }: WorkoutScreenProps) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const { data: stored, isPending } = usePlan();
@@ -161,7 +166,8 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
   const setFeedback = usePlanUiStore((s) => s.setFeedback);
   const showWeek = usePlanUiStore((s) => s.showWeek);
   const [moving, setMoving] = useState(startMoving);
-  const [setting, setSetting] = useState<Setting>('outdoor');
+  // Until the user picks, an active weather hint pre-selects the indoor version.
+  const [picked, setPicked] = useState<Setting | null>(initialSetting ?? null);
   const [warmupOpen, setWarmupOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const linked = useWorkoutActivity(id);
@@ -169,6 +175,9 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
 
   // Manual zones from Profile → Training zones included.
   const hrZones = useMemo<readonly HrZone[]>(() => planHrZones(stored?.input), [stored?.input]);
+  const weather = useWorkoutWeather(stored ? findWorkout(stored.state.plan, id) : undefined);
+  const setting: Setting =
+    picked ?? (weather?.hint.actions.includes('indoor') ? 'indoor' : 'outdoor');
 
   if (isPending) return <Screen />;
   const w = stored ? findWorkout(stored.state.plan, id) : undefined;
@@ -197,7 +206,15 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
   const useIndoor = setting === 'indoor' && indoor !== null;
   const parts = useIndoor ? indoor : w;
   const limit = paceLimitSecPerKm(w, input.profile);
-  const paceLimit = limit !== null && !useIndoor ? formatPace(limit) : null;
+  // The treadmill shows speed, not pace.
+  const paceLimit =
+    limit === null
+      ? null
+      : !useIndoor
+        ? formatPace(limit)
+        : indoor?.kind === 'treadmill'
+          ? t('workout.speedLimit', { speed: treadmillSpeedKmh(limit) })
+          : null;
   const steps = w.sport === 'strength' ? [] : stepItems(t, parts, hrZones, paceLimit);
 
   const range = planRange(state.plan);
@@ -369,22 +386,42 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
         />
       ) : null}
 
+      {weather && !outline ? (
+        <WeatherHintCard
+          workout={w}
+          weather={weather}
+          onIndoor={useIndoor ? undefined : () => setPicked('indoor')}
+          onMove={moveTo}
+          onPickDay={() => setMoving(true)}
+          onSkip={() => run(actions.setStatus(w.id, 'skipped'))}
+        />
+      ) : null}
+
       {indoor && !outline ? (
-        <View style={styles.gapSm}>
+        <View style={styles.gapSm} testID="indoor-toggle">
           <SegmentedControl
             options={[
               { value: 'outdoor', label: t('workout.outdoor') },
               { value: 'indoor', label: t(`workout.indoor.${indoor.kind}`) },
             ]}
             value={setting}
-            onChange={setSetting}
+            onChange={setPicked}
           />
           {useIndoor ? (
-            <Text variant="caption" tone="secondary">
-              {indoor.inclinePct !== null
-                ? t('workout.indoorIncline', { incline: indoor.inclinePct })
-                : t('workout.indoorSameLoad')}
-            </Text>
+            <>
+              <Text variant="caption" tone="secondary">
+                {indoor.inclinePct !== null
+                  ? t('workout.indoorIncline', { incline: indoor.inclinePct })
+                  : indoor.durationMin < w.durationMin
+                    ? t('workout.indoorShorter', { minutes: indoor.durationMin })
+                    : t('workout.indoorSameLoad')}
+              </Text>
+              {indoor.notes.map((note) => (
+                <Text key={note.key} variant="caption" tone="secondary">
+                  {`ⓘ ${t(note.key as never, { ...note.params }) as string}`}
+                </Text>
+              ))}
+            </>
           ) : null}
         </View>
       ) : null}

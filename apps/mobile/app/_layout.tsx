@@ -22,6 +22,7 @@ import {
   useSessionStore,
 } from '@/features/auth/session-store';
 import { registerPushToken } from '@/features/notifications/push';
+import { MorningWeatherAlerts } from '@/features/weather/morning-alert';
 import { fontFamilies, toNavigationTheme, useTheme } from '@/ui';
 
 void SplashScreen.preventAutoHideAsync();
@@ -51,6 +52,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
         <BackgroundSync />
+        <MorningWeatherAlerts />
         <ThemeProvider value={toNavigationTheme(theme)}>
           <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
           <Stack screenOptions={{ headerShown: false }} />

@@ -1816,7 +1816,6 @@
         "body": "Your 80/20 balance of easy and hard minutes appears here as sessions get done."
       }
     },
-    "weatherSoon": "Weather check coming soon",
     "startsOn": "Your plan starts on {{date}}.",
     "restTitle": "Rest day",
     "restHint": "Recovery is part of the plan – nothing scheduled today.",
@@ -1870,7 +1869,9 @@
     "limitHint": "Heart rate is your target. Pace is a limit: no faster than {{pace}}.",
     "limitHintNoPace": "Heart rate is your target – keep it easy, whatever the pace.",
     "synced": "Synced from {{source}} · {{time}} · {{actual}}",
-    "avgHr": "⌀ {{value}} bpm"
+    "avgHr": "⌀ {{value}} bpm",
+    "speedLimit": "{{speed}} km/h on the treadmill",
+    "indoorShorter": "{{minutes}} min on the trainer – the same work without coasting."
   },
   "progress": {
     "title": "Progress",
@@ -2442,5 +2443,98 @@
       "hint": "Reads your last 60 days on Strava again. Reference only – nothing is added to your history."
     },
     "back": "Back"
+  },
+  "indoorNotes": {
+    "treadmillHeat": "Indoors your heart rate runs higher – no airflow, more heat. Put a fan on and go by heart rate, not speed.",
+    "treadmillRamp": "The belt needs a few seconds to speed up: start timing each rep once you are at speed, and slow the belt for the recoveries instead of jumping off.",
+    "treadmillSplit": "Long runs on the treadmill get monotonous – two halves with a short break in between are fine, the load stays the same.",
+    "treadmillNoDescent": "Treadmills can't go downhill, so the descents of this session are missing. If the downhill part matters, move it to a dry day instead.",
+    "trainerFan": "No airflow indoors: use a fan and keep a bottle in reach – your heart rate rises faster on the trainer.",
+    "trainerCapped": "{{indoor}} min instead of {{outdoor}} min: without coasting, trainer minutes count more. If the full ride matters, move it to another day.",
+    "poolOpenWater": "No sighting in the pool – lift your head every 6–8 strokes on a few lengths to keep practising it."
+  },
+  "weather": {
+    "condition": {
+      "clear": "clear",
+      "partlyCloudy": "partly cloudy",
+      "cloudy": "cloudy",
+      "fog": "fog",
+      "drizzle": "drizzle",
+      "rain": "rain",
+      "snow": "snow",
+      "freezingRain": "freezing rain",
+      "thunderstorm": "thunderstorm"
+    },
+    "reason": {
+      "thunderstorm": {
+        "title": "Thunderstorms expected from {{time}}",
+        "short": "thunderstorms"
+      },
+      "ice": {
+        "title": "Ice risk from {{time}}",
+        "short": "ice risk"
+      },
+      "storm": {
+        "title": "Strong gusts expected from {{time}}",
+        "short": "strong gusts"
+      },
+      "snow": {
+        "title": "Snowfall expected from {{time}}",
+        "short": "snowfall"
+      },
+      "heavyRain": {
+        "title": "Heavy rain expected from {{time}}",
+        "short": "heavy rain"
+      }
+    },
+    "chip": {
+      "value": "{{time}} · {{temp}}°",
+      "a11y": "Weather at {{time}}: {{condition}}, {{temp}} degrees",
+      "hint": "Opens the weather check settings",
+      "off": "Weather check off",
+      "noLocation": "Set a location for the weather",
+      "unavailable": "Weather unavailable",
+      "loading": "Loading weather…",
+      "noData": "No forecast for today"
+    },
+    "hint": {
+      "also": "Also: {{list}}",
+      "yourCall": "Your call – nothing changes unless you choose an option.",
+      "preferMove": "This session doesn't translate well indoors, so another day is the better option.",
+      "indoor": "Switch to {{kind}} – same load",
+      "moveTo": "Move to a dry day (the week is rebalanced)",
+      "pickDay": "Move to another day",
+      "keepOutdoors": "Keep it outdoors"
+    },
+    "alert": {
+      "title": "Today: {{workout}}",
+      "body": "{{reason}} from {{time}} – {{option}}.",
+      "indoor": "{{kind}} option available",
+      "move": "you could move it to another day",
+      "skip": "maybe skip the commute today"
+    },
+    "settings": {
+      "title": "Weather check",
+      "intro": "Peakr checks the forecast for heavy rain, snow, ice and storms at your usual training time and suggests an indoor option or another day. You always decide.",
+      "enabled": "Weather check",
+      "on": "On",
+      "off": "Off",
+      "location": "Location",
+      "current": "Current location",
+      "home": "Home start point",
+      "homeIs": "Home start point: {{point}} – used when the current location isn't available.",
+      "noHome": "No home start point yet. Set one in Terrain profile so the weather check also works without location access.",
+      "setHome": "Set home start point",
+      "permissionDenied": "No location access – the weather check uses your home start point instead.",
+      "notificationsDenied": "Notifications are turned off for Peakr. Allow them in the system settings to get the morning notification.",
+      "sessionHour": "Usual training time",
+      "sessionHourHint": "The forecast is checked for this time on each training day.",
+      "earlier": "Earlier",
+      "later": "Later",
+      "morningAlert": "Morning notification",
+      "morningAlertHint": "One notification in the morning, only on training days with a weather hint.",
+      "morningHour": "Notification time",
+      "attribution": "Weather data: MeteoSwiss (Switzerland) and Open-Meteo.com, licensed under CC BY 4.0."
+    }
   }
 }

@@ -165,7 +165,7 @@ Every template must be exportable to FIT (all watch providers) and WorkoutKit (A
 | 3 | 3 × 5′ |
 | 4 | 15′ continuous descent |
 
-Indoor alternatives: easy/long → treadmill same time (1 % incline, or matched to planned gradient); hills → treadmill 6–8 %; intervals/tempo → treadmill same structure.
+Indoor alternatives: easy/long → treadmill same time (1 % incline, or matched to planned gradient); hills → treadmill 6–8 %; intervals/tempo → treadmill same structure. The treadmill is adapted, not copied: heart rate leads (it runs higher indoors – fan), the pace limit is shown as km/h, reps start once the belt is at speed, runs ≥ 75 min may be split in two halves, and runs > 90 min or with long descents (no decline on a treadmill) offer "move to another day" first.
 
 ---
 

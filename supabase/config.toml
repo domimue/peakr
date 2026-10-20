@@ -427,6 +427,10 @@ verify_jwt = false
 [functions.strava-baseline]
 verify_jwt = false
 
+# Weather check: hourly forecast per location (user JWT checked in the function, anonymous too).
+[functions.weather]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
