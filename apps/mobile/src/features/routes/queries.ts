@@ -1,3 +1,4 @@
+import type { LatLon } from '@peakr/engine';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { notifyLocalChange } from '@/data/sync/changes';
@@ -12,6 +13,7 @@ export const routeKeys = {
   all: ['routes'] as const,
   one: (id: string) => ['routes', id] as const,
   streams: ['routes', 'streams'] as const,
+  homeStart: ['routes', 'homeStart'] as const,
 };
 
 export function useRoutes() {
@@ -60,5 +62,18 @@ export function useDeleteRoute() {
   return useMutation({
     mutationFn: (id: string) => repo.deleteRoute(id),
     onSuccess: invalidate,
+  });
+}
+
+/** The user's home start point for route matching, or null when not set. */
+export function useHomeStart() {
+  return useQuery({ queryKey: routeKeys.homeStart, queryFn: repo.getHomeStart });
+}
+
+export function useSaveHomeStart() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (start: LatLon | null) => repo.saveHomeStart(start),
+    onSuccess: () => client.invalidateQueries({ queryKey: routeKeys.homeStart }),
   });
 }

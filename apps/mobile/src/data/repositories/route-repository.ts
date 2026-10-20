@@ -1,4 +1,11 @@
-import type { ActivityStream, Climb, ElevationPoint, RouteSport, SourceRef } from '@peakr/engine';
+import type {
+  ActivityStream,
+  Climb,
+  ElevationPoint,
+  LatLon,
+  RouteSport,
+  SourceRef,
+} from '@peakr/engine';
 import { and, eq, inArray } from 'drizzle-orm';
 
 import { db } from '../db/client';
@@ -200,4 +207,34 @@ export async function saveKomootProfileUrl(url: string | null): Promise<void> {
     .insert(appSettings)
     .values({ key: KOMOOT_KEY, value: url })
     .onConflictDoUpdate({ target: appSettings.key, set: { value: url } });
+}
+
+// ---------------------------------------------------------------------------------------------
+// Home start point (route matching prefers routes that start near it; stored on the device only)
+
+const HOME_START_KEY = 'routes.homeStart';
+
+export async function getHomeStart(): Promise<LatLon | null> {
+  const row = await db.query.appSettings.findFirst({ where: eq(appSettings.key, HOME_START_KEY) });
+  if (!row) return null;
+  try {
+    const p = JSON.parse(row.value) as Partial<LatLon>;
+    return typeof p.lat === 'number' && typeof p.lon === 'number'
+      ? { lat: p.lat, lon: p.lon }
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function saveHomeStart(start: LatLon | null): Promise<void> {
+  if (start === null) {
+    await db.delete(appSettings).where(eq(appSettings.key, HOME_START_KEY));
+    return;
+  }
+  const value = JSON.stringify({ lat: start.lat, lon: start.lon });
+  await db
+    .insert(appSettings)
+    .values({ key: HOME_START_KEY, value })
+    .onConflictDoUpdate({ target: appSettings.key, set: { value } });
 }

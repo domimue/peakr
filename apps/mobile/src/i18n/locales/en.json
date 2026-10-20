@@ -2301,6 +2301,8 @@
       "expectedLabel": "Expected time",
       "durationRange": "{{min}}–{{max}} min",
       "openRoute": "Show route details",
+      "fromHome": "Routes near your home start point come first. Change it in Terrain profile.",
+      "noStart": "Set your home start point in Terrain profile to see routes near you first.",
       "reason": {
         "wrongSport": "other sport",
         "noClimb": "no suitable climb",
@@ -2311,7 +2313,17 @@
         "farFromStart": "far from your start"
       }
     },
-    "down": "down"
+    "down": "down",
+    "start": {
+      "title": "Home start point",
+      "hint": "Where you usually start your runs and rides. Route suggestions prefer routes that start near it. Paste coordinates from a map app or use the start of one of your routes.",
+      "coordinates": "Coordinates (latitude, longitude)",
+      "invalid": "Enter latitude and longitude in degrees, e.g. 47.3769, 8.5417.",
+      "clear": "Remove",
+      "privacy": "Stored on this device only.",
+      "useRoute": "Use the start of this route as my home start point",
+      "isHome": "This route starts at your home start point."
+    }
   },
   "terrainProfile": {
     "title": "Terrain profile",
