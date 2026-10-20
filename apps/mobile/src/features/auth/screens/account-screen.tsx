@@ -24,7 +24,7 @@ const SUBSCRIPTIONS_URL =
 export function AccountScreen() {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
-  const session = useSessionStore((s) => s.session);
+  const session = useSessionStore((s) => (s.isAnonymous ? null : s.session));
   const { status, lastSyncedAt } = useSyncStore();
   const [busy, setBusy] = useState(false);
   const [confirming, setConfirming] = useState(false);

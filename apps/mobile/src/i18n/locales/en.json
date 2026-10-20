@@ -1971,6 +1971,7 @@
       "invalidEmail": "Enter a valid email address.",
       "sendLink": "Email me a sign-in link",
       "linkSent": "We sent a sign-in link to {{email}}. Open it on this phone, or enter the 6-digit code from the email.",
+      "confirmSent": "We sent a link to {{email}} to confirm your email. Open it on this phone, or enter the 6-digit code from the email. Everything you set up so far stays with your account.",
       "code": "Code from the email",
       "verifyCode": "Sign in with code",
       "otherEmail": "Use another email",

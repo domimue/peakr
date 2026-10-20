@@ -9,29 +9,33 @@ import { Button, Card, radius, Screen, spacing, Text, TextField, useTheme } from
 import {
   appleSignInAvailable,
   sendMagicLink,
+  type EmailFlow,
   signInWithApple,
   signInWithGoogle,
   verifyEmailCode,
 } from '../auth';
-import { authAvailable, useSessionStore } from '../session-store';
+import { authAvailable, selectAccountUserId, useSessionStore } from '../session-store';
 
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
-/** Email magic link (+ code), Google and Apple. Leaves for Today as soon as a session exists. */
+/**
+ * Email magic link (+ code), Google and Apple. Leaves for Today as soon as an account is signed in;
+ * an anonymous quiz session is converted into the account (see `auth.ts`).
+ */
 export function SignInScreen() {
   const { t } = useTranslation();
   const { scheme } = useTheme();
-  const session = useSessionStore((s) => s.session);
+  const accountUserId = useSessionStore(selectAccountUserId);
   const [email, setEmail] = useState('');
-  const [sentTo, setSentTo] = useState<string | null>(null);
+  const [sentTo, setSentTo] = useState<{ email: string; flow: EmailFlow } | null>(null);
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [emailError, setEmailError] = useState<string | undefined>();
 
   useEffect(() => {
-    if (session) router.replace('/today');
-  }, [session]);
+    if (accountUserId) router.replace('/today');
+  }, [accountUserId]);
 
   async function attempt(action: () => Promise<unknown>) {
     setBusy(true);
@@ -50,8 +54,8 @@ export function SignInScreen() {
     if (!EMAIL.test(email.trim())) return setEmailError(t('auth.signIn.invalidEmail'));
     setEmailError(undefined);
     void attempt(async () => {
-      await sendMagicLink(email);
-      setSentTo(email.trim().toLowerCase());
+      const flow = await sendMagicLink(email);
+      setSentTo({ email: email.trim().toLowerCase(), flow });
     });
   };
 
@@ -88,7 +92,11 @@ export function SignInScreen() {
       ) : (
         <>
           <Card>
-            <Text>{t('auth.signIn.linkSent', { email: sentTo })}</Text>
+            <Text>
+              {t(sentTo.flow === 'convert' ? 'auth.signIn.confirmSent' : 'auth.signIn.linkSent', {
+                email: sentTo.email,
+              })}
+            </Text>
           </Card>
           <TextField
             label={t('auth.signIn.code')}
@@ -102,7 +110,7 @@ export function SignInScreen() {
           <Button
             label={t('auth.signIn.verifyCode')}
             disabled={busy || code.trim().length < 6}
-            onPress={() => void attempt(() => verifyEmailCode(sentTo, code))}
+            onPress={() => void attempt(() => verifyEmailCode(sentTo.email, code, sentTo.flow))}
           />
           <Button
             variant="secondary"

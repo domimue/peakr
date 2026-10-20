@@ -5,7 +5,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { todayIso } from '@/data/ids';
-import { authAvailable, useSessionStore } from '@/features/auth/session-store';
+import { authAvailable, selectAccountUserId, useSessionStore } from '@/features/auth/session-store';
 import { useQuizStore } from '@/features/onboarding/quiz-store';
 import { useCreatePlan } from '@/features/plan/queries';
 import { Badge, Button, Card, Screen, spacing, Text } from '@/ui';
@@ -18,7 +18,7 @@ export function PaywallScreen() {
   const { t } = useTranslation();
   const { answers, hydrate } = useQuizStore();
   const createPlan = useCreatePlan();
-  const signedIn = useSessionStore((s) => s.session !== null);
+  const signedIn = useSessionStore((s) => selectAccountUserId(s) !== null);
 
   useEffect(() => {
     void hydrate();
