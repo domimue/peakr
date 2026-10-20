@@ -12,7 +12,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { todayIso } from '@/data/ids';
 import type { StrengthLogEntry } from '@/data/repositories/strength-repository';
-import { Button, Card, Input, Screen, spacing, Stepper, Text, useTheme } from '@/ui';
+import { Button, Card, Input, radius, Screen, spacing, Stepper, Text, useTheme } from '@/ui';
 
 import { useActiveWorkoutStore } from '../active-workout-store';
 import {
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   check: {
     width: 44,
     height: 44,
-    borderRadius: 22,
+    borderRadius: radius.pill,
     borderWidth: 1.5,
     alignItems: 'center',
     justifyContent: 'center',

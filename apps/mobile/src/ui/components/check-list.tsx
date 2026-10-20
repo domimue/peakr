@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { radius, spacing, useTheme } from '../theme';
+import { fontSizes, radius, spacing, useTheme } from '../theme';
 import { Text } from './text';
 
 export interface CheckListProps<T extends string> {
@@ -114,5 +114,5 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  tick: { fontSize: 14, fontWeight: '700', lineHeight: 18 },
+  tick: { fontSize: fontSizes.sm, fontWeight: '700', lineHeight: 18 },
 });

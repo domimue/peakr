@@ -1,6 +1,7 @@
 import {
   buttonTokens,
   fontFamilies,
+  fontSizes,
   letterSpacing,
   radii,
   spacing,
@@ -9,7 +10,7 @@ import {
 } from '@peakr/theme';
 import type { TextStyle } from 'react-native';
 
-export { buttonTokens, fontFamilies, spacing };
+export { buttonTokens, fontFamilies, fontSizes, spacing };
 export type { TypographyVariant };
 
 /** Kept as `radius` for the existing components; values come from @peakr/theme. */

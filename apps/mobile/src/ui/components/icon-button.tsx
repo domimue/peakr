@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet } from 'react-native';
 
-import { buttonTokens, useTheme } from '../theme';
+import { buttonTokens, radius, useTheme } from '../theme';
 import { Icon, type IconName } from './icon';
 
 export interface IconButtonProps {
@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
   button: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: radius.pill,
     borderWidth: buttonTokens.secondaryBorderWidth,
     alignItems: 'center',
     justifyContent: 'center',

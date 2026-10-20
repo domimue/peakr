@@ -13,7 +13,7 @@ import { BackHandler, Pressable, ScrollView, StyleSheet, View } from 'react-nati
 import Animated, { FadeInLeft, FadeInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { Button, Card, ProgressBar, radius, spacing, Text, useTheme } from '@/ui';
+import { Button, Card, fontSizes, ProgressBar, radius, spacing, Text, useTheme } from '@/ui';
 
 import { QuestionInput } from '../question-input';
 import { localToday, useQuizStore } from '../quiz-store';
@@ -180,7 +180,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
   },
   backButton: { width: 32, height: 32, alignItems: 'center', justifyContent: 'center' },
-  backIcon: { fontSize: 30, lineHeight: 32, fontWeight: '300' },
+  backIcon: { fontSize: fontSizes.xxl, lineHeight: 32, fontWeight: '300' },
   counter: { minWidth: 36, textAlign: 'right' },
   content: { padding: spacing.md, paddingBottom: spacing.xl },
   step: { gap: spacing.lg },
