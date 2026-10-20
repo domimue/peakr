@@ -23,6 +23,7 @@ type Admin = ReturnType<typeof adminClient>;
 /** Child tables before their parents; `profiles` is keyed by `id`, all others by `user_id`. */
 const USER_TABLES = [
   'activity_streams',
+  'strava_routes',
   'activities',
   'workouts',
   'plans',

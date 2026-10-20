@@ -26,6 +26,7 @@ Security, and Edge Functions for everything that needs a secret.
 | `integration_tokens` | Edge Functions only            | AES-GCM encrypted tokens; no access for app or website      |
 | `activities`         | Edge Functions only            | one row per source record; own rows readable, Realtime on   |
 | `activity_streams`   | Edge Functions only            | distance/altitude/time/HR of outdoor runs and rides, ~25 m apart; own rows readable |
+| `strava_routes`      | Edge Functions only            | routes planned in Strava (rides, runs) with their GPX; own rows readable |
 | `push_tokens`        | the app (own device)           | Expo push tokens + "notify me" per device                   |
 | `waitlist`           | the website (insert only)      | Phase 1b                                                    |
 
@@ -106,6 +107,14 @@ for route recognition) fetch none, so they do not spend Strava's rate limit. The
 older streams in batches with `POST /strava-sync/streams` `{ "externalIds": [...] }` (max 10, only
 the user's own stored outdoor runs/rides). All three user routes answer `429 rate_limited` and
 `409 reconnect` like "sync now". Streams are tombstoned with their activity and on disconnect.
+
+**Strava routes** (planned in Strava's route builder): `strava_routes` mirrors the athlete's ride
+and run routes with the exported GPX. They are imported in the background after connecting, on
+"sync now" (`routes: { imported, removed }` in the answer), nightly and with
+`POST /strava-sync/routes` → `{ imported, removed }`: one list request per 50 routes, a GPX export
+only for new or changed routes, routes no longer listed become tombstones. Private routes need the
+`read_all` scope (requested since Phase 8); athletes who connected earlier see only public routes
+until they reconnect. The app copies them into `routes` with `source = 'strava_route'`.
 
 **1. Register the app** – <https://www.strava.com/settings/api> (needs a Strava subscription on
 the account that owns the app):

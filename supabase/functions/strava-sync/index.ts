@@ -1,17 +1,20 @@
 /**
  * Pulls Strava activities for the cases the webhook missed.
  *
- *   POST /strava-sync          (Authorization: user JWT)  → { imported, lastSyncedAt }
+ *   POST /strava-sync          (Authorization: user JWT)  → { imported, lastSyncedAt, routes }
  *        "Sync now" in the app: activities since the last import (at most the last 30 days), plus
- *        the streams of up to 10 new outdoor runs/rides.
+ *        the streams of up to 10 new outdoor runs/rides and the athlete's Strava routes
+ *        (`routes` = { imported, removed }).
  *   POST /strava-sync/history  (Authorization: user JWT)  → { imported, lastSyncedAt }
  *        Activity summaries of the last 180 days (route recognition, history), without streams.
  *   POST /strava-sync/streams  (Authorization: user JWT, body { externalIds: string[] ≤ 10 })
  *        → { stored, skipped }  Fetches and stores the streams of the user's own activities.
+ *   POST /strava-sync/routes   (Authorization: user JWT)  → { imported, removed }
+ *        Routes planned in Strava (rides and runs): GPX exports only for new or changed routes.
  *   POST /strava-sync/nightly  (x-cron-secret: CRON_SECRET)  → { users, imported, failed }
  *        Nightly catch-up (pg_cron, see the migration): the last 48 hours of every connected
- *        athlete (summaries only; the app asks for missing streams). Stops early when Strava's
- *        rate limit is hit; the next night continues.
+ *        athlete (summaries only; the app asks for missing streams) and their Strava routes. Stops
+ *        early when Strava's rate limit is hit; the next night continues.
  *
  * `verify_jwt = false` because the cron call carries a secret instead of a JWT; the user route
  * checks the JWT itself.
@@ -21,6 +24,7 @@ import {
   accessToken,
   activeIntegrations,
   importSince,
+  importStravaRoutes,
   importStreams,
   integrationForUser,
   StravaError,
@@ -71,7 +75,8 @@ function syncNow(req: Request): Promise<Response> {
     const last = integration.last_synced_at ? Date.parse(integration.last_synced_at) : 0;
     const after = Math.max(now - MANUAL_WINDOW_MS, last - MANUAL_OVERLAP_MS);
     const imported = await importSince(admin, integration, after, { maxStreams: MAX_STREAMS });
-    return json({ imported, lastSyncedAt: integration.last_synced_at });
+    const routes = await importStravaRoutes(admin, integration);
+    return json({ imported, lastSyncedAt: integration.last_synced_at, routes });
   });
 }
 
@@ -81,6 +86,12 @@ function history(req: Request): Promise<Response> {
     const imported = await importSince(admin, integration, after, { maxPages: HISTORY_PAGES });
     return json({ imported, lastSyncedAt: integration.last_synced_at });
   });
+}
+
+function routes(req: Request): Promise<Response> {
+  return forUser(req, async (admin, integration) =>
+    json(await importStravaRoutes(admin, integration)),
+  );
 }
 
 /** `{ externalIds }` → unique ids of 1–64 characters, or null if the body is not valid. */
@@ -135,6 +146,7 @@ async function nightly(req: Request): Promise<Response> {
   for (const integration of integrations) {
     try {
       imported += await importSince(admin, integration, after, { maxPages: 1 });
+      await importStravaRoutes(admin, integration);
     } catch (error) {
       failed++;
       if (error instanceof StravaError && error.status === 429) {
@@ -153,6 +165,7 @@ Deno.serve(async (req) => {
     if (req.method === 'POST' && path.endsWith('/strava-sync/nightly')) return await nightly(req);
     if (req.method === 'POST' && path.endsWith('/strava-sync/history')) return await history(req);
     if (req.method === 'POST' && path.endsWith('/strava-sync/streams')) return await streams(req);
+    if (req.method === 'POST' && path.endsWith('/strava-sync/routes')) return await routes(req);
     if (req.method === 'POST' && path.endsWith('/strava-sync')) return await syncNow(req);
     return json({ error: 'not_found' }, 404);
   } catch (error) {
