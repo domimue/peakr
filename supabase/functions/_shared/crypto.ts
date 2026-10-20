@@ -75,10 +75,17 @@ function getStateKey(): Promise<CryptoKey> {
   return stateKey;
 }
 
+export type OAuthPurpose = 'baseline';
+
 export interface OAuthState {
   /** Supabase user id that started the flow. */
   userId: string;
   provider: string;
+  /**
+   * Why the flow was started. 'baseline' = from plan creation, to read the baseline only (no
+   * activity backfill). Absent on states signed before it existed and on normal connections.
+   */
+  purpose?: OAuthPurpose;
   /** Expiry, epoch milliseconds. */
   exp: number;
   nonce: string;
@@ -89,11 +96,12 @@ const STATE_TTL_MS = 10 * 60 * 1000;
 export async function signState(
   userId: string,
   provider: string,
-  now = Date.now(),
+  { purpose, now = Date.now() }: { purpose?: OAuthPurpose; now?: number } = {},
 ): Promise<string> {
   const state: OAuthState = {
     userId,
     provider,
+    ...(purpose ? { purpose } : {}),
     exp: now + STATE_TTL_MS,
     nonce: toBase64Url(crypto.getRandomValues(new Uint8Array(12))),
   };
