@@ -419,6 +419,9 @@ describe('exercise library', () => {
   it('shows an exercise with cues and muscles', async () => {
     await renderWithQuery(<ExerciseDetailScreen id="leg_extension" />);
     expect(await screen.findByText('Leg extension')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('figure-leg_extension', { includeHiddenElements: true }),
+    ).toBeOnTheScreen();
     expect(screen.getByText('• Knees line up with the pivot')).toBeOnTheScreen();
     expect(screen.getByText('Quads')).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('Edit a copy'));
@@ -473,12 +476,10 @@ describe('CSV import', () => {
   ].join('\n');
 
   const pickFile = (text: string) => {
-    jest
-      .mocked(DocumentPicker.getDocumentAsync)
-      .mockResolvedValueOnce({
-        canceled: false,
-        assets: [{ uri: 'file:///x.csv', name: 'x.csv' }],
-      } as never);
+    jest.mocked(DocumentPicker.getDocumentAsync).mockResolvedValueOnce({
+      canceled: false,
+      assets: [{ uri: 'file:///x.csv', name: 'x.csv' }],
+    } as never);
     jest
       .mocked(File)
       .mockImplementationOnce((() => ({ text: () => Promise.resolve(text) })) as never);

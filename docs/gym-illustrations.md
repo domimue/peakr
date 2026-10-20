@@ -1,29 +1,38 @@
-# Gym: exercise illustrations (slot for later)
+# Gym: exercise figures and illustrations
 
-The exercise library (`packages/engine/src/plan/library/exercises.json`, texts in
-`apps/mobile/src/i18n/locales/en/exercises.json`) ships **without images**. Until real
-illustrations exist, every exercise shows the symbol of its **movement pattern**
-(`PATTERN_ICONS` in `apps/mobile/src/features/gym/exercise-text.ts`, symbols defined in
-`apps/mobile/src/ui/components/icon.tsx` as `pattern*`). Push and pull patterns use arrows in the
-direction of the movement, so the set reads as one consistent diagram family.
+Every library exercise has its own **figure**: a stick figure in the Peakr line style, drawn from our
+own pose data – no images or pose data from another app or website.
 
-## Adding real illustrations
+- Code: `apps/mobile/src/features/gym/figures/`
+  - `skeleton.ts` – the figure (segment lengths, side and front view) and the two-bone inverse
+    kinematics that places elbows and knees, so limbs keep their length in every pose.
+  - `render.ts` – turns a figure into an SVG string: start position faint, working position solid,
+    equipment (plates, bench, seat, pads, cables, frames) in the muted colour.
+  - `helpers.ts` – short-hands for writing poses (`side`, `front`, `seat`, `bench`, …).
+  - `poses-*.ts` – one entry per exercise, grouped by body region; `poses.ts` merges them.
+  - `exercise-figure.tsx` – the React Native component (`SvgXml`), coloured from the theme.
+- Side views face right; front views are used where the movement happens sideways (lateral raises,
+  flys, abduction / adduction).
+- Custom exercises copied from a library exercise use the figure of that exercise (`basedOn`); other
+  custom exercises show the symbol of their movement pattern.
+- `__tests__/figures.test.ts` checks that every library exercise has a figure, that no hand or foot
+  target is far out of reach, that every pose stays inside the 120 × 120 box, and that the SVG holds
+  no hard-coded colours.
 
-1. **Source and licence first.** Only our own drawings, commissioned work we own, or a source whose
-   licence allows commercial use in an app (check attribution and share-alike terms). Never take
-   images, animations or videos out of another gym app or website. Record the source and licence of
-   every set in a `LICENSES.md` next to the assets.
-2. **Format.** One SVG per exercise (monochrome, `currentColor`, viewBox 0 0 120 120, stroke style
-   matching the Peakr mark), or a still WebP at 2× / 3×. Same framing for every image, light and dark
-   theme handled by `currentColor` (no baked-in colours, no hex values outside `/packages/theme`).
-3. **Where.** `apps/mobile/assets/exercises/<exercise-id>.svg`, registered in a single map
-   `apps/mobile/src/features/gym/illustrations.ts` (`Record<string, ComponentType>` for SVGs via
-   `react-native-svg`, or `require()` for raster files) so Metro bundles them.
-4. **Hook-up.** Set `illustration: "<asset-key>"` on the exercise in `exercises.json` (validated by
-   `parseExerciseRecords`). `ExerciseDetailScreen` and `ExerciseRow` already render the pattern icon
-   in the spot where the illustration goes – replace that with the illustration when the key is set
-   and keep the pattern icon as the fallback.
-5. **Accessibility.** Illustrations are decorative; the name, instructions and cues stay the
+## Adding a new exercise
+
+Add its entry to the matching `poses-*.ts` file (reuse a helper such as `seated`, `lying` or
+`squat` where possible) and run the figure test. To look at the result, render
+`figureSvg(def, colours)` into an HTML page.
+
+## Replacing figures with real illustrations later
+
+1. **Source and licence first.** Our own drawings, commissioned work we own, or a source whose
+   licence allows commercial use in an app. Never images out of another gym app or website. Record
+   source and licence in a `LICENSES.md` next to the assets.
+2. **Format.** One SVG per exercise (monochrome, `currentColor`, viewBox 0 0 120 120) or a still
+   WebP at 2× / 3×; same framing for all, no baked-in colours.
+3. **Hook-up.** Set `illustration: "<asset-key>"` on the exercise in `exercises.json` and let
+   `ExerciseFigure` prefer the illustration when the key is set, keeping the figure as fallback.
+4. **Accessibility.** Figures and illustrations are decorative; name, instructions and cues stay the
    accessible description.
-
-Custom exercises have no illustration slot; they always use the pattern icon.
