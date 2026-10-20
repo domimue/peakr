@@ -197,3 +197,63 @@ export {
   type SourceRef,
 } from './plan/activities';
 export { absorbActivity, type AbsorbChange, type AbsorbResult } from './plan/absorb';
+export { isEccentricActivity } from './plan/activities';
+export { setWorkoutRoute } from './plan/edit';
+export {
+  boundingBox,
+  cumulativeDistances,
+  decodePolyline,
+  encodePolyline,
+  haversineM,
+  normalizeTrack,
+  resampleTrack,
+  simplifyTrack,
+  trackLengthM,
+  type BBox,
+  type LatLon,
+} from './route/geo';
+export { parseGpx, type GpxField, type GpxPoint, type GpxTrack } from './route/gpx';
+export {
+  buildRouteProfile,
+  elevationStats,
+  findClimbs,
+  hasHillRepeatSegment,
+  profileFromStreams,
+  smoothProfile,
+  type Climb,
+  type ElevationStats,
+  type RouteProfile,
+} from './route/profile';
+export {
+  estimateBikeRouteDurationSec,
+  estimateSessionOnRouteSec,
+  mainSetFlatPace,
+  routePacePlan,
+  sessionFlatSpeedKmh,
+  type RouteSport,
+} from './route/pace-plan';
+export {
+  rankRoutes,
+  scoreRoute,
+  type MatchableRoute,
+  type MatchReason,
+  type RouteMatch,
+} from './route/match';
+export { recogniseRoutes, type RecognisedRoute, type TrackActivity } from './route/cluster';
+export {
+  evaluateActivity,
+  type ActivityEvaluation,
+  type ActivityStream,
+  type EvaluationOptions,
+  type EvaluationPlan,
+  type KmEvaluation,
+  type KmVerdict,
+} from './route/evaluate';
+export {
+  classifyTerrain,
+  learnTerrainProfile,
+  type LearnedTerrain,
+  type SportTerrain,
+  type TerrainSample,
+} from './route/terrain-profile';
+export type { RoundTripCandidate, RoundTripRequest, RoutingProvider } from './route/routing';

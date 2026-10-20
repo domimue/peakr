@@ -7,6 +7,7 @@ import {
   activityLoad,
   activityZone,
   dedupeActivities,
+  isEccentricActivity,
   isHardActivity,
   isSameActivity,
   matchActivities,
@@ -391,8 +392,8 @@ describe('absorbActivity', () => {
   const weekLoad = (s: PlanState) => s.plan.weeks[1]?.load ?? 0;
 
   it('takes the extra load off the easy sessions left in that week', () => {
-    // A 60-minute ride on Monday without HR: load 90.
-    const ride = activity({ sport: 'bike', durationSec: 3600 });
+    // A flat 60-minute ride on Monday without HR: load 90.
+    const ride = activity({ sport: 'bike', durationSec: 3600, elevationGainM: null });
     const r = absorbActivity(state, input, ride, zones, '2026-10-26');
     expect(r.load).toBe(90);
     expect(r.hard).toBe(false);
@@ -472,5 +473,53 @@ describe('absorbActivity', () => {
     const done = ok(setWorkoutStatus(state, wed.id, 'skipped'));
     const r = absorbActivity(done, input, activity({ sport: 'bike' }), zones, '2026-10-26');
     expect(r.shortened).toEqual([]);
+  });
+});
+
+describe('terrain load of activities (CLAUDE.md "Terrain" §6)', () => {
+  it('adds climbing to the load of runs and rides', () => {
+    const flat = { sport: 'run', durationSec: 3600, avgHr: null } as const;
+    expect(activityLoad(flat, zones)).toBe(120);
+    expect(activityLoad({ ...flat, distanceM: 10_000, elevationGainM: 200 }, zones)).toBe(134.4);
+    expect(activityLoad({ ...flat, distanceM: 0, elevationGainM: 200 }, zones)).toBe(120);
+    expect(
+      activityLoad({ ...flat, sport: 'swim', distanceM: 2000, elevationGainM: 5 }, zones),
+    ).toBe(84);
+  });
+
+  it('recognises long running descents', () => {
+    const run = {
+      sport: 'run',
+      durationSec: 3600,
+      distanceM: 10_000,
+      elevationGainM: 100,
+    } as const;
+    expect(isEccentricActivity(run)).toBe(false);
+    expect(isEccentricActivity({ ...run, elevationGainM: 250 })).toBe(true);
+    expect(isEccentricActivity({ ...run, elevationLossM: 250 })).toBe(true);
+    expect(isEccentricActivity({ ...run, elevationGainM: null })).toBe(false);
+    expect(isEccentricActivity({ ...run, distanceM: null, elevationGainM: 250 })).toBe(false);
+    expect(isEccentricActivity({ ...run, durationSec: 3000, elevationGainM: 250 })).toBe(false);
+    expect(isEccentricActivity({ ...run, sport: 'bike', elevationGainM: 250 })).toBe(false);
+  });
+
+  it('makes heavy leg strength on the next day light after a long descent', () => {
+    const state = baseState();
+    const heavy = allWorkouts(state.plan).find(
+      (w) => w.sport === 'strength' && w.legLoad === 'heavy' && w.date > '2026-10-27',
+    ) as Workout;
+    expect(heavy).toBeDefined();
+    const dayBefore = new Date(Date.parse(heavy.date) - 86_400_000).toISOString().slice(0, 10);
+    const descent = activity({
+      date: dayBefore,
+      startTime: `${dayBefore}T07:00:00Z`,
+      durationSec: 4200,
+      distanceM: 12_000,
+      elevationGainM: 600,
+    });
+    const r = absorbActivity(state, input, descent, zones, dayBefore);
+    expect(r.eccentric).toBe(true);
+    expect(r.eased).toContain(heavy.id);
+    expect(findWorkout(r.state.plan, heavy.id)?.legLoad).not.toBe('heavy');
   });
 });

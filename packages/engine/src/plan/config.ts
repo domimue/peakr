@@ -344,6 +344,66 @@ export const planConfig = {
     absorbShare: 0.8,
     minEasyMin: 20,
   },
+  /** Route library, matching, recognition and evaluation (CLAUDE.md "Terrain intelligence"). */
+  routes: {
+    /** GPX files above this size (characters) or point count are rejected. */
+    gpxMaxChars: 20_000_000,
+    gpxMaxPoints: 200_000,
+    /** Elevation smoothing window (distance-based moving average). */
+    smoothingWindowM: 100,
+    /** Gain/loss count only changes larger than this (hysteresis against GPS noise). */
+    gainHysteresisM: 3,
+    /** Spacing of the stored elevation profile. */
+    profileStepM: 25,
+    /** Tolerance of the Douglas–Peucker simplification of the stored track. */
+    simplifyToleranceM: 5,
+    /** A climb: contiguous section at least this steep and long. */
+    climb: { minGradient: 0.03, minLengthM: 150 },
+    /** Hill sessions need a climb of this length and average gradient. */
+    hillClimb: {
+      minLengthM: 200,
+      maxLengthM: 400,
+      minGradient: 0.05,
+      maxGradient: 0.08,
+      /** Steady: every 50 m piece of the segment stays within this gradient band. */
+      pieceM: 50,
+      pieceMinGradient: 0.03,
+      pieceMaxGradient: 0.1,
+    },
+    /** Bike climbing sessions need a climb at least this long. */
+    bikeClimbMinLengthM: 1000,
+    /** Matching weights (sum 1) and tolerances. */
+    match: {
+      weights: { duration: 0.45, elevation: 0.3, start: 0.25 },
+      /** Duration score falls to 0 at this relative deviation. */
+      durationTolerance: 0.35,
+      /** Elevation score falls to 0 at this deviation in gain per km. */
+      elevationToleranceGainPerKm: 15,
+      /** Start score falls to 0 at this distance from the user's start. */
+      startMaxM: 5000,
+    },
+    /** Bike segment model: sustainable climbing rate (m/h) and max descent speed (km/h). */
+    bike: {
+      climbRateMh: { beginner: 500, intermediate: 700, advanced: 900 } satisfies Record<
+        Experience,
+        number
+      >,
+      maxDescentKmh: 45,
+      descentSpeedupPerGradient: 3,
+    },
+    /** Route recognition from past activities. */
+    recognition: {
+      startRadiusM: 200,
+      distanceTolerance: 0.1,
+      samplePoints: 64,
+      maxMeanDeviationM: 75,
+      minOccurrences: 2,
+    },
+    /** Evaluation: a km is "in range" within this share of the planned pace. */
+    evaluationTolerance: 0.03,
+    /** Learned terrain profile: activities of the last n days, at least m of them. */
+    profile: { windowDays: 90, minActivities: 3 },
+  },
 } as const;
 
 export type PlanConfig = typeof planConfig;

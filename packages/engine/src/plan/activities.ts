@@ -2,7 +2,7 @@ import type { HrZone } from '../hr';
 import type { ZoneNumber } from '../zones';
 import { planConfig } from './config';
 import { allWorkouts, statusOf, type PlanState } from './edit';
-import { strengthLoad } from './load';
+import { climbMultiplier, strengthLoad } from './load';
 import type { Sport, WinterSport, Workout } from './types';
 
 /**
@@ -44,6 +44,8 @@ export interface SourceActivity {
   durationSec: number;
   distanceM: number | null;
   elevationGainM: number | null;
+  /** Total descent, when the source or the stream has it (eccentric load of runs). */
+  elevationLossM?: number | null;
   avgHr: number | null;
   maxHr: number | null;
   /** Swims: average pace per 100 m. */
@@ -207,7 +209,8 @@ export function activityZone(
  * (CLAUDE.md "Unified load"), with a default RPE when the source has none.
  */
 export function activityLoad(
-  a: Pick<SourceActivity, 'avgHr' | 'durationSec' | 'sport'> & Partial<Pick<SourceActivity, 'rpe'>>,
+  a: Pick<SourceActivity, 'avgHr' | 'durationSec' | 'sport'> &
+    Partial<Pick<SourceActivity, 'rpe' | 'distanceM' | 'elevationGainM'>>,
   hrZones: readonly HrZone[],
 ): number {
   if (a.sport === 'strength') {
@@ -216,8 +219,31 @@ export function activityLoad(
   const load =
     (a.durationSec / 60) *
     planConfig.load.zoneWeights[activityZone(a, hrZones)] *
-    planConfig.load.sportFactors[a.sport];
+    planConfig.load.sportFactors[a.sport] *
+    climbMultiplier(a.sport, gainPerKm(a));
   return Math.round(load * 10) / 10;
+}
+
+/** Gain per km of an activity; 0 without distance or elevation. */
+function gainPerKm(a: Partial<Pick<SourceActivity, 'distanceM' | 'elevationGainM'>>): number {
+  const km = (a.distanceM ?? 0) / 1000;
+  return km > 0 && a.elevationGainM ? a.elevationGainM / km : 0;
+}
+
+/**
+ * Long running descents add eccentric load (CLAUDE.md "Terrain" §6): more recovery afterwards and
+ * no heavy leg strength the next day. Without a measured descent the gain stands in for it (most
+ * runs end where they started).
+ */
+export function isEccentricActivity(
+  a: Pick<SourceActivity, 'sport' | 'durationSec' | 'distanceM' | 'elevationGainM'> &
+    Partial<Pick<SourceActivity, 'elevationLossM'>>,
+): boolean {
+  const e = planConfig.terrain.eccentric;
+  if (a.sport !== 'run' || a.durationSec / 60 < e.minDurationMin) return false;
+  const km = (a.distanceM ?? 0) / 1000;
+  const loss = a.elevationLossM ?? a.elevationGainM ?? 0;
+  return km > 0 && loss / km >= e.minGainPerKm;
 }
 
 /**

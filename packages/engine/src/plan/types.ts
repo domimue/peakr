@@ -371,6 +371,8 @@ export interface Workout {
   travel?: boolean;
   /** Date the plan had before the user moved it ("reset week" restores it). */
   originalDate?: string;
+  /** Route from the user's library chosen for this run / ride; absent = free session. */
+  routeId?: string;
 }
 
 /** What kind of week it is (Plan screen tag): race week, travel week, recovery week or normal. */
