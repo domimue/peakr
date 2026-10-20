@@ -18,6 +18,7 @@ import { generatePlan } from './generate';
 import { indoorVersion } from './indoor';
 import { historyByMonth, performance, weekProgress, weekTags, workoutKm } from './summary';
 import type { Plan, PlanWeek, Workout } from './types';
+import { annotateWeeks, weekKind } from './week-facts';
 import {
   describeWorkout,
   durationRange,
@@ -189,8 +190,22 @@ describe('normalizePlan', () => {
         }),
       })),
     } as unknown as Plan;
-    expect(normalizePlan(legacy)).toEqual(plan);
-    expect(normalizePlan(plan)).toEqual(plan);
+    expect(normalizePlan(legacy, input.profile)).toEqual(plan);
+    expect(normalizePlan(plan, input.profile)).toEqual(plan);
+  });
+
+  it('fills the week figures of plans stored before they existed', () => {
+    const legacy = {
+      ...plan,
+      weeks: plan.weeks.map((w) => {
+        const old: Partial<PlanWeek> = { ...w };
+        delete old.number;
+        delete old.distanceKm;
+        delete old.kind;
+        return old;
+      }),
+    } as unknown as Plan;
+    expect(normalizePlan(legacy, input.profile)).toEqual(plan);
   });
 
   it('describeWorkout recomputes derived fields', () => {
@@ -334,6 +349,47 @@ describe('week progress and tags', () => {
       setWeekOverride(state, input, WEEK2, { blockedDates: ['2026-10-26'] }, START),
     );
     expect(weekTags(week, different.input, null)).toEqual(['different']);
+  });
+});
+
+describe('week figures (PlanWeek number, distance, kind)', () => {
+  it('numbers the weeks from 1', () => {
+    expect(plan.weeks.map((w) => w.number)).toEqual(plan.weeks.map((_, i) => i + 1));
+  });
+
+  it('sums the planned distance of the week, commutes included', () => {
+    const week = weekAt(plan, WEEK2);
+    expect(week.distanceKm).toBe(weekProgress(state, week, input.profile).kmPlanned);
+    expect(week.distanceKm).toBeGreaterThan(0);
+    expect(week.minutes).toBe(week.workouts.reduce((sum, w) => sum + w.durationMin, 0));
+  });
+
+  it('marks recovery, race and normal weeks', () => {
+    const recovery = plan.weeks.find((w) => w.isRecovery) as PlanWeek;
+    expect(recovery.kind).toBe('recovery');
+    expect((plan.weeks[plan.weeks.length - 1] as PlanWeek).kind).toBe('race');
+    expect(weekAt(plan, WEEK2).kind).toBe('normal');
+  });
+
+  it('race beats travel, travel beats recovery', () => {
+    const recovery = plan.weeks.find((w) => w.isRecovery) as PlanWeek;
+    const travelNote = { key: 'notes.travelWeek' };
+    expect(weekKind({ ...recovery, notes: [travelNote] }, null)).toBe('travel');
+    expect(weekKind({ ...recovery, notes: [travelNote] }, recovery.startDate)).toBe('race');
+    expect(weekKind(recovery, null)).toBe('recovery');
+  });
+
+  it('is recomputed after edits', () => {
+    const travel = ok(
+      setTravel(state, input, [{ startDate: '2026-10-27', endDate: '2026-10-28' }], START),
+    );
+    expect(weekAt(travel.state.plan, WEEK2).kind).toBe('travel');
+
+    const week = weekAt(plan, WEEK2);
+    const run = week.workouts.find((w) => w.sport === 'run') as Workout;
+    const moved = ok(moveWorkout(state, run.id, '2026-11-03', input, START)).state;
+    expect(weekAt(moved.plan, WEEK2).distanceKm).toBeLessThan(week.distanceKm);
+    expect(annotateWeeks(moved.plan, input.profile)).toEqual(moved.plan);
   });
 });
 

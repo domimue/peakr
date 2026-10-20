@@ -1,5 +1,10 @@
-import { LegalPage, LegalSection, OperatorAddress } from '@/features/legal/legal-page';
-import { interpolate, messages } from '@/i18n';
+import {
+  LegalPage,
+  LegalSection,
+  LegalUpdated,
+  OperatorAddress,
+} from '@/features/legal/legal-page';
+import { messages } from '@/i18n';
 import { pageMetadata } from '@/lib/metadata';
 import { PRIVACY_UPDATED } from '@/lib/site';
 
@@ -13,8 +18,8 @@ export const metadata = pageMetadata({
 
 export default function PrivacyPage() {
   return (
-    <LegalPage title={t.title}>
-      <p className="text-sm text-muted">{interpolate(t.updated, { date: PRIVACY_UPDATED })}</p>
+    <LegalPage title={t.title} draft>
+      <LegalUpdated date={PRIVACY_UPDATED} />
       <LegalSection heading={t.controllerHeading}>
         <OperatorAddress />
       </LegalSection>

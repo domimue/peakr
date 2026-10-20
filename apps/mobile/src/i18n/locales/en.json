@@ -1919,10 +1919,6 @@
         "title": "Units",
         "body": "Switch between metric and imperial units."
       },
-      "hrZones": {
-        "title": "Heart-rate zones",
-        "body": "View and edit your zones: method, resting HR, threshold HR and test results."
-      },
       "notifications": {
         "title": "Notifications",
         "body": "One morning reminder on training days, at a time you choose."
@@ -1998,7 +1994,8 @@
       "walk": "Walk",
       "xcski": "XC ski session",
       "skitour": "Ski tour",
-      "snowshoe": "Snowshoe hike"
+      "snowshoe": "Snowshoe hike",
+      "strength": "Strength session"
     },
     "source": {
       "strava": "Strava",
@@ -2058,5 +2055,65 @@
       "days_one": "{{count}} day ago",
       "days_other": "{{count}} days ago"
     }
+  },
+  "trainingZones": {
+    "title": "Training zones",
+    "intro": "Your plan prescribes every session from these zones. Change your values, tap a zone to set it manually, then save – your plan's targets update right away.",
+    "noPlan": "Your zones are set up with your plan. Build your plan first, then fine-tune them here.",
+    "hr": {
+      "title": "Heart rate zones",
+      "methods": {
+        "percentMax": "% HRmax",
+        "karvonen": "Karvonen",
+        "lthr": "LTHR"
+      },
+      "methodInfo": {
+        "percentMax": "Zones as a percentage of your maximum heart rate. Simple and a good start.",
+        "karvonen": "Uses your heart rate reserve (max minus resting). More personal, because it reflects your fitness.",
+        "lthr": "Zones from your lactate threshold heart rate (Joe Friel). The most precise if you know your threshold."
+      },
+      "autoMethod": "Chosen automatically: Karvonen as soon as you enter your resting heart rate.",
+      "hrMaxUsed": "Max heart rate used",
+      "hrMaxEstimateNote": "Estimated from your age (208 − 0.7 × age). A measured value makes your zones more accurate.",
+      "lthrUsed": "Threshold heart rate used",
+      "empty": "Enter your age or max heart rate to see your heart rate zones."
+    },
+    "run": {
+      "title": "Running pace zones",
+      "intro": "Enter a recent race or all-out time trial. The more recent, the better.",
+      "timeLabel": "Your {{distance}} time",
+      "thresholdPace": "Threshold pace",
+      "thresholdNote": "About the pace you could hold for one hour.",
+      "empty": "Add a recent race result to get running pace zones."
+    },
+    "swim": {
+      "title": "Swim pace (CSS)",
+      "intro": "Swim 400 m all-out, recover for 5–10 minutes, then swim 200 m all-out in the same pool. Enter both times.",
+      "time400": "400 m time",
+      "time200": "200 m time",
+      "cssLabel": "Your CSS pace",
+      "cssNote": "Roughly the pace you can sustain for about 30 minutes.",
+      "empty": "Add a swim test to get swim pace zones."
+    },
+    "custom": "Custom",
+    "rowHint": "Set this zone manually",
+    "override": {
+      "title": "Set {{zone}} {{name}} manually",
+      "lower": "From",
+      "upper": "To",
+      "slowest": "Slowest pace ({{unit}})",
+      "fastest": "Fastest pace ({{unit}})",
+      "apply": "Use these values",
+      "reset": "Back to calculated",
+      "errors": {
+        "incomplete": "Fill in both values.",
+        "outOfRange": "Enter values between {{min}} and {{max}}.",
+        "hrOrder": "The lower limit must be below the upper limit.",
+        "paceOrder": "The slowest pace must be slower than the fastest pace."
+      }
+    },
+    "save": "Save zones",
+    "saved": "Saved. Your plan's targets now use these zones.",
+    "fixErrors": "Please fix the highlighted fields before saving."
   }
 }

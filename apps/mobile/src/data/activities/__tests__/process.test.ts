@@ -64,6 +64,8 @@ function receive(over: Partial<SourceActivity>): void {
         name: null,
         indoor: false,
         commute: false,
+        summary: false,
+        rpe: null,
         ...over,
       },
     ],
@@ -121,6 +123,28 @@ describe('processNewActivities', () => {
     receive({ source: 'garmin', externalId: 'g', startTime: '2026-10-26T06:02:00Z' });
     expect(await processNewActivities('2026-10-26')).toEqual([]);
     expect(activities.store.activities.every((a) => a.handled)).toBe(true);
+  });
+
+  it('a Strava strength summary marks the planned strength session done', async () => {
+    storePlan();
+    const planned = state()
+      .plan.weeks.flatMap((w) => w.workouts)
+      .find((w) => w.date === '2026-10-27' && w.sport === 'strength');
+    expect(planned).toBeDefined();
+    receive({
+      sport: 'strength',
+      startTime: '2026-10-27T17:00:00Z',
+      date: '2026-10-27',
+      durationSec: 3600,
+      distanceM: null,
+      elevationGainM: null,
+      indoor: true,
+      summary: true,
+      rpe: 7,
+    });
+    const [notice] = await processNewActivities('2026-10-27');
+    expect(notice).toMatchObject({ kind: 'matched', sport: 'strength', workoutId: planned?.id });
+    expect(statusOf(state(), planned?.id as string)).toBe('done');
   });
 
   it('counts an unplanned ride and makes the rest of the week easier', async () => {

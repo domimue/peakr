@@ -11,6 +11,7 @@ import { buildSkeleton, isRaceGoal, weekTargetLoad } from './periodisation';
 import { describeWorkout } from './workout-type';
 import { RESTED, scheduleWeek, type NextDay, type PrevDay, type ScheduleDay } from './scheduler';
 import { travelOn } from './travel';
+import { annotateWeeks } from './week-facts';
 import {
   SPORTS,
   type Availability,
@@ -352,6 +353,10 @@ export function generatePlan(
     if (days.some((d) => d.travel)) weekNotes.push({ key: 'notes.travelWeek' });
     weeks.push({
       index: week.index,
+      // Number, distance and kind are filled in by `annotateWeeks` below.
+      number: week.index + 1,
+      distanceKm: 0,
+      kind: 'normal',
       startDate: weekStart,
       phase: week.phase,
       isRecovery: week.isRecovery,
@@ -367,13 +372,16 @@ export function generatePlan(
 
   return {
     ok: true,
-    value: {
-      goal,
-      startDate: continuation?.planStartDate ?? startDate,
-      targetDate: targetDate ?? null,
-      weeks: classifyPlan(weeks, profile.experience),
-      notes,
-    },
+    value: annotateWeeks(
+      {
+        goal,
+        startDate: continuation?.planStartDate ?? startDate,
+        targetDate: targetDate ?? null,
+        weeks: classifyPlan(weeks, profile.experience),
+        notes,
+      },
+      profile,
+    ),
   };
 }
 

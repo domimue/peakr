@@ -1,5 +1,4 @@
 import {
-  calculateHrZones,
   findWorkout,
   formatDuration,
   inDetailWindow,
@@ -22,6 +21,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { todayIso } from '@/data/ids';
 import { useWorkoutActivity, type LinkedActivity } from '@/features/activities/queries';
+import { planHrZones } from '@/features/training-zones/resolve';
 import {
   Badge,
   Button,
@@ -166,12 +166,8 @@ export function WorkoutScreen({ id, startMoving = false }: WorkoutScreenProps) {
   const linked = useWorkoutActivity(id);
   const today = todayIso();
 
-  const hrZones = useMemo<readonly HrZone[]>(() => {
-    const input = stored?.input.hrZones;
-    if (!input) return [];
-    const zones = calculateHrZones(input);
-    return zones.ok ? zones.value.zones : [];
-  }, [stored?.input.hrZones]);
+  // Manual zones from Profile → Training zones included.
+  const hrZones = useMemo<readonly HrZone[]>(() => planHrZones(stored?.input), [stored?.input]);
 
   if (isPending) return <Screen />;
   const w = stored ? findWorkout(stored.state.plan, id) : undefined;

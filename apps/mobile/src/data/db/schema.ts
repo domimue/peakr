@@ -15,9 +15,13 @@ import type {
 } from '@peakr/engine';
 import { index, integer, primaryKey, real, sqliteTable, text } from 'drizzle-orm/sqlite-core';
 
+import type { StoredZoneSettings } from '../../features/training-zones/settings';
+
 /** What a plan was generated from, plus the zone input for bpm targets. */
 export interface StoredPlanInput extends PlanInput {
   hrZones?: HrZoneInput;
+  /** Profile → Training zones: manual zones and the tests behind the pace zones. */
+  zones?: StoredZoneSettings;
 }
 
 /** Simple key/value store for local app settings (e.g. the strength setup as JSON). */
@@ -164,6 +168,10 @@ export const activities = sqliteTable(
     name: text('name'),
     indoor: integer('indoor', { mode: 'boolean' }).notNull(),
     commute: integer('commute', { mode: 'boolean' }).notNull(),
+    /** Summary only (Strava weight training: no sets) – a detailed record of it always wins. */
+    summary: integer('summary', { mode: 'boolean' }).notNull().default(false),
+    /** Session RPE 1–10 from the source, if any. */
+    rpe: real('rpe'),
     /** When this device received it, epoch ms ("synced …"). */
     importedAt: integer('imported_at').notNull(),
     /** Matched to the plan or absorbed as unplanned – happens once per activity. */

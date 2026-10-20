@@ -24,6 +24,8 @@ interface ActivityRow {
   polyline: string | null;
   indoor: boolean;
   commute: boolean;
+  summary: boolean;
+  rpe: number | null;
   deleted: boolean;
   server_updated_at: string;
 }
@@ -31,7 +33,7 @@ interface ActivityRow {
 const COLUMNS = [
   'source, external_id, sport, name, start_time, start_date_local, duration_sec',
   'distance_m, elevation_gain_m, avg_hr, max_hr, swim_pace_sec_per_100m, polyline',
-  'indoor, commute, deleted, server_updated_at',
+  'indoor, commute, summary, rpe, deleted, server_updated_at',
 ].join(', ');
 
 export interface ActivityChanges {
@@ -60,6 +62,8 @@ function fromRow(row: ActivityRow): SourceActivity | null {
     name: row.name,
     indoor: row.indoor,
     commute: row.commute,
+    summary: row.summary,
+    rpe: row.rpe,
   };
 }
 

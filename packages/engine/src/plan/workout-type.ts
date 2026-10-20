@@ -1,6 +1,7 @@
 import { workoutKind, type KindCategory, type WorkoutKind } from './kinds';
 import { flattenSteps, totalDurationSec } from './load';
 import { athleteFor, runPaceSecPerKm } from './materialize';
+import { annotateWeeks } from './week-facts';
 import type {
   DurationRange,
   PaceMode,
@@ -127,18 +128,22 @@ export function describeWorkout(w: DescribeInput): Workout {
 
 /**
  * Upgrades a plan stored before the derived fields existed: the old `type` field held the template
- * type (now `templateType`); everything derived is computed again.
+ * type (now `templateType`); everything derived – workout types and the week figures – is
+ * computed again.
  */
-export function normalizePlan(plan: Plan): Plan {
-  return {
-    ...plan,
-    weeks: plan.weeks.map((week) => ({
-      ...week,
-      workouts: week.workouts.map((raw) => {
-        const legacy = raw as Workout & { templateType?: string };
-        const templateType = legacy.templateType ?? (legacy.type as string);
-        return describeWorkout({ ...legacy, templateType });
-      }),
-    })),
-  };
+export function normalizePlan(plan: Plan, profile: UserProfile): Plan {
+  return annotateWeeks(
+    {
+      ...plan,
+      weeks: plan.weeks.map((week) => ({
+        ...week,
+        workouts: week.workouts.map((raw) => {
+          const legacy = raw as Workout & { templateType?: string };
+          const templateType = legacy.templateType ?? (legacy.type as string);
+          return describeWorkout({ ...legacy, templateType });
+        }),
+      })),
+    },
+    profile,
+  );
 }

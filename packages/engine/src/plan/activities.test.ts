@@ -77,6 +77,8 @@ function record(over: Partial<SourceActivity> = {}): SourceActivity {
     name: null,
     indoor: false,
     commute: false,
+    summary: false,
+    rpe: null,
     ...over,
   };
 }
@@ -313,6 +315,74 @@ describe('matchActivities', () => {
     expect(matchActivities(day, [commute], none, none).links[0]?.workoutId).toBe('commute');
     const ride = activity({ sport: 'bike', durationSec: 3600 });
     expect(matchActivities(day, [ride], none, none).links[0]?.workoutId).toBe('ride');
+  });
+});
+
+describe('strength summaries (detailed beats summary)', () => {
+  const stravaStrength = (over: Partial<SourceActivity> = {}) =>
+    record({
+      source: 'strava',
+      sport: 'strength',
+      startTime: '2026-10-27T17:00:00Z',
+      date: '2026-10-27',
+      durationSec: 3600,
+      distanceM: null,
+      elevationGainM: null,
+      summary: true,
+      name: 'Gym',
+      ...over,
+    });
+
+  it('a detailed record wins over a summary one, whatever the source priority', () => {
+    // Strava (summary) ranks above the phone's health data, but the detailed record wins.
+    const summary = stravaStrength({ avgHr: 120, rpe: 8 });
+    const detailed = record({
+      source: 'healthconnect',
+      sport: 'strength',
+      startTime: '2026-10-27T17:02:00Z',
+      date: '2026-10-27',
+      durationSec: 3500,
+      distanceM: null,
+      elevationGainM: null,
+    });
+    for (const records of [
+      [summary, detailed],
+      [detailed, summary],
+    ]) {
+      const [a] = dedupeActivities(records);
+      expect(a?.source).toBe('healthconnect');
+      expect(a?.summary).toBe(false);
+      expect(a?.durationSec).toBe(3500);
+      // Gaps are still filled from the summary, and both ids are kept.
+      expect(a?.avgHr).toBe(120);
+      expect(a?.rpe).toBe(8);
+      expect(a?.name).toBe('Gym');
+      expect(a?.sources.map((x) => x.source)).toEqual(['healthconnect', 'strava']);
+    }
+  });
+
+  it('between two detailed records the source priority decides', () => {
+    const watch = record({ source: 'garmin', startTime: '2026-10-26T06:01:00Z' });
+    const [a] = dedupeActivities([record(), watch]);
+    expect(a?.source).toBe('garmin');
+  });
+
+  it('loads strength as duration × RPE / 2, with a default RPE', () => {
+    expect(activityLoad(stravaStrength({ rpe: 6 }), zones)).toBe(180);
+    expect(activityLoad(stravaStrength(), zones)).toBe(210);
+    expect(isHardActivity(stravaStrength({ rpe: 10, durationSec: 7200 }), zones)).toBe(false);
+  });
+
+  it('fulfils the planned strength session of that day', () => {
+    const state = baseState();
+    const planned = allWorkouts(state.plan).find(
+      (w) => w.date === '2026-10-27' && w.sport === 'strength',
+    ) as Workout;
+    expect(planned).toBeDefined();
+    const [a] = dedupeActivities([stravaStrength()]);
+    const result = matchActivities(state, [a as Activity], new Set(), new Set());
+    expect(result.links).toEqual([{ activityKey: (a as Activity).key, workoutId: planned.id }]);
+    expect(result.unplanned).toEqual([]);
   });
 });
 

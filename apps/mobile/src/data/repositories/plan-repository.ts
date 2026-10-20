@@ -79,6 +79,10 @@ export async function getPlan(): Promise<StoredPlan | null> {
     notes: plan.notes,
     weeks: weeks.map((w) => ({
       index: w.weekIndex,
+      // Number, distance and kind are derived from the workouts by `normalizePlan` below.
+      number: w.weekIndex + 1,
+      distanceKm: 0,
+      kind: 'normal' as const,
       startDate: w.startDate,
       phase: w.phase,
       isRecovery: w.isRecovery,
@@ -95,8 +99,9 @@ export async function getPlan(): Promise<StoredPlan | null> {
     id: plan.id,
     input: plan.input,
     state: {
-      // Plans stored before Phase 5c lack the derived UI fields.
-      plan: normalizePlan(value),
+      // Derived UI fields (workout types, week figures) are computed again on every load, so plans
+      // stored before they existed get them without a migration.
+      plan: normalizePlan(value, plan.input.profile),
       status,
       revision: plan.revision,
       pauses: pauses.map(({ reason, startDate, endDate }) => ({ reason, startDate, endDate })),

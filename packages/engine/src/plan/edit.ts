@@ -9,6 +9,7 @@ import { round1, strengthLoad } from './load';
 import { athleteFor, exerciseLegLoad, materialize } from './materialize';
 import { isRaceGoal } from './periodisation';
 import type { NextDay, PrevDay } from './scheduler';
+import { annotateWeeks } from './week-facts';
 import { describeWorkout } from './workout-type';
 import type {
   Availability,
@@ -272,8 +273,11 @@ function score(violations: readonly RuleViolation[]): number {
 // ---------------------------------------------------------------------------------------------
 // Plan rebuilding helpers
 
-/** Puts workouts back into their weeks (by date), recomputes week totals and the §11 flags. */
-export function rebuild(plan: Plan, workouts: readonly Workout[], experience: Experience): Plan {
+/**
+ * Puts workouts back into their weeks (by date), recomputes week totals, the week figures
+ * (`annotateWeeks`) and the §11 flags.
+ */
+export function rebuild(plan: Plan, workouts: readonly Workout[], profile: UserProfile): Plan {
   const sorted = [...workouts].sort((a, b) => a.date.localeCompare(b.date));
   const weeks: PlanWeek[] = plan.weeks.map((w) => {
     const start = day(w.startDate);
@@ -288,7 +292,7 @@ export function rebuild(plan: Plan, workouts: readonly Workout[], experience: Ex
       minutes: list.reduce((sum, x) => sum + x.durationMin, 0),
     };
   });
-  return { ...plan, weeks: classifyPlan(weeks, experience) };
+  return annotateWeeks({ ...plan, weeks: classifyPlan(weeks, profile.experience) }, profile);
 }
 
 /** Moves a workout and remembers the plan's date (dropped again when it is back there). */
@@ -375,9 +379,9 @@ export function moveWorkout(
   const suggestion: RebalanceSuggestion | null =
     moves.length === 0
       ? null
-      : { moves, state: { ...state, plan: rebuild(state.plan, workouts, experience) } };
+      : { moves, state: { ...state, plan: rebuild(state.plan, workouts, profile) } };
 
-  const plan = rebuild(state.plan, moved, experience);
+  const plan = rebuild(state.plan, moved, profile);
   const next: PlanState = { ...state, plan };
   const warnings: MoveWarning[] = violationsOf(allWorkouts(plan))
     .filter((v) => v.workoutIds.includes(workoutId))
@@ -436,7 +440,7 @@ export function resetWeek(
   );
   return {
     ok: true,
-    value: { ...state, plan: rebuild(state.plan, workouts, input.profile.experience) },
+    value: { ...state, plan: rebuild(state.plan, workouts, input.profile) },
   };
 }
 
@@ -527,7 +531,7 @@ export function easeWorkout(
   const workouts = allWorkouts(state.plan).map((x) => (x.id === workoutId ? eased : x));
   return {
     ok: true,
-    value: { ...state, plan: rebuild(state.plan, workouts, input.profile.experience) },
+    value: { ...state, plan: rebuild(state.plan, workouts, input.profile) },
   };
 }
 
@@ -691,13 +695,13 @@ function regenerateFrom(
         ...state,
         status,
         revision,
-        plan: rebuild({ ...plan, weeks }, workouts, input.profile.experience),
+        plan: rebuild({ ...plan, weeks }, workouts, input.profile),
       },
     };
   }
   return {
     ok: true,
-    value: { ...state, plan: rebuild(plan, kept, input.profile.experience) },
+    value: { ...state, plan: rebuild(plan, kept, input.profile) },
   };
 }
 

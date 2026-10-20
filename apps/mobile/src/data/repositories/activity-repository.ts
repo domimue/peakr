@@ -34,6 +34,8 @@ function toSource(row: typeof activities.$inferSelect): StoredActivity {
     name: row.name,
     indoor: row.indoor,
     commute: row.commute,
+    summary: row.summary,
+    rpe: row.rpe,
     importedAt: row.importedAt,
     handled: row.handled,
   };

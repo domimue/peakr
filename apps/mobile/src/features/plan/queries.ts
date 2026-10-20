@@ -1,4 +1,5 @@
 import {
+  annotateWeeks,
   easeWorkout,
   generatePlan,
   moveWorkout,
@@ -166,6 +167,15 @@ export function usePlanActions() {
     setTravel(travel: readonly TravelPeriod[]): Edit {
       if (!stored) return missing;
       return commitAdjusted(setTravel(stored.state, stored.input, travel, today));
+    },
+    /**
+     * Profile → Training zones: new zone input. Targets are derived from it when shown, so the
+     * plan keeps its sessions; only the week distances follow a new threshold pace or CSS.
+     */
+    updateZones(input: StoredPlanInput): Edit {
+      if (!stored) return missing;
+      const plan = annotateWeeks(stored.state.plan, input.profile);
+      return commit({ ok: true, value: { ...stored.state, plan } }, input);
     },
   };
 }

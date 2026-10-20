@@ -2,6 +2,7 @@ import type { HrZone } from '../hr';
 import type { ZoneNumber } from '../zones';
 import { planConfig } from './config';
 import { allWorkouts, statusOf, type PlanState } from './edit';
+import { strengthLoad } from './load';
 import type { Sport, WinterSport, Workout } from './types';
 
 /**
@@ -17,7 +18,7 @@ export type ActivitySource = (typeof cfg.sourcePriority)[number];
 export const ACTIVITY_SOURCES: readonly ActivitySource[] = cfg.sourcePriority;
 
 /** Sports that are imported (other activity types are ignored). */
-export type ImportedSport = Sport | WinterSport | 'walk';
+export type ImportedSport = Sport | WinterSport | 'walk' | 'strength';
 export const IMPORTED_SPORTS: readonly ImportedSport[] = [
   'run',
   'bike',
@@ -26,6 +27,7 @@ export const IMPORTED_SPORTS: readonly ImportedSport[] = [
   'xcski',
   'skitour',
   'snowshoe',
+  'strength',
 ];
 
 /** One activity as one source delivered it. */
@@ -54,6 +56,13 @@ export interface SourceActivity {
   indoor: boolean;
   /** Marked as a commute at the source. */
   commute: boolean;
+  /**
+   * Summary only: the source has the session but not its content (e.g. a Strava weight-training
+   * activity without sets). A detailed record of the same activity always wins over it.
+   */
+  summary: boolean;
+  /** Session RPE 1–10 if the source has it (Strava "perceived exertion"); strength load uses it. */
+  rpe: number | null;
 }
 
 export interface SourceRef {
@@ -95,18 +104,23 @@ export function isSameActivity(
   return Math.abs(a.durationSec - b.durationSec) <= longer * cfg.dedupeDurationTolerance;
 }
 
-type Fillable = 'distanceM' | 'elevationGainM' | 'avgHr' | 'maxHr' | 'swimPaceSecPer100m';
+type Fillable = 'distanceM' | 'elevationGainM' | 'avgHr' | 'maxHr' | 'swimPaceSecPer100m' | 'rpe';
 const FILLABLE: readonly Fillable[] = [
   'distanceM',
   'elevationGainM',
   'avgHr',
   'maxHr',
   'swimPaceSecPer100m',
+  'rpe',
 ];
 
+/** A detailed record always beats a summary one; then the source priority decides. */
+const rank = (a: SourceActivity, b: SourceActivity) =>
+  Number(a.summary) - Number(b.summary) || priority(a.source) - priority(b.source);
+
 function merge(records: readonly SourceActivity[]): Activity {
-  // A group never holds two records of one source, so the priority alone orders it.
-  const sorted = [...records].sort((a, b) => priority(a.source) - priority(b.source));
+  // A group never holds two records of one source, so detail and priority alone order it.
+  const sorted = [...records].sort(rank);
   const [best, ...rest] = sorted as [SourceActivity, ...SourceActivity[]];
   const merged: Activity = {
     source: best.source,
@@ -123,6 +137,8 @@ function merge(records: readonly SourceActivity[]): Activity {
     name: best.name,
     indoor: best.indoor,
     commute: best.commute,
+    summary: best.summary,
+    rpe: best.rpe,
     key: activityKey(best),
     sources: sorted.map(({ source, externalId }) => ({ source, externalId })),
   };
@@ -138,8 +154,9 @@ function merge(records: readonly SourceActivity[]): Activity {
 }
 
 /**
- * Groups records of the same activity from different sources and keeps one record per activity
- * with the source priority watch provider > Strava > health data, remembering every source id.
+ * Groups records of the same activity from different sources and keeps one record per activity –
+ * a detailed record over a summary one, then by the source priority watch provider > Strava >
+ * health data – remembering every source id.
  * Two records from the same source are always two activities. Sorted by start time.
  */
 export function dedupeActivities(records: readonly SourceActivity[]): Activity[] {
@@ -185,11 +202,17 @@ export function activityZone(
   return below.length === hrZones.length ? 5 : (Math.min(5, below.length + 1) as ZoneNumber);
 }
 
-/** Unified load: duration_min × zone weight × sport factor (CLAUDE.md "Unified load"). */
+/**
+ * Unified load: duration_min × zone weight × sport factor; strength duration_min × session RPE / 2
+ * (CLAUDE.md "Unified load"), with a default RPE when the source has none.
+ */
 export function activityLoad(
-  a: Pick<SourceActivity, 'avgHr' | 'durationSec' | 'sport'>,
+  a: Pick<SourceActivity, 'avgHr' | 'durationSec' | 'sport'> & Partial<Pick<SourceActivity, 'rpe'>>,
   hrZones: readonly HrZone[],
 ): number {
+  if (a.sport === 'strength') {
+    return Math.round(strengthLoad(a.durationSec / 60, a.rpe ?? cfg.strengthDefaultRpe) * 10) / 10;
+  }
   const load =
     (a.durationSec / 60) *
     planConfig.load.zoneWeights[activityZone(a, hrZones)] *
@@ -197,11 +220,16 @@ export function activityLoad(
   return Math.round(load * 10) / 10;
 }
 
-/** Hard for the spacing rules: Z4+ on average, a long Z3 session, or a long session. */
+/**
+ * Hard for the spacing rules: Z4+ on average, a long Z3 session, or a long session. Imported
+ * strength is never hard: without its exercises the leg load is unknown (heavy legs come from a
+ * detailed log).
+ */
 export function isHardActivity(
   a: Pick<SourceActivity, 'avgHr' | 'durationSec' | 'sport'>,
   hrZones: readonly HrZone[],
 ): boolean {
+  if (a.sport === 'strength') return false;
   const zone = activityZone(a, hrZones);
   const minutes = a.durationSec / 60;
   if (zone >= cfg.hardZone) return true;

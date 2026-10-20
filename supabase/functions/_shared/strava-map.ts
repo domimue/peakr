@@ -1,10 +1,12 @@
 /**
  * Strava activity → row of `public.activities` (pure, no Deno APIs, so it can be checked with
- * plain Node too). Only the sports the plan knows are imported; everything else (yoga, weight
- * training, …) returns null and is ignored.
+ * plain Node too). Only the sports the plan knows are imported; everything else (yoga, …) returns
+ * null and is ignored. Weight training comes in as a summary session: Strava has its duration
+ * and effort, not its sets, so a detailed log of the same session always wins over it.
  */
 
-export type ImportedSport = 'run' | 'bike' | 'swim' | 'walk' | 'xcski' | 'skitour' | 'snowshoe';
+export type ImportedSport =
+  'run' | 'bike' | 'swim' | 'walk' | 'xcski' | 'skitour' | 'snowshoe' | 'strength';
 
 /** Strava `sport_type` → plan sport. E-bike rides are left out: the motor, not the legs, works. */
 const SPORTS: Record<string, ImportedSport> = {
@@ -22,6 +24,7 @@ const SPORTS: Record<string, ImportedSport> = {
   NordicSki: 'xcski',
   BackcountrySki: 'skitour',
   Snowshoe: 'snowshoe',
+  WeightTraining: 'strength',
 };
 
 /** Fields of Strava's SummaryActivity / DetailedActivity that Peakr uses. */
@@ -43,6 +46,8 @@ export interface StravaActivity {
   trainer?: boolean;
   commute?: boolean;
   manual?: boolean;
+  /** 1–10, set by the athlete on Strava ("perceived exertion"). */
+  perceived_exertion?: number | null;
   map?: { summary_polyline?: string | null; polyline?: string | null } | null;
 }
 
@@ -65,11 +70,17 @@ export interface ActivityRow {
   polyline: string | null;
   indoor: boolean;
   commute: boolean;
+  /** Strava has the session but not its content (weight training: no sets). */
+  summary: boolean;
+  rpe: number | null;
   deleted: false;
 }
 
 const positive = (n: number | undefined): number | null =>
   n !== undefined && Number.isFinite(n) && n > 0 ? n : null;
+
+const exertion = (n: number | null | undefined): number | null =>
+  n !== undefined && n !== null && Number.isFinite(n) && n >= 1 && n <= 10 ? n : null;
 
 const heartRate = (n: number | undefined): number | null =>
   n !== undefined && Number.isFinite(n) && n >= 20 && n <= 260 ? Math.round(n * 10) / 10 : null;
@@ -108,6 +119,8 @@ export function mapStravaActivity(userId: string, a: StravaActivity): ActivityRo
     polyline,
     indoor: a.trainer === true || a.sport_type?.startsWith('Virtual') === true || !polyline,
     commute: a.commute === true,
+    summary: sport === 'strength',
+    rpe: exertion(a.perceived_exertion),
     deleted: false,
   };
 }
