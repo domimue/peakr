@@ -16,7 +16,11 @@ import { queryClient } from '@/data/query-client';
 import { useActivityRealtime } from '@/data/sync/use-activity-realtime';
 import { useBackgroundSync } from '@/data/sync/use-background-sync';
 import { ActivityNoticeHost } from '@/features/activities/activity-notice';
-import { useAuthListener, useSessionStore } from '@/features/auth/session-store';
+import {
+  selectAccountUserId,
+  useAuthListener,
+  useSessionStore,
+} from '@/features/auth/session-store';
 import { registerPushToken } from '@/features/notifications/push';
 import { fontFamilies, toNavigationTheme, useTheme } from '@/ui';
 
@@ -58,13 +62,14 @@ export default function RootLayout() {
 }
 
 /**
- * Syncs SQLite with Supabase while someone is signed in (inside the query client for refreshes):
+ * Syncs SQLite with Supabase while an account is signed in (inside the query client for refreshes):
  * background sync, Realtime for new activities, and this device's push token (no prompt here).
+ * An anonymous user from the quiz gets none of these.
  */
 function BackgroundSync() {
-  const userId = useSessionStore((s) => s.session?.user.id ?? null);
-  useBackgroundSync(userId);
-  useActivityRealtime(userId);
+  const userId = useSessionStore(selectAccountUserId);
+  useBackgroundSync();
+  useActivityRealtime();
   useEffect(() => {
     if (userId) void registerPushToken(userId);
   }, [userId]);

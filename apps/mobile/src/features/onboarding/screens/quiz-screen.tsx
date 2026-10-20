@@ -13,6 +13,9 @@ import { BackHandler, Pressable, ScrollView, StyleSheet, View } from 'react-nati
 import Animated, { FadeInLeft, FadeInRight } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
+import { authAvailable } from '@/features/auth/session-store';
+import { useBaselineStore } from '@/features/baseline/baseline-store';
+import { BaselineStep } from '@/features/baseline/screens/baseline-step';
 import { Button, Card, fontSizes, ProgressBar, radius, spacing, Text, useTheme } from '@/ui';
 
 import { QuestionInput } from '../question-input';
@@ -35,13 +38,15 @@ export function QuizScreen() {
     direction,
   } = useQuizStore();
   const { answer, clear, goTo, finish } = useQuizStore.getState();
+  const baselineUsed = useBaselineStore((s) => s.meta !== null && s.activities.length > 0);
 
   useEffect(() => {
     void hydrate();
   }, [hydrate]);
 
   const answers = useMemo(() => prepareAnswers(given, today), [given, today]);
-  const steps = visibleSteps(answers);
+  // The Strava calibration step needs Supabase (an anonymous user holds the connection).
+  const steps = visibleSteps(answers, { baseline: authAvailable });
   const found = steps.findIndex((s) => s.id === stepId);
   const index = found < 0 ? 0 : found;
   const step = steps[index];
@@ -76,6 +81,7 @@ export function QuizScreen() {
   const questions = stepQuestions(step, answers);
   const issues = stepIssues(step, answers, today);
   const isLast = index === steps.length - 1;
+  const baselineStep = step.kind === 'baseline';
 
   const next = () => {
     if (!onInsight && insight) return goTo(step.id, true, 1);
@@ -121,6 +127,8 @@ export function QuizScreen() {
         >
           {onInsight && insight ? (
             <InsightCard insight={insight} />
+          ) : baselineStep ? (
+            <BaselineStep />
           ) : (
             questions.map((q) => (
               <QuestionInput
@@ -141,10 +149,14 @@ export function QuizScreen() {
           label={
             onInsight
               ? t('quiz.continue')
-              : isLast && !insight
-                ? t('quiz.seeForecast')
-                : t('quiz.next')
+              : baselineStep && !baselineUsed
+                ? t('baseline.step.skip')
+                : isLast && !insight
+                  ? t('quiz.seeForecast')
+                  : t('quiz.next')
           }
+          // Skipping the calibration is a plain choice, not the screen's main action.
+          variant={baselineStep && !baselineUsed ? 'secondary' : 'primary'}
           disabled={!onInsight && issues.length > 0}
           onPress={next}
         />

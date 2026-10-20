@@ -6,7 +6,7 @@ import { planConfig } from './config';
 import { toIsoDate } from './dates';
 import { rpe, time } from './library/helpers';
 import { getTemplate } from './library';
-import { clampLevel, recoveryWeekLevel, startLevel } from './levels';
+import { clampLevel, recoveryWeekLevel, sportExperience, startLevel } from './levels';
 import { enduranceLoad, flattenSteps, hardShare, round1, totalDurationSec } from './load';
 import { materialize, materializeStrength, type Athlete } from './materialize';
 import type { WeekSkeleton } from './periodisation';
@@ -304,7 +304,8 @@ class WeekScheduler {
   private levelFor(template: WorkoutTemplate, slot: Partial<Slot>): number {
     const { input } = this;
     const current =
-      input.levels.get(template.id) ?? startLevel(input.athlete.profile.experience, template);
+      input.levels.get(template.id) ??
+      startLevel(sportExperience(input.athlete.profile, template.sport), template);
     let level = current;
     if (input.skeleton.isRecovery) level = recoveryWeekLevel(level);
     if (this.phase === 'taper') level -= planConfig.levels.taperLevelDrop;
@@ -321,7 +322,9 @@ class WeekScheduler {
     const cap = caps[input.composition.goal] ?? caps.default;
     let minutes = Math.min(
       cap,
-      input.longMin[sport] ?? cfg.startMin[sport][input.athlete.profile.experience],
+      input.longMin[sport] ??
+        input.athlete.profile.baseline?.longMin?.[sport] ??
+        cfg.startMin[sport][sportExperience(input.athlete.profile, sport)],
     );
     if (input.skeleton.isRecovery) minutes *= cfg.recoveryFactor;
     const taper = input.skeleton.taperIndex;

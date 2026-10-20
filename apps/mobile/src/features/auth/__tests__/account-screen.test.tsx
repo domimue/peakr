@@ -25,6 +25,7 @@ jest.mock('expo-network', () => ({
   getNetworkStateAsync: jest.fn(),
 }));
 jest.mock('@/data/repositories/onboarding-repository');
+jest.mock('@/data/repositories/baseline-repository');
 jest.mock('@/data/sync/sync-repository', () => ({
   clearSyncedData: jest.fn(),
   clearAllLocalData: jest.fn(),

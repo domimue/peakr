@@ -1,7 +1,21 @@
 import { planConfig } from './config';
-import type { Experience, Phase, WorkoutTemplate } from './types';
+import {
+  SPORTS,
+  type Experience,
+  type Phase,
+  type UserProfile,
+  type WorkoutTemplate,
+} from './types';
 
 const cfg = planConfig.levels;
+
+/** Experience class for one activity sport: the baseline's per-sport class, else the quiz answer. */
+export function sportExperience(profile: UserProfile, sport: string): Experience {
+  const own = (SPORTS as readonly string[]).includes(sport)
+    ? profile.baseline?.experience?.[sport as (typeof SPORTS)[number]]
+    : undefined;
+  return own ?? profile.experience;
+}
 
 /** Start level for a levelled template from the quiz experience (WORKOUTS.md §10). */
 export function startLevel(experience: Experience, template: WorkoutTemplate): number {

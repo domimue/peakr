@@ -2,12 +2,15 @@
  * OAuth with third-party services (skeleton; Strava first). Secrets and the token exchange stay
  * here – the app never sees a client secret or a provider token.
  *
- *   POST /oauth/start       { provider }  (Authorization: user JWT)  → { url }
- *        The app opens `url` in an auth browser session.
+ *   POST /oauth/start       { provider, purpose? }  (Authorization: user JWT)  → { url }
+ *        The app opens `url` in an auth browser session. `purpose: 'baseline'` (Strava, from plan
+ *        creation, usually an anonymous session) connects without the activity backfill below:
+ *        the app then calls `strava-baseline/import`, which stays reference-only.
  *   GET  /oauth/callback    ?code&state&scope  (called by the provider's redirect)
  *        Verifies the signed state, exchanges the code, stores the encrypted tokens and the
  *        integration metadata, then redirects to the app: peakr://integrations/<provider>?status=…
- *        Strava: the last 14 days of activities are imported right away, so the plan adapts at once.
+ *        Strava: the last 14 days of activities are imported right away, so the plan adapts at once
+ *        (not for `purpose: 'baseline'`).
  *        Its planned routes (rides and runs) follow in the background.
  *   POST /oauth/disconnect  { provider }  (Authorization: user JWT)  → { ok }
  *        Revokes access at the provider and removes tokens and metadata (Strava: and every
@@ -17,7 +20,13 @@
  * Supabase JWT; /start and /disconnect check the JWT themselves.
  */
 
-import { decryptToken, encryptToken, signState, verifyState } from '../_shared/crypto.ts';
+import {
+  decryptToken,
+  encryptToken,
+  signState,
+  verifyState,
+  type OAuthPurpose,
+} from '../_shared/crypto.ts';
 import { getProvider, type TokenSet } from '../_shared/providers.ts';
 import {
   importSince,
@@ -41,22 +50,35 @@ function backToApp(provider: string, status: 'connected' | 'denied' | 'error'): 
   return Response.redirect(`${APP_REDIRECT}/${encodeURIComponent(provider)}?status=${status}`, 302);
 }
 
-async function readProvider(req: Request): Promise<string | null> {
+interface StartBody {
+  provider: string | null;
+  purpose: OAuthPurpose | undefined;
+}
+
+async function readBody(req: Request): Promise<StartBody> {
   try {
-    const body = (await req.json()) as { provider?: unknown };
-    return typeof body.provider === 'string' ? body.provider : null;
+    const body = (await req.json()) as { provider?: unknown; purpose?: unknown };
+    return {
+      provider: typeof body.provider === 'string' ? body.provider : null,
+      purpose: body.purpose === 'baseline' ? 'baseline' : undefined,
+    };
   } catch {
-    return null;
+    return { provider: null, purpose: undefined };
   }
+}
+
+async function readProvider(req: Request): Promise<string | null> {
+  return (await readBody(req)).provider;
 }
 
 async function start(req: Request): Promise<Response> {
   const admin = adminClient();
   const user = await userFromRequest(req, admin);
   if (!user) return json({ error: 'unauthorized' }, 401);
-  const provider = getProvider((await readProvider(req)) ?? '');
+  const body = await readBody(req);
+  const provider = getProvider(body.provider ?? '');
   if (!provider) return json({ error: 'unknown_provider' }, 400);
-  const state = await signState(user.id, provider.id);
+  const state = await signState(user.id, provider.id, { purpose: body.purpose });
   return json({ url: provider.authorizeUrl({ redirectUri: callbackUrl(), state }) });
 }
 
@@ -95,13 +117,17 @@ async function storeTokens(
 /**
  * Recent activities right after connecting; a failure here must not fail the connection. The
  * athlete's Strava routes follow after the response (one GPX export per route can take a while).
+ * A baseline connection (plan creation) imports no activities: they would become training
+ * history, while the baseline must stay reference-only.
  */
-async function backfillStrava(userId: string): Promise<void> {
+async function backfillStrava(userId: string, purpose: OAuthPurpose | undefined): Promise<void> {
   const admin = adminClient();
   try {
     const integration = await integrationForUser(admin, userId);
     if (!integration) return;
-    await importSince(admin, integration, Date.now() - BACKFILL_MS, { maxPages: 1 });
+    if (purpose !== 'baseline') {
+      await importSince(admin, integration, Date.now() - BACKFILL_MS, { maxPages: 1 });
+    }
     EdgeRuntime.waitUntil(
       importStravaRoutes(admin, integration).catch((error) =>
         console.warn('Strava route import failed', String(error)),
@@ -132,7 +158,7 @@ async function callback(req: Request): Promise<Response> {
       return backToApp(provider.id, 'denied');
     }
     await storeTokens(state.userId, provider.id, tokens, scopes);
-    if (provider.id === 'strava') await backfillStrava(state.userId);
+    if (provider.id === 'strava') await backfillStrava(state.userId, state.purpose);
     return backToApp(provider.id, 'connected');
   } catch (error) {
     console.error('OAuth exchange failed', provider.id, error);

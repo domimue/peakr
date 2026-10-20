@@ -28,7 +28,7 @@ export function ProfileScreen() {
   const themePreference = useSettingsStore((s) => s.themePreference);
   const setThemePreference = useSettingsStore((s) => s.setThemePreference);
   const { data: stored } = usePlan();
-  const session = useSessionStore((s) => s.session);
+  const session = useSessionStore((s) => (s.isAnonymous ? null : s.session));
   const paused = stored ? activePause(stored.state) !== null : false;
 
   const themeOptions: { value: ThemePreference; label: string }[] = [

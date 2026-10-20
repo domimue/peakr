@@ -16,8 +16,9 @@ export const ACTIVITY_SYNC_TASK = 'peakr-activity-sync';
 TaskManager.defineTask(ACTIVITY_SYNC_TASK, async () => {
   try {
     const session = await supabase?.auth.getSession();
-    const userId = session?.data.session?.user.id;
-    if (userId) await requestSync(userId);
+    const user = session?.data.session?.user;
+    // An anonymous user (quiz before the account exists) has nothing to sync.
+    if (user && !user.is_anonymous) await requestSync(user.id);
     return Notifications.BackgroundNotificationTaskResult.NewData;
   } catch (error) {
     console.warn('Background activity sync failed', error);

@@ -2,6 +2,7 @@ import {
   analyzeRaceResult,
   calculateCss,
   calculateHrZones,
+  effectiveHrInput,
   type CssField,
   type CssResult,
   type HrZone,
@@ -79,8 +80,29 @@ export function resolveTrainingZones(settings: TrainingZoneSettings): ResolvedTr
  */
 export function planHrZones(input: StoredPlanInput | undefined): HrZone[] {
   if (!input) return [];
-  const hr = resolveTrainingZones(zoneSettingsOf(input)).hr;
+  const settings = withBaselineHr(input);
+  // Zones the user set on Strava count as their own, unless they set zones here.
+  if (input.stravaHrZones && Object.keys(settings.overrides.hr).length === 0)
+    return input.stravaHrZones;
+  const hr = resolveTrainingZones(settings).hr;
   return hr?.ok ? hr.value.zones.map(({ custom: _custom, ...zone }) => zone) : [];
+}
+
+/**
+ * Zone settings with gaps filled from the Strava baseline (observed HRmax, LTHR estimate). The
+ * user's own entries win; the baseline values are never written into the settings.
+ */
+export function withBaselineHr(input: StoredPlanInput): TrainingZoneSettings {
+  const settings = zoneSettingsOf(input);
+  const filled = effectiveHrInput(
+    { hrMax: settings.hrMax, lthr: settings.lthr },
+    input.profile.baseline,
+  );
+  return {
+    ...settings,
+    ...(filled.hrMax !== undefined ? { hrMax: filled.hrMax } : {}),
+    ...(filled.lthr !== undefined ? { lthr: filled.lthr } : {}),
+  };
 }
 
 function mapOk<T, U, F extends string>(result: Result<T, F>, fn: (value: T) => U): Result<U, F> {

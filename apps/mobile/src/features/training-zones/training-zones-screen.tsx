@@ -6,10 +6,11 @@ import {
   HR_ZONE_METHODS,
   REFERENCE_RACE_IDS,
   type HrZoneMethod,
+  type PlanBaseline,
   type ReferenceRaceId,
   type ZoneNumber,
 } from '@peakr/engine';
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import {
@@ -23,6 +24,7 @@ import {
   ZoneTable,
 } from '@/ui';
 
+import { useBaselineImport } from '@/features/baseline/screens/baseline-step';
 import { usePlan, usePlanActions } from '@/features/plan/queries';
 
 import { useDurationField, useFieldError, useIntegerField } from './form';
@@ -69,16 +71,60 @@ export function TrainingZonesScreen() {
         cssPacePer100mSec: zones.swim?.ok ? zones.swim.value.cssPacePer100mSec : undefined,
       }),
     ).ok;
-  return <ZonesForm key={stored.id} saved={zoneSettingsOf(stored.input)} onSave={save} />;
+  return (
+    <ZonesForm
+      key={stored.id}
+      saved={zoneSettingsOf(stored.input)}
+      onSave={save}
+      baseline={<BaselineCard baseline={stored.input.profile.baseline} />}
+    />
+  );
+}
+
+/**
+ * Values from the Strava baseline that fill gaps in the fields below (the user's entries win),
+ * and "Recalibrate from recent activities", which runs the same reference-only flow again.
+ */
+function BaselineCard({ baseline }: { baseline: PlanBaseline | undefined }) {
+  const { t } = useTranslation();
+  const { start, busy, error } = useBaselineImport('recalibrate');
+  const facts = [
+    baseline?.hrMax ? t('trainingZones.baseline.hrMax', { value: baseline.hrMax }) : null,
+    baseline?.lthr ? t('trainingZones.baseline.lthr', { value: baseline.lthr }) : null,
+    baseline?.thresholdPaceSecPerKm
+      ? t('trainingZones.baseline.threshold', {
+          pace: formatDuration(baseline.thresholdPaceSecPerKm),
+        })
+      : null,
+  ].filter((x): x is string => x !== null);
+  return (
+    <Card>
+      <Text variant="heading">{t('baseline.recalibrate.title')}</Text>
+      {facts.length > 0 ? (
+        <Text>{t('trainingZones.baseline.used', { values: facts.join(', ') })}</Text>
+      ) : null}
+      <Text variant="caption" tone="secondary">
+        {t('baseline.recalibrate.hint')}
+      </Text>
+      <Button
+        variant="secondary"
+        label={busy ? t('baseline.step.loading') : t('baseline.recalibrate.title')}
+        disabled={busy}
+        onPress={() => void start()}
+      />
+      {error ? <Text tone="danger">{t(error as never)}</Text> : null}
+    </Card>
+  );
 }
 
 interface ZonesFormProps {
+  baseline: ReactNode;
   saved: TrainingZoneSettings;
   /** Returns whether the zones were saved. */
   onSave: (settings: TrainingZoneSettings, zones: ResolvedTrainingZones) => boolean;
 }
 
-function ZonesForm({ saved, onSave }: ZonesFormProps) {
+function ZonesForm({ baseline, saved, onSave }: ZonesFormProps) {
   const { t } = useTranslation();
   const fieldError = useFieldError();
   const { hrRows, paceRows } = useZoneFormat();
@@ -198,6 +244,7 @@ function ZonesForm({ saved, onSave }: ZonesFormProps) {
   return (
     <Screen>
       <Text tone="secondary">{t('trainingZones.intro')}</Text>
+      {baseline}
 
       {/* Heart rate */}
       <Text variant="heading" accessibilityRole="header">

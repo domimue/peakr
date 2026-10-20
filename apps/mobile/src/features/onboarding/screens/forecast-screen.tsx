@@ -1,11 +1,14 @@
-import { calculateHrZones, generatePlan, type PlanNote, type Workout } from '@peakr/engine';
+import { generatePlan, type PlanNote, type Workout } from '@peakr/engine';
 import { buildForecast, prepareAnswers, toPlanInput, type ForecastLine } from '@peakr/quiz';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
+import { useBaselineStore } from '@/features/baseline/baseline-store';
+import { calibrateOnboarding } from '@/features/baseline/calibration';
 import { useSaveStrengthSetup } from '@/features/strength/queries';
+import { planHrZones } from '@/features/training-zones/resolve';
 import { setupFromAnswers } from '@/features/strength/setup-form';
 import {
   Badge,
@@ -47,27 +50,30 @@ export function ForecastScreen() {
   const { t, i18n } = useTranslation();
   const today = useMemo(() => localToday(), []);
   const { hydrated, hydrate, answers: given } = useQuizStore();
+  const baseline = useBaselineStore();
   const saveStrength = useSaveStrengthSetup();
   const saved = useRef(false);
 
   useEffect(() => {
     void hydrate();
+    void useBaselineStore.getState().hydrate();
   }, [hydrate]);
 
+  const { activities, meta } = baseline;
   const result = useMemo(() => {
     const input = toPlanInput(given, today);
     if (!input.ok) return null;
-    const v = input.value;
+    // The Strava baseline (if the user gave one) calibrates levels, week 1, paces and zones.
+    const v = calibrateOnboarding(input.value, { activities, meta }, today);
     const plan = generatePlan(v.profile, v.goal, v.availability, v.startDate, v.targetDate);
     if (!plan.ok) return null;
-    const zones = calculateHrZones(v.hrZones);
     return {
       input: v,
       plan: plan.value,
       forecast: buildForecast(plan.value, v, prepareAnswers(given, today)),
-      hrZones: zones.ok ? zones.value.zones : [],
+      hrZones: planHrZones({ ...v, ...(v.targetDate ? { targetDate: v.targetDate } : {}) }),
     };
-  }, [given, today]);
+  }, [given, today, activities, meta]);
 
   // The strength answers become the saved setup (Profile → Strength edits it).
   useEffect(() => {

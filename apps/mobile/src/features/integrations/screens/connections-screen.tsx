@@ -6,11 +6,13 @@ import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, View } from 'react-native';
 
 import { requestSync } from '@/data/sync/use-background-sync';
-import { useSessionStore } from '@/features/auth/session-store';
+import { selectAccountUserId, useSessionStore } from '@/features/auth/session-store';
+import { usePendingConnect } from '@/features/baseline/pending-connect';
 import { registerPushToken, setActivityAlerts, usePushStore } from '@/features/notifications/push';
 import { Button, Card, Icon, Screen, SegmentedControl, spacing, Text, useTheme } from '@/ui';
 
 import { connect, disconnect, syncStravaNow, type ConnectResult } from '../api';
+import { StravaConnectButton } from '../strava-connect-button';
 import { KomootCard } from './komoot-card';
 import { useIntegrations } from '../queries';
 
@@ -37,7 +39,7 @@ export function ConnectionsScreen({ result }: ConnectionsScreenProps) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const queryClient = useQueryClient();
-  const userId = useSessionStore((s) => s.session?.user.id ?? null);
+  const userId = useSessionStore(selectAccountUserId);
   const { data: integrations, isPending, refetch } = useIntegrations(userId);
   const activityAlerts = usePushStore((s) => s.activityAlerts);
   const pushReady = usePushStore((s) => s.token !== null);
@@ -71,6 +73,8 @@ export function ConnectionsScreen({ result }: ConnectionsScreenProps) {
     setBusy(true);
     setMessage(null);
     try {
+      // A connection from here returns to Connections, not to an abandoned baseline flow.
+      usePendingConnect.getState().set(null);
       const outcome = await connect('strava');
       if (outcome !== 'cancelled') setMessage(resultText(outcome));
       if (outcome === 'connected') {
@@ -190,7 +194,7 @@ export function ConnectionsScreen({ result }: ConnectionsScreenProps) {
           />
         </>
       ) : (
-        <Button
+        <StravaConnectButton
           label={t('connections.connectStrava')}
           disabled={busy || isPending}
           onPress={() => void onConnect()}

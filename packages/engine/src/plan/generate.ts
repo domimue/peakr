@@ -224,7 +224,7 @@ export function generatePlan(
   const athlete = athleteFor(profile, goal.kind);
   const shares = sportShares(goal.kind, profile);
   const capacity = capacityLoad(availability, shares);
-  const startLoad = capacity * cfg.progression.startFraction[profile.experience];
+  const startLoad = initialLoad(profile, capacity);
 
   const notes: PlanNote[] = [];
   if (raceGoal && target === null && !continuation) {
@@ -383,6 +383,17 @@ export function generatePlan(
       profile,
     ),
   };
+}
+
+/**
+ * Week-1 target load: the quiz share of the capacity, or the current weekly load from the
+ * baseline – never below the beginner share and never above the capacity.
+ */
+function initialLoad(profile: UserProfile, capacity: number): number {
+  const fractions = cfg.progression.startFraction;
+  const own = profile.baseline?.startLoad;
+  if (own === undefined) return capacity * fractions[profile.experience];
+  return Math.min(capacity, Math.max(capacity * fractions.beginner, own));
 }
 
 /** All available minutes (capped per day) at Z2, weighted by the sport mix. */

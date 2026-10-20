@@ -25,8 +25,11 @@ export {
   type RaceDistanceId,
   type RacePrediction,
   type ReferenceRaceId,
+  thresholdFromEasyPace,
 } from './run';
 export { calculateCss, type CssField, type CssInput, type CssResult } from './swim';
+export { mad, median, quantile, theilSen, trimmedMean } from './stats';
+export * from './baseline';
 export { paceZonesFromBoundaries, ZONE_NUMBERS, type PaceZone, type ZoneNumber } from './zones';
 export { planConfig, type PlanConfig } from './plan/config';
 export { generatePlan, type PlanContinuation, type PlanField } from './plan/generate';
@@ -118,11 +121,14 @@ export {
   nextLevel,
   progressStrength,
   resumeWeightKg,
+  sportExperience,
+  startLevel,
   type SessionOutcome,
 } from './plan/levels';
 export {
   estimateBikeDurationSec,
   estimateRunDurationSec,
+  gainPaceFactor,
   gradeAdjustedPaceFactor,
   minettiCost,
   perKmPacePlan,

@@ -177,9 +177,10 @@ refresh_token_reuse_interval = 10
 # Allow/disallow new user signups to your project.
 enable_signup = true
 # Allow/disallow anonymous sign-ins to your project.
-enable_anonymous_sign_ins = false
-# Allow/disallow testing manual linking of accounts
-enable_manual_linking = false
+enable_anonymous_sign_ins = true
+# Allow/disallow testing manual linking of accounts. On: an anonymous quiz user becomes the real
+# account via `linkIdentity` (Google) at sign-in, keeping its Strava baseline (Phase 8a).
+enable_manual_linking = true
 # Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.
 minimum_password_length = 6
 # Passwords that do not meet the following requirements will be rejected as weak. Supported values
@@ -420,6 +421,10 @@ verify_jwt = false
 
 # Account deletion: checks the user JWT itself (like the functions above).
 [functions.delete-account]
+verify_jwt = false
+
+# Baseline import for plan calibration: checks the user JWT itself (anonymous sessions too).
+[functions.strava-baseline]
 verify_jwt = false
 
 [analytics]

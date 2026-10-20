@@ -4,15 +4,23 @@ import * as Network from 'expo-network';
 import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 
+import { setReconnectHint } from '@/data/repositories/baseline-repository';
 import { supabase } from '@/data/supabase';
 import { clearAllLocalData, clearSyncedData } from '@/data/sync/sync-repository';
 import { requestSync, useSyncStore } from '@/data/sync/use-background-sync';
 import { unregisterPushToken, usePushStore } from '@/features/notifications/push';
 
+import { useSessionStore } from './session-store';
+
 /**
  * Sign-in methods: email magic link (with a 6-digit code as fallback), Google and Sign in with
  * Apple. Every redirect comes back to peakr://auth/callback (allowed in Supabase → Auth → URL
  * configuration). Errors are thrown; the screens show a generic message.
+ *
+ * When the quiz created an anonymous user (e.g. to connect Strava), signing in converts that user
+ * into the account – same user id, so whatever it connected carries over: the email is added with
+ * `updateUser`, Google and Apple are linked with `linkIdentity`. If the email or identity already
+ * belongs to an account, the anonymous user is deleted and the normal sign-in follows.
  */
 
 export const authCallbackUrl = () => Linking.createURL('auth/callback');
@@ -22,46 +30,110 @@ function client() {
   return supabase;
 }
 
-export async function sendMagicLink(email: string): Promise<void> {
+const isAnonymous = () => useSessionStore.getState().isAnonymous;
+
+const errorCode = (error: unknown) => (error as { code?: unknown } | null)?.code;
+
+/**
+ * The anonymous quiz user cannot become the account (its email or identity is taken): delete it on
+ * the server (Edge Function `delete-account`, also revokes a Strava connection), forget it on this
+ * device and remember to ask for Strava again. Local data (the plan) stays and moves into the
+ * account on the first sync.
+ */
+async function discardAnonymousUser(): Promise<void> {
+  const { error } = await client().functions.invoke('delete-account', { body: {} });
+  if (error) throw error;
+  await client().auth.signOut({ scope: 'local' });
+  // Without waiting for the auth listener: the sign-in that follows must not link again.
+  useSessionStore.setState({ session: null, isAnonymous: false });
+  await setReconnectHint();
+}
+
+/**
+ * 'signIn': a sign-in link (+ code) went out. 'convert': an anonymous user is getting this email –
+ * the link (+ code) confirms the email change and turns it into the account.
+ */
+export type EmailFlow = 'signIn' | 'convert';
+
+export async function sendMagicLink(email: string): Promise<EmailFlow> {
+  const address = email.trim().toLowerCase();
+  const emailRedirectTo = authCallbackUrl();
+  if (isAnonymous()) {
+    const { error } = await client().auth.updateUser({ email: address }, { emailRedirectTo });
+    if (!error) return 'convert';
+    if (errorCode(error) !== 'email_exists') throw error;
+    await discardAnonymousUser();
+  }
   const { error } = await client().auth.signInWithOtp({
-    email: email.trim().toLowerCase(),
-    options: { emailRedirectTo: authCallbackUrl(), shouldCreateUser: true },
+    email: address,
+    options: { emailRedirectTo, shouldCreateUser: true },
   });
   if (error) throw error;
+  return 'signIn';
 }
 
 /** The code from the same email, for when the link opens on another device or browser. */
-export async function verifyEmailCode(email: string, code: string): Promise<void> {
+export async function verifyEmailCode(
+  email: string,
+  code: string,
+  flow: EmailFlow = 'signIn',
+): Promise<void> {
   const { error } = await client().auth.verifyOtp({
     email: email.trim().toLowerCase(),
     token: code.trim(),
-    type: 'email',
+    type: flow === 'convert' ? 'email_change' : 'email',
   });
   if (error) throw error;
 }
 
-/** Completes a magic-link or OAuth redirect (`?code=…`, PKCE). */
+/** Completes a magic-link, email-change or OAuth redirect (`?code=…`, PKCE). */
 export async function completeSignIn(code: string): Promise<void> {
   const auth = client().auth;
   const { error } = await auth.exchangeCodeForSession(code);
+  if (!error) return;
   // The auth browser and the deep-link route can both deliver the same code; one of them wins.
-  if (error && !(await auth.getSession()).data.session) throw error;
+  // An anonymous session that is still there means the conversion did not happen.
+  const { session } = (await auth.getSession()).data;
+  if (!session || session.user.is_anonymous) throw error;
 }
 
-/** Google via Supabase's OAuth flow in an auth browser session. Returns false when cancelled. */
+/** Query and fragment parameters of a redirect URL (an error can arrive in either). */
+function redirectParams(url: string): Record<string, string> {
+  const params: Record<string, string> = {};
+  const [beforeHash = '', hash = ''] = url.split('#', 2);
+  const queryStart = beforeHash.indexOf('?');
+  const query = queryStart >= 0 ? beforeHash.slice(queryStart + 1) : '';
+  for (const pair of `${query}&${hash}`.split('&')) {
+    if (!pair) continue;
+    const [key = '', value = ''] = pair.split('=', 2);
+    params[decodeURIComponent(key)] = decodeURIComponent(value.replace(/\+/g, ' '));
+  }
+  return params;
+}
+
+/**
+ * Google via Supabase's OAuth flow in an auth browser session – linked to the anonymous quiz user
+ * when there is one. Returns false when cancelled.
+ */
 export async function signInWithGoogle(): Promise<boolean> {
   const redirectTo = authCallbackUrl();
-  const { data, error } = await client().auth.signInWithOAuth({
-    provider: 'google',
-    options: { redirectTo, skipBrowserRedirect: true },
-  });
+  const auth = client().auth;
+  const options = { redirectTo, skipBrowserRedirect: true };
+  const link = isAnonymous();
+  const { data, error } = link
+    ? await auth.linkIdentity({ provider: 'google', options })
+    : await auth.signInWithOAuth({ provider: 'google', options });
   if (error) throw error;
   const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo);
   if (result.type !== 'success') return false;
-  const { queryParams } = Linking.parse(result.url);
-  const code = typeof queryParams?.code === 'string' ? queryParams.code : null;
-  if (!code) throw new Error(String(queryParams?.error_description ?? 'No code returned'));
-  await completeSignIn(code);
+  const params = redirectParams(result.url);
+  if (link && params.error_code === 'identity_already_exists') {
+    // The Google account already has a Peakr account: sign in to that one instead.
+    await discardAnonymousUser();
+    return signInWithGoogle();
+  }
+  if (!params.code) throw new Error(params.error_description ?? 'No code returned');
+  await completeSignIn(params.code);
   return true;
 }
 
@@ -81,10 +153,15 @@ export async function signInWithApple(): Promise<boolean> {
       ],
     });
     if (!credential.identityToken) throw new Error('No identity token from Apple');
-    const { error } = await client().auth.signInWithIdToken({
-      provider: 'apple',
-      token: credential.identityToken,
-    });
+    const auth = client().auth;
+    const token = { provider: 'apple', token: credential.identityToken } as const;
+    if (isAnonymous()) {
+      const { error } = await auth.linkIdentity(token);
+      if (!error) return true;
+      if (errorCode(error) !== 'identity_already_exists') throw error;
+      await discardAnonymousUser();
+    }
+    const { error } = await auth.signInWithIdToken(token);
     if (error) throw error;
     return true;
   } catch (error) {

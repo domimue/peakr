@@ -1,6 +1,7 @@
 import * as Linking from 'expo-linking';
 import * as WebBrowser from 'expo-web-browser';
 
+import { clearBaseline } from '@/data/repositories/baseline-repository';
 import { supabase } from '@/data/supabase';
 
 /**
@@ -25,9 +26,13 @@ export function statusFromUrl(url: string): ConnectResult {
   return status === 'connected' || status === 'denied' ? status : 'error';
 }
 
-export async function connect(provider: Provider): Promise<ConnectResult> {
+/**
+ * `purpose: 'baseline'` connects from the plan calibration (onboarding): the server then skips
+ * the usual import of the last 14 days, so nothing becomes training history before a plan exists.
+ */
+export async function connect(provider: Provider, purpose?: 'baseline'): Promise<ConnectResult> {
   const { data, error } = await client().functions.invoke<{ url: string }>('oauth/start', {
-    body: { provider },
+    body: purpose ? { provider, purpose } : { provider },
   });
   if (error || !data?.url) return 'error';
   const result = await WebBrowser.openAuthSessionAsync(
@@ -37,9 +42,13 @@ export async function connect(provider: Provider): Promise<ConnectResult> {
   return result.type === 'success' ? statusFromUrl(result.url) : 'cancelled';
 }
 
-/** Revokes access at the provider and deletes tokens and imported data on the server. */
+/**
+ * Revokes access at the provider and deletes tokens and imported data on the server – the
+ * baseline included, which is removed from this device too.
+ */
 export async function disconnect(provider: Provider): Promise<boolean> {
   const { error } = await client().functions.invoke('oauth/disconnect', { body: { provider } });
+  if (!error) await clearBaseline();
   return !error;
 }
 

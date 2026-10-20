@@ -76,7 +76,8 @@ export function CheckRow({ label, checked, onChange }: CheckRowProps) {
   );
 }
 
-function CheckBox({ checked }: { checked: boolean }) {
+/** The check mark box on its own (custom rows). */
+export function CheckBox({ checked }: { checked: boolean }) {
   const { colors } = useTheme();
   return (
     <View

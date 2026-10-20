@@ -158,6 +158,14 @@ export function usePlanActions() {
       const input = { ...stored.input, profile };
       return commit(regeneratePlan(stored.state, input, today), input);
     },
+    /**
+     * "Recalibrate from recent activities": new baseline values, the remaining weeks are generated
+     * again. Completed weeks stay, and progress made in the plan (levels, load) keeps priority.
+     */
+    recalibrate(input: StoredPlanInput): Edit {
+      if (!stored) return missing;
+      return commit(regeneratePlan(stored.state, input, today), input);
+    },
     /** "Reset week": manual moves of the week go back to the plan's days. */
     resetWeek(weekStart: string): Edit {
       if (!stored) return missing;

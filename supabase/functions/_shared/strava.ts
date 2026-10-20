@@ -123,7 +123,8 @@ export async function accessToken(
   return tokens.accessToken;
 }
 
-async function get<T>(token: string, path: string): Promise<T> {
+/** GET against the Strava API; non-2xx responses throw a `StravaError` with the status. */
+export async function stravaGet<T>(token: string, path: string): Promise<T> {
   const response = await fetch(`${API}${path}`, { headers: { Authorization: `Bearer ${token}` } });
   if (!response.ok) {
     throw new StravaError(
@@ -232,7 +233,7 @@ export async function importStreams(
   externalId: string,
 ): Promise<boolean> {
   try {
-    const streams = await get<StravaStreams>(
+    const streams = await stravaGet<StravaStreams>(
       token,
       `/activities/${encodeURIComponent(externalId)}/streams?keys=${STREAM_KEYS}&key_by_type=true`,
     );
@@ -304,7 +305,10 @@ export async function importActivity(
   const token = await accessToken(admin, integration);
   let activity: StravaActivity;
   try {
-    activity = await get<StravaActivity>(token, `/activities/${encodeURIComponent(activityId)}`);
+    activity = await stravaGet<StravaActivity>(
+      token,
+      `/activities/${encodeURIComponent(activityId)}`,
+    );
   } catch (e) {
     // Deleted in the meantime, or private and not covered by the granted scope.
     if (e instanceof StravaError && (e.status === 404 || e.status === 403)) {
@@ -361,7 +365,7 @@ export async function importSince(
   let stored = 0;
   const outdoor: string[] = [];
   for (let page = 1; page <= maxPages; page++) {
-    const list = await get<StravaActivity[]>(
+    const list = await stravaGet<StravaActivity[]>(
       token,
       `/athlete/activities?after=${after}&per_page=100&page=${page}`,
     );
@@ -418,7 +422,7 @@ export async function importStravaRoutes(
   const listed: StravaRouteRow[] = [];
   let complete = false;
   for (let page = 1; page <= ROUTE_PAGES; page++) {
-    const list = await get<StravaRoute[]>(
+    const list = await stravaGet<StravaRoute[]>(
       token,
       `/athletes/${encodeURIComponent(athleteId)}/routes?per_page=${ROUTES_PER_PAGE}&page=${page}`,
     );
@@ -488,6 +492,7 @@ export async function importStravaRoutes(
 /**
  * Disconnect, deauthorisation at Strava, account deletion: removes Strava's data. Activities,
  * their streams and Strava routes become tombstones without any data, so the user's devices delete them too.
+ * The baseline (reference-only, never synced to devices) is deleted outright.
  */
 export async function removeStravaData(admin: SupabaseClient, userId: string): Promise<void> {
   const { error } = await admin
@@ -504,7 +509,16 @@ export async function removeStravaData(admin: SupabaseClient, userId: string): P
     .eq('user_id', userId)
     .eq('deleted', false);
   if (routeError) throw routeError;
+  await removeBaseline(admin, userId);
   await admin.from('integrations').delete().eq('user_id', userId).eq('provider', 'strava');
+}
+
+/** Deletes the user's baseline activities and import record (CLAUDE.md "Baseline …"). */
+export async function removeBaseline(admin: SupabaseClient, userId: string): Promise<void> {
+  for (const table of ['baseline_activities', 'baseline_imports']) {
+    const { error } = await admin.from(table).delete().eq('user_id', userId);
+    if (error) throw error;
+  }
 }
 
 /** Revokes the token at Strava (best effort) – used before removing the data. */

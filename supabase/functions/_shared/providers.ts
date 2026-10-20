@@ -74,7 +74,8 @@ const strava: OAuthProvider = {
       response_type: 'code',
       approval_prompt: 'auto',
       // read_all: private routes too (athletes who connected before only get public ones).
-      scope: 'read,read_all,activity:read_all',
+      // profile:read_all: the athlete's HR zones for the baseline (plan calibration).
+      scope: 'read,read_all,activity:read_all,profile:read_all',
       state,
     }).toString();
     return url.toString();

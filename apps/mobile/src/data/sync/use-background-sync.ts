@@ -4,6 +4,9 @@ import { useEffect } from 'react';
 import { AppState } from 'react-native';
 import { create } from 'zustand';
 
+import { selectAccountUserId, useSessionStore } from '@/features/auth/session-store';
+import { dropRevokedBaseline } from '@/features/baseline/api';
+
 import { processNewActivities } from '../activities/process';
 import { supabase } from '../supabase';
 import { onLocalChange } from './changes';
@@ -60,6 +63,7 @@ export async function requestSync(userId: string): Promise<boolean> {
         // rebalance the week, then announce them.
         const notices = await processNewActivities();
         changed ||= notices.length > 0;
+        await dropRevokedBaseline().catch((e: unknown) => console.warn('Baseline check failed', e));
         useSyncStore.setState({ status: 'idle', lastSyncedAt: Date.now(), error: null });
       } catch (error) {
         console.warn('Sync failed', error);
@@ -76,10 +80,12 @@ export async function requestSync(userId: string): Promise<boolean> {
 
 /**
  * Background sync while a user is signed in: on sign-in, when the app comes to the foreground,
- * when the network comes back, shortly after local edits and every few minutes.
+ * when the network comes back, shortly after local edits and every few minutes. An anonymous
+ * user (quiz before the account exists) does not sync – the plan moves into the account later.
  */
-export function useBackgroundSync(userId: string | null): void {
+export function useBackgroundSync(): void {
   const queryClient = useQueryClient();
+  const userId = useSessionStore(selectAccountUserId);
 
   useEffect(() => {
     if (!userId || !supabase) return;

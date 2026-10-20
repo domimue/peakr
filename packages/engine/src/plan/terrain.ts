@@ -20,6 +20,16 @@ export function gradeAdjustedPaceFactor(gradient: number): number {
   return Math.max(minettiCost(gradient) / minettiCost(0), 1 - cfg.downhillMaxSpeedup);
 }
 
+/**
+ * Pace factor of a whole run from its gain per km only (no elevation profile): the gain is spread
+ * over the uphill half of each km, the same amount comes down again. Divide the actual pace by it
+ * to get the flat-equivalent (grade-adjusted) pace.
+ */
+export function gainPaceFactor(gainPerKm: number): number {
+  const g = Math.max(0, gainPerKm) / 500;
+  return (gradeAdjustedPaceFactor(g) + gradeAdjustedPaceFactor(-g)) / 2;
+}
+
 export interface ElevationPoint {
   distanceM: number;
   elevationM: number;
@@ -138,9 +148,7 @@ export function planSessionTerrain(
 
   let distanceKm: number;
   if (sport === 'run') {
-    const g = gainPerKm / 500; // gain is spread over the uphill half of each km
-    const factor = (gradeAdjustedPaceFactor(g) + gradeAdjustedPaceFactor(-g)) / 2;
-    distanceKm = (durationMin * 60) / (easyPaceSecPerKm * factor);
+    distanceKm = (durationMin * 60) / (easyPaceSecPerKm * gainPaceFactor(gainPerKm));
   } else {
     const speed = planConfig.paces.bikeFlatSpeedKmh[profile.experience];
     const hoursPerKm = 1 / speed + (gainPerKm / 100) * (cfg.bikeMinPer100mGain / 60);

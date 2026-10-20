@@ -8,6 +8,7 @@ import { renderWithQuery } from '@/test-utils/render-with-query';
 import { TrainingZonesScreen } from '../training-zones-screen';
 
 jest.mock('@/data/repositories/plan-repository');
+jest.mock('@/data/repositories/baseline-repository');
 
 const mock = repo as unknown as typeof import('@/data/repositories/__mocks__/plan-repository');
 
