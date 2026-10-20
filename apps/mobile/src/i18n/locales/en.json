@@ -2365,7 +2365,6 @@
       "title": "Make my plan more accurate",
       "body": "Connect Strava and Peakr starts your plan from your recent training – your weekly volume, easy pace and heart rate – instead of estimates.",
       "privacy": "Peakr reads only runs, rides and swims from the last 60 days, nothing older. They are used for your own plan only and never to train AI.",
-      "connect": "Connect Strava",
       "loading": "Reading your last 60 days…",
       "skip": "Skip",
       "used_one": "{{count}} activity from the last 60 days calibrates your plan.",
@@ -2441,6 +2440,7 @@
     "recalibrate": {
       "title": "Recalibrate from recent activities",
       "hint": "Reads your last 60 days on Strava again. Reference only – nothing is added to your history."
-    }
+    },
+    "back": "Back"
   }
 }

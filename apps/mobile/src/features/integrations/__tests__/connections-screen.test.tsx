@@ -48,7 +48,8 @@ describe('Connections', () => {
     signIn();
     await renderWithQuery(<ConnectionsScreen />);
     expect(screen.getByText('Not connected')).toBeOnTheScreen();
-    expect(screen.getByText('Connect with Strava')).toBeOnTheScreen();
+    // The official Strava button (an image) with its accessible name.
+    expect(screen.getByRole('button', { name: 'Connect with Strava' })).toBeOnTheScreen();
     expect(
       screen.getByText(/never shown to anyone else and never used to train AI/),
     ).toBeOnTheScreen();
