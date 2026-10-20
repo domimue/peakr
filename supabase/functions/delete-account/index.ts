@@ -21,7 +21,15 @@ import { adminClient, json, userFromRequest } from '../_shared/supabase.ts';
 type Admin = ReturnType<typeof adminClient>;
 
 /** Child tables before their parents; `profiles` is keyed by `id`, all others by `user_id`. */
-const USER_TABLES = ['activities', 'workouts', 'plans', 'routes', 'push_tokens'] as const;
+const USER_TABLES = [
+  'activity_streams',
+  'strava_routes',
+  'activities',
+  'workouts',
+  'plans',
+  'routes',
+  'push_tokens',
+] as const;
 
 async function revokeIntegrations(admin: Admin, userId: string): Promise<void> {
   const { data, error } = await admin

@@ -73,7 +73,8 @@ const strava: OAuthProvider = {
       redirect_uri: redirectUri,
       response_type: 'code',
       approval_prompt: 'auto',
-      scope: 'read,activity:read_all',
+      // read_all: private routes too (athletes who connected before only get public ones).
+      scope: 'read,read_all,activity:read_all',
       state,
     }).toString();
     return url.toString();
