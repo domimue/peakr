@@ -11,7 +11,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import * as routeRepo from '@/data/repositories/route-repository';
 import { requestSync } from '@/data/sync/use-background-sync';
-import { useSessionStore } from '@/features/auth/session-store';
+import { selectAccountUserId, useSessionStore } from '@/features/auth/session-store';
 import { useActivityRecords } from '@/features/activities/queries';
 import { fetchStravaStreams, importStravaHistory } from '@/features/integrations/api';
 import { Button, ListState, radius, Screen, spacing, Text, useTheme } from '@/ui';
@@ -32,7 +32,7 @@ const sourceOf = (key: string) => key.slice(0, key.indexOf(':')) as ActivitySour
 export function RouteRecogniseScreen() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const userId = useSessionStore((s) => s.session?.user.id ?? null);
+  const userId = useSessionStore(selectAccountUserId);
   const { data: records, isPending } = useActivityRecords();
   const { data: library } = useRoutes();
   const save = useSaveRoute();

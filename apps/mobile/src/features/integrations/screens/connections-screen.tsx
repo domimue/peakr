@@ -6,7 +6,7 @@ import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, View } from 'react-native';
 
 import { requestSync } from '@/data/sync/use-background-sync';
-import { useSessionStore } from '@/features/auth/session-store';
+import { selectAccountUserId, useSessionStore } from '@/features/auth/session-store';
 import { registerPushToken, setActivityAlerts, usePushStore } from '@/features/notifications/push';
 import { Button, Card, Icon, Screen, SegmentedControl, spacing, Text, useTheme } from '@/ui';
 
@@ -37,7 +37,7 @@ export function ConnectionsScreen({ result }: ConnectionsScreenProps) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const queryClient = useQueryClient();
-  const userId = useSessionStore((s) => s.session?.user.id ?? null);
+  const userId = useSessionStore(selectAccountUserId);
   const { data: integrations, isPending, refetch } = useIntegrations(userId);
   const activityAlerts = usePushStore((s) => s.activityAlerts);
   const pushReady = usePushStore((s) => s.token !== null);
