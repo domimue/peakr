@@ -12,11 +12,16 @@ import { renderWithQuery } from '@/test-utils/render-with-query';
 import { usePlanUiStore } from '../plan-ui-store';
 import { AvailabilityScreen } from '../screens/availability-screen';
 import { PauseScreen } from '../screens/pause-screen';
-import { CalendarScreen } from '../screens/calendar-screen';
 import { PlanScreen } from '../screens/plan-screen';
 import { WorkoutScreen } from '../screens/workout-screen';
 import { ProgressScreen } from '../../progress/progress-screen';
 import { TodayScreen } from '../../today/today-screen';
+
+/** The Plan tab with its calendar view selected. */
+function renderCalendar() {
+  usePlanUiStore.setState({ view: 'calendar' });
+  return renderWithQuery(<PlanScreen />);
+}
 
 jest.mock('@/data/repositories/plan-repository');
 jest.mock('@/data/repositories/activity-repository');
@@ -66,7 +71,7 @@ const state = () => {
 beforeEach(() => {
   mock.resetStore();
   activityMock.resetStore();
-  usePlanUiStore.setState({ weekStart: null, feedback: null });
+  usePlanUiStore.setState({ view: 'weeks', weekStart: null, feedback: null });
   setToday('2026-10-19');
   jest.spyOn(router, 'push').mockImplementation(() => undefined);
   jest.spyOn(router, 'back').mockImplementation(() => undefined);
@@ -109,12 +114,26 @@ describe('Plan tab', () => {
       within(screen.getByTestId('week-1-day-2026-10-30')).getByText('Rest day'),
     ).toBeOnTheScreen();
 
-    await fireEvent.press(screen.getAllByText('Open in calendar')[1] as never);
-    expect(usePlanUiStore.getState().weekStart).toBe('2026-10-26');
-    expect(router.push).toHaveBeenCalledWith('/calendar');
-
     await fireEvent.press(screen.getByTestId('week-toggle-0'));
     expect(screen.queryByTestId('week-0-day-2026-10-19')).toBeNull();
+
+    // "Open in calendar" switches the Plan tab to its calendar view at that week.
+    // Week 1 is the only open week now.
+    await fireEvent.press(screen.getByText('Open in calendar'));
+    expect(usePlanUiStore.getState()).toMatchObject({ view: 'calendar', weekStart: '2026-10-26' });
+    expect(await screen.findByTestId('calendar-week-1')).toBeOnTheScreen();
+    expect(screen.queryByTestId('calendar-week-0')).toBeNull();
+  });
+
+  it('the segmented control switches between weeks and calendar', async () => {
+    storePlan();
+    await renderWithQuery(<PlanScreen />);
+    expect(await screen.findByTestId('week-progress-0')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByRole('radio', { name: 'Calendar' }));
+    expect(await screen.findByTestId('calendar-week-0')).toBeOnTheScreen();
+    expect(screen.queryByTestId('week-progress-0')).toBeNull();
+    await fireEvent.press(screen.getByRole('radio', { name: 'Weeks' }));
+    expect(await screen.findByTestId('week-progress-0')).toBeOnTheScreen();
   });
 
   it('ticks a week when every session is done or skipped', async () => {
@@ -133,10 +152,10 @@ describe('Plan tab', () => {
   });
 });
 
-describe('Calendar tab', () => {
+describe('Plan → Calendar', () => {
   it('weeks as sections with totals, days with typed chips; pages weeks', async () => {
     storePlan();
-    await renderWithQuery(<CalendarScreen />);
+    await renderCalendar();
     expect(await screen.findByText('Oct 19 – Oct 25')).toBeOnTheScreen();
     expect(screen.getByText('Week 1 of 17 · Base')).toBeOnTheScreen();
     expect(screen.getByTestId('calendar-week-0')).toBeOnTheScreen();
@@ -166,7 +185,7 @@ describe('Calendar tab', () => {
 
   it('empty days offer "add"', async () => {
     storePlan();
-    await renderWithQuery(<CalendarScreen />);
+    await renderCalendar();
     // Friday has no available time in this plan.
     await fireEvent.press(await screen.findByLabelText('Add a session on Friday, October 23'));
     expect(router.push).toHaveBeenCalledWith('/coming-soon/addSession');
@@ -179,7 +198,7 @@ describe('Calendar tab', () => {
     await waitFor(() => expect(findWorkout(state().plan, '2026-10-28-1')?.date).toBe('2026-10-27'));
 
     usePlanUiStore.setState({ weekStart: '2026-10-26', feedback: null });
-    await renderWithQuery(<CalendarScreen />);
+    await renderCalendar();
     await fireEvent.press(await screen.findByText('Reset week'));
     await waitFor(() => expect(findWorkout(state().plan, '2026-10-28-1')?.date).toBe('2026-10-28'));
     expect(findWorkout(state().plan, '2026-10-28-1')?.originalDate).toBeUndefined();
@@ -187,7 +206,7 @@ describe('Calendar tab', () => {
 
   it('"this week is different" opens for that week', async () => {
     storePlan();
-    await renderWithQuery(<CalendarScreen />);
+    await renderCalendar();
     await fireEvent.press((await screen.findAllByText('This week is different'))[0] as never);
     expect(router.push).toHaveBeenCalledWith('/training/week?start=2026-10-19');
   });
@@ -219,7 +238,8 @@ describe('Today tab', () => {
     await renderWithQuery(<TodayScreen />);
     expect(await screen.findByText('Rest day')).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('See this week'));
-    expect(router.push).toHaveBeenCalledWith('/calendar');
+    expect(router.push).toHaveBeenCalledWith('/plan');
+    expect(usePlanUiStore.getState().view).toBe('calendar');
   });
 
   it('before the plan starts it names the start date', async () => {
@@ -281,7 +301,7 @@ describe('moving a workout', () => {
     expect(findWorkout(state().plan, '2026-10-28-1')?.date).toBe('2026-10-27');
     expect(findWorkout(state().plan, '2026-10-27-1')?.date).toBe('2026-10-27');
 
-    await renderWithQuery(<CalendarScreen />);
+    await renderCalendar();
     expect(await screen.findByText('Moved to Tuesday, Oct 27.')).toBeOnTheScreen();
     expect(
       screen.getByText('Suggestion to keep your week balanced: Strength to Wednesday, Oct 28.'),
@@ -297,7 +317,7 @@ describe('moving a workout', () => {
     await fireEvent.press(await screen.findByText('Mon, Oct 26'));
     await waitFor(() => expect(router.back).toHaveBeenCalled());
 
-    await renderWithQuery(<CalendarScreen />);
+    await renderCalendar();
     expect(await screen.findByText(/^Two hard days in a row/)).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('Make the other day easier'));
     await waitFor(() =>
@@ -313,7 +333,7 @@ describe('moving a workout', () => {
     storePlan();
     await renderWithQuery(<WorkoutScreen id="2026-10-27-1" startMoving />);
     await fireEvent.press(await screen.findByText('Mon, Oct 26'));
-    await renderWithQuery(<CalendarScreen />);
+    await renderCalendar();
     await fireEvent.press(await screen.findByLabelText('Close'));
     expect(usePlanUiStore.getState().feedback).toBeNull();
     expect(findWorkout(state().plan, '2026-10-25-1')?.hard).toBe(true);
@@ -509,7 +529,7 @@ describe('pause and resume', () => {
     };
     await renderWithQuery(<TodayScreen />);
     expect(await screen.findByText('Plan paused since October 21 (Holiday).')).toBeOnTheScreen();
-    await renderWithQuery(<CalendarScreen />);
+    await renderCalendar();
     expect((await screen.findAllByText('Paused')).length).toBeGreaterThan(0);
   });
 });

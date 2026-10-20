@@ -1,4 +1,5 @@
-# Calendar tab: move a workout to another day by drag & drop (Phase 5, tabs since Phase 5c).
+# Plan → Calendar: move a workout to another day by drag & drop (Phase 5; a view of the Plan tab
+# since Phase 5c).
 #
 # Runs against a development build (the plan comes from Profile → Plan preview → "Use as my plan",
 # which only exists in __DEV__ builds) with Metro running:
@@ -46,7 +47,8 @@ env:
     element: Plan preview \(dev\)
 - tapOn: Plan preview \(dev\)
 - tapOn: Use as my plan
-# The preview opens the Calendar tab; tap it anyway in case the tab bar kept another tab.
+# The preview opens Plan → Calendar; select both anyway in case the tab bar kept another tab.
+- tapOn: Plan
 - tapOn: Calendar
 - extendedWaitUntil:
     visible:

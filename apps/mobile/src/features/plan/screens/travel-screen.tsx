@@ -10,7 +10,7 @@ import { Button, Card, CheckRow, Screen, Text, useTheme } from '@/ui';
 import { QuestionInput } from '../../onboarding/question-input';
 import { addDays, formatDate } from '../calendar';
 import { usePlan, usePlanActions } from '../queries';
-import { issueText } from './plan-screen';
+import { issueText } from '../issue-text';
 
 const START: DateQuestion = {
   id: 'travel.start',

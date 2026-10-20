@@ -91,7 +91,7 @@ export function TodayScreen() {
         state={state}
         onSelectDay={() => {
           showWeek(monday);
-          router.push('/calendar');
+          router.push('/plan');
         }}
       />
       <WeatherChip />
@@ -192,7 +192,7 @@ export function TodayScreen() {
           icon="calendar"
           onPress={() => {
             showWeek(monday);
-            router.push('/calendar');
+            router.push('/plan');
           }}
         />
       )}

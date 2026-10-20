@@ -15,7 +15,7 @@ import { Button, Card, Screen, Text, useTheme } from '@/ui';
 
 import { QuestionInput } from '../../onboarding/question-input';
 import { usePlan, usePlanActions } from '../queries';
-import { issueText } from './plan-screen';
+import { issueText } from '../issue-text';
 
 const Q = QUESTION_IDS;
 const QUESTIONS = onboardingQuestions.filter((q) => q.id === Q.availability || q.id === Q.doubles);

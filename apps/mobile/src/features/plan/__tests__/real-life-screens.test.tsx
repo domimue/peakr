@@ -10,11 +10,16 @@ import { renderWithQuery } from '@/test-utils/render-with-query';
 import { usePlanUiStore } from '../plan-ui-store';
 import { CommutesScreen } from '../screens/commutes-screen';
 import { TodayScreen } from '../../today/today-screen';
-import { CalendarScreen } from '../screens/calendar-screen';
 import { PlanScreen } from '../screens/plan-screen';
 import { TravelScreen } from '../screens/travel-screen';
 import { WeekScreen } from '../screens/week-screen';
 import { WinterScreen } from '../screens/winter-screen';
+
+/** The Plan tab with its calendar view selected. */
+function renderCalendar() {
+  usePlanUiStore.setState({ view: 'calendar' });
+  return renderWithQuery(<PlanScreen />);
+}
 
 jest.mock('@/data/repositories/plan-repository');
 
@@ -55,7 +60,7 @@ const stored = () => {
 
 beforeEach(() => {
   mock.resetStore();
-  usePlanUiStore.setState({ weekStart: null, feedback: null });
+  usePlanUiStore.setState({ view: 'weeks', weekStart: null, feedback: null });
   jest.spyOn(ids, 'todayIso').mockReturnValue('2026-10-19');
   jest.spyOn(router, 'push').mockImplementation(() => undefined);
   jest.spyOn(router, 'back').mockImplementation(() => undefined);
@@ -134,7 +139,7 @@ describe('this week is different', () => {
     expect(later(stored().state.plan)).toEqual(later(before));
 
     usePlanUiStore.setState({ weekStart: '2026-10-26' });
-    await renderWithQuery(<CalendarScreen />);
+    await renderCalendar();
     expect(await screen.findByText('Different week')).toBeOnTheScreen();
   });
 

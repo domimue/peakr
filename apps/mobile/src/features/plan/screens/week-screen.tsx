@@ -11,7 +11,7 @@ import { Button, Card, CheckList, Screen, Text, useTheme } from '@/ui';
 import { QuestionInput } from '../../onboarding/question-input';
 import { addDays, formatDate, mondayOf, weekDates } from '../calendar';
 import { usePlan, usePlanActions } from '../queries';
-import { issueText } from './plan-screen';
+import { issueText } from '../issue-text';
 
 const MINUTES: WeekMinutesQuestion = {
   id: 'week.minutes',

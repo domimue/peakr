@@ -12,71 +12,42 @@ import { useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { todayIso } from '@/data/ids';
-import { Badge, Button, Card, Icon, IconButton, ListState, spacing, Text, useTheme } from '@/ui';
+import type { StoredPlan } from '@/data/repositories/plan-repository';
+import { Badge, Button, Card, Icon, IconButton, spacing, Text, useTheme } from '@/ui';
 
 import { addDays, formatDate, initialWeek } from '../calendar';
-import { MoveFeedbackCard } from '../components/move-feedback';
-import { WeekView } from '../components/week-view';
+import { MoveFeedbackCard } from './move-feedback';
+import { WeekView } from './week-view';
+import { issueText } from '../issue-text';
 import { usePlanUiStore } from '../plan-ui-store';
-import { usePlan, usePlanActions } from '../queries';
-import { issueText } from './plan-screen';
+import { usePlanActions } from '../queries';
 
 /** Weeks shown at once; the arrows page by one week. */
 const WEEKS_SHOWN = 4;
 
 const workoutHref = (id: string) => `/training/workout/${encodeURIComponent(id)}` as const;
 
+interface CalendarViewProps {
+  stored: StoredPlan;
+  /** Title and view switch of the Plan tab; scrolls with the calendar. */
+  header: ReactNode;
+}
+
 /**
- * The Calendar tab: weeks as sections with their totals, one row per day, compact session chips in
+ * Plan → Calendar: weeks as sections with their totals, one row per day, compact session chips in
  * the type colour, "add" on empty days, drag & drop to move a session (the engine only warns) and
  * "reset week" to undo manual moves.
  */
-export function CalendarScreen() {
+export function CalendarView({ stored, header }: CalendarViewProps) {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const { data: stored, isPending, isError, refetch } = usePlan();
   const actions = usePlanActions();
   const { weekStart, feedback, showWeek, setFeedback } = usePlanUiStore();
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const today = todayIso();
-
-  const title = (
-    <Text variant="title" accessibilityRole="header">
-      {t('calendar.title')}
-    </Text>
-  );
-
-  if (isPending || isError || !stored) {
-    return (
-      <SafeAreaView edges={['top']} style={[styles.root, { backgroundColor: colors.bg }]}>
-        <View style={styles.content}>
-          {title}
-          {isPending ? (
-            <ListState kind="loading" label={t('common.loading')} />
-          ) : isError ? (
-            <ListState
-              kind="error"
-              title={t('common.loadError')}
-              retryLabel={t('common.retry')}
-              onRetry={() => void refetch()}
-            />
-          ) : (
-            <ListState
-              kind="empty"
-              icon="calendar"
-              title={t('plan.empty')}
-              actionLabel={t('plan.startQuiz')}
-              onAction={() => router.push('/onboarding')}
-            />
-          )}
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   const { state, input } = stored;
   const { plan } = state;
@@ -111,96 +82,94 @@ export function CalendarScreen() {
   };
 
   return (
-    <SafeAreaView edges={['top']} style={[styles.root, { backgroundColor: colors.bg }]}>
-      <ScrollView
-        testID="calendar-scroll"
-        scrollEnabled={!dragging}
-        contentContainerStyle={styles.content}
-      >
-        {title}
-        <View style={styles.nav}>
-          <IconButton
-            icon="chevronLeft"
-            accessibilityLabel={t('plan.prevWeek')}
-            disabled={start <= first}
-            onPress={() => showWeek(addDays(start, -7))}
-          />
-          <View style={styles.flex} />
-          {start !== current ? (
-            <Button
-              small
-              variant="secondary"
-              icon="calendar"
-              label={t('plan.today')}
-              onPress={() => showWeek(current)}
-            />
-          ) : null}
-          <IconButton
-            icon="chevronRight"
-            accessibilityLabel={t('plan.nextWeek')}
-            disabled={startIndex >= lastIndex}
-            onPress={() => showWeek(addDays(start, 7))}
-          />
-        </View>
-
-        {error ? (
-          <Card>
-            <Text style={{ color: colors.errorText }}>{error}</Text>
-          </Card>
-        ) : null}
-
-        {feedback ? (
-          <MoveFeedbackCard
-            feedback={feedback}
-            plan={plan}
-            onEase={(ids) => {
-              const result = actions.ease(ids);
-              if (!result.ok) setError(issueText(t, result.issues));
-              setFeedback(null);
-            }}
-            onApply={() => {
-              if (feedback.suggestion) actions.apply(feedback.suggestion.state);
-              setFeedback(null);
-            }}
-            onDismiss={() => setFeedback(null)}
+    <ScrollView
+      testID="calendar-scroll"
+      scrollEnabled={!dragging}
+      contentContainerStyle={styles.content}
+    >
+      {header}
+      <View style={styles.nav}>
+        <IconButton
+          icon="chevronLeft"
+          accessibilityLabel={t('plan.prevWeek')}
+          disabled={start <= first}
+          onPress={() => showWeek(addDays(start, -7))}
+        />
+        <View style={styles.flex} />
+        {start !== current ? (
+          <Button
+            small
+            variant="secondary"
+            icon="calendar"
+            label={t('plan.today')}
+            onPress={() => showWeek(current)}
           />
         ) : null}
+        <IconButton
+          icon="chevronRight"
+          accessibilityLabel={t('plan.nextWeek')}
+          disabled={startIndex >= lastIndex}
+          onPress={() => showWeek(addDays(start, 7))}
+        />
+      </View>
 
-        {shown.map((week, k) => (
-          <WeekSection
-            key={week.startDate}
-            week={week}
+      {error ? (
+        <Card>
+          <Text style={{ color: colors.errorText }}>{error}</Text>
+        </Card>
+      ) : null}
+
+      {feedback ? (
+        <MoveFeedbackCard
+          feedback={feedback}
+          plan={plan}
+          onEase={(ids) => {
+            const result = actions.ease(ids);
+            if (!result.ok) setError(issueText(t, result.issues));
+            setFeedback(null);
+          }}
+          onApply={() => {
+            if (feedback.suggestion) actions.apply(feedback.suggestion.state);
+            setFeedback(null);
+          }}
+          onDismiss={() => setFeedback(null)}
+        />
+      ) : null}
+
+      {shown.map((week, k) => (
+        <WeekSection
+          key={week.startDate}
+          week={week}
+          state={state}
+          input={input}
+          targetDate={plan.targetDate}
+          totalWeeks={plan.weeks.length}
+          canReset={hasManualChanges(state, week.startDate)}
+          paused={pause !== null}
+          onReset={() => reset(week.startDate)}
+        >
+          <WeekView
+            idPrefix={k === 0 ? 'plan' : `plan-w${k}`}
+            monday={week.startDate}
+            today={today}
             state={state}
-            input={input}
-            targetDate={plan.targetDate}
-            totalWeeks={plan.weeks.length}
-            canReset={hasManualChanges(state, week.startDate)}
-            paused={pause !== null}
-            onReset={() => reset(week.startDate)}
-          >
-            <WeekView
-              idPrefix={k === 0 ? 'plan' : `plan-w${k}`}
-              monday={week.startDate}
-              today={today}
-              state={state}
-              profile={input.profile}
-              onOpen={(id) => router.push(workoutHref(id))}
-              onMove={move}
-              onMoveAction={(id) => router.push(`${workoutHref(id)}?move=1`)}
-              onDragChange={setDragging}
-              onAdd={() => router.push('/coming-soon/addSession')}
-            />
-          </WeekSection>
-        ))}
+            profile={input.profile}
+            onOpen={(id) => router.push(workoutHref(id))}
+            onMove={move}
+            onMoveAction={(id) => router.push(`${workoutHref(id)}?move=1`)}
+            onDragChange={setDragging}
+            onAdd={() => router.push('/coming-soon/addSession')}
+          />
+        </WeekSection>
+      ))}
 
-        <View style={styles.inline}>
-          <Icon name="info" size={16} color={colors.textMuted} />
-          <Text variant="caption" tone="secondary" style={styles.flex}>
-            {t('plan.dragHint')}
-          </Text>
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+      <View style={styles.inline}>
+        <Icon name="info" size={16} color={colors.textMuted} />
+        <Text variant="caption" tone="secondary" style={styles.flex}>
+          {t('plan.dragHint')}
+        </Text>
+      </View>
+    </ScrollView>
   );
 }
 
@@ -291,7 +260,6 @@ function WeekSection({
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
   content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
   nav: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   flex: { flex: 1 },
