@@ -60,7 +60,7 @@ export function ProfileScreen() {
       href: soon('units'),
       soon: true,
     },
-    { icon: 'heart', title: t('profile.hrZones'), href: soon('hrZones'), soon: true },
+    { icon: 'heart', title: t('profile.hrZones'), href: '/training/zones' },
     { icon: 'bell', title: t('profile.notifications'), href: soon('notifications'), soon: true },
     {
       icon: 'language',

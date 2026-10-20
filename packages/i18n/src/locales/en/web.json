@@ -7,6 +7,8 @@
   },
   "nav": {
     "home": "Peakr",
+    "features": "Features",
+    "pricing": "Pricing",
     "tools": "Free tools",
     "waitlist": "Join the waitlist",
     "label": "Main navigation",
@@ -15,9 +17,13 @@
   "footer": {
     "tagline": "Hybrid training plans driven by heart rate zones.",
     "label": "Footer",
+    "features": "Features",
+    "pricing": "Pricing",
     "tools": "Free tools",
     "privacy": "Privacy policy",
+    "terms": "Terms of service",
     "imprint": "Legal notice",
+    "deleteAccount": "Delete account",
     "copyright": "© {{year}} Peakr"
   },
   "home": {
@@ -253,22 +259,41 @@
     },
     "privacy": {
       "metaTitle": "Privacy policy | Peakr",
-      "metaDescription": "How Peakr handles your personal data on this website.",
+      "metaDescription": "How Peakr handles your personal data on this website and in the app.",
       "title": "Privacy policy",
-      "updated": "Last updated: {{date}}",
       "controllerHeading": "Controller",
       "sections": [
         {
           "heading": "Overview",
-          "body": "This policy explains which personal data this website processes and why. It follows the Swiss Federal Act on Data Protection (revFADP) and, where applicable, the EU General Data Protection Regulation (GDPR)."
+          "body": "This policy explains which personal data the Peakr website and the Peakr app process and why. It follows the Swiss Federal Act on Data Protection (revFADP) and, where applicable, the EU General Data Protection Regulation (GDPR)."
         },
         {
           "heading": "Waitlist",
           "body": "If you join the waitlist we store your email address, the consent text you agreed to and the time of your sign-up. We use this only to email you about the launch of Peakr. The legal basis is your consent (Art. 6(1)(a) GDPR). You can withdraw your consent at any time by emailing us; we will then delete your address. We delete the waitlist at the latest 12 months after launch."
         },
         {
+          "heading": "Your account",
+          "body": "To use the app you create an account with your email address (sign-in link by email) or with Google or Apple; from Google or Apple we receive your email address and, if you allow it, your name. Accounts are managed with Supabase Auth. The legal basis is the performance of our contract with you (Art. 6(1)(b) GDPR)."
+        },
+        {
+          "heading": "Training plan and sync",
+          "body": "The app stores your quiz answers, profile (such as age, heart rate values and availability), training zones, plan and workout history on your device. When you are signed in, this data is synchronised with our database so it is backed up and available on your other devices. We use it only to create and adapt your plan."
+        },
+        {
+          "heading": "Strava",
+          "body": "If you connect Strava, we receive an access token and the activities you record (for example sport, start time, duration, distance, elevation, heart rate and route). We use this data only to adapt your own plan and to mark sessions as done. It is never shown to other users and never used to train artificial intelligence or machine learning models. You can disconnect Strava at any time in the app or in your Strava settings; we then delete the token and stop importing."
+        },
+        {
+          "heading": "Push notifications",
+          "body": "If you allow notifications, we store a push token for your device to send your daily workout reminder and the trial reminder. Notifications are delivered through Expo and Google Firebase Cloud Messaging or the Apple Push Notification service. You can turn them off in the app or in your device settings; the token is deleted together with your account."
+        },
+        {
+          "heading": "Payments (planned)",
+          "body": "Subscriptions are not available yet. Once they are, payments in the app are processed by Google Play or the App Store and payments on this website by Stripe Payments Europe Ltd.; we never see your full card details. RevenueCat Inc. manages which subscription your account has, across app and website. [TODO: complete this section before payments launch.]"
+        },
+        {
           "heading": "Database hosting (Supabase)",
-          "body": "Waitlist sign-ups are stored with Supabase Inc. as our processor in a data centre in the EU. Supabase processes the data only on our behalf, under a data processing agreement."
+          "body": "Waitlist sign-ups, accounts and synchronised app data are stored with Supabase Inc. as our processor in a data centre in the EU [TODO: confirm region]. Supabase processes the data only on our behalf, under a data processing agreement."
         },
         {
           "heading": "Website hosting (Vercel)",
@@ -280,11 +305,76 @@
         },
         {
           "heading": "Cookies and analytics",
-          "body": "This website uses no tracking cookies and no analytics. Fonts are served from our own domain, not from third parties."
+          "body": "This website currently uses no tracking cookies and no analytics. Fonts are served from our own domain, not from third parties. If we add analytics later, it will only load after you have given your consent, and this policy will be updated first."
+        },
+        {
+          "heading": "Retention and deletion",
+          "body": "We keep your data as long as you have an account. You can delete your account at any time in the app (Profile → Account) or by email – see “Delete account” for details. Payment records are kept as long as Swiss law requires."
         },
         {
           "heading": "Your rights",
           "body": "You can ask for access to, correction or deletion of your data, restrict or object to its processing, and receive it in a portable format. You can also lodge a complaint with a data protection authority – in Switzerland the Federal Data Protection and Information Commissioner (FDPIC)."
+        }
+      ]
+    },
+    "draftNotice": {
+      "title": "Draft",
+      "body": "This page is a draft and has not been legally reviewed yet. Details marked [TODO] will be completed before launch."
+    },
+    "updated": "Last updated: {{date}}",
+    "terms": {
+      "metaTitle": "Terms of service | Peakr",
+      "metaDescription": "Terms of service for the Peakr app and website: subscription, free trial, renewal, cancellation and withdrawal.",
+      "title": "Terms of service",
+      "providerHeading": "Provider",
+      "sections": [
+        {
+          "heading": "Scope",
+          "body": "These terms apply to the Peakr app and the website (together “Peakr”), offered by the provider named above. By creating an account or starting a subscription you accept these terms."
+        },
+        {
+          "heading": "The service",
+          "body": "Peakr creates personal training plans and, as an add-on, nutrition and body tracking. The plans and calculations are general training guidance, not medical advice. Check with a doctor before starting a training programme if you have health concerns, and stop training if you feel unwell."
+        },
+        {
+          "heading": "Account",
+          "body": "You must be at least [TODO: minimum age, e.g. 16] years old to create an account; the weight-loss goal is only available from 18. Keep your login secure – you are responsible for activity on your account."
+        },
+        {
+          "heading": "Subscription and prices",
+          "body": "The full plan requires a paid subscription, billed monthly or yearly. The current prices are shown on the pricing page and before you confirm a purchase, including any taxes. App purchases are processed by Google Play or the App Store under their terms; website purchases by Stripe."
+        },
+        {
+          "heading": "7-day free trial",
+          "body": "New subscribers get a 7-day free trial, once per account. You enter your payment details when you start the trial; nothing is charged during the trial and the exact date of the first charge is shown before you confirm. We remind you one day before the trial ends. If you cancel before the trial ends, you pay nothing."
+        },
+        {
+          "heading": "Automatic renewal",
+          "body": "After the trial, the subscription starts and renews automatically for the same period (month or year) at the then-current price until you cancel. We will tell you in advance about any price change, and you can cancel before it applies."
+        },
+        {
+          "heading": "Cancellation",
+          "body": "You can cancel at any time with effect from the end of the current billing period. App subscriptions are cancelled in Google Play or the App Store, website subscriptions in the Stripe customer portal. You keep access until the end of the paid period; afterwards your account and history remain and your plan becomes read-only. Deleting your account does not cancel a subscription."
+        },
+        {
+          "heading": "Right of withdrawal",
+          "body": "If you are a consumer in the EU, you have a 14-day right of withdrawal for website purchases. Because the free trial lets you test Peakr first, you agree that the service starts immediately and acknowledge that [TODO: have the wording of the withdrawal clause and waiver legally reviewed]. For app purchases, the refund rules of Google Play and the App Store apply. Swiss law does not provide a general right of withdrawal for online purchases."
+        },
+        {
+          "heading": "Your content and third-party services",
+          "body": "Data you enter or import (for example from Strava) remains yours; we use it only to provide Peakr to you, as described in the privacy policy. Connected services such as Strava are governed by their own terms."
+        },
+        {
+          "heading": "Availability and changes",
+          "body": "We work to keep Peakr available but cannot guarantee uninterrupted operation. We may develop the service further. We may change these terms for good reason; we will inform you in advance, and if you do not agree you can cancel before the changes take effect."
+        },
+        {
+          "heading": "Liability",
+          "body": "We are liable without limitation for intent and gross negligence. Otherwise our liability is excluded to the extent permitted by law. [TODO: have the liability clause legally reviewed.]"
+        },
+        {
+          "heading": "Applicable law and jurisdiction",
+          "body": "Swiss law applies, excluding the UN Convention on Contracts for the International Sale of Goods. Place of jurisdiction is [TODO: city of the registered address], Switzerland. Mandatory consumer protection rules of your country of residence remain unaffected."
         }
       ]
     }
@@ -309,5 +399,234 @@
     "buttons": "Buttons",
     "primary": "Primary action",
     "secondary": "Secondary action"
+  },
+  "features": {
+    "metaTitle": "Features – hybrid plans, heart rate zones, terrain & real life | Peakr",
+    "metaDescription": "One plan for running, cycling, swimming and strength: heart rate zones first, terrain-aware sessions, commutes, travel, winter sports and weather – synced with Strava.",
+    "title": "Everything your training needs, in one plan",
+    "lead": "Peakr combines your sports into one plan, prescribes it in heart rate zones, knows your terrain and adapts when real life happens.",
+    "imagePlaceholder": "Screenshot coming soon",
+    "comingSoon": "Coming soon",
+    "sections": {
+      "hybrid": {
+        "title": "One hybrid plan",
+        "body": "Pick any combination of running, cycling and swimming – from your first 5 km to a full-distance triathlon – and add strength at home or in the gym.",
+        "points": [
+          "One training-load budget for all sports: a hard Saturday ride makes Sunday’s run easier automatically.",
+          "Strength is periodised with your endurance phases – no heavy legs before a key session or your long day.",
+          "Base, build, peak and taper phases, with a recovery week every three to four weeks.",
+          "Brick sessions (bike → run) for triathlon and duathlon goals."
+        ]
+      },
+      "heartRate": {
+        "title": "Heart rate zones first",
+        "body": "Every session is prescribed in heart rate zones, with a strong focus on Zone 2. Pace and power are hints, not the goal.",
+        "points": [
+          "Zones from %HRmax, Karvonen or your lactate threshold – calculated during onboarding.",
+          "About 80 % easy and 20 % hard, so easy days stay easy.",
+          "Swimming uses pace per 100 m from your Critical Swim Speed, because heart rate is unreliable in the water.",
+          "View and edit your zones at any time – the plan recalculates."
+        ]
+      },
+      "terrain": {
+        "title": "Terrain intelligence",
+        "body": "Peakr knows how hilly each run and ride is and plans around your gradient instead of ignoring it.",
+        "points": [
+          "Pick a route for today’s session from your own routes or routes recognised from your Strava activities.",
+          "Duration and pace targets per kilometre, adjusted to the gradient.",
+          "Grade-adjusted evaluation after each run, so hilly days compare fairly with flat ones.",
+          "Export the route and the structured workout to your watch."
+        ]
+      },
+      "realLife": {
+        "title": "Calendar & real life",
+        "body": "Your plan lives in an editable calendar and adapts to the week you actually have.",
+        "points": [
+          "Move a session and the week rebalances – with a warning if two hard days end up back to back.",
+          "Bike or run commutes count as easy training and are planned first.",
+          "Travel mode and irregular weeks: rebuild a week in seconds.",
+          "Cross-country skiing, ski touring and snowshoeing count as real training in winter.",
+          "Rain, snow or ice? Get an indoor alternative with the same training effect."
+        ]
+      },
+      "integrations": {
+        "title": "Integrations",
+        "body": "Completed activities sync back automatically and mark the planned session as done.",
+        "nowLabel": "At launch",
+        "laterLabel": "Planned",
+        "now": [
+          {
+            "name": "Strava",
+            "body": "Connect once – every new run, ride and swim arrives automatically."
+          }
+        ],
+        "later": [
+          {
+            "name": "Garmin",
+            "body": "Workouts to your watch and activities back."
+          },
+          {
+            "name": "COROS",
+            "body": "Structured workouts in the COROS app."
+          },
+          {
+            "name": "Suunto",
+            "body": "Routes and workouts to the Suunto app."
+          },
+          {
+            "name": "Apple Watch",
+            "body": "Workouts in the Workout app, with the iOS release."
+          },
+          {
+            "name": "Zwift",
+            "body": "Indoor sessions as Zwift workouts."
+          }
+        ]
+      },
+      "nutrition": {
+        "title": "Nutrition & body add-on",
+        "body": "Track food with a barcode scanner and see a real energy balance from what you eat and the workouts you actually did – plus weight trend and body measurements.",
+        "points": [
+          "Energy balance from intake, resting energy and completed workouts.",
+          "Smoothed weight trend instead of daily scale noise.",
+          "Safe targets: never below your basal needs, at most 1 % of body weight per week."
+        ]
+      }
+    },
+    "cta": {
+      "title": "Ready for a plan that fits your week?",
+      "body": "Peakr is coming soon to Android and iOS. Join the waitlist and be the first to build your plan."
+    }
+  },
+  "pricing": {
+    "metaTitle": "Pricing – one fair subscription with a 7-day free trial | Peakr",
+    "metaDescription": "Peakr Training costs 7.90 per month or 59 per year, with a 7-day free trial. Training + Nutrition is coming soon.",
+    "title": "Simple, fair pricing",
+    "lead": "One subscription for your whole training plan – all sports, all integrations. Try it free for 7 days.",
+    "billingLabel": "Billing period",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "yearlySaving": "Save {{percent}} %",
+    "price": "{{currency}} {{amount}}",
+    "currency": "CHF",
+    "perMonth": "{{price}} / month",
+    "perYear": "{{price}} / year",
+    "yearlyEquivalent": "That’s {{price}} per month, billed yearly.",
+    "trialBadge": "7-day free trial",
+    "comingSoon": "Coming soon",
+    "choose": "Join the waitlist",
+    "tiers": {
+      "training": {
+        "name": "Training",
+        "tagline": "Your complete hybrid training plan.",
+        "features": [
+          "Personal plan for running, cycling, swimming and strength",
+          "Heart rate, pace and swim zones built in",
+          "Editable calendar, regeneration and pause",
+          "Routes with per-km pacing",
+          "Strava sync and watch exports"
+        ]
+      },
+      "plus": {
+        "name": "Training + Nutrition",
+        "tagline": "Everything in Training, plus food and body tracking.",
+        "features": [
+          "Everything in Training",
+          "Nutrition tracking with barcode scanner",
+          "Energy balance from food and completed workouts",
+          "Weight trend and body measurements"
+        ]
+      }
+    },
+    "trial": {
+      "title": "How the 7-day free trial works",
+      "items": [
+        {
+          "title": "Card upfront",
+          "body": "You start your subscription right after your forecast and enter your payment details – nothing is charged for 7 days."
+        },
+        {
+          "title": "Exact first charge date",
+          "body": "Checkout shows the exact date of your first charge before you confirm."
+        },
+        {
+          "title": "Reminder one day before",
+          "body": "One day before your trial ends we remind you by push notification and email, with the date, the amount and a link to cancel."
+        },
+        {
+          "title": "Cancel anytime",
+          "body": "Cancel during the trial and you pay nothing. After that you keep access until the end of the period you paid for."
+        }
+      ]
+    },
+    "faq": {
+      "title": "Frequently asked questions",
+      "items": [
+        {
+          "question": "Is there a free version?",
+          "answer": "The calculators on this website are free. In the app, the quiz, your forecast and a preview of week 1 are free – the full plan needs a subscription or a running trial."
+        },
+        {
+          "question": "Can I switch between monthly and yearly?",
+          "answer": "Yes. You can switch the billing period or change your tier at any time in the app under Profile → Subscription."
+        },
+        {
+          "question": "How do I cancel?",
+          "answer": "If you subscribed in the app, cancel in Google Play or the App Store – Peakr links you there from Profile → Subscription. If you subscribed on the website, cancel in the customer portal linked from your account. Cancelling does not delete your account."
+        },
+        {
+          "question": "What happens after I cancel?",
+          "answer": "You keep full access until the end of the paid period. Afterwards your account and history stay, and your plan becomes read-only."
+        },
+        {
+          "question": "Can I get the trial more than once?",
+          "answer": "No – the free trial is available once per account."
+        },
+        {
+          "question": "When is Training + Nutrition available?",
+          "answer": "We are building it now. Join the waitlist and we will let you know when it launches."
+        }
+      ]
+    },
+    "cta": {
+      "title": "Be the first to train with Peakr",
+      "body": "Peakr is coming soon. Join the waitlist and we will email you when your 7-day free trial is ready."
+    }
+  },
+  "deleteAccount": {
+    "metaTitle": "Delete your Peakr account | Peakr",
+    "metaDescription": "How to delete your Peakr account and all associated data – in the app or by email – and what happens to your subscription.",
+    "title": "Delete your Peakr account",
+    "lead": "You can delete your Peakr account and all associated data at any time – directly in the app or by email.",
+    "inAppHeading": "In the app",
+    "inAppSteps": [
+      "Open the Peakr app and sign in.",
+      "Go to Profile → Account.",
+      "Tap “Delete account”.",
+      "Confirm the deletion. Your account is deleted immediately and you are signed out."
+    ],
+    "emailHeading": "By email",
+    "emailBody": "No access to the app any more? Send an email from the address you use for Peakr to {{email}} with the subject “Delete my Peakr account”. We will confirm the deletion by email.",
+    "deletedHeading": "What gets deleted",
+    "deletedItems": [
+      "Your account and login (email address, sign-in with Google or Apple)",
+      "Your profile, quiz answers, training zones and your training plan",
+      "Your synced activities and workout history",
+      "Integration tokens – we also revoke Peakr’s access to your Strava account",
+      "Push notification tokens of your devices"
+    ],
+    "keptHeading": "What we have to keep",
+    "keptBody": "Payment and invoice records are kept as long as Swiss law requires (up to 10 years) and are not used for anything else. [TODO: confirm retention with your accountant.]",
+    "timeframeHeading": "Timeframe",
+    "timeframeBody": "Deletion in the app happens immediately. Requests by email are completed within 30 days at the latest. Backups are overwritten automatically within [TODO: backup retention, e.g. 7 days].",
+    "subscriptionHeading": "Your subscription is not cancelled automatically",
+    "subscriptionBody": "Deleting your account does not cancel an active subscription. Cancel it separately where you bought it:",
+    "subscriptionStores": {
+      "googlePlay": "Google Play: Play Store → Payments & subscriptions → Subscriptions",
+      "appStore": "App Store: Settings → your name → Subscriptions",
+      "web": "Website: the Stripe customer portal, linked from your account page and your subscription emails"
+    },
+    "googlePlayLink": "Open Google Play subscriptions",
+    "appStoreLink": "Open App Store subscriptions"
   }
 }

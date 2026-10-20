@@ -5,6 +5,12 @@ import { messages } from '@/i18n';
 
 const t = messages.nav;
 
+const NAV_LINKS = [
+  { href: '/features', label: t.features },
+  { href: '/pricing', label: t.pricing },
+  { href: '/tools', label: t.tools },
+] as const;
+
 /** Dark header (Ink) with the lockup; the page's single Volt action lives in the content. */
 export function SiteHeader() {
   return (
@@ -22,10 +28,12 @@ export function SiteHeader() {
         <Link href="/" aria-label={t.home} className="flex items-center">
           <PeakrLogo tone="onDark" height={28} title={t.home} />
         </Link>
-        <div className="flex items-center gap-4 text-sm font-medium">
-          <Link href="/tools" className="text-muted hover:text-foreground">
-            {t.tools}
-          </Link>
+        <div className="flex min-w-0 items-center gap-3 text-sm font-medium sm:gap-5">
+          {NAV_LINKS.map(({ href, label }) => (
+            <Link key={href} href={href} className="text-muted hover:text-foreground">
+              {label}
+            </Link>
+          ))}
           <Link
             href="/#waitlist"
             className="hidden rounded-button border-1.5 border-border px-4 py-2 font-semibold hover:bg-surface sm:inline-block"

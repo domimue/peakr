@@ -159,6 +159,7 @@ export {
   WORKOUT_TYPES,
   workoutType,
 } from './plan/workout-type';
+export { annotateWeeks, weekKind } from './plan/week-facts';
 export { indoorVersion, type IndoorKind, type IndoorVersion } from './plan/indoor';
 export {
   historyByMonth,

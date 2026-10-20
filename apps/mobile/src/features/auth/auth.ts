@@ -1,12 +1,13 @@
 import * as AppleAuthentication from 'expo-apple-authentication';
 import * as Linking from 'expo-linking';
+import * as Network from 'expo-network';
 import * as WebBrowser from 'expo-web-browser';
 import { Platform } from 'react-native';
 
 import { supabase } from '@/data/supabase';
-import { clearSyncedData } from '@/data/sync/sync-repository';
+import { clearAllLocalData, clearSyncedData } from '@/data/sync/sync-repository';
 import { requestSync, useSyncStore } from '@/data/sync/use-background-sync';
-import { unregisterPushToken } from '@/features/notifications/push';
+import { unregisterPushToken, usePushStore } from '@/features/notifications/push';
 
 /**
  * Sign-in methods: email magic link (with a 6-digit code as fallback), Google and Sign in with
@@ -106,4 +107,41 @@ export async function signOut(userId: string, force = false): Promise<'done' | '
   if (error) throw error;
   clearSyncedData();
   return 'done';
+}
+
+export type DeleteAccountResult = 'deleted' | 'offline' | 'failed';
+
+/** HTTP status of a failed `functions.invoke`, or null for a network error. */
+function httpStatus(error: unknown): number | null {
+  const status = (error as { context?: { status?: unknown } } | null)?.context?.status;
+  return typeof status === 'number' ? status : null;
+}
+
+/**
+ * Deletes the account on the server (Edge Function `delete-account`: revokes Strava, deletes all
+ * rows and the auth user), then removes everything from this device and signs out. Offline or on a
+ * server error nothing is deleted locally, so the user can simply try again.
+ */
+export async function deleteAccount(): Promise<DeleteAccountResult> {
+  const network = await Network.getNetworkStateAsync();
+  if (network.isInternetReachable === false || network.isConnected === false) return 'offline';
+
+  const auth = client().auth;
+  const { error } = await client().functions.invoke('delete-account', { body: {} });
+  if (error) {
+    const status = httpStatus(error);
+    if (status === null) return 'offline';
+    // A retry after the server already deleted the user (the first answer got lost): the session
+    // no longer belongs to an existing user.
+    const userError = status === 401 ? (await auth.getUser()).error : null;
+    const gone = userError?.code === 'user_not_found' || userError?.status === 403;
+    if (!gone) return 'failed';
+  }
+
+  // The server session no longer exists – only forget it on this device.
+  await auth.signOut({ scope: 'local' }).catch((e: unknown) => console.warn('Sign-out failed', e));
+  clearAllLocalData();
+  useSyncStore.setState({ status: 'idle', lastSyncedAt: null, error: null });
+  usePushStore.setState({ token: null, activityAlerts: false });
+  return 'deleted';
 }

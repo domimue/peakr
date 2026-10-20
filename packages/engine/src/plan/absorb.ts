@@ -143,7 +143,7 @@ export function absorbActivity(
   }
 
   const workouts = allWorkouts(next.plan).map((w) => replaced.get(w.id) ?? w);
-  const plan = rebuild(next.plan, workouts, input.profile.experience);
+  const plan = rebuild(next.plan, workouts, input.profile);
   const weeks = plan.weeks.map((w) =>
     w.index === week.index
       ? { ...w, notes: [...w.notes, { key: 'notes.unplannedActivity', params: noteParams }] }

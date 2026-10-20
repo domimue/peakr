@@ -356,6 +356,8 @@ describe('workout detail', () => {
         name: 'Morning run',
         indoor: false,
         commute: false,
+        summary: false,
+        rpe: null,
         importedAt: Date.parse('2026-10-26T06:40:00Z'),
         handled: true,
       },

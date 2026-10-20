@@ -9,7 +9,7 @@ import { fontFamilies, typography, useTheme, type TypographyVariant } from '../t
 
 export interface TextProps extends RNTextProps {
   variant?: TypographyVariant;
-  tone?: 'default' | 'secondary';
+  tone?: 'default' | 'secondary' | 'danger';
 }
 
 const TABULAR: TextStyle = { fontVariant: ['tabular-nums'] };
@@ -35,7 +35,11 @@ export function Text({ variant = 'body', tone = 'default', style, ...rest }: Tex
     StyleSheet.flatten([
       TABULAR,
       typography[variant],
-      { color: tone === 'secondary' ? colors.textMuted : colors.text },
+      {
+        color: { default: colors.text, secondary: colors.textMuted, danger: colors.errorText }[
+          tone
+        ],
+      },
       style,
     ]) ?? {};
   return <RNText style={resolveFont(flat)} {...rest} />;

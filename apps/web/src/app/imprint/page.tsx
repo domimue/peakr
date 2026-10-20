@@ -12,7 +12,7 @@ export const metadata = pageMetadata({
 
 export default function ImprintPage() {
   return (
-    <LegalPage title={t.title}>
+    <LegalPage title={t.title} draft>
       <LegalSection heading={t.operatorHeading}>
         <OperatorAddress />
       </LegalSection>

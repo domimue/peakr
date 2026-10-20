@@ -418,6 +418,10 @@ verify_jwt = false
 [functions.strava-sync]
 verify_jwt = false
 
+# Account deletion: checks the user JWT itself (like the functions above).
+[functions.delete-account]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

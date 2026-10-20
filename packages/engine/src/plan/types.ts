@@ -373,8 +373,16 @@ export interface Workout {
   originalDate?: string;
 }
 
+/** What kind of week it is (Plan screen tag): race week, travel week, recovery week or normal. */
+export type WeekKind = 'normal' | 'recovery' | 'travel' | 'race';
+
 export interface PlanWeek {
   index: number;
+  /** 1-based position in the plan ("Week 3 of 12"). */
+  number: number;
+  /** Planned distance of all workouts (commutes included), km. Time: `minutes`. */
+  distanceKm: number;
+  kind: WeekKind;
   /** Monday of the week (ISO date). */
   startDate: string;
   phase: Phase;

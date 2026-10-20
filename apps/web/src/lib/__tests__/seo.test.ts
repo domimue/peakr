@@ -22,17 +22,21 @@ describe('siteUrl', () => {
 });
 
 describe('sitemap and robots', () => {
-  it('lists the landing page, tools and legal pages with absolute URLs', () => {
+  it('lists the landing, marketing, tools and legal pages with absolute URLs', () => {
     vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://peakr.example');
     expect(sitemap().map((entry) => entry.url)).toEqual([
       'https://peakr.example',
+      'https://peakr.example/features',
+      'https://peakr.example/pricing',
       'https://peakr.example/tools',
       'https://peakr.example/tools/heart-rate-zones',
       'https://peakr.example/tools/zone-2',
       'https://peakr.example/tools/pace',
       'https://peakr.example/tools/swim-css',
       'https://peakr.example/privacy',
+      'https://peakr.example/terms',
       'https://peakr.example/imprint',
+      'https://peakr.example/delete-account',
     ]);
   });
 

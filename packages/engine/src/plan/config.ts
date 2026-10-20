@@ -327,6 +327,8 @@ export const planConfig = {
     sourcePriority: ['garmin', 'coros', 'suunto', 'apple', 'strava', 'healthconnect', 'healthkit'],
     /** Zone assumed when an activity has no heart rate. */
     defaultZone: 2,
+    /** Session RPE assumed for imported strength without perceived exertion. */
+    strengthDefaultRpe: 7,
     /** An activity counts as hard with an average HR in this zone or above … */
     hardZone: 4,
     /** … or in Z3+ for at least this long … */

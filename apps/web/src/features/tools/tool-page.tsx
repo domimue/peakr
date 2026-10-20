@@ -13,12 +13,13 @@ export function toolMetadata(key: ToolKey): Metadata {
   return pageMetadata({ title: t.metaTitle, description: t.metaDescription, path: href });
 }
 
-export function QuizCta() {
+/** "Build your personal plan" box; title and body default to the tool pages' copy. */
+export function QuizCta({ title, body }: { title?: string; body?: string }) {
   const t = messages.cta;
   return (
     <aside className="flex flex-col items-start gap-3 rounded-2xl bg-surface p-6">
-      <h2 className="text-lg font-semibold">{t.title}</h2>
-      <p className="text-muted">{t.body}</p>
+      <h2 className="text-lg font-semibold">{title ?? t.title}</h2>
+      <p className="text-muted">{body ?? t.body}</p>
       <Link
         href={QUIZ_HREF}
         className="inline-flex min-h-12 items-center rounded-button bg-accent px-6 font-semibold text-on-accent transition-colors hover:bg-accent-pressed"

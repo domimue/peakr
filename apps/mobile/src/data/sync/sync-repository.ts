@@ -5,10 +5,13 @@ import {
   activities,
   activityLinks,
   appSettings,
+  customExercises,
   planPauses,
   plans,
   planWeeks,
   planWorkouts,
+  routines,
+  strengthLogs,
   syncTombstones,
 } from '../db/schema';
 import { newId } from '../ids';
@@ -318,5 +321,22 @@ export function clearSyncedData(): void {
     tx.delete(activities).run();
     tx.delete(activityLinks).run();
     tx.delete(appSettings).where(inArray(appSettings.key, SYNC_KEYS)).run();
+  });
+}
+
+/**
+ * After the account was deleted: removes everything Peakr stored on this device – plan,
+ * activities, strength data, quiz progress, settings and sync state. The schema stays.
+ */
+export function clearAllLocalData(): void {
+  db.transaction((tx) => {
+    clearPlans(tx);
+    tx.delete(syncTombstones).run();
+    tx.delete(activities).run();
+    tx.delete(activityLinks).run();
+    tx.delete(routines).run();
+    tx.delete(customExercises).run();
+    tx.delete(strengthLogs).run();
+    tx.delete(appSettings).run();
   });
 }

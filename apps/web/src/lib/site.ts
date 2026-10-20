@@ -13,14 +13,21 @@ export function siteUrl(): string {
 /** Every public, indexable page – the sitemap is generated from this list. */
 export const PUBLIC_PAGES: readonly { path: string; priority: number }[] = [
   { path: '/', priority: 1 },
+  { path: '/features', priority: 0.9 },
+  { path: '/pricing', priority: 0.9 },
   { path: '/tools', priority: 0.8 },
   ...TOOLS.map((tool) => ({ path: tool.href, priority: 0.8 })),
   { path: '/privacy', priority: 0.2 },
+  { path: '/terms', priority: 0.2 },
   { path: '/imprint', priority: 0.2 },
+  { path: '/delete-account', priority: 0.2 },
 ];
 
 /** Date shown on the privacy policy; update together with its text. */
-export const PRIVACY_UPDATED = '2026-10-18';
+export const PRIVACY_UPDATED = '2026-10-20';
+
+/** Date shown on the terms of service; update together with their text. */
+export const TERMS_UPDATED = '2026-10-20';
 
 /** Shown in the footer. A constant, so pages stay fully static. */
 export const COPYRIGHT_YEAR = 2026;

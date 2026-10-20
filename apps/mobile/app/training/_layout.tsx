@@ -13,6 +13,7 @@ export default function TrainingLayout() {
       <Stack.Screen name="travel" options={{ title: t('plan.travel.title') }} />
       <Stack.Screen name="commutes" options={{ title: t('plan.commutes.title') }} />
       <Stack.Screen name="winter" options={{ title: t('plan.winter.title') }} />
+      <Stack.Screen name="zones" options={{ title: t('trainingZones.title') }} />
     </Stack>
   );
 }
