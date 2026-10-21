@@ -26,13 +26,17 @@ TaskManager.defineTask(ACTIVITY_SYNC_TASK, async () => {
   }
 });
 
-/** In the foreground the in-app notice already says it; no system banner for activity pushes. */
+/**
+ * In the foreground the in-app notice already says it: no system banner for activity pushes, and
+ * none for the end of a rest (the timer bar shows it and vibrates).
+ */
 Notifications.setNotificationHandler({
   handleNotification: async (notification) => {
-    const isActivity = notification.request.content.data?.type === 'activity';
+    const type = notification.request.content.data?.type;
+    const inApp = type === 'activity' || type === 'rest';
     return {
-      shouldShowBanner: !isActivity,
-      shouldShowList: !isActivity,
+      shouldShowBanner: !inApp,
+      shouldShowList: !inApp,
       shouldPlaySound: false,
       shouldSetBadge: false,
     };

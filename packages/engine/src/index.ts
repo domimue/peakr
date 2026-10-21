@@ -215,7 +215,14 @@ export {
   type SourceActivity,
   type SourceRef,
 } from './plan/activities';
-export { absorbActivity, type AbsorbChange, type AbsorbResult } from './plan/absorb';
+export {
+  absorbActivity,
+  absorbGymSession,
+  absorbImpact,
+  type AbsorbChange,
+  type AbsorbResult,
+  type SessionImpact,
+} from './plan/absorb';
 export { isEccentricActivity } from './plan/activities';
 export { setWorkoutRoute } from './plan/edit';
 export {

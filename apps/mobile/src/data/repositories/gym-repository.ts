@@ -4,6 +4,7 @@ import type {
   GymSession,
   GymSessionSource,
   GymSet,
+  PlateSetup,
   RoutineFolder,
 } from '@peakr/engine';
 import { and, asc, desc, eq, inArray, isNotNull, isNull } from 'drizzle-orm';
@@ -364,4 +365,57 @@ export async function saveImportNames(names: Record<string, string>): Promise<vo
     .insert(appSettings)
     .values({ key: IMPORT_NAMES_KEY, value })
     .onConflictDoUpdate({ target: appSettings.key, set: { value } });
+}
+
+// ---------------------------------------------------------------------------------------------
+// Running session and gym settings
+
+const LIVE_SESSION_KEY = 'gym_live_session';
+const PLATE_SETUP_KEY = 'gym_plate_setup';
+
+async function getSetting(key: string): Promise<string | null> {
+  const row = await db.query.appSettings.findFirst({ where: eq(appSettings.key, key) });
+  return row?.value ?? null;
+}
+
+function setSetting(key: string, value: string): void {
+  db.insert(appSettings)
+    .values({ key, value })
+    .onConflictDoUpdate({ target: appSettings.key, set: { value } })
+    .run();
+}
+
+/** The running session as `serializeLive` wrote it (restored with `restoreLive`). */
+export async function getLiveSession(): Promise<string | null> {
+  return getSetting(LIVE_SESSION_KEY);
+}
+
+/** Written synchronously after every change, so a kill right after a tap loses nothing. */
+export function saveLiveSession(json: string): void {
+  setSetting(LIVE_SESSION_KEY, json);
+}
+
+export function clearLiveSession(): void {
+  db.delete(appSettings).where(eq(appSettings.key, LIVE_SESSION_KEY)).run();
+}
+
+/**
+ * Finishes the running session: stores the session with its sets, then removes the running state.
+ * A crash in between keeps the running session; finishing it again overwrites the same session id.
+ */
+export async function finishLiveSession(
+  session: GymSession,
+  sets: readonly GymSet[],
+): Promise<void> {
+  await saveGymSession(session, sets);
+  clearLiveSession();
+}
+
+export async function getPlateSetup(): Promise<PlateSetup | null> {
+  const value = await getSetting(PLATE_SETUP_KEY);
+  return value ? (JSON.parse(value) as PlateSetup) : null;
+}
+
+export async function savePlateSetup(setup: PlateSetup): Promise<void> {
+  setSetting(PLATE_SETUP_KEY, JSON.stringify(setup));
 }

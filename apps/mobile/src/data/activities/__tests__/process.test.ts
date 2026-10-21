@@ -2,6 +2,7 @@ import { generatePlan, statusOf, type SourceActivity } from '@peakr/engine';
 
 import type { StoredPlanInput } from '@/data/db/schema';
 import * as activityRepo from '@/data/repositories/activity-repository';
+import * as gymRepo from '@/data/repositories/gym-repository';
 import * as planRepo from '@/data/repositories/plan-repository';
 import i18n from '@/i18n';
 
@@ -12,6 +13,9 @@ import { processNewActivities } from '../process';
 
 jest.mock('@/data/repositories/plan-repository');
 jest.mock('@/data/repositories/activity-repository');
+jest.mock('@/data/repositories/gym-repository');
+
+const gym = gymRepo as unknown as typeof import('@/data/repositories/__mocks__/gym-repository');
 
 const plans = planRepo as unknown as typeof import('@/data/repositories/__mocks__/plan-repository');
 const activities =
@@ -84,6 +88,7 @@ let stop: () => void;
 beforeEach(() => {
   plans.resetStore();
   activities.resetStore();
+  gym.resetStore();
   heard = [];
   stop = onActivities((n) => heard.push([...n]));
 });
@@ -145,6 +150,36 @@ describe('processNewActivities', () => {
     const [notice] = await processNewActivities('2026-10-27');
     expect(notice).toMatchObject({ kind: 'matched', sport: 'strength', workoutId: planned?.id });
     expect(statusOf(state(), planned?.id as string)).toBe('done');
+  });
+
+  it('a strength activity that is a gym session logged in Peakr is not counted again', async () => {
+    storePlan();
+    gym.store.sessions = [
+      {
+        id: 'g1',
+        date: '2026-10-28',
+        startedAt: Date.parse('2026-10-28T17:00:00Z'),
+        endedAt: Date.parse('2026-10-28T18:00:00Z'),
+        durationMin: 60,
+        title: 'Legs',
+        kind: 'detailed',
+        source: 'app',
+      },
+    ];
+    receive({
+      sport: 'strength',
+      startTime: '2026-10-28T17:01:00Z',
+      date: '2026-10-28',
+      durationSec: 3500,
+      distanceM: null,
+      elevationGainM: null,
+      indoor: true,
+      summary: true,
+    });
+    const before = state();
+    expect(await processNewActivities('2026-10-28')).toEqual([]);
+    expect(state()).toBe(before);
+    expect(activities.store.activities[0]?.handled).toBe(true);
   });
 
   it('counts an unplanned ride and makes the rest of the week easier', async () => {

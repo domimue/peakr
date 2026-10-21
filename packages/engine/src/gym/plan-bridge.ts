@@ -1,4 +1,6 @@
-import type { SetLog, StrengthLog } from '../plan/strength-log';
+import type { CustomExercise } from '../plan/library';
+import { summarizeStrengthLog, type SetLog, type StrengthLog } from '../plan/strength-log';
+import type { LegLoad } from '../plan/types';
 import { countsAsWork } from './records';
 import { sessionDurationMin } from './summary';
 import type { GymSession, GymSet } from './types';
@@ -58,4 +60,24 @@ export function lastSetsOf(
     if (found.length > 0) return { sets: found.map(toSetLog), date: session.date };
   }
   return null;
+}
+
+/**
+ * Load, leg load and "hard" of a finished gym session for the plan – exactly the Phase 3 rules of
+ * `summarizeStrengthLog` (heaviest exercise sets the leg load, heavy legs are hard, quick log
+ * "legs" = heavy).
+ */
+export function gymSessionImpact(
+  session: GymSession,
+  sets: readonly GymSet[],
+  custom: readonly CustomExercise[] = [],
+): { load: number; legLoad: LegLoad; hard: boolean; minutes: number } {
+  const log = toStrengthLog(session, sets);
+  const summary = summarizeStrengthLog(log, custom);
+  return {
+    load: summary.load,
+    legLoad: summary.legLoad,
+    hard: summary.hard,
+    minutes: log.durationMin,
+  };
 }
