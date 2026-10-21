@@ -189,6 +189,12 @@ function post(req: Request): Promise<Response> {
       return json({ status: existing.status, activityId: existing.strava_activity_id ?? null });
     }
 
+    // Test mode (docs/gym-addon-setup.md): show what would be sent, post nothing, store nothing.
+    if (Deno.env.get('STRAVA_UPLOAD_DRY_RUN') === '1') {
+      console.log('strava-upload dry run', JSON.stringify(upload));
+      return json({ status: 'posted', activityId: null, dryRun: true });
+    }
+
     const token = await accessToken(admin, integration);
     const response =
       upload.format === 'structured'

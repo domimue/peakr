@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { exercises } from '../plan/library';
+import { exercises, type CustomExercise } from '../plan/library';
 import {
   STRAVA_EXERCISE_MAP,
   STRAVA_EXERCISE_TYPES,
@@ -118,5 +118,61 @@ describe('buildStravaUpload', () => {
     expect(plain.description).toBe('bench_press: 10 × 60 kg, 8 × 65 kg');
     const quick = buildStravaUpload(session, [], ctx, { structuredAvailable: true });
     expect(quick.format === 'plain' && quick.reason).toBe('no_sets');
+  });
+
+  it('maps a custom exercise through the library exercise it was copied from', () => {
+    const custom = {
+      id: 'custom:squat2',
+      pattern: 'squat',
+      basedOn: 'back_squat',
+    } as unknown as CustomExercise;
+    const upload = buildStravaUpload(
+      session,
+      [set({ exerciseId: 'custom:squat2', reps: 5, weightKg: 100 })],
+      { ...ctx, custom: [custom] },
+      { structuredAvailable: true },
+    );
+    expect(upload.report.generic).toEqual([]);
+    expect(upload.format === 'structured' && upload.payload.sets[0]?.exercise_type).toBe(
+      'BARBELL_BACK_SQUAT',
+    );
+  });
+
+  it('writes a readable summary for every kind of set, with the exercise names', () => {
+    const upload = buildStravaUpload(
+      { ...session, sessionRpe: 8 },
+      [
+        set({ setIndex: 0, exerciseId: 'plank', durationSec: 45 }),
+        set({ setIndex: 1, exerciseId: 'push_up', reps: 12 }),
+        set({ setIndex: 2, exerciseId: 'push_up', reps: 10 }),
+        set({ setIndex: 3, exerciseId: 'dips' }),
+      ],
+      { ...ctx, exerciseName: (id) => id.toUpperCase(), name: 'Home session' },
+      { structuredAvailable: false },
+    );
+    expect(upload.name).toBe('Home session');
+    if (upload.format !== 'plain') throw new Error('expected plain');
+    expect(upload.description).toBe('PLANK: 45 s\nPUSH_UP: 12 reps, 10 reps\nDIPS: 1 set');
+  });
+
+  it('puts the session effort into the summary of a quick log, and skips empty energy', () => {
+    const quick = buildStravaUpload(
+      { ...session, sessionRpe: 7 },
+      [],
+      { utcOffsetSec: 0 },
+      {
+        structuredAvailable: true,
+      },
+    );
+    expect(quick.format === 'plain' && quick.description).toBe('RPE 7');
+    const none = buildStravaUpload(
+      session,
+      [set({ reps: 5 })],
+      { utcOffsetSec: 0 },
+      {
+        structuredAvailable: true,
+      },
+    );
+    expect(none.format === 'structured' && 'total_calories' in none.payload).toBe(false);
   });
 });

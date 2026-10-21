@@ -71,7 +71,8 @@ export function defaultChoice(settings: ShareSettings): ShareChoice {
 
 /** Seconds to wait before poll number `attempt` (0-based): ≥ 1 s (Strava's limit), then backing off. */
 export function pollDelaySec(attempt: number): number {
-  return [1.5, 2, 3, 5, 8, 12][Math.min(attempt, 5)] ?? 12;
+  const delays = [1.5, 2, 3, 5, 8, 12] as const;
+  return delays[Math.min(Math.max(attempt, 0), delays.length - 1)] as number;
 }
 
 /** Give up polling (the state stays "posting" and resumes on the next open) after this many tries. */

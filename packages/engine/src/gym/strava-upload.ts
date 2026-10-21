@@ -97,9 +97,7 @@ function round(n: number, digits: number): number {
 
 /** Completed sets in logged order; every one of them is posted, warm-ups included. */
 function postedSets(sets: readonly GymSet[]): GymSet[] {
-  return sets
-    .filter((s) => s.completed)
-    .sort((a, b) => a.setIndex - b.setIndex || a.loggedAt - b.loggedAt);
+  return sets.filter((s) => s.completed).sort((a, b) => a.setIndex - b.setIndex);
 }
 
 function elapsedSeconds(session: GymSession, sets: readonly GymSet[]): number {
@@ -166,20 +164,12 @@ function plainDescription(
   ctx: StravaUploadContext,
 ): string {
   const nameOf = ctx.exerciseName ?? ((id: string) => id);
-  const lines: string[] = [];
-  const order: string[] = [];
-  const byExercise = new Map<string, GymSet[]>();
+  // Map keeps insertion order: exercises appear in the order they were first trained.
+  const byExercise = new Map<string, string[]>();
   for (const { set } of typed) {
-    if (!byExercise.has(set.exerciseId)) {
-      byExercise.set(set.exerciseId, []);
-      order.push(set.exerciseId);
-    }
-    byExercise.get(set.exerciseId)?.push(set);
+    byExercise.set(set.exerciseId, [...(byExercise.get(set.exerciseId) ?? []), formatSet(set)]);
   }
-  for (const id of order) {
-    const parts = (byExercise.get(id) ?? []).map(formatSet);
-    lines.push(`${nameOf(id)}: ${parts.join(', ')}`);
-  }
+  const lines = [...byExercise].map(([id, parts]) => `${nameOf(id)}: ${parts.join(', ')}`);
   if (lines.length === 0 && session.sessionRpe !== undefined) {
     lines.push(`RPE ${session.sessionRpe}`);
   }

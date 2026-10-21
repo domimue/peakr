@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest';
 
 import PricingPage from '@/app/pricing/page';
 
-import { formatPrice, TIERS, yearlySavingPercent } from '../plans';
+import { formatPrice, GYM_ADDON, TIERS, yearlySavingPercent } from '../plans';
 
 describe('pricing helpers', () => {
   it('formats prices with the currency and two decimals only when needed', () => {
@@ -51,6 +51,22 @@ describe('pricing page', () => {
       ...screen.getAllByRole('link', { name: 'Join the waitlist' }),
       screen.getByRole('link', { name: 'Build your personal plan' }),
     ];
-    expect(ctas.map((link) => link.getAttribute('href'))).toEqual(['/#waitlist', '/#waitlist']);
+    expect(ctas.map((link) => link.getAttribute('href'))).toEqual([
+      '/#waitlist',
+      '/#waitlist',
+      '/#waitlist',
+    ]);
+  });
+
+  it('prices the Gym add-on as its own subscription next to the tiers', async () => {
+    render(<PricingPage />);
+    const addon = screen.getByRole('region', { name: 'Peakr Gym' });
+    expect(within(addon).getByText('CHF 3.90 / month')).toBeDefined();
+    expect(within(addon).getByText(/Cancel one without touching the other/)).toBeDefined();
+    expect(within(addon).getByText(/endurance plan never depends on the add-on/)).toBeDefined();
+
+    await userEvent.click(screen.getByRole('radio', { name: 'Yearly' }));
+    expect(within(addon).getByText('CHF 29 / year')).toBeDefined();
+    expect(yearlySavingPercent(GYM_ADDON.prices)).toBe(38);
   });
 });

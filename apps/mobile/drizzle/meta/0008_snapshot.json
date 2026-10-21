@@ -146,19 +146,14 @@
       "indexes": {
         "activities_date": {
           "name": "activities_date",
-          "columns": [
-            "date"
-          ],
+          "columns": ["date"],
           "isUnique": false
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "activities_source_external_id_pk": {
-          "columns": [
-            "source",
-            "external_id"
-          ],
+          "columns": ["source", "external_id"],
           "name": "activities_source_external_id_pk"
         }
       },
@@ -239,10 +234,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "activity_streams_source_external_id_pk": {
-          "columns": [
-            "source",
-            "external_id"
-          ],
+          "columns": ["source", "external_id"],
           "name": "activity_streams_source_external_id_pk"
         }
       },
@@ -670,16 +662,12 @@
       "indexes": {
         "gym_sessions_started": {
           "name": "gym_sessions_started",
-          "columns": [
-            "started_at"
-          ],
+          "columns": ["started_at"],
           "isUnique": false
         },
         "gym_sessions_external": {
           "name": "gym_sessions_external",
-          "columns": [
-            "external_id"
-          ],
+          "columns": ["external_id"],
           "isUnique": false
         }
       },
@@ -800,18 +788,12 @@
       "indexes": {
         "gym_sets_session": {
           "name": "gym_sets_session",
-          "columns": [
-            "session_id",
-            "set_index"
-          ],
+          "columns": ["session_id", "set_index"],
           "isUnique": false
         },
         "gym_sets_exercise": {
           "name": "gym_sets_exercise",
-          "columns": [
-            "exercise_id",
-            "logged_at"
-          ],
+          "columns": ["exercise_id", "logged_at"],
           "isUnique": false
         }
       },
@@ -950,10 +932,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "plan_weeks_plan_id_week_index_pk": {
-          "columns": [
-            "plan_id",
-            "week_index"
-          ],
+          "columns": ["plan_id", "week_index"],
           "name": "plan_weeks_plan_id_week_index_pk"
         }
       },
@@ -1018,20 +997,14 @@
       "indexes": {
         "plan_workouts_date": {
           "name": "plan_workouts_date",
-          "columns": [
-            "plan_id",
-            "date"
-          ],
+          "columns": ["plan_id", "date"],
           "isUnique": false
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "plan_workouts_plan_id_id_pk": {
-          "columns": [
-            "plan_id",
-            "id"
-          ],
+          "columns": ["plan_id", "id"],
           "name": "plan_workouts_plan_id_id_pk"
         }
       },
@@ -1428,11 +1401,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "sync_tombstones_entity_plan_id_id_pk": {
-          "columns": [
-            "entity",
-            "plan_id",
-            "id"
-          ],
+          "columns": ["entity", "plan_id", "id"],
           "name": "sync_tombstones_entity_plan_id_id_pk"
         }
       },
