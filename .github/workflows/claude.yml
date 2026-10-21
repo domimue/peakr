@@ -71,5 +71,5 @@ jobs:
           additional_permissions: |
             actions: read
           claude_args: |
-            --allowedTools "Bash(pnpm:*),Bash(node:*),Bash(git:*),Bash(gh:*),Bash(ls:*),Bash(cat:*)"
+            --allowedTools "Bash(pnpm:*),Bash(node:*),Bash(git:*),Bash(gh:*),Bash(ls:*),Bash(cat:*),WebFetch,WebSearch"
             --append-system-prompt "Follow CLAUDE.md. Commit and push in small steps so nothing is lost if the run stops. Run pnpm lint && pnpm typecheck && pnpm test before the final push. For an issue, open the PR yourself with gh pr create and 'Closes #${{ env.ITEM }}'. When the task is complete, or you need a decision from the user, remove the queue label: gh api -X DELETE repos/${{ github.repository }}/issues/${{ env.ITEM }}/labels/claude-queue. Leave it while work remains."
