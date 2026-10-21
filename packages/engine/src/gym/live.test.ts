@@ -679,3 +679,28 @@ describe('last branches', () => {
     });
   });
 });
+
+describe('carry-forward and empty sets', () => {
+  it('a completed set suggests its values for the open sets without a target', () => {
+    let s = live([input({ entryId: 'a', sets: [{}, {}, { reps: 3 }], previous: [] })]);
+    const id = (i: number) => setId(s, 'a', i);
+    s = liveReducer(
+      s,
+      { type: 'updateSet', entryId: 'a', setId: id(0), patch: { weightKg: 60, reps: 5 } },
+      T0,
+    );
+    s = liveReducer(s, { type: 'completeSet', entryId: 'a', setId: id(0) }, T0);
+    expect(s.exercises[0]?.sets[1]?.target).toEqual({ weightKg: 60, reps: 5 });
+    // A set with its own target keeps it.
+    expect(s.exercises[0]?.sets[2]?.target).toEqual({ reps: 3 });
+    s = liveReducer(s, { type: 'completeSet', entryId: 'a', setId: id(1) }, T0);
+    expect(s.exercises[0]?.sets[1]).toMatchObject({ weightKg: 60, reps: 5, completed: true });
+  });
+
+  it('a set completed without any value is not stored, and passes nothing on', () => {
+    let s = live([input({ entryId: 'a', sets: [{}, {}], previous: [] })]);
+    s = liveReducer(s, { type: 'completeSet', entryId: 'a', setId: setId(s, 'a', 0) }, T0);
+    expect(s.exercises[0]?.sets[1]?.target).toEqual({});
+    expect(toGymSession(s, T0 + sec(60), ids()).sets).toEqual([]);
+  });
+});

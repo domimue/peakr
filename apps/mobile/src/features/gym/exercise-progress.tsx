@@ -50,7 +50,7 @@ export function ExerciseProgress({ exerciseId }: { exerciseId: string }) {
         {records.heaviest ? (
           <Record
             label={t('gym.records.heaviest')}
-            value={`${formatSet(records.heaviest, t('units.s'))} ${kg}`}
+            value={formatSet(records.heaviest, t('units.s'), kg)}
             date={dateOf(records.heaviest.sessionId)}
           />
         ) : null}
@@ -59,7 +59,7 @@ export function ExerciseProgress({ exerciseId }: { exerciseId: string }) {
             label={t('gym.records.bestOneRm')}
             value={`${formatKg(Math.round(records.bestOneRm.value * 10) / 10)} ${kg}`}
             hint={t('gym.records.fromSet', {
-              set: `${formatSet(records.bestOneRm, t('units.s'))} ${kg}`,
+              set: formatSet(records.bestOneRm, t('units.s'), kg),
             })}
             date={dateOf(records.bestOneRm.sessionId)}
           />

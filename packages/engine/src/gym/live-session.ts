@@ -262,13 +262,39 @@ function completeSet(state: LiveSession, entryId: string, setId: string, now: nu
     completedAt: now,
   }));
   if (done === state) return state;
-  const exercise = done.exercises.find((e) => e.entryId === entryId) as LiveExercise;
-  const step = afterSet(done.exercises, exercise);
+  const carried = carryForward(done, entryId, setId);
+  const exercise = carried.exercises.find((e) => e.entryId === entryId) as LiveExercise;
+  const step = afterSet(carried.exercises, exercise);
   return {
-    ...done,
+    ...carried,
     focus: step.focus,
-    rest: step.rest ? startRest(entryId, exercise.restSec, now) : done.rest,
+    rest: step.rest ? startRest(entryId, exercise.restSec, now) : carried.rest,
   };
+}
+
+/**
+ * The values of a completed set become the suggestion for the open sets after it that have no
+ * target of their own (free sessions, added exercises): the next set is usually the same.
+ */
+function carryForward(state: LiveSession, entryId: string, setId: string): LiveSession {
+  return mapExercise(state, entryId, (e) => {
+    const at = e.sets.findIndex((s) => s.id === setId);
+    const values = valuesOf(e.sets[at]);
+    if (Object.keys(values).length === 0) return e;
+    return {
+      ...e,
+      sets: e.sets.map((s, i) =>
+        i > at && !s.completed && Object.keys(valuesOf(s.target)).length === 0
+          ? { ...s, target: values }
+          : s,
+      ),
+    };
+  });
+}
+
+/** A completed set with nothing logged (no weight, reps, time) is not stored. */
+export function hasValues(set: Pick<LiveSet, 'weightKg' | 'reps' | 'durationSec'>): boolean {
+  return Object.keys(valuesOf(set)).length > 0;
 }
 
 const firstOpenSet = (e: LiveExercise) => e.sets.find((s) => !s.completed);
@@ -349,7 +375,7 @@ export function toGymSession(
   const sets: GymSet[] = [];
   for (const e of live.exercises) {
     for (const s of e.sets) {
-      if (!s.completed) continue;
+      if (!s.completed || !hasValues(s)) continue;
       sets.push({
         id: newId(),
         sessionId: live.id,

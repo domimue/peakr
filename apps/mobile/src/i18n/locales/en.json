@@ -1931,7 +1931,8 @@
       "startRoutine": "From a routine",
       "recent": "Last sessions",
       "weekMuscles": "This week: sets per muscle group",
-      "weekTotals": "{{sessions}} sessions · {{sets}} sets · {{volume}} {{unit}}",
+      "weekTotals_one": "{{count}} session · {{sets}} sets · {{volume}} {{unit}}",
+      "weekTotals_other": "{{count}} sessions · {{sets}} sets · {{volume}} {{unit}}",
       "insights": "History & statistics",
       "sessionCount_one": "{{count}} session",
       "sessionCount_other": "{{count}} sessions"

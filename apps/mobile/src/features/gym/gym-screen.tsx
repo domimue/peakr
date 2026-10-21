@@ -213,7 +213,7 @@ export function GymScreen() {
         {week ? (
           <Text variant="caption" tone="secondary">
             {t('gym.hub.weekTotals', {
-              sessions: week.sessions,
+              count: week.sessions,
               sets: week.sets,
               volume: formatVolume(week.volumeKg, i18n.language),
               unit: kg,

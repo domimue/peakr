@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useReducedMotion } from 'react-native-reanimated';
 import { StyleSheet, View } from 'react-native';
 import { Bar, CartesianChart, Line } from 'victory-native';
@@ -29,17 +30,24 @@ export function GymBarChart({
 }) {
   const { colors } = useTheme();
   const reduceMotion = useReducedMotion();
+  const [width, setWidth] = useState(0);
   const data = bars.map((b, i) => ({ x: i, value: b.value }));
   const max = Math.max(1, ...bars.map((b) => b.value));
+  // Half a slot on each side puts every bar in the middle of its label below.
+  const pad = bars.length > 0 ? width / (2 * bars.length) : 0;
   return (
     <View accessible accessibilityRole="image" accessibilityLabel={accessibilityLabel}>
-      <View style={styles.chart} testID={testID}>
+      <View
+        style={styles.chart}
+        testID={testID}
+        onLayout={(e) => setWidth(e.nativeEvent.layout.width)}
+      >
         <CartesianChart
           data={data}
           xKey="x"
           yKeys={['value']}
           domain={{ y: [0, max * 1.1] }}
-          domainPadding={{ left: 16, right: 16 }}
+          domainPadding={{ left: pad, right: pad }}
         >
           {({ points, chartBounds }) => (
             <Bar
@@ -53,7 +61,7 @@ export function GymBarChart({
           )}
         </CartesianChart>
       </View>
-      <View style={styles.labels}>
+      <View style={styles.barLabels}>
         {bars.map((b) => (
           <Text key={b.key} variant="micro" tone="secondary" style={styles.label}>
             {b.label}
@@ -129,7 +137,7 @@ export function GymLineChart({
 
 const styles = StyleSheet.create({
   chart: { height: HEIGHT },
-  labels: { flexDirection: 'row', paddingHorizontal: spacing.md },
+  barLabels: { flexDirection: 'row' },
   label: { flex: 1, textAlign: 'center' },
   legend: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.md, marginTop: spacing.xs },
   legendItem: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },

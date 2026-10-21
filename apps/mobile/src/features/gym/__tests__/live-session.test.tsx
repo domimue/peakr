@@ -285,7 +285,11 @@ describe('finishing', () => {
 
     await fireEvent.changeText(screen.getByLabelText('Note'), 'Felt strong');
     await fireEvent.press(screen.getByText('Save workout'));
-    await waitFor(() => expect(router.dismissTo).toHaveBeenCalled());
+    await waitFor(() => expect(router.dismissTo).toHaveBeenCalledWith('/gym'));
+    expect(router.push).toHaveBeenCalledWith({
+      pathname: '/gym/history/[id]',
+      params: { id: s?.id },
+    });
 
     const saved = mock.store.sessions.find((x) => x.id === s?.id);
     expect(saved).toMatchObject({ kind: 'detailed', notes: 'Felt strong', routineId: 'r1' });
@@ -327,7 +331,7 @@ describe('history, statistics and exercise detail', () => {
     seedHistory();
     await renderWithQuery(<SessionDetailScreen id="old" />);
     expect(await screen.findByTestId('summary-volume')).toHaveTextContent(/480 kg/);
-    expect(screen.getAllByText(/20 × 12 kg/)).toHaveLength(2);
+    expect(screen.getAllByText(/20 kg × 12/)).toHaveLength(2);
   });
 
   it('statistics: this week, volume and frequency charts, muscles against the band, body map', async () => {
@@ -361,7 +365,7 @@ describe('history, statistics and exercise detail', () => {
     ];
     await renderWithQuery(<ExerciseDetailScreen id="goblet_squat" />);
     const records = await screen.findByTestId('exercise-records');
-    expect(within(records).getByText('20 × 12 kg')).toBeOnTheScreen();
+    expect(within(records).getByText('20 kg × 12')).toBeOnTheScreen();
     // 20 × (1 + 12/30) = 28
     expect(within(records).getByText('28 kg')).toBeOnTheScreen();
     expect(within(records).getByText('480 kg')).toBeOnTheScreen();

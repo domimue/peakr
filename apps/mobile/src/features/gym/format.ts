@@ -21,10 +21,11 @@ export function formatVolume(kg: number, locale?: string): string {
   return Math.round(kg).toLocaleString(locale);
 }
 
-/** One set as text: `80 × 8`, `12`, `45 s`. */
+/** One set as text: `80 × 8` (with `kgUnit`: `80 kg × 8`), `12`, `45 s`. */
 export function formatSet(
   set: { weightKg?: number; reps?: number; durationSec?: number },
   secUnit: string,
+  kgUnit?: string,
 ): string {
   const amount =
     set.reps !== undefined
@@ -32,8 +33,10 @@ export function formatSet(
       : set.durationSec !== undefined
         ? `${set.durationSec} ${secUnit}`
         : '';
-  if (set.weightKg)
-    return amount ? `${formatKg(set.weightKg)} × ${amount}` : formatKg(set.weightKg);
+  if (set.weightKg) {
+    const weight = kgUnit ? `${formatKg(set.weightKg)} ${kgUnit}` : formatKg(set.weightKg);
+    return amount ? `${weight} × ${amount}` : weight;
+  }
   return amount;
 }
 

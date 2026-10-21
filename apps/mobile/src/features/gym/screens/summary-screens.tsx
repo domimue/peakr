@@ -71,7 +71,9 @@ export function FinishScreen() {
         onSuccess: () => {
           planActions.absorbGym(session, sets, customList);
           finished();
-          router.dismissTo({ pathname: '/gym/history/[id]', params: { id: session.id } });
+          // Back from the saved session leads to the Gym tab, not to the finished live screen.
+          router.dismissTo('/gym');
+          router.push({ pathname: '/gym/history/[id]', params: { id: session.id } });
         },
       },
     );
@@ -213,8 +215,7 @@ function SummaryView({
               {list.map((s, i) => (
                 <Text key={s.id} tone={s.setType === 'warmup' ? 'secondary' : 'default'}>
                   {s.setType === 'working' ? String(i + 1) : t(`gym.setTypes.${s.setType}`)} ·{' '}
-                  {formatSet(s, t('units.s'))}
-                  {s.weightKg ? ` ${kg}` : ''}
+                  {formatSet(s, t('units.s'), kg)}
                   {s.rpe !== undefined ? ` · RPE ${s.rpe}` : ''}
                 </Text>
               ))}
@@ -242,6 +243,6 @@ export function recordText(t: TFunction, r: PersonalRecord, kg: string): string 
 }
 
 const styles = StyleSheet.create({
-  tiles: { flexDirection: 'row', gap: spacing.sm },
+  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
 });

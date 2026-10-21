@@ -139,6 +139,7 @@ export function NumericKeypad({
                 key={s.label}
                 label={s.label}
                 small
+                wide
                 onPress={() => {
                   void Haptics.selectionAsync();
                   onChange(keypadStep(value, placeholder, s.delta));

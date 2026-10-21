@@ -185,7 +185,7 @@ function MuscleRow({ shade }: { shade: MuscleShade }) {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  tiles: { flexDirection: 'row', gap: spacing.sm },
+  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   weekRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   weekTitle: { flex: 1, textAlign: 'center' },
   muscle: { gap: spacing.xs },
