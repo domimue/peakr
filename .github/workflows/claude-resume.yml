@@ -78,7 +78,7 @@ jobs:
           additional_permissions: |
             actions: read
           claude_args: |
-            --allowedTools "Bash(pnpm:*),Bash(node:*),Bash(git:*),Bash(gh:*),Bash(ls:*),Bash(cat:*)"
+            --allowedTools "Bash(pnpm:*),Bash(node:*),Bash(git:*),Bash(gh:*),Bash(ls:*),Bash(cat:*),WebFetch,WebSearch"
           prompt: |
             You are resuming a task in ${{ github.repository }} that an earlier Claude run
             did not finish, most likely because the usage limit ran out.
