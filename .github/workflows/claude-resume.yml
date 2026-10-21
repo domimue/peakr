@@ -95,7 +95,10 @@ jobs:
                Run `pnpm lint && pnpm typecheck && pnpm test` before the final push.
             4. For an issue, open a PR with `gh pr create` containing
                "Closes #${{ needs.pick.outputs.number }}" if none exists yet.
-            5. Comment on #${{ needs.pick.outputs.number }} with what you did (short).
+            5. Post a new comment on #${{ needs.pick.outputs.number }} with
+               `gh issue comment` that starts with @${{ github.repository_owner }} and says
+               briefly what you did, plus any question for the user (the mention triggers
+               their email notification).
             6. When the task is complete, or you need a decision from the user (ask it in that
                comment), remove the label:
                `gh api -X DELETE repos/${{ github.repository }}/issues/${{ needs.pick.outputs.number }}/labels/claude-queue`.
