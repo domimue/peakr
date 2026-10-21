@@ -158,7 +158,11 @@ async function callback(req: Request): Promise<Response> {
     const scopes = provider.grantedScopes(query);
     // Scope upgrade for posting: if the athlete does not grant write access, the existing
     // connection stays exactly as it was (no revoke, no overwrite).
-    if (provider.id === 'strava' && state.purpose === 'upload' && !scopes.includes('activity:write')) {
+    if (
+      provider.id === 'strava' &&
+      state.purpose === 'upload' &&
+      !scopes.includes('activity:write')
+    ) {
       return backToApp(provider.id, 'denied');
     }
     // The athlete can untick activity access on Strava's consent screen; without it there is

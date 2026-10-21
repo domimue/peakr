@@ -1326,6 +1326,127 @@
     "placeholder": "Subscriptions are not available in this build yet. In-app purchase follows in a later version.",
     "back": "Back to my forecast"
   },
+  "gymAddon": {
+    "title": "Peakr Gym",
+    "tagline": "Log every set, see your progress and keep your history – next to your endurance plan.",
+    "exampleBadge": "Example",
+    "preview": {
+      "sampleTitle": "Sample session: Upper body",
+      "sampleHint": "This is an example, not your data.",
+      "sampleSets": "{{sets}} sets · {{volume}} kg volume · 52 min",
+      "exampleStats": "Example statistics",
+      "exampleStatsHint": "Example data. With Peakr Gym these are your own numbers.",
+      "exampleBench": "Bench press – best set",
+      "exampleBenchValue": "{{kg}} kg × {{reps}}",
+      "exampleWeek": "Sets this week (example)",
+      "plannedTitle": "Today's planned strength session",
+      "plannedHint": "You can read it and mark it done without the add-on.",
+      "openPlanned": "Open planned session",
+      "features": {
+        "log": "Log weight, reps and RPE for every set, with rest timer, supersets and plate calculator.",
+        "history": "Full history, personal records and volume per exercise and muscle group.",
+        "plan": "Planned strength sessions open pre-filled, and feed your training load.",
+        "offline": "Works offline in the gym and syncs afterwards."
+      },
+      "unlock": "Unlock Peakr Gym"
+    },
+    "paywall": {
+      "title": "Unlock Peakr Gym",
+      "trial": "7 days free. You enter your payment details now; the first charge comes only after the trial. Cancel anytime before it ends.",
+      "independent": "An add-on: it works with any Peakr tier, or on its own. Your endurance plan never depends on it.",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "perMonth": "{{price}} / month",
+      "perYear": "{{price}} / year",
+      "start": "Start 7-day free trial",
+      "startPlain": "Subscribe",
+      "restore": "Restore purchases",
+      "restored": "Purchases restored.",
+      "restoreFailed": "Could not restore purchases.",
+      "unavailable": "Purchases are not available in this build.",
+      "loading": "Loading prices…",
+      "failed": "The purchase did not go through. You have not been charged.",
+      "active": "Peakr Gym is active.",
+      "manage": "Manage subscriptions",
+      "devUnlock": "Unlock without purchase (development)"
+    },
+    "doneOnly": {
+      "title": "Mark as done",
+      "hint": "Without Peakr Gym you log how long it took and how hard it was."
+    }
+  },
+  "subscription": {
+    "title": "Subscription",
+    "intro": "Your training tier and the Gym add-on are separate subscriptions. Change or cancel one without touching the other.",
+    "tierTitle": "Training tier",
+    "addonTitle": "Peakr Gym add-on",
+    "none": "No active subscription.",
+    "tierNames": {
+      "training": "Training",
+      "plus": "Training + Nutrition"
+    },
+    "period": {
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
+    "trial": "Free trial",
+    "price": "Price",
+    "nextBilling": "Next billing",
+    "trialEnds": "Trial ends (first charge)",
+    "endsOn": "Access until",
+    "cancelledNote": "Cancelled. Access stays until the end of the paid period.",
+    "store": {
+      "play_store": "Google Play",
+      "app_store": "App Store",
+      "stripe": "Peakr website (Stripe)",
+      "other": "Other"
+    },
+    "manage": "Manage or cancel",
+    "manageOnWeb": "This subscription was bought on the website; manage it there.",
+    "cancelOnly": "Cancelling opens {{store}} for this subscription only.",
+    "getAddon": "Get the Gym add-on",
+    "unknownDate": "–"
+  },
+  "stravaPost": {
+    "title": "Strava",
+    "toggle": "Post this session to Strava",
+    "settingTitle": "Post gym sessions to Strava",
+    "settingHint": "Off by default. When on, each finished session is posted automatically, with its sets. You can still switch it off per session.",
+    "settingOn": "On",
+    "settingOff": "Off",
+    "post": "Post to Strava",
+    "posting": "Posting to Strava…",
+    "posted": "Posted to Strava",
+    "failed": "Could not post to Strava",
+    "retry": "Try again",
+    "openOnStrava": "Strava activity {{id}}",
+    "notConnected": "Connect Strava first (Profile → Connections).",
+    "scopeTitle": "Strava needs permission to post",
+    "scopeBody": "Your Strava connection can only read activities. Allow Peakr to post, and your connection stays as it is.",
+    "scopeAllow": "Allow posting",
+    "scopeDenied": "Posting was not allowed. Your Strava connection is unchanged.",
+    "reconnect": "Strava needs to be reconnected (Profile → Connections).",
+    "rateLimited": "Strava is busy right now. Try again in a few minutes.",
+    "unavailableTitle": "Structured upload not available",
+    "unavailableBody": "Strava did not accept the structured strength upload for Peakr. You can post a plain weight-training activity with a text summary instead – it will not show a muscle map.",
+    "postPlain": "Post plain summary",
+    "genericNote": "{{count}} sets use a generic exercise type on Strava.",
+    "quickNote": "This quick log has no sets; it is posted as a plain activity with duration.",
+    "error": "Strava said: {{reason}}"
+  },
+  "healthWrite": {
+    "title": "Health data",
+    "settingTitle": "Save sessions to {{store}}",
+    "settingHint": "Finished gym sessions are saved as a strength workout with duration and an energy estimate. Off by default.",
+    "permission": "Allow Peakr to save workouts",
+    "unsupported": "Not available on this device.",
+    "saved": "Saved to {{store}}",
+    "failed": "Could not save to {{store}}",
+    "stores": {
+      "healthConnect": "Health Connect",
+      "healthKit": "Apple Health"
+    }
+  },
   "licenses": {
     "title": "Third-party notices",
     "intro": "Peakr uses the following third-party software and fonts.",

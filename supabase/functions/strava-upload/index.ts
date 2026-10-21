@@ -69,13 +69,21 @@ function parseUpload(value: unknown): Upload | null {
 }
 
 async function grantedWrite(admin: Admin, integrationId: string): Promise<boolean> {
-  const { data } = await admin.from('integrations').select('scopes').eq('id', integrationId).single();
+  const { data } = await admin
+    .from('integrations')
+    .select('scopes')
+    .eq('id', integrationId)
+    .single();
   return ((data?.scopes as string[] | null) ?? []).includes('activity:write');
 }
 
 /** Strava error text can contain HTML; keep a short readable reason. */
 function reason(text: string): string {
-  return text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300);
+  return text
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 300);
 }
 
 async function uploadStructured(token: string, sessionId: string, upload: StructuredUpload) {

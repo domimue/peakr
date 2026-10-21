@@ -21,6 +21,7 @@ import {
   useAuthListener,
   useSessionStore,
 } from '@/features/auth/session-store';
+import { useBillingStore } from '@/features/billing/billing-store';
 import { LiveSessionRestore } from '@/features/gym/live-session-restore';
 import { registerPushToken } from '@/features/notifications/push';
 import { MorningWeatherAlerts } from '@/features/weather/morning-alert';
@@ -76,6 +77,10 @@ function BackgroundSync() {
   useActivityRealtime();
   useEffect(() => {
     if (userId) void registerPushToken(userId);
+  }, [userId]);
+  // Entitlements follow the Supabase user, the same id the web checkout uses in RevenueCat.
+  useEffect(() => {
+    void useBillingStore.getState().init(userId);
   }, [userId]);
   return null;
 }
