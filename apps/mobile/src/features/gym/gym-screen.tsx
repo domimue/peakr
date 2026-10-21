@@ -262,6 +262,11 @@ export function GymScreen() {
           title={t('gym.import.title')}
           onPress={() => router.push('/gym/import')}
         />
+        <SettingsRow
+          icon="connections"
+          title={t('gym.sharing.title')}
+          onPress={() => router.push('/gym/sharing')}
+        />
       </SettingsGroup>
     </Screen>
   );

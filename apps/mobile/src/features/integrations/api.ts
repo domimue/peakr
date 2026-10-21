@@ -29,8 +29,13 @@ export function statusFromUrl(url: string): ConnectResult {
 /**
  * `purpose: 'baseline'` connects from the plan calibration (onboarding): the server then skips
  * the usual import of the last 14 days, so nothing becomes training history before a plan exists.
+ * `purpose: 'upload'` asks an existing connection for the `activity:write` scope (posting gym
+ * sessions); if the athlete declines, the connection stays exactly as it was.
  */
-export async function connect(provider: Provider, purpose?: 'baseline'): Promise<ConnectResult> {
+export async function connect(
+  provider: Provider,
+  purpose?: 'baseline' | 'upload',
+): Promise<ConnectResult> {
   const { data, error } = await client().functions.invoke<{ url: string }>('oauth/start', {
     body: purpose ? { provider, purpose } : { provider },
   });

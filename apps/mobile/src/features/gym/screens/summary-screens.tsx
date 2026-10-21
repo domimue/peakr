@@ -1,6 +1,9 @@
 import {
+  DEFAULT_SHARE_SETTINGS,
+  defaultChoice,
   summarizeSession,
   toGymSession,
+  type ShareChoice,
   type CustomExercise,
   type GymSession,
   type GymSet,
@@ -32,6 +35,9 @@ import { formatKg, formatSet, formatVolume } from '../format';
 import { useLiveSessionStore } from '../live-session-store';
 import { useFinishLiveSession, useGymExercises, useGymHistory } from '../queries';
 import { exerciseName } from '../session';
+import { useShareSettings } from '../sharing/queries';
+import { ShareChoicePanel, ShareStatusPanel } from '../sharing/share-panels';
+import { shareSession } from '../sharing/share-store';
 
 /**
  * Finishing a live session (CLAUDE.md "Gym"): duration, total volume, sets, muscle groups and new
@@ -48,6 +54,10 @@ export function FinishScreen() {
   const planActions = usePlanActions();
   const [endedAt] = useState(() => Date.now());
   const [notes, setNotes] = useState(live?.notes ?? '');
+  // Where this session goes: the saved defaults (off until switched on once), per session.
+  const shareSettings = useShareSettings();
+  const [picked, setChoice] = useState<ShareChoice | null>(null);
+  const choice = picked ?? defaultChoice(shareSettings.data ?? DEFAULT_SHARE_SETTINGS);
 
   const preview = useMemo(
     () => (live ? toGymSession(live, endedAt, newId, notes) : null),
@@ -70,6 +80,7 @@ export function FinishScreen() {
       {
         onSuccess: () => {
           planActions.absorbGym(session, sets, customList);
+          shareSession({ session, sets, custom: customList }, choice);
           finished();
           // Back from the saved session leads to the Gym tab, not to the finished live screen.
           router.dismissTo('/gym');
@@ -96,6 +107,7 @@ export function FinishScreen() {
           accessibilityLabel={t('gym.summary.notes')}
         />
       </FieldShell>
+      <ShareChoicePanel choice={choice} onChange={setChoice} />
       <Button label={t('gym.summary.save')} disabled={finish.isPending} onPress={save} />
       <Button variant="secondary" label={t('gym.summary.back')} onPress={() => router.back()} />
     </Screen>
@@ -140,6 +152,7 @@ export function SessionDetailScreen({ id }: { id: string }) {
           <Text>{session.notes}</Text>
         </Card>
       ) : null}
+      <ShareStatusPanel data={{ session, sets, custom: custom.data ?? [] }} />
     </Screen>
   );
 }

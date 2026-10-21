@@ -20,6 +20,8 @@ import { routineSession, startLiveSession } from '../session';
 
 jest.mock('@/data/repositories/gym-repository');
 jest.mock('@/data/repositories/strength-repository');
+jest.mock('@/data/repositories/share-repository');
+jest.mock('@/data/repositories/baseline-repository');
 const mockAbsorbGym = jest.fn();
 jest.mock('@/features/plan/queries', () => ({
   usePlan: () => ({ data: null, isPending: false }),

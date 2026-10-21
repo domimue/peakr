@@ -2031,6 +2031,9 @@
   },
   "gym": {
     "title": "Gym",
+    "sharing": {
+      "title": "Sharing"
+    },
     "hub": {
       "lastSession": "Last session",
       "noSessions": "No session logged yet. Start a routine or log a session.",

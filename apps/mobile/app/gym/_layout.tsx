@@ -34,6 +34,7 @@ export default function GymLayout() {
       <Stack.Screen name="stats" options={{ title: t('gym.stats.title') }} />
       <Stack.Screen name="quick-log" options={{ title: t('strength.quickLog.title') }} />
       <Stack.Screen name="import" options={{ title: t('gym.import.title') }} />
+      <Stack.Screen name="sharing" options={{ title: t('gym.sharing.title') }} />
     </Stack>
   );
 }
