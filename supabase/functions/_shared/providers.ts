@@ -18,7 +18,7 @@ export interface TokenSet {
 
 export interface OAuthProvider {
   id: 'strava';
-  authorizeUrl(params: { redirectUri: string; state: string }): string;
+  authorizeUrl(params: { redirectUri: string; state: string; forceConsent?: boolean }): string;
   /** Exchanges the authorization code from the callback for tokens. */
   exchangeCode(params: { code: string; redirectUri: string }): Promise<TokenSet>;
   refresh(refreshToken: string): Promise<TokenSet>;
@@ -66,16 +66,19 @@ function stravaTokens(json: unknown): TokenSet {
 /** Strava: activities of all visibilities, read-only (the plan adapts to them). */
 const strava: OAuthProvider = {
   id: 'strava',
-  authorizeUrl({ redirectUri, state }) {
+  authorizeUrl({ redirectUri, state, forceConsent }) {
     const url = new URL('https://www.strava.com/oauth/mobile/authorize');
     url.search = new URLSearchParams({
       client_id: env('STRAVA_CLIENT_ID'),
       redirect_uri: redirectUri,
       response_type: 'code',
-      approval_prompt: 'auto',
+      // `force` re-shows the consent screen, which an existing user needs to add a scope.
+      approval_prompt: forceConsent ? 'force' : 'auto',
       // read_all: private routes too (athletes who connected before only get public ones).
       // profile:read_all: the athlete's HR zones for the baseline (plan calibration).
-      scope: 'read,read_all,activity:read_all,profile:read_all',
+      // activity:write: gym sessions posted to Strava (uploads endpoint); optional for the user –
+      // athletes who connected earlier or unticked it are asked when they first post.
+      scope: 'read,read_all,activity:read_all,activity:write,profile:read_all',
       state,
     }).toString();
     return url.toString();

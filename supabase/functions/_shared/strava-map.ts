@@ -31,6 +31,9 @@ const SPORTS: Record<string, ImportedSport> = {
 export interface StravaActivity {
   id: number;
   name?: string;
+  /** Set by the uploader; Peakr's own uploads start with `peakr-gym-` (see strava-own.ts). */
+  external_id?: string | null;
+  description?: string | null;
   sport_type?: string;
   type?: string;
   start_date: string;

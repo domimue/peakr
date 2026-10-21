@@ -75,7 +75,8 @@ function getStateKey(): Promise<CryptoKey> {
   return stateKey;
 }
 
-export type OAuthPurpose = 'baseline';
+/** `upload`: an existing connection asks for `activity:write` (gym sessions to Strava). */
+export type OAuthPurpose = 'baseline' | 'upload';
 
 export interface OAuthState {
   /** Supabase user id that started the flow. */

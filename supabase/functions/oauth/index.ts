@@ -60,7 +60,7 @@ async function readBody(req: Request): Promise<StartBody> {
     const body = (await req.json()) as { provider?: unknown; purpose?: unknown };
     return {
       provider: typeof body.provider === 'string' ? body.provider : null,
-      purpose: body.purpose === 'baseline' ? 'baseline' : undefined,
+      purpose: body.purpose === 'baseline' || body.purpose === 'upload' ? body.purpose : undefined,
     };
   } catch {
     return { provider: null, purpose: undefined };
@@ -79,7 +79,13 @@ async function start(req: Request): Promise<Response> {
   const provider = getProvider(body.provider ?? '');
   if (!provider) return json({ error: 'unknown_provider' }, 400);
   const state = await signState(user.id, provider.id, { purpose: body.purpose });
-  return json({ url: provider.authorizeUrl({ redirectUri: callbackUrl(), state }) });
+  return json({
+    url: provider.authorizeUrl({
+      redirectUri: callbackUrl(),
+      state,
+      forceConsent: body.purpose === 'upload',
+    }),
+  });
 }
 
 async function storeTokens(
@@ -150,6 +156,11 @@ async function callback(req: Request): Promise<Response> {
   try {
     const tokens = await provider.exchangeCode({ code, redirectUri: callbackUrl() });
     const scopes = provider.grantedScopes(query);
+    // Scope upgrade for posting: if the athlete does not grant write access, the existing
+    // connection stays exactly as it was (no revoke, no overwrite).
+    if (provider.id === 'strava' && state.purpose === 'upload' && !scopes.includes('activity:write')) {
+      return backToApp(provider.id, 'denied');
+    }
     // The athlete can untick activity access on Strava's consent screen; without it there is
     // nothing to sync. (activity:read alone works but misses private activities.)
     const activityScope = scopes.includes('activity:read_all') || scopes.includes('activity:read');
@@ -158,7 +169,10 @@ async function callback(req: Request): Promise<Response> {
       return backToApp(provider.id, 'denied');
     }
     await storeTokens(state.userId, provider.id, tokens, scopes);
-    if (provider.id === 'strava') await backfillStrava(state.userId, state.purpose);
+    // An upgrade only changes the scope; the data was imported when the user first connected.
+    if (provider.id === 'strava' && state.purpose !== 'upload') {
+      await backfillStrava(state.userId, state.purpose);
+    }
     return backToApp(provider.id, 'connected');
   } catch (error) {
     console.error('OAuth exchange failed', provider.id, error);
