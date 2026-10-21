@@ -2,6 +2,10 @@
 # a PR comment or a review. Claude reads CLAUDE.md, does the work on a
 # branch and answers in the thread.
 #
+# The issue/PR gets the label `claude-queue` while the task is open. If a run
+# stops early (e.g. the Claude usage limit is used up), claude-resume.yml
+# continues it every hour until Claude removes the label.
+#
 # Needs the repository secret CLAUDE_CODE_OAUTH_TOKEN (Settings → Secrets and
 # variables → Actions), created with `claude setup-token`. Runs count against
 # the Claude Pro/Max plan; no API key is used.
@@ -37,10 +41,19 @@ jobs:
       issues: write
       id-token: write
       actions: read
+    env:
+      GH_TOKEN: ${{ github.token }}
+      ITEM: ${{ github.event.issue.number || github.event.pull_request.number }}
     steps:
+      - name: Mark as queued
+        run: |
+          gh label create claude-queue --repo "$GITHUB_REPOSITORY" --color FFB020 \
+            --description "Open task for Claude; resumed hourly until done" --force
+          gh api "repos/$GITHUB_REPOSITORY/issues/$ITEM/labels" -f "labels[]=claude-queue" > /dev/null
+
       - uses: actions/checkout@v4
         with:
-          fetch-depth: 1
+          fetch-depth: 0
 
       # Version comes from "packageManager" in package.json.
       - uses: pnpm/action-setup@v4
@@ -58,5 +71,5 @@ jobs:
           additional_permissions: |
             actions: read
           claude_args: |
-            --allowedTools "Bash(pnpm:*),Bash(node:*),Bash(git:*),Bash(ls:*),Bash(cat:*)"
-            --append-system-prompt "Run pnpm lint && pnpm typecheck && pnpm test before pushing, as CLAUDE.md requires."
+            --allowedTools "Bash(pnpm:*),Bash(node:*),Bash(git:*),Bash(gh:*),Bash(ls:*),Bash(cat:*)"
+            --append-system-prompt "Follow CLAUDE.md. Commit and push in small steps so nothing is lost if the run stops. Run pnpm lint && pnpm typecheck && pnpm test before the final push. For an issue, open the PR yourself with gh pr create and 'Closes #${{ env.ITEM }}'. When the task is complete, or you need a decision from the user, remove the queue label: gh api -X DELETE repos/${{ github.repository }}/issues/${{ env.ITEM }}/labels/claude-queue. Leave it while work remains."

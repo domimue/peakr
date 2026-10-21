@@ -265,9 +265,8 @@ These are the conventions every screen follows. They are patterns common to trai
 - Small, reviewable steps; run `pnpm lint && pnpm typecheck && pnpm test` before saying a step is done.
 - Ask before: adding a paid service, changing the stack, or changing a rule in this file.
 
-## Working mode (Claude sessions)
-The user hands over prompts one after another and expects them to be worked off whenever the usage limit allows, without restating this each time.
-- Every new prompt goes into `.claude/queue.md` under "Open" (one line: what, plus where work stands). Work top to bottom.
-- Commit and push in small steps, so nothing is lost when the limit stops a turn; keep the queue file current in the same commits.
-- While anything is open, the hourly check-in (scheduled task, ID in the queue file) is enabled; it resumes the top open item. When the queue is empty, disable it. Recreate it if it is missing.
-- Finished items move to "Done". Only report back to the user when an item is done, blocked, or needs a decision – not on quiet check-ins.
+## Working mode (Claude)
+The user hands over tasks one after another and expects them to be worked off whenever the usage limit allows, without restating this each time.
+- **GitHub is the main path.** `@claude` in an issue or PR runs `.github/workflows/claude.yml` and labels the item `claude-queue`. If a run stops early (usage limit), `.github/workflows/claude-resume.yml` takes the oldest labelled item every hour and continues it. Remove the label when the task is complete or needs the user's decision; leave it while work remains.
+- **In a chat session**: every new prompt goes into `.claude/queue.md` under "Open"; while anything is open the hourly check-in (scheduled task, ID in that file) is enabled, and disabled when the queue is empty. Recreate it if it is missing.
+- Always: commit and push in small steps so nothing is lost when the limit stops a run, and only report back when a task is done, blocked, or needs a decision.
