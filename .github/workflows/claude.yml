@@ -2,9 +2,9 @@
 # a PR comment or a review. Claude reads CLAUDE.md, does the work on a
 # branch and answers in the thread.
 #
-# Needs one repository secret (Settings → Secrets and variables → Actions):
-#   CLAUDE_CODE_OAUTH_TOKEN – bills your Claude Pro/Max plan (`claude setup-token`)
-#   or ANTHROPIC_API_KEY    – bills the Anthropic API
+# Needs the repository secret CLAUDE_CODE_OAUTH_TOKEN (Settings → Secrets and
+# variables → Actions), created with `claude setup-token`. Runs count against
+# the Claude Pro/Max plan; no API key is used.
 name: Claude
 
 on:
@@ -55,7 +55,6 @@ jobs:
       - uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
           additional_permissions: |
             actions: read
           claude_args: |
