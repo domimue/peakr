@@ -7,6 +7,7 @@ import {
   easeWorkout,
   isPaused,
   rebuild,
+  setWorkoutStatus,
   statusOf,
   type PlanInput,
   type PlanState,
@@ -83,18 +84,55 @@ export function absorbActivity(
   hrZones: readonly HrZone[],
   today: string,
 ): AbsorbResult {
-  const load = activityLoad(activity, hrZones);
-  const hard = isHardActivity(activity, hrZones);
-  const eccentric = isEccentricActivity(activity);
+  return absorbImpact(
+    state,
+    input,
+    {
+      date: activity.date,
+      sport: activity.sport,
+      minutes: Math.round(activity.durationSec / 60),
+      load: activityLoad(activity, hrZones),
+      hard: isHardActivity(activity, hrZones),
+      eccentric: isEccentricActivity(activity),
+    },
+    today,
+    { countLoad: true },
+  );
+}
+
+/** What a finished session did, in the unified load model. */
+export interface SessionImpact {
+  date: string;
+  sport: string;
+  minutes: number;
+  load: number;
+  /** Counts as hard for "no hard days back to back" (heavy legs for strength). */
+  hard: boolean;
+  eccentric: boolean;
+}
+
+/**
+ * The common rebalance: a hard session makes a hard session on the next day easy, an eccentric one
+ * eases heavy legs on the next day, and – with `countLoad` (unplanned sessions) – the load comes off
+ * the easy sessions later in that week and the week gets a note.
+ */
+export function absorbImpact(
+  state: PlanState,
+  input: PlanInput,
+  impact: SessionImpact,
+  today: string,
+  options: { countLoad: boolean },
+): AbsorbResult {
+  const { load, hard, eccentric } = impact;
   const unchanged: AbsorbResult = { state, load, hard, eccentric, shortened: [], eased: [] };
+  const activity = { date: impact.date };
   const date = day(activity.date);
   const week = state.plan.weeks.find(
     (w) => day(w.startDate) <= date && date < day(w.startDate) + 7,
   );
   if (!week || isPaused(state, activity.date)) return unchanged;
 
-  const minutes = Math.round(activity.durationSec / 60);
-  const noteParams = { sport: activity.sport, minutes, load: round1(load) };
+  const noteParams = { sport: impact.sport, minutes: impact.minutes, load: round1(load) };
   let next: PlanState = state;
 
   // 1. A hard activity: a hard session on the next day becomes easy.
@@ -132,6 +170,11 @@ export function absorbActivity(
       next = result.value;
       eased.push(w.id);
     }
+  }
+
+  // A planned session that was done: its load was planned, only the spacing reacts.
+  if (!options.countLoad) {
+    return { state: next, load, hard, eccentric, shortened: [], eased };
   }
 
   // 2. The extra load comes off the easy sessions left in that week, the latest first.
@@ -181,4 +224,38 @@ export function absorbActivity(
     shortened,
     eased,
   };
+}
+
+/**
+ * A finished gym session in the plan (CLAUDE.md "Gym": completed gym sessions feed the unified
+ * load model). `impact` comes from `gymSessionImpact` (Phase 3 rules: the heaviest exercise sets the
+ * leg load, heavy legs count as hard). A session that fulfils a planned workout marks it done; if
+ * it was heavier on the legs than planned, a hard session on the next day becomes easy. An
+ * unplanned session is absorbed like any unplanned activity.
+ */
+export function absorbGymSession(
+  state: PlanState,
+  input: PlanInput,
+  session: { date: string; plannedWorkoutId?: string },
+  impact: Omit<SessionImpact, 'date' | 'sport' | 'eccentric'>,
+  today: string,
+): AbsorbResult & { matched: boolean } {
+  const planned = session.plannedWorkoutId
+    ? allWorkouts(state.plan).find((w) => w.id === session.plannedWorkoutId)
+    : undefined;
+  const full: SessionImpact = {
+    ...impact,
+    date: session.date,
+    sport: 'strength',
+    eccentric: false,
+  };
+  if (!planned) {
+    return { ...absorbImpact(state, input, full, today, { countLoad: true }), matched: false };
+  }
+  const done = setWorkoutStatus(state, planned.id, 'done');
+  /* v8 ignore next -- the workout was just found in the plan */
+  const next = done.ok ? done.value : state;
+  // Only what is harder than planned changes the spacing; the planned hard day was already spaced.
+  const harder = { ...full, hard: full.hard && !planned.hard };
+  return { ...absorbImpact(next, input, harder, today, { countLoad: false }), matched: true };
 }

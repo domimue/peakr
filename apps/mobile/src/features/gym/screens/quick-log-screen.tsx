@@ -69,28 +69,27 @@ export function QuickLogScreen({ sourceId, workoutId }: { sourceId?: string; wor
       <Button
         label={t('strength.quickLog.save')}
         disabled={save.isPending}
-        onPress={() =>
+        onPress={() => {
+          const session = buildQuickSession({
+            date: todayIso(),
+            now: Date.now(),
+            durationMin,
+            rpe,
+            legs: legs === 'yes',
+            ...(sourceId ? { sourceId } : {}),
+            ...(workoutId ? { plannedWorkoutId: workoutId } : {}),
+          });
           save.mutate(
-            {
-              session: buildQuickSession({
-                date: todayIso(),
-                now: Date.now(),
-                durationMin,
-                rpe,
-                legs: legs === 'yes',
-                ...(sourceId ? { sourceId } : {}),
-                ...(workoutId ? { plannedWorkoutId: workoutId } : {}),
-              }),
-              sets: [],
-            },
+            { session, sets: [] },
             {
               onSuccess: () => {
-                if (workoutId) planActions.setStatus(workoutId, 'done');
+                // Counts towards the plan's load; a planned workout is marked done.
+                planActions.absorbGym(session, [], []);
                 router.back();
               },
             },
-          )
-        }
+          );
+        }}
       />
     </Screen>
   );

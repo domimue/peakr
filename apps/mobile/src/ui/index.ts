@@ -23,3 +23,4 @@ export * from './components/segmented-progress';
 export * from './components/settings-row';
 export * from './components/stat-tile';
 export * from './components/sortable-list';
+export * from './components/numeric-keypad';

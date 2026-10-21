@@ -4,6 +4,7 @@ import type {
   GymSession,
   GymSessionSource,
   GymSet,
+  PlateSetup,
   RoutineFolder,
 } from '@peakr/engine';
 
@@ -29,6 +30,8 @@ export function resetStore(): void {
   store.sessions = [];
   store.sets = [];
   store.importNames = {};
+  liveStore.json = null;
+  liveStore.plates = null;
 }
 
 const upsert = <T extends { id: string }>(list: T[], item: T): T[] =>
@@ -109,4 +112,22 @@ export const saveGymImport = jest.fn(async (data: GymImport) => {
 export const getImportNames = jest.fn(async () => ({ ...store.importNames }));
 export const saveImportNames = jest.fn(async (names: Record<string, string>) => {
   store.importNames = { ...names };
+});
+
+export const liveStore = { json: null as string | null, plates: null as PlateSetup | null };
+
+export const getLiveSession = jest.fn(async () => liveStore.json);
+export const saveLiveSession = jest.fn((json: string) => {
+  liveStore.json = json;
+});
+export const clearLiveSession = jest.fn(() => {
+  liveStore.json = null;
+});
+export const finishLiveSession = jest.fn(async (session: GymSession, sets: readonly GymSet[]) => {
+  await saveGymSession(session, sets);
+  liveStore.json = null;
+});
+export const getPlateSetup = jest.fn(async () => liveStore.plates);
+export const savePlateSetup = jest.fn(async (setup: PlateSetup) => {
+  liveStore.plates = setup;
 });

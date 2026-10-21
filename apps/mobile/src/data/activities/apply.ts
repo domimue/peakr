@@ -2,12 +2,15 @@ import {
   absorbActivity,
   activityKeys,
   dedupeActivities,
+  isSameActivity,
   matchActivities,
   planRange,
   setWorkoutStatus,
   statusOf,
+  type Activity,
   type ActivityLink,
   type ActivitySource,
+  type GymSession,
   type HrZone,
   type ImportedSport,
   type PlanState,
@@ -51,11 +54,29 @@ export function hrZonesOf(stored: StoredPlan): HrZone[] {
   return planHrZones(stored.input);
 }
 
+/**
+ * A strength activity from Strava or a watch that is a gym session logged in Peakr (e.g. posted to
+ * Strava afterwards). The detailed gym session already counted (WORKOUTS.md §8.7), so the import
+ * must not count it again.
+ */
+export function isLoggedGymSession(a: Activity, sessions: readonly GymSession[]): boolean {
+  if (a.sport !== 'strength') return false;
+  return sessions.some((s) => {
+    const minutes = s.durationMin ?? Math.round(((s.endedAt ?? s.startedAt) - s.startedAt) / 60000);
+    return isSameActivity(a, {
+      sport: 'strength',
+      startTime: new Date(s.startedAt).toISOString(),
+      durationSec: minutes * 60,
+    });
+  });
+}
+
 export function applyImportedActivities(
   stored: StoredPlan | null,
   records: readonly StoredActivity[],
   links: readonly (ActivityLink & { planId: string })[],
   today: string,
+  gymSessions: readonly GymSession[] = [],
 ): ImportOutcome {
   const none: ImportOutcome = { state: null, links: [], handled: [], notices: [] };
   // Without a plan there is nothing to adapt yet; the activities wait.
@@ -66,7 +87,9 @@ export function applyImportedActivities(
   );
   const merged = dedupeActivities(records);
   // A new record of an activity that was already handled (e.g. Garmin after Strava) is not new.
-  const fresh = merged.filter((a) => !activityKeys(a).some((k) => handledKeys.has(k)));
+  const fresh = merged.filter(
+    (a) => !activityKeys(a).some((k) => handledKeys.has(k)) && !isLoggedGymSession(a, gymSessions),
+  );
   const handled = merged
     .filter((a) => a.sources.some((s) => !handledKeys.has(`${s.source}:${s.externalId}`)))
     .flatMap((a) => a.sources);

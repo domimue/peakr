@@ -1,8 +1,10 @@
 import {
   adaptToEquipment,
+  createLiveSession,
   defaultRestSec,
   getTemplate,
   lastSetsOf,
+  liveExercise,
   parseReps,
   prefillExercise,
   resolveExercise,
@@ -13,6 +15,9 @@ import {
   type GymRoutine,
   type GymSession,
   type GymSet,
+  type LiveExercise,
+  type LiveSession,
+  type PlannedSet,
   type SetLog,
   type StrengthEquipment,
   type Workout,
@@ -229,4 +234,82 @@ export function buildQuickSession(fields: {
 /** Whether a prescription is timed (`"30 s"`) rather than reps. */
 export function isTimed(reps: string): boolean {
   return parseReps(reps)?.unit === 'sec';
+}
+
+/**
+ * A live session from what to train (routine, library session or planned workout): pre-filled sets
+ * (§8.5) and last time's sets as the values to beat.
+ */
+export function startLiveSession(
+  session: StrengthSession,
+  history: GymHistory,
+  today: string,
+  custom: readonly CustomExercise[],
+  now = Date.now(),
+): LiveSession {
+  const prefill = prefillSession(session, history, today, custom);
+  return createLiveSession(
+    {
+      id: newId(),
+      title: session.title,
+      date: today,
+      startedAt: now,
+      sourceId: session.sourceId,
+      ...(session.routineId ? { routineId: session.routineId } : {}),
+      ...(session.plannedWorkoutId ? { plannedWorkoutId: session.plannedWorkoutId } : {}),
+    },
+    prefill.map((p, i) => {
+      const e = session.exercises[i] as SessionExercise;
+      return {
+        entryId: newId(),
+        exerciseId: p.exerciseId,
+        ...(e.name ? { name: e.name } : {}),
+        prescription: e.reps,
+        timed: isTimed(e.reps),
+        restSec: p.restSec,
+        ...(e.supersetGroup ? { supersetGroup: e.supersetGroup } : {}),
+        ...(e.notes ? { notes: e.notes } : {}),
+        sets: p.sets,
+        previous: lastSetsFor(history, p.exerciseId, today)?.sets ?? [],
+      };
+    }),
+    newId,
+  );
+}
+
+/** An empty session: exercises are added while training. */
+export function emptyLiveSession(title: string, today: string, now = Date.now()): LiveSession {
+  return createLiveSession({ id: newId(), title, date: today, startedAt: now }, [], newId);
+}
+
+/** One more exercise in a running session, with last time's sets as targets. */
+export function liveExerciseFor(
+  exerciseId: string,
+  history: GymHistory,
+  today: string,
+  custom: readonly CustomExercise[],
+): LiveExercise {
+  const exercise = resolveExercise(exerciseId, custom);
+  const last = lastSetsFor(history, exerciseId, today)?.sets ?? [];
+  const timed = exercise?.trackingMode === 'time' || exercise?.trackingMode === 'weightTime';
+  const sets: PlannedSet[] =
+    last.length > 0
+      ? last.map(({ weightKg, reps, durationSec }) => ({
+          ...(weightKg !== undefined ? { weightKg } : {}),
+          ...(reps !== undefined ? { reps } : {}),
+          ...(durationSec !== undefined ? { durationSec } : {}),
+        }))
+      : [{}, {}, {}];
+  return liveExercise(
+    {
+      entryId: newId(),
+      exerciseId,
+      prescription: '',
+      timed,
+      restSec: defaultRestSec(exerciseId, timed ? '30 s' : '8-12'),
+      sets,
+      previous: last,
+    },
+    newId,
+  );
 }

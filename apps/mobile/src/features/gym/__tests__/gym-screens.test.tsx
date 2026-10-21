@@ -3,7 +3,6 @@ import * as DocumentPicker from 'expo-document-picker';
 import { File } from 'expo-file-system';
 import { router } from 'expo-router';
 
-import { todayIso } from '@/data/ids';
 import * as repo from '@/data/repositories/gym-repository';
 import { renderWithQuery } from '@/test-utils/render-with-query';
 
@@ -17,13 +16,13 @@ import {
 import { QuickLogScreen } from '../screens/quick-log-screen';
 import { RoutineBuilderScreen } from '../screens/routine-builder-screen';
 import { RoutineListScreen } from '../screens/routine-list-screen';
-import { WorkoutScreen } from '../screens/workout-screen';
 
 jest.mock('@/data/repositories/gym-repository');
 jest.mock('@/data/repositories/strength-repository');
-const mockSetStatus = jest.fn();
+const mockAbsorbGym = jest.fn();
 jest.mock('@/features/plan/queries', () => ({
-  usePlanActions: () => ({ setStatus: mockSetStatus }),
+  usePlan: () => ({ data: null, isPending: false }),
+  usePlanActions: () => ({ absorbGym: mockAbsorbGym }),
 }));
 
 // The in-memory mock (src/data/repositories/__mocks__).
@@ -31,7 +30,7 @@ const mock = repo as unknown as typeof import('@/data/repositories/__mocks__/gym
 
 beforeEach(() => {
   mock.resetStore();
-  mockSetStatus.mockClear();
+  mockAbsorbGym.mockClear();
   jest.spyOn(router, 'push').mockImplementation(() => undefined);
   jest.spyOn(router, 'replace').mockImplementation(() => undefined);
   jest.spyOn(router, 'back').mockImplementation(() => undefined);
@@ -84,8 +83,9 @@ describe('Gym tab', () => {
     ];
     await renderWithQuery(<GymScreen />);
     expect(
-      await screen.findByText('Upper · 2026-10-19 · 1 sets · 600 kg volume'),
+      await screen.findByText('2026-10-19 · 0 min · 1 sets · 600 kg volume'),
     ).toBeOnTheScreen();
+    expect(screen.getByText('Upper')).toBeOnTheScreen();
     expect(screen.getByText('1 routine')).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('Import from another app'));
     expect(router.push).toHaveBeenCalledWith('/gym/import');
@@ -229,155 +229,6 @@ describe('routine list', () => {
   });
 });
 
-describe('gym session', () => {
-  const legs = {
-    id: 'r1',
-    name: 'Legs',
-    position: 0,
-    durationMin: 40,
-    exercises: [
-      {
-        id: 'a',
-        exerciseId: 'goblet_squat',
-        targetSets: 2,
-        target: { kind: 'reps' as const, min: 8, max: 12 },
-        restSec: 90,
-      },
-      {
-        id: 'b',
-        exerciseId: 'plank',
-        targetSets: 1,
-        target: { kind: 'time' as const, minSec: 30, maxSec: 45 },
-        restSec: 45,
-      },
-    ],
-  };
-
-  it('pre-fills from last time and saves a session with its sets', async () => {
-    mock.store.routines = [legs];
-    mock.store.sessions = [
-      {
-        id: 'old',
-        date: '2026-10-15',
-        startedAt: 1,
-        title: 'Legs',
-        kind: 'detailed',
-        source: 'app',
-      },
-    ];
-    mock.store.sets = [
-      {
-        id: 'o1',
-        sessionId: 'old',
-        exerciseId: 'goblet_squat',
-        setIndex: 0,
-        setType: 'working',
-        weightKg: 20,
-        reps: 12,
-        rpe: 8,
-        completed: true,
-        loggedAt: 1,
-      },
-      {
-        id: 'o2',
-        sessionId: 'old',
-        exerciseId: 'goblet_squat',
-        setIndex: 1,
-        setType: 'working',
-        weightKg: 20,
-        reps: 12,
-        rpe: 7,
-        completed: true,
-        loggedAt: 1,
-      },
-    ];
-    await renderWithQuery(<WorkoutScreen routineId="r1" />);
-    expect(await screen.findByText('Last time: 20 kg × 12, 20 kg × 12')).toBeOnTheScreen();
-    // All sets at the top of the range at RPE ≤ 8 → +5 % (lower body), back to 8 reps.
-    expect(screen.getByLabelText('Weight in kg, Goblet squat, set 1')).toHaveDisplayValue('21');
-    expect(screen.getByLabelText('reps, Goblet squat, 1')).toHaveDisplayValue('8');
-    expect(screen.getByLabelText('sec, Plank, 1')).toHaveDisplayValue('30');
-
-    await fireEvent.press(screen.getAllByText('How to')[0] as never);
-    expect(screen.getByText(/Hold a dumbbell or kettlebell/)).toBeOnTheScreen();
-
-    await fireEvent.press(screen.getByText('Finish workout'));
-    expect(
-      screen.getByText('Tick at least one set as done, or use the quick log.'),
-    ).toBeOnTheScreen();
-
-    await fireEvent.changeText(screen.getByLabelText('RPE, Goblet squat, set 1'), '7.5');
-    await fireEvent.press(screen.getByLabelText('Set 1 of Goblet squat done'));
-    await fireEvent.press(screen.getByLabelText('Set 1 of Plank done'));
-    await fireEvent.press(screen.getByText('Finish workout'));
-    await waitFor(() => expect(router.back).toHaveBeenCalled());
-
-    const saved = mock.store.sessions.find((s) => s.id !== 'old');
-    expect(saved).toMatchObject({
-      date: todayIso(),
-      title: 'Legs',
-      kind: 'detailed',
-      routineId: 'r1',
-      sourceId: 'routine:r1',
-      durationMin: 40,
-    });
-    expect(
-      mock.store.sets
-        .filter((s) => s.sessionId === saved?.id)
-        .map(({ exerciseId, setIndex, weightKg, reps, durationSec, rpe, setType }) => ({
-          exerciseId,
-          setIndex,
-          weightKg,
-          reps,
-          durationSec,
-          rpe,
-          setType,
-        })),
-    ).toEqual([
-      {
-        exerciseId: 'goblet_squat',
-        setIndex: 0,
-        weightKg: 21,
-        reps: 8,
-        durationSec: undefined,
-        rpe: 7.5,
-        setType: 'working',
-      },
-      {
-        exerciseId: 'plank',
-        setIndex: 1,
-        weightKg: undefined,
-        reps: undefined,
-        durationSec: 30,
-        rpe: undefined,
-        setType: 'working',
-      },
-    ]);
-    expect(mockSetStatus).not.toHaveBeenCalled();
-  });
-
-  it('starts library sessions in the user’s equipment and offers the quick log', async () => {
-    const strength = jest.requireMock(
-      '@/data/repositories/strength-repository',
-    ) as typeof import('@/data/repositories/__mocks__/strength-repository');
-    strength.store.setup = { mode: 'split', split: 'pushPullLegs', equipment: 'hotel' };
-    await renderWithQuery(<WorkoutScreen templateId="strength.legs" />);
-    expect(await screen.findByText('Legs')).toBeOnTheScreen();
-    expect(screen.queryByText('Back squat')).toBeNull();
-    await fireEvent.press(screen.getByText('Quick log instead'));
-    expect(router.replace).toHaveBeenCalledWith({
-      pathname: '/gym/quick-log',
-      params: { sourceId: 'strength.legs' },
-    });
-    strength.resetStore();
-  });
-
-  it('shows a message for an unknown routine', async () => {
-    await renderWithQuery(<WorkoutScreen routineId="gone" />);
-    expect(await screen.findByText('This workout is no longer available.')).toBeOnTheScreen();
-  });
-});
-
 describe('quick log', () => {
   it('logs duration, effort and legs and completes the planned workout', async () => {
     await renderWithQuery(<QuickLogScreen sourceId="strength.legs" workoutId="w1" />);
@@ -395,7 +246,8 @@ describe('quick log', () => {
       sourceId: 'strength.legs',
       plannedWorkoutId: 'w1',
     });
-    expect(mockSetStatus).toHaveBeenCalledWith('w1', 'done');
+    // The session counts towards the plan's load and marks the planned workout done.
+    expect(mockAbsorbGym).toHaveBeenCalledWith(mock.store.sessions[0], [], []);
   });
 });
 

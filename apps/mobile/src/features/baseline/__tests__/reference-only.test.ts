@@ -22,6 +22,7 @@ import { calibrateOnboarding } from '../calibration';
 jest.mock('@/data/repositories/plan-repository');
 jest.mock('@/data/repositories/activity-repository');
 jest.mock('@/data/repositories/baseline-repository');
+jest.mock('@/data/repositories/gym-repository');
 jest.mock('@/data/supabase', () => ({
   supabase: { functions: { invoke: jest.fn() }, from: jest.fn() },
 }));

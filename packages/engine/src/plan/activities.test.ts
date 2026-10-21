@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import { calculateHrZones, type HrZone } from '../hr';
-import { absorbActivity } from './absorb';
+import { absorbActivity, absorbGymSession } from './absorb';
 import {
   activityKeys,
   activityLoad,
@@ -521,5 +521,88 @@ describe('terrain load of activities (CLAUDE.md "Terrain" §6)', () => {
     expect(r.eccentric).toBe(true);
     expect(r.eased).toContain(heavy.id);
     expect(findWorkout(r.state.plan, heavy.id)?.legLoad).not.toBe('heavy');
+  });
+});
+
+describe('absorbGymSession', () => {
+  const state = baseState();
+
+  it('an unplanned heavy leg day counts its load and eases the hard session the next day', () => {
+    // Saturday 10-31: 60 min heavy legs at RPE 8 → load 240, hard.
+    const r = absorbGymSession(
+      state,
+      input,
+      { date: '2026-10-31' },
+      { load: 240, hard: true, minutes: 60 },
+      '2026-10-30',
+    );
+    const sunday = workoutOn(state, '2026-11-01');
+    expect(r.matched).toBe(false);
+    expect(r.eased).toEqual([sunday.id]);
+    expect(findWorkout(r.state.plan, sunday.id)?.hard).toBe(false);
+    expect(r.state.plan.weeks[1]?.notes.at(-1)).toEqual({
+      key: 'notes.unplannedActivity',
+      params: { sport: 'strength', minutes: 60, load: 240 },
+    });
+  });
+
+  it('an unplanned upper-body session only takes load off the easy sessions', () => {
+    const r = absorbGymSession(
+      state,
+      input,
+      { date: '2026-10-26' },
+      { load: 140, hard: false, minutes: 40 },
+      '2026-10-26',
+    );
+    expect(r.eased).toEqual([]);
+    expect(r.shortened.length).toBeGreaterThan(0);
+  });
+
+  it('a planned session is marked done; its load was planned, so nothing is shortened', () => {
+    const planned = workoutOn(state, '2026-10-27');
+    expect(planned.sport).toBe('strength');
+    const r = absorbGymSession(
+      state,
+      input,
+      { date: '2026-10-27', plannedWorkoutId: planned.id },
+      { load: 150, hard: false, minutes: 50 },
+      '2026-10-27',
+    );
+    expect(r.matched).toBe(true);
+    expect(r.state.status[planned.id]).toBe('done');
+    expect(r.shortened).toEqual([]);
+    expect(r.state.plan.weeks[1]?.notes).toEqual(state.plan.weeks[1]?.notes);
+  });
+
+  it('a planned session heavier on the legs than planned eases a hard session the next day', () => {
+    // Make the Saturday long run a planned light strength session's next day: plan strength on Sat.
+    const sat = workoutOn(state, '2026-10-31');
+    const sunday = workoutOn(state, '2026-11-01');
+    const planned = {
+      ...workoutOn(state, '2026-10-27'),
+      id: 'gym-sat',
+      date: '2026-10-31',
+      hard: false,
+    };
+    const withStrength: PlanState = {
+      ...state,
+      plan: {
+        ...state.plan,
+        weeks: state.plan.weeks.map((w) =>
+          w.index === 1
+            ? { ...w, workouts: [...w.workouts.filter((x) => x.id !== sat.id), planned] }
+            : w,
+        ),
+      },
+    };
+    const r = absorbGymSession(
+      withStrength,
+      input,
+      { date: '2026-10-31', plannedWorkoutId: 'gym-sat' },
+      { load: 200, hard: true, minutes: 50 },
+      '2026-10-30',
+    );
+    expect(r.matched).toBe(true);
+    expect(r.eased).toEqual([sunday.id]);
   });
 });

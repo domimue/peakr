@@ -11,7 +11,7 @@ import {
   type LegacyCustomExercise,
   type LegacyStrengthLog,
 } from './migrate';
-import { lastSetsOf, toStrengthLog } from './plan-bridge';
+import { gymSessionImpact, lastSetsOf, toStrengthLog } from './plan-bridge';
 import { estimateOneRepMax, findNewRecords } from './records';
 import {
   cleanSupersets,
@@ -221,6 +221,8 @@ describe('personal records', () => {
     expect(kinds).toEqual([
       'farmer_carry:distance',
       'leg_extension:setVolume',
+      'leg_extension:sessionVolume',
+      'leg_extension:repsAtWeight',
       'plank:duration',
       'pull_up:reps',
     ]);
@@ -603,5 +605,25 @@ describe('exercise library', () => {
     expect(() => parseExerciseRecords([{ ...ok, equipment: [] }])).toThrow(/no equipment/);
     expect(() => parseExerciseRecords([{ ...ok, tracking: 'vibes' }])).toThrow(/tracking/);
     expect(() => parseExerciseRecords([{ ...ok, id: 'Bad Id' }])).toThrow(/bad id/);
+  });
+});
+
+describe('gym sessions in the load model', () => {
+  it('a heavy leg day is hard; upper body is not (Phase 3 rules)', () => {
+    const legs = gymSessionImpact(session({ id: 'L' }), [
+      set({ sessionId: 'L', exerciseId: 'back_squat', weightKg: 120, reps: 5, rpe: 8 }),
+      set({ sessionId: 'L', exerciseId: 'bench_press', weightKg: 80, reps: 8, rpe: 8 }),
+    ]);
+    expect(legs).toEqual({ load: (65 * 8) / 2, legLoad: 'heavy', hard: true, minutes: 65 });
+    const upper = gymSessionImpact(session({ id: 'U' }), [
+      set({ sessionId: 'U', exerciseId: 'bench_press', weightKg: 80, reps: 8 }),
+    ]);
+    expect(upper.hard).toBe(false);
+    expect(upper.legLoad).toBe('none');
+    const quick = gymSessionImpact(
+      session({ id: 'Q', kind: 'quick', durationMin: 40, sessionRpe: 6, legs: true }),
+      [],
+    );
+    expect(quick).toEqual({ load: 120, legLoad: 'heavy', hard: true, minutes: 40 });
   });
 });

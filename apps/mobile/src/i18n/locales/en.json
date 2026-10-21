@@ -10,7 +10,8 @@
     "loading": "Loading…",
     "loadError": "Couldn’t load your data.",
     "retry": "Try again",
-    "save": "Save"
+    "save": "Save",
+    "close": "Close"
   },
   "tabs": {
     "today": "Today",
@@ -1918,7 +1919,22 @@
       "routineCount_one": "{{count}} routine",
       "routineCount_other": "{{count}} routines",
       "exerciseCount_one": "{{count}} exercise",
-      "exerciseCount_other": "{{count}} exercises"
+      "exerciseCount_other": "{{count}} exercises",
+      "running": "Running: {{title}}",
+      "runningInfo": "{{time}} · {{done}} sets done",
+      "continue": "Continue session",
+      "plannedToday": "Planned for today",
+      "plannedInfo_one": "{{minutes}} min · {{count}} exercise",
+      "plannedInfo_other": "{{minutes}} min · {{count}} exercises",
+      "startPlanned": "Start planned session",
+      "startEmpty": "Empty session",
+      "startRoutine": "From a routine",
+      "recent": "Last sessions",
+      "weekMuscles": "This week: sets per muscle group",
+      "weekTotals": "{{sessions}} sessions · {{sets}} sets · {{volume}} {{unit}}",
+      "insights": "History & statistics",
+      "sessionCount_one": "{{count}} session",
+      "sessionCount_other": "{{count}} sessions"
     },
     "library": {
       "title": "Exercise library",
@@ -1938,7 +1954,15 @@
       "delete": "Delete exercise",
       "editCopy": "Edit a copy",
       "copyName": "{{name}} (my version)",
-      "copyIntro": "Library exercises stay as they are. Change anything in your own copy – it shows up next to the original."
+      "copyIntro": "Library exercises stay as they are. Change anything in your own copy – it shows up next to the original.",
+      "history": "Past sets",
+      "noHistory": "You have not logged this exercise yet.",
+      "progress": "Progress",
+      "chartOneRm": "Estimated 1RM",
+      "chartHeaviest": "Heaviest set",
+      "chartLabel": "Estimated 1RM and heaviest set per session: {{values}}",
+      "olderSessions_one": "{{count}} older session",
+      "olderSessions_other": "{{count}} older sessions"
     },
     "edit": {
       "aliases": "Other names",
@@ -2095,6 +2119,170 @@
       "doneSkipped_one": "{{count}} workout was imported before and skipped.",
       "doneSkipped_other": "{{count}} workouts were imported before and skipped.",
       "backToGym": "Back to the Gym"
+    },
+    "setTypes": {
+      "warmup": "Warm-up",
+      "working": "Working set",
+      "drop": "Drop set",
+      "failure": "To failure",
+      "short": {
+        "warmup": "W",
+        "drop": "D",
+        "failure": "F"
+      }
+    },
+    "live": {
+      "title": "Session",
+      "emptyTitle": "Workout",
+      "emptyHint": "Add the first exercise to start logging.",
+      "none": "No session is running.",
+      "backToGym": "Back to the Gym",
+      "setsDone": "{{done}} of {{total}} sets done",
+      "elapsedLabel": "Elapsed time {{time}}",
+      "superset": "Superset {{n}}",
+      "target": "Target {{target}}",
+      "restShort": "Rest {{time}}",
+      "restTime": "Rest time",
+      "exerciseMenu": "Options for {{name}}",
+      "col": {
+        "set": "Set",
+        "target": "Target"
+      },
+      "previous": "Last: {{set}}",
+      "weight": "Weight",
+      "cellLabel": "{{field}}, {{name}}, set {{set}}",
+      "setTypeLabel": "Set {{set}}, {{type}}",
+      "setTypeHint": "Tap to switch between working, warm-up, drop and failure set. Long press removes the set.",
+      "oneRm": "≈ {{value}} {{unit}} 1RM (estimate)",
+      "addSet": "Add set",
+      "removeSet": "Remove last set",
+      "addExercise": "Add exercise",
+      "removeExercise": {
+        "button": "Remove exercise",
+        "title": "Remove {{name}}?",
+        "confirm": "Remove"
+      },
+      "finish": "Finish workout",
+      "finishEmpty": {
+        "title": "No set done yet",
+        "body": "Tick at least one set as done, or discard the session."
+      },
+      "discard": {
+        "button": "Discard session",
+        "title": "Discard this session?",
+        "body": "Nothing of it will be saved.",
+        "confirm": "Discard"
+      },
+      "keypadTitle": "{{field}} · {{name}} · set {{set}}",
+      "keypadDone": "Done",
+      "next": "Next",
+      "completeSet": "Complete set ✓",
+      "delete": "Delete",
+      "running": {
+        "title": "A session is running",
+        "body": "“{{title}}” is still open. Continue it, or discard it and start the new one.",
+        "continue": "Continue running session",
+        "discardAndStart": "Discard it and start new"
+      },
+      "rest": {
+        "label": "Rest after {{name}}",
+        "over": "Rest is over – next set",
+        "remaining": "Rest, {{time}} left",
+        "progress": "Rest progress",
+        "minus": "−{{sec}} s",
+        "plus": "+{{sec}} s",
+        "skip": "Skip rest",
+        "channel": "Rest timer",
+        "doneTitle": "Rest is over",
+        "doneBody": "Time for your next set of {{name}}."
+      }
+    },
+    "summary": {
+      "title": "Workout summary",
+      "duration": "Duration",
+      "volume": "Volume",
+      "sets": "Sets",
+      "records_one": "{{count}} new record",
+      "records_other": "{{count}} new records",
+      "muscles": "Muscle groups worked (sets)",
+      "notes": "Note",
+      "notesPlaceholder": "How did it feel?",
+      "save": "Save workout",
+      "back": "Back to the session"
+    },
+    "records": {
+      "title": "Personal records",
+      "heaviest": "Heaviest set",
+      "bestOneRm": "Best estimated 1RM",
+      "fromSet": "from {{set}}",
+      "bestVolume": "Best session volume",
+      "mostReps": "Most reps",
+      "longest": "Longest set",
+      "repsAtWeight": "Best reps at a weight",
+      "oneRmNote": "1RM values are estimates (Epley formula, sets up to 12 reps), not tested maxima.",
+      "kinds": {
+        "weight": "heaviest set, {{value}}",
+        "oneRm": "best estimated 1RM, {{value}}",
+        "setVolume": "best set volume, {{value}}",
+        "sessionVolume": "best session volume, {{value}}",
+        "repsAtWeight": "{{value}} reps at {{weight}} {{unit}}",
+        "reps": "most reps, {{value}}",
+        "duration": "longest set, {{value}}",
+        "distance": "longest distance, {{value}}"
+      }
+    },
+    "plates": {
+      "open": "Plate calculator",
+      "title": "Plates for {{weight}} {{unit}}",
+      "perSide": "Per side: {{plates}}",
+      "belowBar": "Lighter than the bar ({{bar}} {{unit}}).",
+      "notExact": "Closest with your plates: {{loaded}} {{unit}} ({{missing}} {{unit}} missing).",
+      "bar": "Bar weight",
+      "available": "Plates in your gym"
+    },
+    "history": {
+      "title": "History",
+      "session": "Session",
+      "notFound": "This session no longer exists.",
+      "monthTotals_one": "{{count}} session · {{volume}} {{unit}} · {{minutes}} min",
+      "monthTotals_other": "{{count}} sessions · {{volume}} {{unit}} · {{minutes}} min",
+      "quick": "Quick log",
+      "sets_one": "{{count}} set",
+      "sets_other": "{{count}} sets"
+    },
+    "stats": {
+      "title": "Statistics",
+      "sessions": "Sessions",
+      "sets": "Working sets",
+      "volume": "Volume",
+      "volumePerWeek": "Volume per week",
+      "volumeChart": "Volume per week: {{values}}",
+      "frequency": "Training frequency",
+      "frequencyAvg": "{{value}} sessions per week on average over {{weeks}} weeks",
+      "frequencyChart": "Sessions per week: {{values}}",
+      "thisWeek": "This week",
+      "lastWeek": "Last week",
+      "weekOf": "Week of {{date}}",
+      "previousWeek": "Previous week",
+      "nextWeek": "Next week",
+      "front": "Front",
+      "back": "Back",
+      "bodyMapLabel": "Body map of the muscles trained: {{muscles}}",
+      "nothing": "No working sets this week yet.",
+      "setsPerMuscle": "Sets per muscle group",
+      "bandHint": "The outlined range is the weekly target band (primary muscles count 1 set, secondary ½).",
+      "muscleSets": "{{sets}} sets (target {{min}}–{{max}})",
+      "status": {
+        "none": "not trained",
+        "below": "below target",
+        "within": "in target",
+        "above": "above target"
+      },
+      "legend": {
+        "none": "not trained",
+        "some": "some sets",
+        "target": "target reached"
+      }
     }
   },
   "routes": {

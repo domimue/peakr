@@ -13,6 +13,7 @@ import { newId } from '@/data/ids';
 import { Button, Card, Screen, spacing, Text } from '@/ui';
 
 import { ExerciseForm } from '../exercise-form';
+import { ExerciseProgress } from '../exercise-progress';
 import { ExerciseBrowser } from '../exercise-picker';
 import { exerciseTexts } from '../exercise-text';
 import { ExerciseFigure } from '../figures/exercise-figure';
@@ -97,6 +98,7 @@ export function ExerciseDetailScreen({ id }: { id: string }) {
           <Fact label={t('gym.edit.aliases')} value={texts.aliases.join(', ')} />
         ) : null}
       </Card>
+      <ExerciseProgress exerciseId={exercise.id} />
       {texts.instructions ? (
         <Card style={styles.card}>
           <Text variant="heading">{t('gym.edit.instructions')}</Text>

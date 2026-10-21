@@ -33,12 +33,16 @@ jest.mock('@shopify/react-native-skia', () => ({
 }));
 jest.mock('expo-haptics', () => ({
   notificationAsync: jest.fn(() => Promise.resolve()),
+  impactAsync: jest.fn(() => Promise.resolve()),
+  selectionAsync: jest.fn(() => Promise.resolve()),
   NotificationFeedbackType: { Success: 'success', Warning: 'warning', Error: 'error' },
+  ImpactFeedbackStyle: { Light: 'light', Medium: 'medium', Heavy: 'heavy' },
 }));
+jest.mock('expo-keep-awake', () => ({ useKeepAwake: jest.fn() }));
 
 // Push notifications and background tasks are native-only.
 jest.mock('expo-notifications', () => ({
-  AndroidImportance: { DEFAULT: 3 },
+  AndroidImportance: { DEFAULT: 3, HIGH: 4 },
   BackgroundNotificationTaskResult: { NewData: 0, NoData: 1, Failed: 2 },
   getPermissionsAsync: jest.fn(() => Promise.resolve({ granted: false, canAskAgain: true })),
   requestPermissionsAsync: jest.fn(() => Promise.resolve({ granted: false })),

@@ -1,4 +1,11 @@
-import type { CustomExercise, GymRoutine, GymSession, GymSet, RoutineFolder } from '@peakr/engine';
+import type {
+  CustomExercise,
+  GymRoutine,
+  GymSession,
+  GymSet,
+  PlateSetup,
+  RoutineFolder,
+} from '@peakr/engine';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import * as repo from '@/data/repositories/gym-repository';
@@ -11,6 +18,7 @@ export const gymKeys = {
   folders: ['gym', 'folders'] as const,
   routines: ['gym', 'routines'] as const,
   history: ['gym', 'history'] as const,
+  plates: ['gym', 'plates'] as const,
 };
 
 function useInvalidating<A>(fn: (arg: A) => Promise<void>, keys: readonly (readonly string[])[]) {
@@ -98,4 +106,26 @@ export function useSaveGymSession() {
 
 export function useSaveGymImport() {
   return useInvalidating((data: repo.GymImport) => repo.saveGymImport(data), [gymKeys.all]);
+}
+
+/** Stores a finished live session and removes the running state (see `finishLiveSession`). */
+export function useFinishLiveSession() {
+  return useInvalidating(
+    ({ session, sets }: { session: GymSession; sets: readonly GymSet[] }) =>
+      repo.finishLiveSession(session, sets),
+    [gymKeys.history],
+  );
+}
+
+export function usePlateSetup() {
+  return useQuery({ queryKey: gymKeys.plates, queryFn: repo.getPlateSetup });
+}
+
+export function useSavePlateSetup() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (setup: PlateSetup) => repo.savePlateSetup(setup),
+    onMutate: (setup) => client.setQueryData(gymKeys.plates, setup),
+    onSettled: () => client.invalidateQueries({ queryKey: gymKeys.plates }),
+  });
 }

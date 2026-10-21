@@ -1,7 +1,9 @@
 import {
+  absorbGymSession,
   annotateWeeks,
   easeWorkout,
   generatePlan,
+  gymSessionImpact,
   moveWorkout,
   pausePlan,
   regeneratePlan,
@@ -12,6 +14,9 @@ import {
   setWorkoutRoute,
   setWorkoutStatus,
   type AdjustResult,
+  type CustomExercise,
+  type GymSession,
+  type GymSet,
   type Availability,
   type MoveResult,
   type PauseReason,
@@ -130,6 +135,21 @@ export function usePlanActions() {
     setRoute(id: string, routeId: string | null): Edit {
       if (!stored) return missing;
       return commit(setWorkoutRoute(stored.state, id, routeId));
+    },
+    /**
+     * A finished gym session in the plan: marks its planned workout done and lets the endurance
+     * plan react (unified load model, heavy legs = hard). Without a plan nothing happens.
+     */
+    absorbGym(
+      session: GymSession,
+      sets: readonly GymSet[],
+      custom: readonly CustomExercise[],
+    ): Edit {
+      if (!stored) return missing;
+      const impact = gymSessionImpact(session, sets, custom);
+      const result = absorbGymSession(stored.state, stored.input, session, impact, today);
+      if (result.state === stored.state) return { ok: true, value: stored.state };
+      return commit({ ok: true, value: result.state });
     },
     setStatus(id: string, status: WorkoutStatus): Edit {
       if (!stored) return missing;

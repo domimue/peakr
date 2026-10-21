@@ -21,6 +21,7 @@ import {
   useAuthListener,
   useSessionStore,
 } from '@/features/auth/session-store';
+import { LiveSessionRestore } from '@/features/gym/live-session-restore';
 import { registerPushToken } from '@/features/notifications/push';
 import { MorningWeatherAlerts } from '@/features/weather/morning-alert';
 import { fontFamilies, toNavigationTheme, useTheme } from '@/ui';
@@ -53,6 +54,7 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <BackgroundSync />
         <MorningWeatherAlerts />
+        {success ? <LiveSessionRestore /> : null}
         <ThemeProvider value={toNavigationTheme(theme)}>
           <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />
           <Stack screenOptions={{ headerShown: false }} />
