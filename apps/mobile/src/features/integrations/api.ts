@@ -14,7 +14,7 @@ import { supabase } from '@/data/supabase';
 
 export type ConnectResult = 'connected' | 'denied' | 'error' | 'cancelled';
 
-export type Provider = 'strava';
+export type Provider = 'strava' | 'garmin' | 'coros' | 'suunto';
 
 function client() {
   if (!supabase) throw new Error('Supabase is not configured');
@@ -29,8 +29,13 @@ export function statusFromUrl(url: string): ConnectResult {
 /**
  * `purpose: 'baseline'` connects from the plan calibration (onboarding): the server then skips
  * the usual import of the last 14 days, so nothing becomes training history before a plan exists.
+ * `purpose: 'upload'` asks an existing connection for the `activity:write` scope (posting gym
+ * sessions); if the athlete declines, the connection stays exactly as it was.
  */
-export async function connect(provider: Provider, purpose?: 'baseline'): Promise<ConnectResult> {
+export async function connect(
+  provider: Provider,
+  purpose?: 'baseline' | 'upload',
+): Promise<ConnectResult> {
   const { data, error } = await client().functions.invoke<{ url: string }>('oauth/start', {
     body: purpose ? { provider, purpose } : { provider },
   });
@@ -48,7 +53,8 @@ export async function connect(provider: Provider, purpose?: 'baseline'): Promise
  */
 export async function disconnect(provider: Provider): Promise<boolean> {
   const { error } = await client().functions.invoke('oauth/disconnect', { body: { provider } });
-  if (!error) await clearBaseline();
+  // The baseline comes from Strava only; a watch platform has none.
+  if (!error && provider === 'strava') await clearBaseline();
   return !error;
 }
 

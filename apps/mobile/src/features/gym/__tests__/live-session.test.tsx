@@ -20,6 +20,8 @@ import { routineSession, startLiveSession } from '../session';
 
 jest.mock('@/data/repositories/gym-repository');
 jest.mock('@/data/repositories/strength-repository');
+jest.mock('@/data/repositories/share-repository');
+jest.mock('@/data/repositories/baseline-repository');
 const mockAbsorbGym = jest.fn();
 jest.mock('@/features/plan/queries', () => ({
   usePlan: () => ({ data: null, isPending: false }),
@@ -51,11 +53,13 @@ const legs: GymRoutine = {
   ],
 };
 
+// Three days ago, so the "long pause" deload in the progression never kicks in as the calendar moves on.
+const oldDay = new Date(Date.now() - 3 * 86_400_000).toISOString().slice(0, 10);
 const old: GymSession = {
   id: 'old',
-  date: '2026-10-15',
-  startedAt: Date.parse('2026-10-15T17:00:00Z'),
-  endedAt: Date.parse('2026-10-15T17:45:00Z'),
+  date: oldDay,
+  startedAt: Date.parse(`${oldDay}T17:00:00Z`),
+  endedAt: Date.parse(`${oldDay}T17:45:00Z`),
   title: 'Legs',
   kind: 'detailed',
   source: 'app',
@@ -314,7 +318,14 @@ describe('history, statistics and exercise detail', () => {
 
   it('groups sessions by month with totals and opens a session', async () => {
     seedHistory();
-    mock.store.sessions = [old, sep];
+    // Fixed dates here: the month headings must not depend on when the test runs.
+    const oct: GymSession = {
+      ...old,
+      date: '2026-10-15',
+      startedAt: Date.parse('2026-10-15T17:00:00Z'),
+      endedAt: Date.parse('2026-10-15T17:45:00Z'),
+    };
+    mock.store.sessions = [oct, sep];
     mock.store.sets = [...mock.store.sets, oldSet('s1', { sessionId: 'sep', weightKg: 16 })];
     await renderWithQuery(<HistoryScreen />);
     expect(await screen.findByText('October 2026')).toBeOnTheScreen();

@@ -42,6 +42,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.health.WRITE_EXERCISE",
+        "android.permission.health.WRITE_ACTIVE_CALORIES_BURNED"
+      ],
       "intentFilters": [
         {
           "action": "VIEW",
@@ -105,6 +109,15 @@
         }
       ],
       "@maplibre/maplibre-react-native",
+      "react-native-health-connect",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 26
+          }
+        }
+      ],
       "./plugins/with-share-gpx",
       [
         "expo-location",

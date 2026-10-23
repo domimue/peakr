@@ -24,6 +24,7 @@ import { todayIso } from '@/data/ids';
 import { useWorkoutActivity, type LinkedActivity } from '@/features/activities/queries';
 import { WorkoutEvaluation, WorkoutRoute } from '@/features/routes/components/workout-route';
 import { planHrZones } from '@/features/training-zones/resolve';
+import { SendToZwift } from '@/features/zwift/send-to-zwift';
 import { WeatherHintCard } from '@/features/weather/components/weather-hint-card';
 import { useWorkoutWeather } from '@/features/weather/queries';
 import {
@@ -53,6 +54,7 @@ import {
 import { addDays, formatDate, mondayOf, weekDates } from '../calendar';
 import { workoutKm } from '../components/workout-card';
 import { calendarTitle, kindIcon, typeColor, typeName } from '../kind';
+import { useHasGym } from '@/features/billing/billing-store';
 import { useActiveWorkoutStore } from '@/features/gym/active-workout-store';
 
 import { usePlanUiStore } from '../plan-ui-store';
@@ -165,6 +167,7 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
   const { colors } = useTheme();
   const { data: stored, isPending } = usePlan();
   const actions = usePlanActions();
+  const hasGym = useHasGym();
   const setFeedback = usePlanUiStore((s) => s.setFeedback);
   const showWeek = usePlanUiStore((s) => s.showWeek);
   const [moving, setMoving] = useState(startMoving);
@@ -259,6 +262,16 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
             label: t('workout.actions.route'),
             onPress: () => router.push(`/training/route/${encodeURIComponent(w.id)}`),
             active: w.routeId !== undefined,
+          },
+        ]
+      : []),
+    // Strength stays in the app (no watch takes it); everything else can go to a watch.
+    ...(w.sport !== 'strength' && w.sport !== 'walk'
+      ? [
+          {
+            icon: 'watch' as const,
+            label: t('watch.send.action'),
+            onPress: () => router.push(`/watch/send/${encodeURIComponent(w.id)}`),
           },
         ]
       : []),
@@ -423,6 +436,9 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
                   {`ⓘ ${t(note.key as never, { ...note.params }) as string}`}
                 </Text>
               ))}
+              {indoor.kind !== 'pool' ? (
+                <SendToZwift workout={w} indoor={indoor} title={title} />
+              ) : null}
             </>
           ) : null}
         </View>
@@ -487,7 +503,7 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
       {error ? <Text style={{ color: colors.errorText }}>{error}</Text> : null}
 
       <View style={styles.actions}>
-        {status !== 'done' && w.sport === 'strength' ? (
+        {status !== 'done' && w.sport === 'strength' && hasGym ? (
           // Planned strength opens into a Gym session, pre-filled with the prescribed exercises.
           <Button
             icon="strength"
@@ -498,14 +514,22 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
             }}
           />
         ) : null}
-        {status !== 'done' ? (
+        {status !== 'done' && w.sport === 'strength' && !hasGym ? (
+          // Without the Gym add-on the session can be read and marked done with duration and effort.
+          <Button
+            icon="check"
+            label={t('gymAddon.doneOnly.title')}
+            onPress={() => router.push({ pathname: '/gym/quick-log', params: { workoutId: w.id } })}
+          />
+        ) : null}
+        {status !== 'done' && !(w.sport === 'strength' && !hasGym) ? (
           <Button
             icon="check"
             variant={w.sport === 'strength' ? 'secondary' : 'primary'}
             label={t('plan.workout.markDone')}
             onPress={markDone}
           />
-        ) : (
+        ) : status !== 'done' ? null : (
           <Button
             icon="undo"
             variant="secondary"

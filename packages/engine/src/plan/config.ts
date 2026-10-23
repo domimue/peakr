@@ -416,6 +416,20 @@ export const planConfig = {
     /** Learned terrain profile: activities of the last n days, at least m of them. */
     profile: { windowDays: 90, minActivities: 3 },
   },
+  /** Zwift workout export (CLAUDE.md "Zwift"). */
+  zwift: {
+    /** Zwift ignores files of this size and above. */
+    maxFileBytes: 64 * 1024,
+    /** HR-only bike steps: share of FTP per zone when the plan gives no power range. */
+    zoneFtpFraction: { 1: 0.5, 2: 0.65, 3: 0.83, 4: 1, 5: 1.13 },
+    /** Warm-up ramps up from, cool-down ramps down to, this share of FTP. */
+    rampFtpFraction: 0.45,
+    /**
+     * Run steps: Zwift run pace level per zone (Zwift scales it to the user's own run pace, 1 is
+     * an easy jog, 5 is about 5k pace). To be confirmed against a real Zwift import.
+     */
+    runPaceLevel: { 1: 1, 2: 2, 3: 3, 4: 4, 5: 5 },
+  },
   /**
    * Indoor versions of outdoor sessions (CLAUDE.md "Weather check", WORKOUTS.md §3–5). The
    * treadmill does not feel like the road: no air resistance, no descents, warmer and monotonous –

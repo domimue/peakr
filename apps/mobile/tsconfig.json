@@ -3,6 +3,8 @@
   "compilerOptions": {
     "strict": true,
     "noUncheckedIndexedAccess": true,
+    // @peakr/watch re-exports Edge Function code that imports its siblings with `.ts` extensions.
+    "allowImportingTsExtensions": true,
     "types": ["jest"],
     "paths": {
       "@/*": ["./src/*"],

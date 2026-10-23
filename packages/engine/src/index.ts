@@ -225,6 +225,7 @@ export {
 } from './plan/absorb';
 export { isEccentricActivity } from './plan/activities';
 export { setWorkoutRoute } from './plan/edit';
+export { athleteFor, runPaceSecPerKm, type Athlete } from './plan/materialize';
 export {
   boundingBox,
   cumulativeDistances,
@@ -283,3 +284,12 @@ export {
   type TerrainSample,
 } from './route/terrain-profile';
 export type { RoundTripCandidate, RoundTripRequest, RoutingProvider } from './route/routing';
+export {
+  buildZwo,
+  zwiftSportOf,
+  type ZwiftSport,
+  type ZwoFile,
+  type ZwoOptions,
+  type ZwoResult,
+} from './plan/zwift';
+export type { ZwiftProvider, ZwiftPushResult, ZwiftScheduledWorkout } from './plan/zwift-provider';

@@ -1,7 +1,9 @@
 import { allWorkouts, findWorkout, generatePlan, type Plan } from '@peakr/engine';
 import { fireEvent, screen, waitFor, within } from '@testing-library/react-native';
+import { File } from 'expo-file-system';
 import * as Haptics from 'expo-haptics';
 import { router } from 'expo-router';
+import * as Sharing from 'expo-sharing';
 
 import type { StoredPlanInput } from '@/data/db/schema';
 import * as ids from '@/data/ids';
@@ -429,6 +431,26 @@ describe('workout detail', () => {
     expect(
       screen.getByText('Treadmill at 1 % incline – same steps and load as outside.'),
     ).toBeOnTheScreen();
+
+    // Indoors the session can go to Zwift as a .zwo file through the share sheet.
+    const write = jest.fn();
+    jest
+      .mocked(File)
+      .mockImplementationOnce(
+        (_dir: unknown, name: unknown) =>
+          ({ create: jest.fn(), write, uri: `cache/${String(name)}` }) as never,
+      );
+    await fireEvent.press(screen.getByText('Send to Zwift'));
+    await waitFor(() =>
+      expect(Sharing.shareAsync).toHaveBeenCalledWith(
+        expect.stringMatching(/\.zwo$/),
+        expect.objectContaining({ mimeType: 'application/xml', UTI: 'public.xml' }),
+      ),
+    );
+    expect(new TextDecoder().decode(write.mock.calls[0]?.[0] as Uint8Array)).toContain(
+      '<workout_file>',
+    );
+    expect(screen.queryByText('The file could not be shared. Try again.')).toBeNull();
     expect(screen.queryAllByText(/no faster than \d+:\d\d\/km$/)).toHaveLength(0);
     await fireEvent.press(screen.getByText('Outdoor'));
     expect(screen.getAllByText(/no faster than \d+:\d\d\/km$/).length).toBeGreaterThan(0);

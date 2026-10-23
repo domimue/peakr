@@ -14,3 +14,7 @@ export * from './live-session';
 export * from './restore';
 export * from './plates';
 export * from './stats';
+export * from './energy';
+export * from './sharing';
+export * from './strava-exercises';
+export * from './strava-upload';
