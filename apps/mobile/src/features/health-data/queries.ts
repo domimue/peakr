@@ -48,8 +48,9 @@ export function useHealthSync() {
   return useMutation({
     mutationFn: async ({ pull }: { pull: boolean }) => {
       if (pull) await requestHealthSync().catch(() => undefined);
-      const status = await syncGarminHealth();
-      await readDeviceHealth(status.groups);
+      // Offline or the server unreachable: the phone's health store is still read.
+      const status = await syncGarminHealth().catch(() => null);
+      await readDeviceHealth(status?.groups ?? (await repo.getEnabledGroups()));
       return status;
     },
     onSettled: () => client.invalidateQueries({ queryKey: healthKeys.all }),
