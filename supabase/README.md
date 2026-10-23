@@ -81,7 +81,8 @@ New schema changes go into a new file: `pnpm exec supabase migration new <name>`
    the user has an account; `config.toml` only covers the local stack. Also enable **Manual
    linking** (Authentication → Sign In / Providers), so Google sign-in can turn the anonymous user
    into the account. Deploy the new function `strava-baseline` too (see Commands).
-7. **Edge Functions → Secrets**: `TOKEN_ENCRYPTION_KEY`, `OAUTH_STATE_SECRET`,
+7. **Edge Functions → Secrets**: `TOKEN_ENCRYPTION_KEY`, `HEALTH_ENCRYPTION_KEY` (Phase 9d, see
+   `docs/health-garmin.md`), `OAUTH_STATE_SECRET`,
    `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET` (see `functions/.env.example`). Before launch also
    `OPEN_METEO_API_KEY` (Phase 8c): without it the weather check uses Open-Meteo's free API, which
    is for non-commercial use only.
