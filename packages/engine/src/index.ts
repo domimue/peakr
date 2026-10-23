@@ -292,8 +292,4 @@ export {
   type ZwoOptions,
   type ZwoResult,
 } from './plan/zwift';
-export type {
-  ZwiftProvider,
-  ZwiftPushResult,
-  ZwiftScheduledWorkout,
-} from './plan/zwift-provider';
+export type { ZwiftProvider, ZwiftPushResult, ZwiftScheduledWorkout } from './plan/zwift-provider';

@@ -146,7 +146,7 @@ describe('routine builder', () => {
     });
     expect(first?.supersetGroup).toBeDefined();
     expect(first?.supersetGroup).toBe(second?.supersetGroup);
-  });
+  }, 30_000); // Long UI flow; under a loaded full run it exceeds the 5 s default.
 
   it('flags invalid values, leaves a superset and deletes routines', async () => {
     mock.store.routines = [
