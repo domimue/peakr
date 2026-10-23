@@ -76,6 +76,9 @@ export function buildActivityRow(
 // ---------------------------------------------------------------------------------------------
 // FIT activity files (Suunto delivers these; Garmin and COROS offer them as downloads)
 
+/** FIT timestamps count from 1989-12-31T00:00:00Z. */
+const FIT_EPOCH_S = 631_065_600;
+
 const FIT_SPORTS: Record<string, WatchActivityRow['sport']> = {
   running: 'run',
   cycling: 'bike',
@@ -99,7 +102,7 @@ const INDOOR_SUB_SPORTS = new Set([
 
 /**
  * Reads the first session of a FIT activity file. Sports Peakr does not plan (yoga, golf …)
- * return null. `fallbackExternalId` is the platform's id of the workout.
+ * return null. `externalId` is the platform's id of the workout.
  */
 export function activityFromFit(
   source: WatchActivityRow['source'],
@@ -119,9 +122,11 @@ export function activityFromFit(
   if (!sport) return null;
   const start = session.startTime instanceof Date ? session.startTime.getTime() : NaN;
   const activity = (messages.activityMesgs as Record<string, unknown>[] | undefined)?.[0];
+  // `localTimestamp` is a plain FIT number (seconds since 1989-12-31, in the user's local time);
+  // its difference to the UTC `timestamp` is the offset at the end of the activity.
   const offsetSec =
-    activity?.localTimestamp instanceof Date && activity.timestamp instanceof Date
-      ? Math.round((activity.localTimestamp.getTime() - activity.timestamp.getTime()) / 1000)
+    typeof activity?.localTimestamp === 'number' && activity.timestamp instanceof Date
+      ? Math.round(activity.localTimestamp - (activity.timestamp.getTime() / 1000 - FIT_EPOCH_S))
       : 0;
   const num = (v: unknown): number | null => (typeof v === 'number' ? v : null);
   return buildActivityRow(source, userId, externalId, {
