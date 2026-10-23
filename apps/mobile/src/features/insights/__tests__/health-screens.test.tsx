@@ -12,6 +12,8 @@ import * as api from '@/features/health-data/api';
 import en from '@/i18n/locales/en.json';
 import { renderWithQuery } from '@/test-utils/render-with-query';
 
+import { TodayScreen } from '@/features/today/today-screen';
+
 import { HealthConsentScreen } from '../health/consent-screen';
 import { MetricDetailScreen } from '../health/metric-detail-screen';
 import { InsightsScreen } from '../insights-screen';
@@ -271,6 +273,74 @@ describe('Health detail', () => {
         timeout: 5000,
       },
     );
+  });
+});
+
+describe('Today: recovery line', () => {
+  function planWithSessionToday() {
+    const r = generatePlan(
+      planInput.profile,
+      planInput.goal,
+      planInput.availability,
+      '2026-10-05',
+      '2027-02-14',
+    );
+    if (!r.ok) throw new Error('plan');
+    const session = r.value.weeks
+      .flatMap((w) => w.workouts)
+      .find(
+        (w) =>
+          w.date >= TODAY &&
+          w.role !== 'commute' &&
+          (w.intensity === 'hard' || w.intensity === 'moderate'),
+      );
+    if (!session) throw new Error('no session');
+    plans.store.plan = {
+      id: 'p',
+      input: planInput,
+      state: { plan: r.value, status: {}, pauses: [], revision: 0 },
+    };
+    jest.spyOn(ids, 'todayIso').mockReturnValue(session.date);
+    return session;
+  }
+
+  /** History before `day` and the value on `day` itself. */
+  function around(day: string, metric: HealthMetric, center: number, value: number) {
+    for (let i = 0; i <= 30; i++) {
+      const d = addDays(day, -i);
+      health.store.rows.push({
+        metric,
+        day: d,
+        source: 'garmin',
+        value: i === 0 ? value : center + ((i % 3) - 1),
+        detail: null,
+        recordedAt: `${d}T06:30:00.000Z`,
+        sourceIds: [`${metric}-${d}`],
+      });
+    }
+  }
+
+  it('shows the measured difference and eases the session only after confirming', async () => {
+    const session = planWithSessionToday();
+    around(session.date, 'resting_hr', 50, 58);
+    await renderWithQuery(<TodayScreen />);
+    const card = await screen.findByTestId(`recovery-line-${session.id}`);
+    expect(card).toHaveTextContent(/Resting heart rate 8 bpm above your baseline/);
+    expect(card).toHaveTextContent(/If this keeps up, talk to a doctor\./);
+    await fireEvent.press(screen.getByText('Make today easier'));
+    expect(screen.getByText('Make today easier?')).toBeOnTheScreen();
+    expect(plans.savePlanState).not.toHaveBeenCalled();
+    await fireEvent.press(screen.getByText('Make it easier'));
+    expect(await screen.findByText("Today's session is now easier.")).toBeOnTheScreen();
+    expect(plans.savePlanState).toHaveBeenCalled();
+  });
+
+  it('says nothing while the values are within the usual range', async () => {
+    const session = planWithSessionToday();
+    around(session.date, 'resting_hr', 50, 51);
+    await renderWithQuery(<TodayScreen />);
+    expect(await screen.findByText(/Today/)).toBeOnTheScreen();
+    expect(screen.queryByTestId(`recovery-line-${session.id}`)).toBeNull();
   });
 });
 

@@ -14,6 +14,7 @@ import { WeekStrip } from '../plan/components/week-strip';
 import { WorkoutCard } from '../plan/components/workout-card';
 import { usePlanUiStore } from '../plan/plan-ui-store';
 import { usePlan, usePlanActions } from '../plan/queries';
+import { RecoveryLine } from '../insights/health/recovery-line';
 import { WeatherChip } from '../weather/components/weather-chip';
 import { WeatherHintCard } from '../weather/components/weather-hint-card';
 import { useWorkoutWeather } from '../weather/queries';
@@ -147,6 +148,7 @@ export function TodayScreen() {
               onPress={() => router.push(workoutHref(w.id))}
             />
             <SessionWeatherHint workout={w} />
+            {statusOf(state, w.id) === 'planned' ? <RecoveryLine workout={w} /> : null}
           </View>
         ))
       )}
