@@ -14,7 +14,7 @@ import { supabase } from '@/data/supabase';
 
 export type ConnectResult = 'connected' | 'denied' | 'error' | 'cancelled';
 
-export type Provider = 'strava';
+export type Provider = 'strava' | 'garmin' | 'coros' | 'suunto';
 
 function client() {
   if (!supabase) throw new Error('Supabase is not configured');
@@ -53,7 +53,8 @@ export async function connect(
  */
 export async function disconnect(provider: Provider): Promise<boolean> {
   const { error } = await client().functions.invoke('oauth/disconnect', { body: { provider } });
-  if (!error) await clearBaseline();
+  // The baseline comes from Strava only; a watch platform has none.
+  if (!error && provider === 'strava') await clearBaseline();
   return !error;
 }
 

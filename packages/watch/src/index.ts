@@ -16,6 +16,7 @@ export {
   type PushedRecord,
   type SyncPlan,
 } from '../../../supabase/functions/_shared/watch/sync.ts';
+export { AUTO_SYNC_DAYS, plannedWatchWorkouts, type PlanSyncInput } from './plan-sync';
 export {
   mergeSegments,
   toWatchWorkouts,
