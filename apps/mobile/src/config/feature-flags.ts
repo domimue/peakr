@@ -5,6 +5,14 @@
 export const featureFlags = {
   /** Komoot partner API (OAuth, tour import/upload) – partner contract required. */
   komootApi: false,
+  /**
+   * Direct sync with the watch platforms (CLAUDE.md "Watch integrations"). Flip each one together
+   * with its Edge Function secret (`WATCH_GARMIN_TRAINING` …) once the partner programme has
+   * approved Peakr; until then the picker offers the file export for that brand.
+   */
+  garminWatch: false,
+  corosWatch: false,
+  suuntoWatch: false,
   /** Generated round trips via a RoutingProvider (Phase 8b). */
   generatedRoutes: false,
 } as const;

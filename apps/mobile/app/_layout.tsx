@@ -24,6 +24,7 @@ import {
 import { useBillingStore } from '@/features/billing/billing-store';
 import { LiveSessionRestore } from '@/features/gym/live-session-restore';
 import { registerPushToken } from '@/features/notifications/push';
+import { useWatchAutoSync } from '@/features/watch/auto-sync';
 import { MorningWeatherAlerts } from '@/features/weather/morning-alert';
 import { fontFamilies, toNavigationTheme, useTheme } from '@/ui';
 
@@ -75,6 +76,8 @@ function BackgroundSync() {
   const userId = useSessionStore(selectAccountUserId);
   useBackgroundSync();
   useActivityRealtime();
+  // Garmin / COROS / Suunto: the next two weeks follow the plan (off until the platform is approved).
+  useWatchAutoSync();
   useEffect(() => {
     if (userId) void registerPushToken(userId);
   }, [userId]);

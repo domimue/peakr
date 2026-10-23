@@ -13,8 +13,8 @@
  *        (not for `purpose: 'baseline'`).
  *        Its planned routes (rides and runs) follow in the background.
  *   POST /oauth/disconnect  { provider }  (Authorization: user JWT)  → { ok }
- *        Revokes access at the provider and removes tokens and metadata (Strava: and every
- *        imported activity).
+ *        Revokes access at the provider and removes tokens and metadata (Strava and the watch
+ *        platforms: and every imported activity).
  *
  * `verify_jwt = false` in supabase/config.toml because the provider calls /callback without a
  * Supabase JWT; /start and /disconnect check the JWT themselves.
@@ -35,6 +35,7 @@ import {
   removeStravaData,
 } from '../_shared/strava.ts';
 import { adminClient, json, userFromRequest } from '../_shared/supabase.ts';
+import { removeWatchData } from '../_shared/watch-store.ts';
 
 declare const EdgeRuntime: { waitUntil(promise: Promise<unknown>): void };
 
@@ -80,7 +81,7 @@ async function start(req: Request): Promise<Response> {
   if (!provider) return json({ error: 'unknown_provider' }, 400);
   const state = await signState(user.id, provider.id, { purpose: body.purpose });
   return json({
-    url: provider.authorizeUrl({
+    url: await provider.authorizeUrl({
       redirectUri: callbackUrl(),
       state,
       forceConsent: body.purpose === 'upload',
@@ -154,7 +155,11 @@ async function callback(req: Request): Promise<Response> {
   const code = query.get('code');
   if (query.get('error') || !code) return backToApp(provider.id, 'denied');
   try {
-    const tokens = await provider.exchangeCode({ code, redirectUri: callbackUrl() });
+    const tokens = await provider.exchangeCode({
+      code,
+      redirectUri: callbackUrl(),
+      state: query.get('state') ?? '',
+    });
     const scopes = provider.grantedScopes(query);
     // Scope upgrade for posting: if the athlete does not grant write access, the existing
     // connection stays exactly as it was (no revoke, no overwrite).
@@ -214,6 +219,8 @@ async function disconnect(req: Request): Promise<Response> {
     await removeStravaData(admin, user.id);
     return json({ ok: true });
   }
+  // A watch platform: what it delivered and what Peakr pushed to it goes with the connection.
+  await removeWatchData(admin, user.id, provider.id);
   const { error } = await admin.from('integrations').delete().eq('id', integration.id);
   if (error) return json({ error: 'delete_failed' }, 500);
   return json({ ok: true });

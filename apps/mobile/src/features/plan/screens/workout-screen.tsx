@@ -264,6 +264,16 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
           },
         ]
       : []),
+    // Strength stays in the app (no watch takes it); everything else can go to a watch.
+    ...(w.sport !== 'strength' && w.sport !== 'walk'
+      ? [
+          {
+            icon: 'watch' as const,
+            label: t('watch.send.action'),
+            onPress: () => router.push(`/watch/send/${encodeURIComponent(w.id)}`),
+          },
+        ]
+      : []),
     {
       icon: 'link',
       label: t('workout.actions.link'),

@@ -151,7 +151,8 @@ describe('onboarding quiz', () => {
       screen.getByLabelText('I have read this and train at my own responsibility.'),
     );
     await fireEvent.press(screen.getByRole('button', { name: 'See my forecast' }));
-    expect(router.push).toHaveBeenCalledWith('/onboarding/forecast');
+    // The (skippable) watch step comes before the forecast.
+    expect(router.push).toHaveBeenCalledWith('/onboarding/watch');
 
     await waitFor(() => expect(progress.store.progress?.finished).toBe(true));
     expect(progress.store.progress?.answers).toMatchObject({

@@ -11,6 +11,8 @@ Security, and Edge Functions for everything that needs a secret.
 | `functions/strava-sync/` | "Sync now", 180-day history, streams on request (user) and the nightly catch-up (pg_cron) |
 | `functions/strava-baseline/` | Baseline for plan calibration: last 60 days of runs/rides/swims, reference only |
 | `functions/strava-upload/` | Gym session → Strava: structured weight-training upload (JSON sets), status polling, `STRAVA_UPLOAD_DRY_RUN=1` for tests |
+| `functions/watch/` | Watch platforms (Garmin, COROS, Suunto): FIT/GPX export, push workouts and routes with re-sync, import; behind `WATCH_*` flags – see `docs/watch-integrations.md` |
+| `functions/watch-webhook/` | Completed-activity notifications of the watch platforms (`?key=WATCH_WEBHOOK_SECRET`), same `activities` pipeline as Strava |
 | `functions/weather/`     | Weather check: hourly forecast per ~5 km cell (MeteoSwiss for Switzerland, Open-Meteo elsewhere), cached per hour |
 | `functions/delete-account/` | Account deletion: revokes Strava, deletes all rows and the auth user |
 | `functions/_shared/`     | Token encryption, signed OAuth state, provider registry, Strava import, Expo push |

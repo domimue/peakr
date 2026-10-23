@@ -225,6 +225,7 @@ export {
 } from './plan/absorb';
 export { isEccentricActivity } from './plan/activities';
 export { setWorkoutRoute } from './plan/edit';
+export { athleteFor, runPaceSecPerKm, type Athlete } from './plan/materialize';
 export {
   boundingBox,
   cumulativeDistances,

@@ -2,10 +2,15 @@
  * OAuth providers the `oauth` function can connect. Client ids and secrets come only from
  * Supabase secrets (`supabase secrets set …`), never from the app.
  *
- * Further providers (Garmin, COROS, Suunto, Komoot, Zwift) are added here once their partner
- * programmes have approved Peakr; until then they are simply not listed. Hevy uses a personal API
- * key instead of OAuth and gets its own function.
+ * Garmin, COROS and Suunto are registered here but only offered once their feature flag is on
+ * (`WATCH_GARMIN_*`, `WATCH_COROS`, `WATCH_SUUNTO`), i.e. after the partner programme has approved
+ * Peakr. Komoot and Zwift follow the same way later. Hevy uses a personal API key instead of
+ * OAuth and gets its own function.
  */
+
+import { pkceChallenge, pkceVerifier } from './crypto.ts';
+import { COROS, GARMIN, SUUNTO } from './watch/contracts.ts';
+import { flagEnabled } from './watch/flags.ts';
 
 export interface TokenSet {
   accessToken: string;
@@ -16,11 +21,17 @@ export interface TokenSet {
   externalUserId: string | null;
 }
 
+export type ProviderId = 'strava' | 'garmin' | 'coros' | 'suunto';
+
 export interface OAuthProvider {
-  id: 'strava';
-  authorizeUrl(params: { redirectUri: string; state: string; forceConsent?: boolean }): string;
-  /** Exchanges the authorization code from the callback for tokens. */
-  exchangeCode(params: { code: string; redirectUri: string }): Promise<TokenSet>;
+  id: ProviderId;
+  authorizeUrl(params: {
+    redirectUri: string;
+    state: string;
+    forceConsent?: boolean;
+  }): string | Promise<string>;
+  /** Exchanges the authorization code from the callback for tokens (`state` for PKCE). */
+  exchangeCode(params: { code: string; redirectUri: string; state: string }): Promise<TokenSet>;
   refresh(refreshToken: string): Promise<TokenSet>;
   /** Revokes Peakr's access at the provider (disconnect, account deletion). */
   revoke(accessToken: string): Promise<void>;
@@ -111,8 +122,216 @@ const strava: OAuthProvider = {
   },
 };
 
-const providers: Record<string, OAuthProvider> = { strava };
+const expiry = (seconds: unknown): number | null =>
+  typeof seconds === 'number' ? Date.now() + seconds * 1000 : null;
+
+async function postFormAuth(
+  url: string,
+  body: Record<string, string>,
+  headers: Record<string, string> = {},
+): Promise<Record<string, unknown>> {
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      Accept: 'application/json',
+      ...headers,
+    },
+    body: new URLSearchParams(body),
+  });
+  if (!response.ok) throw new Error(`${url} failed with ${response.status}`);
+  return (await response.json()) as Record<string, unknown>;
+}
+
+/**
+ * Garmin Connect Developer Program: OAuth 2.0 with PKCE (S256). The verifier is derived from the
+ * signed state, so nothing has to be stored between the redirect and the callback.
+ * Unverified endpoints: see `GARMIN` in watch/garmin.ts.
+ */
+const garmin: OAuthProvider = {
+  id: 'garmin',
+  async authorizeUrl({ redirectUri, state }) {
+    const url = new URL(GARMIN.authorizeUrl);
+    url.search = new URLSearchParams({
+      client_id: env('GARMIN_CLIENT_ID'),
+      response_type: 'code',
+      redirect_uri: redirectUri,
+      state,
+      code_challenge: await pkceChallenge(state),
+      code_challenge_method: 'S256',
+    }).toString();
+    return url.toString();
+  },
+  async exchangeCode({ code, redirectUri, state }) {
+    const t = await postFormAuth(GARMIN.tokenUrl, {
+      grant_type: 'authorization_code',
+      client_id: env('GARMIN_CLIENT_ID'),
+      client_secret: env('GARMIN_CLIENT_SECRET'),
+      code,
+      redirect_uri: redirectUri,
+      code_verifier: await pkceVerifier(state),
+    });
+    const accessToken = String(t.access_token);
+    // The Garmin user id routes the Activity API pushes to the right Peakr user.
+    const me = await fetch('https://apis.garmin.com/wellness-api/rest/user/id', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const id = me.ok ? ((await me.json()) as { userId?: string }).userId : undefined;
+    return {
+      accessToken,
+      refreshToken: typeof t.refresh_token === 'string' ? t.refresh_token : null,
+      expiresAt: expiry(t.expires_in),
+      externalUserId: id ?? null,
+    };
+  },
+  async refresh(refreshToken) {
+    const t = await postFormAuth(GARMIN.tokenUrl, {
+      grant_type: 'refresh_token',
+      client_id: env('GARMIN_CLIENT_ID'),
+      client_secret: env('GARMIN_CLIENT_SECRET'),
+      refresh_token: refreshToken,
+    });
+    return {
+      accessToken: String(t.access_token),
+      refreshToken: typeof t.refresh_token === 'string' ? t.refresh_token : refreshToken,
+      expiresAt: expiry(t.expires_in),
+      externalUserId: null,
+    };
+  },
+  async revoke(accessToken) {
+    // Garmin users revoke from their Garmin Connect account; the user-registration endpoint
+    // removes Peakr's registration on our side.
+    await fetch('https://apis.garmin.com/wellness-api/rest/user/registration', {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  },
+  grantedScopes: (query) => (query.get('scope') ?? '').split(/[ ,]/).filter(Boolean),
+};
+
+/** COROS partner API: OAuth 2.0 authorization code; the token response carries the `openId`. */
+const coros: OAuthProvider = {
+  id: 'coros',
+  authorizeUrl({ redirectUri, state }) {
+    const url = new URL(COROS.authorizeUrl);
+    url.search = new URLSearchParams({
+      client_id: env('COROS_CLIENT_ID'),
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      state,
+    }).toString();
+    return url.toString();
+  },
+  async exchangeCode({ code, redirectUri }) {
+    const t = await postFormAuth(COROS.tokenUrl, {
+      grant_type: 'authorization_code',
+      client_id: env('COROS_CLIENT_ID'),
+      client_secret: env('COROS_CLIENT_SECRET'),
+      code,
+      redirect_uri: redirectUri,
+    });
+    return {
+      accessToken: String(t.access_token),
+      refreshToken: typeof t.refresh_token === 'string' ? t.refresh_token : null,
+      expiresAt: expiry(t.expires_in),
+      externalUserId: typeof t.openId === 'string' ? t.openId : null,
+    };
+  },
+  async refresh(refreshToken) {
+    const t = await postFormAuth(COROS.refreshUrl, {
+      grant_type: 'refresh_token',
+      client_id: env('COROS_CLIENT_ID'),
+      client_secret: env('COROS_CLIENT_SECRET'),
+      refresh_token: refreshToken,
+    });
+    return {
+      accessToken: String(t.access_token),
+      refreshToken: typeof t.refresh_token === 'string' ? t.refresh_token : refreshToken,
+      expiresAt: expiry(t.expires_in),
+      externalUserId: typeof t.openId === 'string' ? t.openId : null,
+    };
+  },
+  async revoke() {
+    // COROS has no revoke endpoint for partners; the user removes Peakr in the COROS app and the
+    // tokens are deleted on our side.
+  },
+  grantedScopes: () => [],
+};
+
+/** Suunto Cloud API: OAuth 2.0 authorization code, client credentials as HTTP Basic auth. */
+const suunto: OAuthProvider = {
+  id: 'suunto',
+  authorizeUrl({ redirectUri, state }) {
+    const url = new URL(SUUNTO.authorizeUrl);
+    url.search = new URLSearchParams({
+      client_id: env('SUUNTO_CLIENT_ID'),
+      redirect_uri: redirectUri,
+      response_type: 'code',
+      state,
+    }).toString();
+    return url.toString();
+  },
+  async exchangeCode({ code, redirectUri }) {
+    return suuntoTokens(
+      await postFormAuth(
+        SUUNTO.tokenUrl,
+        { grant_type: 'authorization_code', code, redirect_uri: redirectUri },
+        suuntoBasic(),
+      ),
+    );
+  },
+  async refresh(refreshToken) {
+    return suuntoTokens(
+      await postFormAuth(
+        SUUNTO.tokenUrl,
+        { grant_type: 'refresh_token', refresh_token: refreshToken },
+        suuntoBasic(),
+      ),
+    );
+  },
+  async revoke() {
+    // Suunto users remove Peakr in the Suunto app; tokens are deleted on our side.
+  },
+  grantedScopes: () => [],
+};
+
+const suuntoBasic = () => ({
+  Authorization: `Basic ${btoa(`${env('SUUNTO_CLIENT_ID')}:${env('SUUNTO_CLIENT_SECRET')}`)}`,
+});
+
+function suuntoTokens(t: Record<string, unknown>): TokenSet {
+  return {
+    accessToken: String(t.access_token),
+    refreshToken: typeof t.refresh_token === 'string' ? t.refresh_token : null,
+    expiresAt: expiry(t.expires_in),
+    // The `username` Suunto sends in its workout notifications.
+    externalUserId: typeof t.user === 'string' ? t.user : null,
+  };
+}
+
+const providers: Record<string, OAuthProvider> = { strava, garmin, coros, suunto };
+
+/** Whether a provider may be offered: Strava always, the watch platforms once approved. */
+export function providerEnabled(id: string): boolean {
+  const env = (name: string) => Deno.env.get(name);
+  switch (id) {
+    case 'strava':
+      return true;
+    case 'garmin':
+      return (
+        flagEnabled(env, 'garminTraining') ||
+        flagEnabled(env, 'garminCourses') ||
+        flagEnabled(env, 'garminActivity')
+      );
+    case 'coros':
+      return flagEnabled(env, 'coros');
+    case 'suunto':
+      return flagEnabled(env, 'suunto');
+    default:
+      return false;
+  }
+}
 
 export function getProvider(id: string): OAuthProvider | null {
-  return providers[id] ?? null;
+  return providerEnabled(id) ? (providers[id] ?? null) : null;
 }

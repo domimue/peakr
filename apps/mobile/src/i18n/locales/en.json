@@ -1916,6 +1916,66 @@
       "many_other": "{{count}} activities synced from {{source}}"
     }
   },
+  "watch": {
+    "title": "Your watch",
+    "intro": "Peakr can put your workouts on your watch. Pick the brand you use – you can change it any time in Profile.",
+    "profileRow": "Watch",
+    "none": "I don't use a watch",
+    "options": {
+      "garmin": "Garmin",
+      "coros": "COROS",
+      "suunto": "Suunto",
+      "apple": "Apple Watch",
+      "file": "Other watch",
+      "none": "No watch"
+    },
+    "hints": {
+      "garmin": "Workouts and routes straight to your watch, and your activities come back by themselves.",
+      "coros": "The next 7 days as a training plan in the COROS app, and your activities come back by themselves.",
+      "suunto": "Routes and workouts to the Suunto app, and your activities come back by themselves.",
+      "apple": "With the iPhone app – workouts appear in the Workout app on your Apple Watch.",
+      "file": "Save a workout file (.FIT) or a route (.GPX) and import it into your watch's app."
+    },
+    "soon": "Direct sync follows once the partner approval is through. Until then you can send files.",
+    "iosOnly": "Available with the iPhone app.",
+    "continue": "Continue",
+    "skip": "Skip for now",
+    "saved": "Saved",
+    "send": {
+      "title": "Send to watch",
+      "action": "Watch",
+      "fileTitle": "Workout file",
+      "fileBody": "A .FIT workout with your heart-rate zones and paces. Save it or share it to Garmin Connect (or your watch's app) to import it.",
+      "fileButton": "Share workout file",
+      "routeTitle": "Route",
+      "routeBody": "Your chosen route as a .GPX course for your watch.",
+      "routeButton": "Share route file",
+      "directTitle": "Straight to your watch",
+      "directButton": "Send to {{watch}}",
+      "directConnect": "Connect {{watch}}",
+      "directSoon": "Direct sync with {{watch}} is not switched on yet.",
+      "done": "Sent to {{watch}}",
+      "notExportable": "This session can't go to a watch: strength, walks and winter sports stay in the app.",
+      "failed": "That didn't work: {{reason}}",
+      "reasons": {
+        "not_connected": "{{watch}} is not connected (any more).",
+        "not_available": "Direct sync is not available yet.",
+        "unsupported": "{{watch}} does not take this. Use the workout file instead.",
+        "rate_limited": "Too many requests – try again in a few minutes.",
+        "rejected": "{{watch}} refused the workout.",
+        "network": "No connection."
+      },
+      "shareFailed": "The file could not be shared.",
+      "brickLegs": "Bike and run go as two workouts."
+    },
+    "settings": {
+      "connected": "Connected",
+      "disconnect": "Disconnect",
+      "connect": "Connect {{watch}}",
+      "syncNow": "Send my next days now",
+      "autoSync": "Your next 14 days are kept in step with your plan automatically while {{watch}} is connected."
+    }
+  },
   "connections": {
     "title": "Connections",
     "signInFirst": "Sign in to connect Strava – your activities are linked to your account.",

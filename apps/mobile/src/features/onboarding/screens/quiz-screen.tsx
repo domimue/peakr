@@ -88,7 +88,8 @@ export function QuizScreen() {
     const following = steps[index + 1];
     if (following) return goTo(following.id, false, 1);
     finish();
-    router.push('/onboarding/forecast');
+    // Which watch the user wears (skippable) comes before the forecast.
+    router.push('/onboarding/watch');
   };
 
   const progress = (index + (onInsight ? 1 : 0.35)) / steps.length;
