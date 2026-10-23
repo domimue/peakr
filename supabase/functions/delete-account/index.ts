@@ -22,6 +22,9 @@ type Admin = ReturnType<typeof adminClient>;
 
 /** Child tables before their parents; `profiles` is keyed by `id`, all others by `user_id`. */
 const USER_TABLES = [
+  'health_daily',
+  'health_sync_state',
+  'health_consents',
   'baseline_activities',
   'baseline_imports',
   'activity_streams',
@@ -36,12 +39,16 @@ const USER_TABLES = [
 async function revokeIntegrations(admin: Admin, userId: string): Promise<void> {
   const { data, error } = await admin
     .from('integrations')
-    .select('id, user_id, provider, external_user_id, expires_at, last_synced_at, status')
+    .select(
+      'id, user_id, provider, external_user_id, expires_at, last_synced_at, status, credential_mode',
+    )
     .eq('user_id', userId);
   if (error) throw error;
   for (const row of data ?? []) {
     const provider = getProvider(row.provider as string);
-    if (!provider) continue;
+    // A Garmin personal API key has nothing to revoke at Garmin (the user deletes the key there);
+    // removing it here is all that can be done.
+    if (!provider || row.credential_mode === 'personal_key') continue;
     try {
       // Refreshes an expired Strava token first, so the deauthorisation still reaches Strava.
       await provider.revoke(await accessToken(admin, row as StravaIntegration));
