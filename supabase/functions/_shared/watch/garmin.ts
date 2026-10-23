@@ -1,4 +1,5 @@
 import type { ActivityParts } from './activity-map.ts';
+import { GARMIN } from './contracts.ts';
 import { requestJson, type Fetch } from './http.ts';
 import type { PushResult, WatchNode, WatchRoute, WatchStep, WatchWorkout } from './model.ts';
 import { speedFromPace, speedFromSwimPace } from './model.ts';
@@ -18,14 +19,7 @@ import { applySync, type OpResult, type PushedRecord, type SyncOutcome } from '.
  * those three places and the contract tests, nothing else.
  */
 
-export const GARMIN = {
-  verified: false,
-  /** OAuth 2.0 with PKCE (Garmin Connect Developer Program). */
-  authorizeUrl: 'https://connect.garmin.com/oauth2Confirm',
-  tokenUrl: 'https://diauth.garmin.com/di-oauth2-service/oauth/token',
-  trainingBase: 'https://apis.garmin.com/training-api',
-  coursesBase: 'https://apis.garmin.com/training-api/courses/v1',
-} as const;
+export { GARMIN };
 
 // ---------------------------------------------------------------------------------------------
 // Training API

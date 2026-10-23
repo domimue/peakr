@@ -1,4 +1,5 @@
 import { activityFromFit } from './activity-map.ts';
+import { COROS } from './contracts.ts';
 import { requestJson, type Fetch } from './http.ts';
 import type { ImportResult, WatchActivityRow, WatchNode, WatchStep, WatchWorkout } from './model.ts';
 import { speedFromPace, speedFromSwimPace } from './model.ts';
@@ -17,15 +18,7 @@ import { applySync, inWindow, type OpResult, type PushedRecord, type SyncOutcome
  * reference is in hand. Strength sessions are not supported by COROS: they are never pushed.
  */
 
-export const COROS = {
-  verified: false,
-  authorizeUrl: 'https://open.coros.com/oauth2/authorize',
-  tokenUrl: 'https://open.coros.com/oauth2/accesstoken',
-  refreshUrl: 'https://open.coros.com/oauth2/refresh-token',
-  apiBase: 'https://open.coros.com',
-  /** COROS shows the next 7 days of a plan. */
-  windowDays: 7,
-} as const;
+export { COROS };
 
 const SPORT_TYPE = { run: 1, bike: 2, swim: 3 } as const;
 const STEP_KIND = { warmup: 1, training: 2, cooldown: 3, rest: 4 } as const;

@@ -1,4 +1,5 @@
 import { activityFromFit } from './activity-map.ts';
+import { SUUNTO } from './contracts.ts';
 import { requestJson, type Fetch } from './http.ts';
 import type { PushResult, WatchActivityRow, WatchRoute, WatchWorkout } from './model.ts';
 import { routeToGpx } from './gpx-course.ts';
@@ -19,12 +20,7 @@ import { encodeWorkoutFit } from './fit-workout.ts';
  * file export instead of pretending.
  */
 
-export const SUUNTO = {
-  verified: false,
-  authorizeUrl: 'https://cloudapi-oauth.suunto.com/oauth/authorize',
-  tokenUrl: 'https://cloudapi-oauth.suunto.com/oauth/token',
-  apiBase: 'https://cloudapi.suunto.com',
-} as const;
+export { SUUNTO };
 
 export interface SuuntoClientOptions {
   fetch: Fetch;

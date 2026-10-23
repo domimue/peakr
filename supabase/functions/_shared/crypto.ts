@@ -75,6 +75,21 @@ function getStateKey(): Promise<CryptoKey> {
   return stateKey;
 }
 
+/**
+ * PKCE (RFC 7636) without storage: the code verifier is an HMAC of the signed state, so the
+ * callback can recompute it. The state is unguessable and short-lived; the verifier never leaves
+ * the Edge Function (only its SHA-256 challenge goes into the authorize URL).
+ */
+export async function pkceVerifier(state: string): Promise<string> {
+  const mac = await crypto.subtle.sign('HMAC', await getStateKey(), encoder.encode(`pkce:${state}`));
+  return toBase64Url(new Uint8Array(mac));
+}
+
+export async function pkceChallenge(state: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', encoder.encode(await pkceVerifier(state)));
+  return toBase64Url(new Uint8Array(digest));
+}
+
 /** `upload`: an existing connection asks for `activity:write` (gym sessions to Strava). */
 export type OAuthPurpose = 'baseline' | 'upload';
 
