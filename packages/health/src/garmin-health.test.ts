@@ -32,6 +32,7 @@ import {
   wallClock,
 } from '../../../supabase/functions/_shared/health/parse.ts';
 import { createGarminHealthProvider } from '../../../supabase/functions/_shared/health/provider.ts';
+import { afterBackfill, planPull } from '../../../supabase/functions/_shared/health/schedule.ts';
 import type { Fetch } from '../../../supabase/functions/_shared/watch/http.ts';
 
 const FETCHED = '2026-10-23T08:00:00.000Z';
@@ -621,5 +622,64 @@ describe('Health API push (Starter, unverified shapes)', () => {
     expect((p.byUser.get('g1') ?? []).map((r) => r.metric)).toEqual(['sleep_duration']);
     expect(p.byUser.get('g1')?.[0]?.detail).toMatchObject({ bedTime: null, wakeTime: null });
     expect(p.byUser.get('g1')?.[0]?.recordedAt).toBe(FETCHED);
+  });
+});
+
+describe('pull schedule', () => {
+  const today = '2026-10-23';
+  it('pulls the recent days up to tomorrow and starts the backfill before them', () => {
+    expect(planPull({ today, manual: false, backfillDays: 365, state: null })).toEqual({
+      recent: ['2026-10-21', '2026-10-24'],
+      backfill: ['2026-09-19', '2026-10-16'],
+    });
+    expect(planPull({ today, manual: true, backfillDays: 0, state: null })).toEqual({
+      recent: ['2026-10-17', '2026-10-24'],
+      backfill: null,
+    });
+  });
+
+  it('continues from the cursor, clamps at the history limit and stops when done', () => {
+    const state = {
+      earliest_day: '2026-01-01',
+      backfill_before: '2025-11-10',
+      backfill_done: false,
+    };
+    expect(planPull({ today, manual: false, backfillDays: 365, state }).backfill).toEqual([
+      '2025-10-24',
+      '2025-11-09',
+    ]);
+    expect(
+      planPull({
+        today,
+        manual: false,
+        backfillDays: 365,
+        state: { ...state, backfill_before: '2025-10-24' },
+      }).backfill,
+    ).toBeNull();
+    expect(
+      planPull({
+        today,
+        manual: false,
+        backfillDays: 365,
+        state: { ...state, backfill_done: true },
+      }).backfill,
+    ).toBeNull();
+  });
+
+  it('ends the backfill at the limit or after enough empty days before the earliest value', () => {
+    const opts = { today, backfillDays: 365, earliestDay: '2026-09-01' };
+    expect(afterBackfill(['2026-07-01', '2026-07-28'], 0, opts)).toEqual({
+      backfill_before: '2026-07-01',
+      backfill_done: true,
+    });
+    expect(afterBackfill(['2026-08-01', '2026-08-28'], 0, opts)).toEqual({
+      backfill_before: '2026-08-01',
+      backfill_done: false,
+    });
+    expect(afterBackfill(['2026-07-01', '2026-07-28'], 5, opts).backfill_done).toBe(false);
+    expect(afterBackfill(['2025-10-24', '2025-11-09'], 9, opts).backfill_done).toBe(true);
+    expect(
+      afterBackfill(['2026-08-01', '2026-08-28'], 0, { ...opts, earliestDay: null }).backfill_done,
+    ).toBe(true);
   });
 });

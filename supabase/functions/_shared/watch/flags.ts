@@ -4,12 +4,26 @@
  * `supabase secrets set WATCH_GARMIN_TRAINING=1` and so on – the code is shipped and tested before.
  */
 
-export type WatchFlag = 'garminTraining' | 'garminCourses' | 'garminActivity' | 'coros' | 'suunto';
+export type WatchFlag =
+  | 'garminTraining'
+  | 'garminCourses'
+  | 'garminActivity'
+  | 'garminHealth'
+  | 'garminPersonalKey'
+  | 'coros'
+  | 'suunto';
 
 const ENV: Record<WatchFlag, string> = {
   garminTraining: 'WATCH_GARMIN_TRAINING',
   garminCourses: 'WATCH_GARMIN_COURSES',
   garminActivity: 'WATCH_GARMIN_ACTIVITY',
+  /** Garmin Health API push (Starter tier, OAuth) – once Garmin has approved the app. */
+  garminHealth: 'GARMIN_HEALTH',
+  /**
+   * Garmin Personal API key pasted by the user. Developer flag only: the Personal API terms are
+   * written for a person's own tools, not for a third-party app (docs/health-garmin.md).
+   */
+  garminPersonalKey: 'GARMIN_PERSONAL_KEY',
   coros: 'WATCH_COROS',
   suunto: 'WATCH_SUUNTO',
 };

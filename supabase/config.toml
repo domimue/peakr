@@ -431,6 +431,10 @@ verify_jwt = false
 [functions.weather]
 verify_jwt = false
 
+# Garmin health data: the scheduled pull carries a cron secret; user routes check the JWT.
+[functions.garmin-health]
+verify_jwt = false
+
 # Gym session → Strava (structured weight-training upload; user JWT checked in the function).
 [functions.strava-upload]
 verify_jwt = false

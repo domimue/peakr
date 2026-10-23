@@ -1,7 +1,7 @@
 /**
  * Small Web Crypto helpers for Edge Functions:
  * - AES-GCM encryption of OAuth tokens before they are stored (key: TOKEN_ENCRYPTION_KEY,
- *   32 random bytes as base64).
+ *   32 random bytes as base64) and of health values (key: HEALTH_ENCRYPTION_KEY, same format).
  * - HMAC-signed `state` for OAuth redirects, so the callback knows which user started the flow
  *   without trusting anything the browser sends (key: OAUTH_STATE_SECRET).
  */
@@ -27,39 +27,61 @@ function requireSecret(name: string): string {
   return value;
 }
 
-let tokenKey: Promise<CryptoKey> | undefined;
+const aesKeys = new Map<string, Promise<CryptoKey>>();
 
-function getTokenKey(): Promise<CryptoKey> {
-  tokenKey ??= crypto.subtle.importKey(
-    'raw',
-    fromBase64Url(requireSecret('TOKEN_ENCRYPTION_KEY')),
-    'AES-GCM',
-    false,
-    ['encrypt', 'decrypt'],
-  );
-  return tokenKey;
+/** AES-GCM key from a secret holding 32 random bytes as base64(url). */
+function getAesKey(secret: string): Promise<CryptoKey> {
+  let key = aesKeys.get(secret);
+  if (!key) {
+    key = crypto.subtle.importKey('raw', fromBase64Url(requireSecret(secret)), 'AES-GCM', false, [
+      'encrypt',
+      'decrypt',
+    ]);
+    aesKeys.set(secret, key);
+  }
+  return key;
 }
 
-/** Encrypts a token; the result is `base64url(iv).base64url(ciphertext)`. */
-export async function encryptToken(plain: string): Promise<string> {
+async function encryptWith(secret: string, plain: string): Promise<string> {
   const iv = crypto.getRandomValues(new Uint8Array(12));
   const cipher = await crypto.subtle.encrypt(
     { name: 'AES-GCM', iv },
-    await getTokenKey(),
+    await getAesKey(secret),
     encoder.encode(plain),
   );
   return `${toBase64Url(iv)}.${toBase64Url(new Uint8Array(cipher))}`;
 }
 
-export async function decryptToken(stored: string): Promise<string> {
+async function decryptWith(secret: string, stored: string): Promise<string> {
   const [iv, cipher] = stored.split('.');
-  if (!iv || !cipher) throw new Error('Malformed encrypted token');
+  if (!iv || !cipher) throw new Error('Malformed encrypted value');
   const plain = await crypto.subtle.decrypt(
     { name: 'AES-GCM', iv: fromBase64Url(iv) },
-    await getTokenKey(),
+    await getAesKey(secret),
     fromBase64Url(cipher),
   );
   return decoder.decode(plain);
+}
+
+/** Encrypts a token; the result is `base64url(iv).base64url(ciphertext)`. */
+export function encryptToken(plain: string): Promise<string> {
+  return encryptWith('TOKEN_ENCRYPTION_KEY', plain);
+}
+
+export function decryptToken(stored: string): Promise<string> {
+  return decryptWith('TOKEN_ENCRYPTION_KEY', stored);
+}
+
+/**
+ * Health values (CLAUDE.md "Health": stored encrypted) use their own key, HEALTH_ENCRYPTION_KEY,
+ * so a leaked token key does not open the health data and vice versa.
+ */
+export function encryptHealth(plain: string): Promise<string> {
+  return encryptWith('HEALTH_ENCRYPTION_KEY', plain);
+}
+
+export function decryptHealth(stored: string): Promise<string> {
+  return decryptWith('HEALTH_ENCRYPTION_KEY', stored);
 }
 
 let stateKey: Promise<CryptoKey> | undefined;

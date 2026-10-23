@@ -321,7 +321,8 @@ export function providerEnabled(id: string): boolean {
       return (
         flagEnabled(env, 'garminTraining') ||
         flagEnabled(env, 'garminCourses') ||
-        flagEnabled(env, 'garminActivity')
+        flagEnabled(env, 'garminActivity') ||
+        flagEnabled(env, 'garminHealth')
       );
     case 'coros':
       return flagEnabled(env, 'coros');

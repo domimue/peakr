@@ -7,15 +7,26 @@
  *   POST /watch-webhook/garmin?key=…   Garmin Activity API push (JSON: activities, deregistrations)
  *   POST /watch-webhook/coros?key=…    COROS activity push (JSON with the user's openId and FIT links)
  *   POST /watch-webhook/suunto?key=…   Suunto workout notification ({ username, workoutid })
+ *   POST /watch-webhook/garmin-health?key=…  Garmin Health API push (one URL for every summary
+ *        type: dailies, sleeps, hrv, bodyComps, pulseox, allDayRespiration, userMetrics, plus
+ *        deregistrations and permission changes). Stored as health values, not activities.
  *
  * `verify_jwt = false`: the platforms send no Supabase JWT. Each request must carry the secret in
  * the callback URL you register at the platform (`WATCH_WEBHOOK_SECRET`, as `?key=`) – Suunto
  * notifications additionally carry an HMAC when `SUUNTO_WEBHOOK_HMAC_SECRET` is set. The platforms
  * retry on errors and time out slowly, so every accepted request answers 200 at once and the work
  * continues afterwards (`EdgeRuntime.waitUntil`); a missed push is caught by the next sync.
- * Flags: WATCH_GARMIN_ACTIVITY, WATCH_COROS, WATCH_SUUNTO.
+ * Flags: WATCH_GARMIN_ACTIVITY, WATCH_COROS, WATCH_SUUNTO, GARMIN_HEALTH.
  */
 
+import { parseHealthPush } from '../_shared/health/garmin-push.ts';
+import { onlyEnabled } from '../_shared/health/model.ts';
+import {
+  deleteHealthData,
+  enabledGroups,
+  garminIntegrationByExternal,
+  storeHealthRecords,
+} from '../_shared/health/store.ts';
 import { adminClient, json } from '../_shared/supabase.ts';
 import {
   integrationForExternal,
@@ -68,6 +79,29 @@ async function garmin(body: unknown): Promise<void> {
     if (!integration) continue;
     const row = buildActivityRow('garmin', integration.user_id, a.externalId, a.parts);
     if (row) await storeWatchActivities(admin, [row]);
+  }
+}
+
+async function garminHealth(body: unknown): Promise<void> {
+  const admin = adminClient();
+  const push = parseHealthPush(body, new Date().toISOString());
+  for (const garminUserId of push.deregistered) {
+    const integration = await garminIntegrationByExternal(admin, garminUserId);
+    if (!integration) continue;
+    await removeWatchData(admin, integration.user_id, 'garmin');
+    await admin.from('integrations').delete().eq('id', integration.id);
+  }
+  for (const [garminUserId, permissions] of push.permissions) {
+    // The user withdrew the health permission at Garmin: what Peakr stored from it goes.
+    if (permissions.includes('HEALTH_EXPORT')) continue;
+    const integration = await garminIntegrationByExternal(admin, garminUserId);
+    if (integration) await deleteHealthData(admin, integration.user_id);
+  }
+  for (const [garminUserId, records] of push.byUser) {
+    const integration = await garminIntegrationByExternal(admin, garminUserId);
+    if (!integration || integration.status === 'revoked') continue;
+    const groups = await enabledGroups(admin, integration.user_id);
+    await storeHealthRecords(admin, integration.user_id, onlyEnabled(records, groups));
   }
 }
 
@@ -126,6 +160,8 @@ Deno.serve(async (req) => {
   const platform = url.pathname.split('/').filter(Boolean).pop();
   let work: Promise<void>;
   if (platform === 'garmin' && flagEnabled(env, 'garminActivity')) work = garmin(body);
+  else if (platform === 'garmin-health' && flagEnabled(env, 'garminHealth'))
+    work = garminHealth(body);
   else if (platform === 'coros' && flagEnabled(env, 'coros')) work = coros(body);
   else if (platform === 'suunto' && flagEnabled(env, 'suunto')) {
     const hmacSecret = env('SUUNTO_WEBHOOK_HMAC_SECRET');

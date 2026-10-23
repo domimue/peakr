@@ -65,13 +65,15 @@ comment on table public.health_daily is 'Encrypted daily health values per metri
 create index health_daily_sync on public.health_daily (user_id, server_updated_at);
 
 -- The app pulls rows changed since its last cursor, so every write stamps the server time.
+-- clock_timestamp() (not now()) so the rows of one upsert get distinct, increasing stamps and a
+-- page boundary never falls between rows with the same cursor value.
 create function public.health_daily_stamp()
 returns trigger
 language plpgsql
 set search_path = ''
 as $$
 begin
-  new.server_updated_at := now();
+  new.server_updated_at := clock_timestamp();
   return new;
 end;
 $$;
