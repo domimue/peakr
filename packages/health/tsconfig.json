@@ -4,5 +4,15 @@
     // The Edge Function code this package re-exports imports its siblings with `.ts` extensions.
     "allowImportingTsExtensions": true
   },
-  "include": ["src", "../../supabase/functions/_shared/health", "vitest.config.ts"]
+  // Only the pure files; store.ts uses Deno and Supabase and is checked with `deno check`.
+  "include": [
+    "src",
+    "../../supabase/functions/_shared/health/model.ts",
+    "../../supabase/functions/_shared/health/parse.ts",
+    "../../supabase/functions/_shared/health/garmin-personal.ts",
+    "../../supabase/functions/_shared/health/garmin-push.ts",
+    "../../supabase/functions/_shared/health/provider.ts",
+    "../../supabase/functions/_shared/health/schedule.ts",
+    "vitest.config.ts"
+  ]
 }
