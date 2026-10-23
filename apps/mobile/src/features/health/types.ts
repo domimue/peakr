@@ -1,3 +1,7 @@
+import type { HealthMetric } from '@peakr/engine';
+
+import type { DeviceDailyValue } from './device-map';
+
 /**
  * Health data behind one interface (CLAUDE.md "Platform strategy": platform code in
  * `.android.ts` / `.ios.ts`). Screens only import `./health`; Metro picks the platform file.
@@ -31,4 +35,10 @@ export interface HealthProvider {
   requestWritePermission(): Promise<boolean>;
   /** Saves a finished gym session as a strength-training workout with duration and energy. */
   writeStrengthWorkout(workout: StrengthWorkoutWrite): Promise<WriteResult>;
+  /** Of `metrics`, those the user allowed Peakr to read. */
+  readableMetrics(metrics: readonly HealthMetric[]): Promise<HealthMetric[]>;
+  /** Shows the system sheet for reading `metrics`; resolves the ones now allowed. */
+  requestReadPermission(metrics: readonly HealthMetric[]): Promise<HealthMetric[]>;
+  /** One value per metric and local day between `from` and `to` (allowed metrics only). */
+  readDaily(metrics: readonly HealthMetric[], from: Date, to: Date): Promise<DeviceDailyValue[]>;
 }

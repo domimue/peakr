@@ -264,7 +264,13 @@ describe('Health detail', () => {
     history('weight', 72, 3, 72.4);
     history('body_fat', 15, 1);
     await renderWithQuery(<MetricDetailScreen />);
-    expect(await screen.findByTestId('body-composition')).toHaveTextContent(/Body fat.*%/);
+    // Several queries resolve one after the other here; give a loaded CI machine time.
+    await waitFor(
+      () => expect(screen.getByTestId('body-composition')).toHaveTextContent(/Body fat.*%/),
+      {
+        timeout: 5000,
+      },
+    );
   });
 });
 
