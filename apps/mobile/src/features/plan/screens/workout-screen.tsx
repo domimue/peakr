@@ -24,6 +24,7 @@ import { todayIso } from '@/data/ids';
 import { useWorkoutActivity, type LinkedActivity } from '@/features/activities/queries';
 import { WorkoutEvaluation, WorkoutRoute } from '@/features/routes/components/workout-route';
 import { planHrZones } from '@/features/training-zones/resolve';
+import { SendToZwift } from '@/features/zwift/send-to-zwift';
 import { WeatherHintCard } from '@/features/weather/components/weather-hint-card';
 import { useWorkoutWeather } from '@/features/weather/queries';
 import {
@@ -423,6 +424,9 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
                   {`ⓘ ${t(note.key as never, { ...note.params }) as string}`}
                 </Text>
               ))}
+              {indoor.kind !== 'pool' ? (
+                <SendToZwift workout={w} indoor={indoor} title={title} />
+              ) : null}
             </>
           ) : null}
         </View>

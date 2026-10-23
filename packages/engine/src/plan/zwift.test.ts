@@ -122,6 +122,101 @@ describe('buildZwo run', () => {
   });
 });
 
+describe('buildZwo structure', () => {
+  const distanceOnly: Step = { distanceM: 400, zone: 4, target: { kind: 'paceZone', value: 'I' } };
+
+  it('ramps the first warm-up step and the last cool-down step, the rest is steady', () => {
+    const w: Workout = {
+      ...(runs[0] as Workout),
+      warmup: [hrStep(300, 1), hrStep(120, 2), distanceOnly],
+      main: [{ repeat: 1, steps: [hrStep(600, 3)] }],
+      cooldown: [hrStep(120, 2), hrStep(300, 1)],
+    };
+    const r = buildZwo(w, { name: 'x', description: 'Easy <spin>', indoor: null });
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const lines = r.file.xml.split('\n').filter((l) => /Warmup|Cooldown|SteadyState/.test(l));
+    expect(lines.map((l) => l.trim().split(' ')[0])).toEqual([
+      '<Warmup',
+      '<SteadyState',
+      '<SteadyState',
+      '<SteadyState',
+      '<Cooldown',
+    ]);
+    expect(r.file.xml).toContain('<Warmup Duration="300" PaceLow="1" PaceHigh="1"/>');
+    expect(r.file.xml).toContain('<description>Easy &lt;spin&gt;</description>');
+  });
+
+  it('skips warm-up and cool-down steps without a duration', () => {
+    const w: Workout = {
+      ...ride,
+      warmup: [distanceOnly],
+      main: [{ repeat: 1, steps: [hrStep(600, 3)] }],
+      cooldown: [distanceOnly],
+    };
+    const r = buildZwo(w, { name: 'x', indoor: null });
+    expect(r.ok && r.file.xml).not.toMatch(/Warmup|Cooldown/);
+    expect(r.ok && r.file.xml.match(/<SteadyState/g)?.length).toBe(1);
+  });
+
+  it('ramps bike warm-ups from a low share of FTP and cool-downs back down', () => {
+    const w: Workout = {
+      ...ride,
+      warmup: [hrStep(600, 2)],
+      main: [{ repeat: 1, steps: [hrStep(600, 3)] }],
+      cooldown: [hrStep(300, 1)],
+    };
+    const r = buildZwo(w, { name: 'x', indoor: null });
+    expect(r.ok && r.file.xml).toContain(
+      '<Warmup Duration="600" PowerLow="0.45" PowerHigh="0.65"/>',
+    );
+    expect(r.ok && r.file.xml).toContain(
+      '<Cooldown Duration="300" PowerLow="0.5" PowerHigh="0.45"/>',
+    );
+  });
+
+  it('does not use the compact element when the pair is not work/rest', () => {
+    const w = bare(ride, [
+      { repeat: 2, steps: [hrStep(60, 4), hrStep(60, 1)] },
+      { repeat: 2, steps: [hrStep(60, 4), distanceOnly] },
+      { repeat: 2, steps: [distanceOnly, hrStep(60, 1, { rest: true })] },
+    ]);
+    const r = buildZwo(w, { name: 'x', indoor: null });
+    expect(r.ok && r.file.xml).not.toContain('IntervalsT');
+    expect(r.ok && r.file.xml.match(/<SteadyState/g)?.length).toBe(8);
+  });
+
+  it('measures the file in UTF-8 bytes and falls back to a plain file name', () => {
+    const r = buildZwo(bare(ride, [{ repeat: 1, steps: [hrStep(60, 3)] }]), {
+      name: '¡ü 🚴 中!',
+      indoor: null,
+    });
+    expect(r.ok && r.file.sizeBytes).toBe(r.ok ? Buffer.byteLength(r.file.xml, 'utf8') : -1);
+    expect(r.ok && r.file.fileName).toBe('peakr-u.zwo');
+    const bare2 = buildZwo(bare(ride, [{ repeat: 1, steps: [hrStep(60, 3)] }]), {
+      name: '🚴',
+      indoor: null,
+    });
+    expect(bare2.ok && bare2.file.fileName).toBe('peakr-workout.zwo');
+  });
+
+  it('reads power from a power target as well as from a hint', () => {
+    const power: Step = {
+      durationSec: 300,
+      zone: 3,
+      target: { kind: 'powerZone', value: '76–90 % FTP' },
+    };
+    const r = buildZwo(bare(ride, [{ repeat: 1, steps: [power] }]), { name: 'x', indoor: null });
+    expect(r.ok && r.file.xml).toContain('Power="0.83"');
+    expect(r.ok && r.file.notes).toEqual([]);
+  });
+
+  it('uses the indoor version of the session by default', () => {
+    const r = buildZwo(ride, { name: 'x' });
+    expect(r.ok).toBe(true);
+  });
+});
+
 describe('buildZwo limits', () => {
   it('rejects sports Zwift cannot show', () => {
     const r = buildZwo({ ...ride, sport: 'swim' }, { name: 'Swim' });

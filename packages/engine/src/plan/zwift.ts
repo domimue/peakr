@@ -101,6 +101,16 @@ function blockXml(block: Block, ctx: Context): string[] {
   return Array.from({ length: block.repeat }, () => once).flat();
 }
 
+/** Size on disk; the engine has no DOM or Node typings, so no `TextEncoder`. */
+function utf8Length(s: string): number {
+  let bytes = 0;
+  for (const ch of s) {
+    const cp = ch.codePointAt(0) as number;
+    bytes += cp < 0x80 ? 1 : cp < 0x800 ? 2 : cp < 0x10000 ? 3 : 4;
+  }
+  return bytes;
+}
+
 function fileSlug(name: string): string {
   const slug = name
     .normalize('NFKD')
@@ -164,7 +174,7 @@ export function buildZwo(workout: Workout, options: ZwoOptions): ZwoResult {
     '',
   ].join('\n');
 
-  const sizeBytes = new TextEncoder().encode(xml).length;
+  const sizeBytes = utf8Length(xml);
   if (sizeBytes >= cfg.maxFileBytes) return { ok: false, reason: 'tooLarge' };
   return {
     ok: true,

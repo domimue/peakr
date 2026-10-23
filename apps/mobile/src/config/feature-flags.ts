@@ -5,6 +5,8 @@
 export const featureFlags = {
   /** Komoot partner API (OAuth, tour import/upload) – partner contract required. */
   komootApi: false,
+  /** Zwift Training Connections (push scheduled workouts) – Zwift approves each platform. */
+  zwiftTrainingConnections: false,
   /** Generated round trips via a RoutingProvider (Phase 8b). */
   generatedRoutes: false,
 } as const;
