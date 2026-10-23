@@ -1,10 +1,9 @@
 import { buildZwo, type IndoorVersion, type Workout } from '@peakr/engine';
-import { File, Paths } from 'expo-file-system';
-import * as Sharing from 'expo-sharing';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { View } from 'react-native';
 
+import { shareFile } from '@/features/sharing/share-file';
 import { Button, Text } from '@/ui';
 
 interface SendToZwiftProps {
@@ -28,19 +27,13 @@ export function SendToZwift({ workout, indoor, title }: SendToZwiftProps) {
 
   const send = async () => {
     setError(false);
-    try {
-      const target = new File(Paths.cache, file.fileName);
-      if (target.exists) target.delete();
-      target.create();
-      target.write(file.xml);
-      await Sharing.shareAsync(target.uri, {
-        mimeType: 'application/xml',
-        dialogTitle: t('zwift.send'),
-        UTI: 'public.xml',
-      });
-    } catch {
-      setError(true);
-    }
+    const result = await shareFile({
+      name: file.fileName,
+      mime: 'application/xml',
+      bytes: new TextEncoder().encode(file.xml),
+      uti: 'public.xml',
+    });
+    setError(result !== 'shared');
   };
 
   return (

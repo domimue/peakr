@@ -27,7 +27,10 @@ jest.mock('expo-file-system', () => ({
   File: jest.fn().mockImplementation(() => ({ text: jest.fn(() => Promise.resolve('')) })),
   Paths: { cache: 'cache' },
 }));
-jest.mock('expo-sharing', () => ({ shareAsync: jest.fn(() => Promise.resolve()) }));
+jest.mock('expo-sharing', () => ({
+  isAvailableAsync: jest.fn(() => Promise.resolve(true)),
+  shareAsync: jest.fn(() => Promise.resolve()),
+}));
 jest.mock('@shopify/react-native-skia', () => ({
   DashPathEffect: () => null,
   Line: () => null,
