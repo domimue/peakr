@@ -283,3 +283,11 @@ export {
   type TerrainSample,
 } from './route/terrain-profile';
 export type { RoundTripCandidate, RoundTripRequest, RoutingProvider } from './route/routing';
+export {
+  buildZwo,
+  zwiftSportOf,
+  type ZwiftSport,
+  type ZwoFile,
+  type ZwoOptions,
+  type ZwoResult,
+} from './plan/zwift';
