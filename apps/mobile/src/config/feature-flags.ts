@@ -13,6 +13,8 @@ export const featureFlags = {
   garminWatch: false,
   corosWatch: false,
   suuntoWatch: false,
+  /** Zwift Training Connections (push scheduled workouts) – Zwift approves each platform. */
+  zwiftTrainingConnections: false,
   /** Generated round trips via a RoutingProvider (Phase 8b). */
   generatedRoutes: false,
 } as const;

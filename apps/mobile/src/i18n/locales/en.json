@@ -2730,6 +2730,15 @@
     },
     "back": "Back"
   },
+  "zwift": {
+    "send": "Send to Zwift",
+    "howTo": "Save the file in the Zwift workouts folder on your PC or Mac (Documents/Zwift/Workouts/<your Zwift ID>), then restart Zwift. The workout appears under Custom Workouts on all your devices.",
+    "error": "The file could not be shared. Try again."
+  },
+  "zwiftNotes": {
+    "hrFallback": "Some steps have no power target, so they were converted from heart-rate zones to a typical % FTP. Check them against your FTP in Zwift.",
+    "runPace": "Zwift scales run steps to your own run pace. Easy steps are marked easier, hard steps harder – check the pace once in Zwift."
+  },
   "indoorNotes": {
     "treadmillHeat": "Indoors your heart rate runs higher – no airflow, more heat. Put a fan on and go by heart rate, not speed.",
     "treadmillRamp": "The belt needs a few seconds to speed up: start timing each rep once you are at speed, and slow the belt for the recoveries instead of jumping off.",

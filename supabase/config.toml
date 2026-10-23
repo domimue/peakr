@@ -445,6 +445,10 @@ verify_jwt = false
 [functions.watch-webhook]
 verify_jwt = false
 
+# Zwift Training Connections (disabled until Zwift approves Peakr): user JWT checked in the function.
+[functions.zwift-push]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
