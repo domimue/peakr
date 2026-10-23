@@ -100,6 +100,9 @@ and the paywall (development builds have an "Unlock without purchase" button).
 - Health Connect needs a privacy policy link and the permission rationale activity on Android 14+;
   the Play Console "Health apps declaration" has to list "Exercise" and "Active calories burned".
 - A dev build is required (`eas build --profile development --platform android`); the plugin
-  `react-native-health-connect` and `minSdkVersion 26` are set in `app.json`.
+  `react-native-health-connect` (permission rationale for Android 13 and 14+), `minSdkVersion 26`
+  and the two manifest permissions `android.permission.health.WRITE_EXERCISE` and
+  `android.permission.health.WRITE_ACTIVE_CALORIES_BURNED` are set in `app.json`. Without the
+  manifest entries Health Connect never grants the permissions.
 - HealthKit is prepared behind the same interface (`apps/mobile/src/features/health/health.ios.ts`)
   and activates with the iOS release.
