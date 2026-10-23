@@ -524,7 +524,7 @@ importers:
   packages/watch:
     dependencies:
       '@garmin/fitsdk':
-        specifier: latest
+        specifier: 21.218.0
         version: 21.218.0
       '@peakr/engine':
         specifier: workspace:*

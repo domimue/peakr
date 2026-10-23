@@ -21,7 +21,7 @@
     "vitest": "^4.0.0"
   },
   "dependencies": {
-    "@garmin/fitsdk": "latest",
+    "@garmin/fitsdk": "21.218.0",
     "@peakr/engine": "workspace:*"
   }
 }
