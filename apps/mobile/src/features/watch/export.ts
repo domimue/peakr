@@ -99,7 +99,9 @@ function elevationAt(profile: readonly ElevationPoint[], distanceM: number): num
     if (p.distanceM >= distanceM) {
       const span = p.distanceM - prev.distanceM;
       if (span <= 0) return p.elevationM;
-      return prev.elevationM + ((p.elevationM - prev.elevationM) * (distanceM - prev.distanceM)) / span;
+      return (
+        prev.elevationM + ((p.elevationM - prev.elevationM) * (distanceM - prev.distanceM)) / span
+      );
     }
     prev = p;
   }

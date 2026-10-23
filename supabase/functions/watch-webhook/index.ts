@@ -140,6 +140,8 @@ Deno.serve(async (req) => {
     // Unknown platform or its flag is off: accept and ignore, so the platform does not retry.
     return json({ ok: true, ignored: true });
   }
-  EdgeRuntime.waitUntil(work.catch((error) => console.error('Watch webhook failed', platform, String(error))));
+  EdgeRuntime.waitUntil(
+    work.catch((error) => console.error('Watch webhook failed', platform, String(error))),
+  );
   return json({ ok: true });
 });

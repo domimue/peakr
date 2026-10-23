@@ -31,7 +31,9 @@ export function WatchSettingsScreen() {
 
   const direct = choice && isDirect(choice) && directEnabled(choice) ? choice : null;
   const name = direct ? t(`watch.options.${direct}`) : '';
-  const connected = direct !== null && (integrations?.some((i) => i.provider === direct && i.status === 'active') ?? false);
+  const connected =
+    direct !== null &&
+    (integrations?.some((i) => i.provider === direct && i.status === 'active') ?? false);
 
   const run = async (work: () => Promise<string | null>) => {
     setBusy(true);

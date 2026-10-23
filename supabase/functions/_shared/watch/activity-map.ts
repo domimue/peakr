@@ -118,7 +118,9 @@ export function activityFromFit(
   const subSport = String(session.subSport ?? '');
   const sportName = String(session.sport ?? '');
   const sport =
-    sportName === 'training' && subSport === 'strengthTraining' ? 'strength' : FIT_SPORTS[sportName];
+    sportName === 'training' && subSport === 'strengthTraining'
+      ? 'strength'
+      : FIT_SPORTS[sportName];
   if (!sport) return null;
   const start = session.startTime instanceof Date ? session.startTime.getTime() : NaN;
   const activity = (messages.activityMesgs as Record<string, unknown>[] | undefined)?.[0];

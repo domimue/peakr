@@ -113,8 +113,7 @@ async function exportFiles(req: Request): Promise<Response> {
 type Admin = ReturnType<typeof adminClient>;
 
 type Connection =
-  | { fail: WatchFailure }
-  | { fail?: undefined; integration: WatchIntegration; token: string };
+  { fail: WatchFailure } | { fail?: undefined; integration: WatchIntegration; token: string };
 
 /** Connected account + token, or the failure to report. */
 async function connection(
@@ -225,7 +224,9 @@ async function pushRoute(req: Request, userId: string): Promise<Response> {
       userId,
       provider,
       [
-        ...(await loadPushed(admin, userId, provider, 'route')).filter((r) => r.workoutId !== route.id),
+        ...(await loadPushed(admin, userId, provider, 'route')).filter(
+          (r) => r.workoutId !== route.id,
+        ),
         { workoutId: route.id, externalId: item.externalId, hash: String(route.points.length) },
       ],
       'route',
@@ -238,7 +239,8 @@ async function importActivities(req: Request, userId: string): Promise<Response>
   const b = await body(req);
   const provider = platformOf(b.provider);
   const since = typeof b.since === 'string' ? new Date(b.since) : null;
-  if (!provider || !since || Number.isNaN(since.getTime())) return json({ error: 'bad_request' }, 400);
+  if (!provider || !since || Number.isNaN(since.getTime()))
+    return json({ error: 'bad_request' }, 400);
   if (provider !== 'coros') {
     // Garmin Starter access is push only; Suunto delivers by webhook.
     return failure('unsupported', 'This platform delivers activities by webhook');
@@ -270,7 +272,11 @@ async function status(userId: string): Promise<Response> {
     const integration = available ? await integrationFor(admin, userId, provider) : null;
     providers.push({
       provider,
-      state: !available ? 'unavailable' : integration?.status === 'active' ? 'connected' : 'disconnected',
+      state: !available
+        ? 'unavailable'
+        : integration?.status === 'active'
+          ? 'connected'
+          : 'disconnected',
     });
   }
   return json({ providers });

@@ -1,7 +1,10 @@
 import { Encoder, Profile } from '@garmin/fitsdk';
 import { describe, expect, it } from 'vitest';
 
-import { activityFromFit, buildActivityRow } from '../../../supabase/functions/_shared/watch/activity-map.ts';
+import {
+  activityFromFit,
+  buildActivityRow,
+} from '../../../supabase/functions/_shared/watch/activity-map.ts';
 import {
   createCorosApi,
   corosPlanEntity,
@@ -19,10 +22,7 @@ import {
   syncGarminWorkouts,
 } from '../../../supabase/functions/_shared/watch/garmin.ts';
 import { requestJson, type Fetch } from '../../../supabase/functions/_shared/watch/http.ts';
-import type {
-  WatchRoute,
-  WatchWorkout,
-} from '../../../supabase/functions/_shared/watch/model.ts';
+import type { WatchRoute, WatchWorkout } from '../../../supabase/functions/_shared/watch/model.ts';
 import {
   createSuuntoApi,
   importSuuntoWorkout,
@@ -137,7 +137,7 @@ function activityFit(sport: string, subSport: string, withGps = true): Uint8Arra
   const activity: Record<string, unknown> = {
     timestamp: new Date('2026-11-03T00:15:00Z'),
     // A local date-time is a plain FIT number: seconds since 1989-12-31 in the user's local time.
-    localTimestamp: (Date.parse('2026-11-03T01:15:00Z') / 1000) - 631_065_600,
+    localTimestamp: Date.parse('2026-11-03T01:15:00Z') / 1000 - 631_065_600,
     numSessions: 1,
   };
   encoder.onMesg(Profile.MesgNum.ACTIVITY as number, activity);
@@ -148,7 +148,8 @@ function activityFit(sport: string, subSport: string, withGps = true): Uint8Arra
 
 describe('feature flags', () => {
   it('are off unless the secret is 1 or true', () => {
-    const env = (name: string) => ({ WATCH_COROS: '1', WATCH_SUUNTO: 'true', WATCH_GARMIN_TRAINING: '0' })[name];
+    const env = (name: string) =>
+      ({ WATCH_COROS: '1', WATCH_SUUNTO: 'true', WATCH_GARMIN_TRAINING: '0' })[name];
     expect(flagEnabled(env, 'coros')).toBe(true);
     expect(flagEnabled(env, 'suunto')).toBe(true);
     expect(flagEnabled(env, 'garminTraining')).toBe(false);
@@ -164,7 +165,10 @@ describe('http client', () => {
     expect(await status(429)).toMatchObject({ ok: false, failure: 'rate_limited' });
     expect(await status(404)).toMatchObject({ ok: false, failure: 'unsupported' });
     expect(await status(422)).toMatchObject({ ok: false, failure: 'rejected', detail: 'x' });
-    const down = await requestJson(async () => Promise.reject(new Error('offline')), 'https://x.test/');
+    const down = await requestJson(
+      async () => Promise.reject(new Error('offline')),
+      'https://x.test/',
+    );
     expect(down).toMatchObject({ ok: false, failure: 'network' });
     const text = await requestJson(async () => new Response('plain'), 'https://x.test/');
     expect(text).toMatchObject({ ok: true, body: 'plain' });
@@ -195,7 +199,12 @@ describe('re-sync on change', () => {
   });
 
   it('windows to the next N days', () => {
-    const ws = [run('a', '2026-11-01'), run('b', '2026-11-02'), run('c', '2026-11-08'), run('d', '2026-11-09')];
+    const ws = [
+      run('a', '2026-11-01'),
+      run('b', '2026-11-02'),
+      run('c', '2026-11-08'),
+      run('d', '2026-11-09'),
+    ];
     expect(inWindow(ws, '2026-11-02', 7).map((w) => w.id)).toEqual(['b', 'c']);
   });
 });
@@ -224,7 +233,12 @@ describe('Garmin Training API contract', () => {
       repeatValue: 4,
     });
     const inner = (steps[1] as { steps: Record<string, unknown>[] }).steps;
-    expect(inner[0]).toMatchObject({ stepOrder: 3, durationType: 'DISTANCE', durationValue: 400, targetType: 'SPEED' });
+    expect(inner[0]).toMatchObject({
+      stepOrder: 3,
+      durationType: 'DISTANCE',
+      durationValue: 400,
+      targetType: 'SPEED',
+    });
     expect(inner[0]?.targetValueLow).toBeCloseTo(4.0, 2);
     expect(inner[0]?.targetValueHigh).toBeCloseTo(4.167, 2);
     expect(inner[1]).toMatchObject({ intensity: 'RECOVERY', targetType: 'OPEN' });
@@ -265,9 +279,11 @@ describe('Garmin Training API contract', () => {
     });
     const training = createGarminTrainingApi({ fetch: api.fetch, accessToken: 'tok' });
     const moved = run('a', '2026-11-05');
-    const out = await syncGarminWorkouts(training, [moved], [
-      { workoutId: 'a', externalId: 'g1', extra: 's1', hash: 'old' },
-    ]);
+    const out = await syncGarminWorkouts(
+      training,
+      [moved],
+      [{ workoutId: 'a', externalId: 'g1', extra: 's1', hash: 'old' }],
+    );
     expect(out.records[0]).toMatchObject({ externalId: 'g1', extra: 's2' });
     expect(api.calls.map((c) => `${c.method} ${new URL(c.url).pathname}`)).toEqual([
       'PUT /training-api/workout/g1',
@@ -282,15 +298,19 @@ describe('Garmin Training API contract', () => {
       'DELETE /training-api/workout/g1': () => new Response(null, { status: 204 }),
     });
     const training = createGarminTrainingApi({ fetch: api.fetch, accessToken: 'tok' });
-    const out = await syncGarminWorkouts(training, [], [
-      { workoutId: 'a', externalId: 'g1', extra: 's1', hash: 'h' },
-    ]);
+    const out = await syncGarminWorkouts(
+      training,
+      [],
+      [{ workoutId: 'a', externalId: 'g1', extra: 's1', hash: 'h' }],
+    );
     expect(out.records).toEqual([]);
     expect(api.calls).toHaveLength(2);
   });
 
   it('stops at once when the token is revoked and keeps the old records', async () => {
-    const api = mockApi({ 'POST /training-api/workout': () => new Response('no', { status: 401 }) });
+    const api = mockApi({
+      'POST /training-api/workout': () => new Response('no', { status: 401 }),
+    });
     const training = createGarminTrainingApi({ fetch: api.fetch, accessToken: 'tok' });
     const out = await syncGarminWorkouts(
       training,
@@ -335,7 +355,9 @@ describe('Garmin Courses API contract', () => {
     expect(payload.elevationLoss).toBe(5);
     expect((payload.geoPoints as unknown[]).length).toBe(3);
 
-    const api = mockApi({ 'POST /training-api/courses/v1/course': () => jsonResponse({ courseId: 77 }) });
+    const api = mockApi({
+      'POST /training-api/courses/v1/course': () => jsonResponse({ courseId: 77 }),
+    });
     const courses = createGarminCoursesApi({ fetch: api.fetch, accessToken: 'tok' });
     expect(await publishGarminCourse(courses, route)).toEqual({
       ok: true,
@@ -343,18 +365,29 @@ describe('Garmin Courses API contract', () => {
     });
   });
 
-  it('is a publishing API only: it has no way to read the user\'s courses', () => {
-    const courses = createGarminCoursesApi({ fetch: async () => new Response('{}'), accessToken: 't' });
+  it("is a publishing API only: it has no way to read the user's courses", () => {
+    const courses = createGarminCoursesApi({
+      fetch: async () => new Response('{}'),
+      accessToken: 't',
+    });
     expect(Object.keys(courses)).toEqual(['publishCourse']);
   });
 
   it('passes a refusal on', async () => {
-    const api = mockApi({ 'POST /training-api/courses/v1/course': () => new Response('too long', { status: 413 }) });
+    const api = mockApi({
+      'POST /training-api/courses/v1/course': () => new Response('too long', { status: 413 }),
+    });
     const courses = createGarminCoursesApi({ fetch: api.fetch, accessToken: 'tok' });
-    expect(await publishGarminCourse(courses, route)).toMatchObject({ ok: false, failure: 'rejected' });
+    expect(await publishGarminCourse(courses, route)).toMatchObject({
+      ok: false,
+      failure: 'rejected',
+    });
     const noId = mockApi({ 'POST /training-api/courses/v1/course': () => jsonResponse({}) });
     expect(
-      await publishGarminCourse(createGarminCoursesApi({ fetch: noId.fetch, accessToken: 't' }), route),
+      await publishGarminCourse(
+        createGarminCoursesApi({ fetch: noId.fetch, accessToken: 't' }),
+        route,
+      ),
     ).toMatchObject({ ok: false, failure: 'rejected' });
   });
 });
@@ -420,11 +453,27 @@ describe('Garmin Activity API push', () => {
   it('treats pool swims and trainer rides as indoor and swims get a pace', () => {
     const parsed = parseGarminPush({
       activities: [
-        { userId: 'u', summaryId: 's', activityType: 'LAP_SWIMMING', startTimeInSeconds: 1_793_600_000, durationInSeconds: 2000, distanceInMeters: 1000 },
-        { userId: 'u', summaryId: 't', activityType: 'INDOOR_CYCLING', startTimeInSeconds: 1_793_600_000, durationInSeconds: 3600, distanceInMeters: 30_000 },
+        {
+          userId: 'u',
+          summaryId: 's',
+          activityType: 'LAP_SWIMMING',
+          startTimeInSeconds: 1_793_600_000,
+          durationInSeconds: 2000,
+          distanceInMeters: 1000,
+        },
+        {
+          userId: 'u',
+          summaryId: 't',
+          activityType: 'INDOOR_CYCLING',
+          startTimeInSeconds: 1_793_600_000,
+          durationInSeconds: 3600,
+          distanceInMeters: 30_000,
+        },
       ],
     });
-    const [swim, bike] = parsed.activities.map((a) => buildActivityRow('garmin', 'u', a.externalId, a.parts));
+    const [swim, bike] = parsed.activities.map((a) =>
+      buildActivityRow('garmin', 'u', a.externalId, a.parts),
+    );
     expect(swim).toMatchObject({ sport: 'swim', indoor: true, swim_pace_sec_per_100m: 200 });
     expect(bike).toMatchObject({ sport: 'bike', indoor: true });
   });
@@ -432,8 +481,17 @@ describe('Garmin Activity API push', () => {
   it('rejects an activity with no duration', () => {
     expect(
       buildActivityRow('garmin', 'u', 'x', {
-        sport: 'run', sourceType: 'RUNNING', name: null, startMs: 0, offsetSec: 0, durationSec: 0,
-        distanceM: null, elevationGainM: null, avgHr: null, maxHr: null, indoor: false,
+        sport: 'run',
+        sourceType: 'RUNNING',
+        name: null,
+        startMs: 0,
+        offsetSec: 0,
+        durationSec: 0,
+        distanceM: null,
+        elevationGainM: null,
+        avgHr: null,
+        maxHr: null,
+        indoor: false,
       }),
     ).toBeNull();
   });
@@ -446,12 +504,20 @@ describe('COROS contract', () => {
     const entity = corosPlanEntity(run('a', '2026-11-02'));
     expect(entity).toMatchObject({ idInPlan: 'a', happenDay: '20261102', sportType: 1 });
     const exercises = entity.exercises as Record<string, unknown>[];
-    expect(exercises[0]).toMatchObject({ exerciseType: 1, targetType: 'time', targetValue: 600, intensityType: 'heartRate' });
+    expect(exercises[0]).toMatchObject({
+      exerciseType: 1,
+      targetType: 'time',
+      targetValue: 600,
+      intensityType: 'heartRate',
+    });
     expect(exercises[1]).toMatchObject({ repeat: 4 });
   });
 
   it('pushes only the next 7 days and re-syncs on change', async () => {
-    const api = mockApi({ 'POST /v2/coros/plan/entity': idle, 'POST /v2/coros/plan/entity/delete': idle });
+    const api = mockApi({
+      'POST /v2/coros/plan/entity': idle,
+      'POST /v2/coros/plan/entity/delete': idle,
+    });
     const coros = createCorosApi({ fetch: api.fetch, accessToken: 'tok', openId: 'o1' });
     const week = [run('a', '2026-11-02'), run('b', '2026-11-08'), run('late', '2026-11-20')];
     const first = await syncCorosPlan(coros, week, '2026-11-02', []);
@@ -478,7 +544,13 @@ describe('COROS contract', () => {
     const api = mockApi({ 'POST /v2/coros/plan/entity': idle });
     const coros = createCorosApi({ fetch: api.fetch, accessToken: 'tok', openId: 'o1' });
     const a = run('a', '2026-11-02');
-    const out = await syncCorosPlan(coros, [], '2026-11-02', [{ workoutId: 'a', externalId: 'a', hash: 'h' }], new Map([['a', a]]));
+    const out = await syncCorosPlan(
+      coros,
+      [],
+      '2026-11-02',
+      [{ workoutId: 'a', externalId: 'a', hash: 'h' }],
+      new Map([['a', a]]),
+    );
     expect(out.records).toEqual([]);
     const sent = api.calls.at(-1)?.body as Record<string, unknown>;
     expect(String(sent.name)).toContain('removed');
@@ -488,29 +560,54 @@ describe('COROS contract', () => {
   it('imports activities through their FIT files', async () => {
     const fit = activityFit('running', 'generic');
     const api = mockApi({
-      'GET /v2/coros/sport/list': () => jsonResponse({ data: [{ labelId: 'L1', fitUrl: 'https://files.coros.test/L1.fit' }, { labelId: 'L2' }, {}] }),
+      'GET /v2/coros/sport/list': () =>
+        jsonResponse({
+          data: [
+            { labelId: 'L1', fitUrl: 'https://files.coros.test/L1.fit' },
+            { labelId: 'L2' },
+            {},
+          ],
+        }),
       'GET /L1.fit': () => new Response(fit as BodyInit),
     });
     const coros = createCorosApi({ fetch: api.fetch, accessToken: 'tok', openId: 'o1' });
-    const result = await importCorosActivities(coros, 'user-1', new Date('2026-10-01'), new Date('2026-11-02'));
+    const result = await importCorosActivities(
+      coros,
+      'user-1',
+      new Date('2026-10-01'),
+      new Date('2026-11-02'),
+    );
     expect(result).toMatchObject({ ok: true });
     if (!result.ok) return;
     expect(result.rows).toHaveLength(1);
-    expect(result.rows[0]).toMatchObject({ source: 'coros', external_id: 'L1', sport: 'run', distance_m: 10_000 });
+    expect(result.rows[0]).toMatchObject({
+      source: 'coros',
+      external_id: 'L1',
+      sport: 'run',
+      distance_m: 10_000,
+    });
     expect(api.calls[0]?.url).toContain('startDate=20261001&endDate=20261102');
   });
 
   it('reports a failed list and an unreachable FIT file', async () => {
     const down = mockApi({ 'GET /v2/coros/sport/list': () => new Response('x', { status: 429 }) });
     const c1 = createCorosApi({ fetch: down.fetch, accessToken: 't', openId: 'o' });
-    expect(await importCorosActivities(c1, 'u', new Date())).toMatchObject({ ok: false, failure: 'rate_limited' });
+    expect(await importCorosActivities(c1, 'u', new Date())).toMatchObject({
+      ok: false,
+      failure: 'rate_limited',
+    });
     const gone = mockApi({
-      'GET /v2/coros/sport/list': () => jsonResponse({ data: [{ labelId: 'L1', fitUrl: 'https://files.coros.test/L1.fit' }] }),
+      'GET /v2/coros/sport/list': () =>
+        jsonResponse({ data: [{ labelId: 'L1', fitUrl: 'https://files.coros.test/L1.fit' }] }),
       'GET /L1.fit': () => new Response('x', { status: 404 }),
     });
     const c2 = createCorosApi({ fetch: gone.fetch, accessToken: 't', openId: 'o' });
     expect(await importCorosActivities(c2, 'u', new Date())).toMatchObject({ ok: true, rows: [] });
-    const offline = createCorosApi({ fetch: async () => Promise.reject(new Error('x')), accessToken: 't', openId: 'o' });
+    const offline = createCorosApi({
+      fetch: async () => Promise.reject(new Error('x')),
+      accessToken: 't',
+      openId: 'o',
+    });
     expect(await offline.downloadFit('https://x.test/f.fit')).toBeNull();
   });
 });
@@ -525,7 +622,10 @@ describe('Suunto contract', () => {
     expect(result).toEqual({ ok: true, items: [{ id: 'route1', ok: true, externalId: 'sr1' }] });
     const call = api.calls[0];
     if (!call) throw new Error('no request');
-    expect(call.headers).toMatchObject({ Authorization: 'Bearer tok', 'Ocp-Apim-Subscription-Key': key });
+    expect(call.headers).toMatchObject({
+      Authorization: 'Bearer tok',
+      'Ocp-Apim-Subscription-Key': key,
+    });
     const gpx = atob((call.body as { gpx: string }).gpx);
     expect(gpx).toContain('<trkpt lat="47.370000"');
   });
@@ -543,7 +643,9 @@ describe('Suunto contract', () => {
   it('says so when Suunto does not take planned workouts, instead of pretending', async () => {
     const api = mockApi({});
     const suunto = createSuuntoApi({ fetch: api.fetch, accessToken: 'tok', subscriptionKey: key });
-    expect(await suunto.pushWorkouts([run('a', '2026-11-02'), run('b', '2026-11-03')])).toMatchObject({
+    expect(
+      await suunto.pushWorkouts([run('a', '2026-11-02'), run('b', '2026-11-03')]),
+    ).toMatchObject({
       ok: false,
       failure: 'unsupported',
     });
@@ -553,7 +655,8 @@ describe('Suunto contract', () => {
   it('continues after one refused workout', async () => {
     let n = 0;
     const api = mockApi({
-      'POST /v2/workout/import': () => (n++ === 0 ? new Response('bad', { status: 422 }) : jsonResponse({ id: 'sw2' })),
+      'POST /v2/workout/import': () =>
+        n++ === 0 ? new Response('bad', { status: 422 }) : jsonResponse({ id: 'sw2' }),
     });
     const suunto = createSuuntoApi({ fetch: api.fetch, accessToken: 'tok', subscriptionKey: key });
     const result = await suunto.pushWorkouts([run('a', '2026-11-02'), run('b', '2026-11-03')]);
@@ -568,8 +671,14 @@ describe('Suunto contract', () => {
   });
 
   it('reads the workout notification and imports the FIT file', async () => {
-    expect(parseSuuntoNotification({ username: 'u1', workoutid: 123 })).toEqual({ username: 'u1', workoutId: '123' });
-    expect(parseSuuntoNotification({ username: 'u1', workoutId: 'w' })).toEqual({ username: 'u1', workoutId: 'w' });
+    expect(parseSuuntoNotification({ username: 'u1', workoutid: 123 })).toEqual({
+      username: 'u1',
+      workoutId: '123',
+    });
+    expect(parseSuuntoNotification({ username: 'u1', workoutId: 'w' })).toEqual({
+      username: 'u1',
+      workoutId: 'w',
+    });
     expect(parseSuuntoNotification({ username: 'u1' })).toBeNull();
     expect(parseSuuntoNotification(null)).toBeNull();
 
@@ -577,18 +686,40 @@ describe('Suunto contract', () => {
     const api = mockApi({ 'GET /v2/workout/123/fit': () => new Response(fit as BodyInit) });
     const suunto = createSuuntoApi({ fetch: api.fetch, accessToken: 'tok', subscriptionKey: key });
     const row = await importSuuntoWorkout(suunto, 'user-1', '123');
-    expect(row).toMatchObject({ source: 'suunto', external_id: '123', sport: 'bike', avg_hr: 146, indoor: false });
-    const missing = createSuuntoApi({ fetch: async () => new Response('x', { status: 404 }), accessToken: 't', subscriptionKey: key });
+    expect(row).toMatchObject({
+      source: 'suunto',
+      external_id: '123',
+      sport: 'bike',
+      avg_hr: 146,
+      indoor: false,
+    });
+    const missing = createSuuntoApi({
+      fetch: async () => new Response('x', { status: 404 }),
+      accessToken: 't',
+      subscriptionKey: key,
+    });
     expect(await importSuuntoWorkout(missing, 'user-1', '9')).toBeNull();
-    const offline = createSuuntoApi({ fetch: async () => Promise.reject(new Error('x')), accessToken: 't', subscriptionKey: key });
+    const offline = createSuuntoApi({
+      fetch: async () => Promise.reject(new Error('x')),
+      accessToken: 't',
+      subscriptionKey: key,
+    });
     expect(await offline.downloadWorkoutFit('9')).toBeNull();
   });
 
   it('verifies the webhook signature (hex or base64) and refuses everything else', async () => {
     const body = '{"username":"u1","workoutid":1}';
     const secret = 's3cret';
-    const keyObj = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
-    const mac = new Uint8Array(await crypto.subtle.sign('HMAC', keyObj, new TextEncoder().encode(body)));
+    const keyObj = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign'],
+    );
+    const mac = new Uint8Array(
+      await crypto.subtle.sign('HMAC', keyObj, new TextEncoder().encode(body)),
+    );
     const hex = [...mac].map((b) => b.toString(16).padStart(2, '0')).join('');
     const b64 = btoa(String.fromCharCode(...mac));
     expect(await verifySuuntoSignature(body, hex, secret)).toBe(true);
@@ -618,9 +749,15 @@ describe('activities from FIT files', () => {
   });
 
   it('marks treadmill and pool sessions as indoor and files without GPS as indoor', () => {
-    expect(activityFromFit('coros', 'u', 'a', activityFit('running', 'treadmill'))?.indoor).toBe(true);
-    expect(activityFromFit('coros', 'u', 'b', activityFit('swimming', 'lapSwimming'))?.sport).toBe('swim');
-    expect(activityFromFit('coros', 'u', 'c', activityFit('cycling', 'road', false))?.indoor).toBe(true);
+    expect(activityFromFit('coros', 'u', 'a', activityFit('running', 'treadmill'))?.indoor).toBe(
+      true,
+    );
+    expect(activityFromFit('coros', 'u', 'b', activityFit('swimming', 'lapSwimming'))?.sport).toBe(
+      'swim',
+    );
+    expect(activityFromFit('coros', 'u', 'c', activityFit('cycling', 'road', false))?.indoor).toBe(
+      true,
+    );
   });
 
   it('ignores sports Peakr does not plan and bytes that are not FIT', () => {

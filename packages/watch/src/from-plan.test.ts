@@ -2,7 +2,10 @@ import { generatePlan, type HrZone, type Workout } from '@peakr/engine';
 import { describe, expect, it } from 'vitest';
 
 import { grid } from '../../engine/src/plan/fixtures';
-import { decodeWorkoutFit, encodeWorkoutFit } from '../../../supabase/functions/_shared/watch/fit-workout.ts';
+import {
+  decodeWorkoutFit,
+  encodeWorkoutFit,
+} from '../../../supabase/functions/_shared/watch/fit-workout.ts';
 import { mergeSegments, toWatchWorkouts, type WatchContext } from './from-plan';
 
 const hrZones: HrZone[] = [

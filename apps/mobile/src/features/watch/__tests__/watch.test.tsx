@@ -52,7 +52,14 @@ describe('watch picker', () => {
   it('lists every watch with its hint', async () => {
     const onChange = jest.fn();
     await renderWithQuery(<WatchPicker value={null} onChange={onChange} os="android" />);
-    for (const label of ['Garmin', 'COROS', 'Suunto', 'Apple Watch', 'Other watch', "I don't use a watch"]) {
+    for (const label of [
+      'Garmin',
+      'COROS',
+      'Suunto',
+      'Apple Watch',
+      'Other watch',
+      "I don't use a watch",
+    ]) {
       expect(screen.getByText(label)).toBeOnTheScreen();
     }
     expect(screen.getByText('Available with the iPhone app.')).toBeOnTheScreen();
@@ -110,7 +117,10 @@ describe('remote watch provider', () => {
     const refused = createRemoteWatchProvider('coros', {
       invoke: async () => ({ ok: true, data: { ok: false, failure: 'not_available' } }),
     });
-    expect(await refused.pushWorkouts([workout])).toMatchObject({ ok: false, failure: 'not_available' });
+    expect(await refused.pushWorkouts([workout])).toMatchObject({
+      ok: false,
+      failure: 'not_available',
+    });
     const offline = createRemoteWatchProvider('suunto', { invoke: async () => ({ ok: false }) });
     expect(await offline.pushWorkouts([workout])).toEqual({ ok: false, failure: 'network' });
     expect(await offline.pushRoute({ id: 'r', name: 'R', sport: 'run', points: [] })).toEqual({
@@ -124,7 +134,11 @@ describe('remote watch provider', () => {
     const coros = createRemoteWatchProvider('coros', {
       invoke: async () => ({ ok: true, data: { ok: true, imported: 3 } }),
     });
-    expect(await coros.importActivities(new Date('2026-10-01'))).toEqual({ ok: true, rows: [], deleted: [] });
+    expect(await coros.importActivities(new Date('2026-10-01'))).toEqual({
+      ok: true,
+      rows: [],
+      deleted: [],
+    });
     expect(coros.capabilities.routes).toBe(false);
     expect(createRemoteWatchProvider('garmin').capabilities.routes).toBe(true);
     expect(createRemoteWatchProvider('garmin').capabilities.strength).toBe(false);

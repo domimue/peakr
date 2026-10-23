@@ -16,7 +16,11 @@ export interface WatchPickerProps {
  * Garmin, COROS, Suunto, Apple Watch ("with the iPhone app") and Other (file export). A brand whose
  * direct sync is not switched on yet says so and offers the file export meanwhile.
  */
-export function WatchPicker({ value, onChange, os = Platform.OS === 'ios' ? 'ios' : 'android' }: WatchPickerProps) {
+export function WatchPicker({
+  value,
+  onChange,
+  os = Platform.OS === 'ios' ? 'ios' : 'android',
+}: WatchPickerProps) {
   const { t } = useTranslation();
   const choices = WATCH_CHOICES.map((choice) => {
     const state = optionState(choice, os);
@@ -36,7 +40,12 @@ export function WatchPicker({ value, onChange, os = Platform.OS === 'ios' ? 'ios
   });
   return (
     <>
-      <ChoiceList label={t('watch.title')} choices={choices} value={value ?? undefined} onChange={onChange} />
+      <ChoiceList
+        label={t('watch.title')}
+        choices={choices}
+        value={value ?? undefined}
+        onChange={onChange}
+      />
       {value === 'apple' && os === 'android' ? (
         <Text variant="caption" tone="secondary">
           {t('watch.iosOnly')}

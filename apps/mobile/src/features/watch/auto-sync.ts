@@ -56,12 +56,15 @@ export function useWatchAutoSync(): void {
 
   const watch = choice && isDirect(choice) && directEnabled(choice) ? choice : null;
   const connected =
-    watch !== null && (integrations?.some((i) => i.provider === watch && i.status === 'active') ?? false);
+    watch !== null &&
+    (integrations?.some((i) => i.provider === watch && i.status === 'active') ?? false);
 
   useEffect(() => {
     if (!watch || !connected || !stored) return;
     const timer = setTimeout(() => {
-      void syncPlanToWatch(watch, stored).catch((e) => console.warn('Watch sync failed', String(e)));
+      void syncPlanToWatch(watch, stored).catch((e) =>
+        console.warn('Watch sync failed', String(e)),
+      );
     }, DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [watch, connected, stored]);

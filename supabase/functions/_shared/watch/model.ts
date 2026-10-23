@@ -126,8 +126,7 @@ export interface PushItem {
 }
 
 export type PushResult =
-  | { ok: true; items: PushItem[] }
-  | { ok: false; failure: WatchFailure; detail?: string };
+  { ok: true; items: PushItem[] } | { ok: false; failure: WatchFailure; detail?: string };
 
 export interface ImportedActivities {
   /** Activities as rows for the shared import pipeline (deduplication happens in the app). */
@@ -137,8 +136,7 @@ export interface ImportedActivities {
 }
 
 export type ImportResult =
-  | ({ ok: true } & ImportedActivities)
-  | { ok: false; failure: WatchFailure; detail?: string };
+  ({ ok: true } & ImportedActivities) | { ok: false; failure: WatchFailure; detail?: string };
 
 export interface WatchCapabilities {
   /** Structured workouts can be pushed to the watch. */

@@ -1,7 +1,13 @@
 import { activityFromFit } from './activity-map.ts';
 import { COROS } from './contracts.ts';
 import { requestJson, type Fetch } from './http.ts';
-import type { ImportResult, WatchActivityRow, WatchNode, WatchStep, WatchWorkout } from './model.ts';
+import type {
+  ImportResult,
+  WatchActivityRow,
+  WatchNode,
+  WatchStep,
+  WatchWorkout,
+} from './model.ts';
 import { speedFromPace, speedFromSwimPace } from './model.ts';
 import { applySync, inWindow, type OpResult, type PushedRecord, type SyncOutcome } from './sync.ts';
 
@@ -42,7 +48,11 @@ function exercise(step: WatchStep): Record<string, unknown> {
         ? { targetType: 'distance', targetValue: Math.round(step.distanceM) }
         : { targetType: 'open', targetValue: 0 }),
     ...(t.type === 'heartRate'
-      ? { intensityType: 'heartRate', intensityLow: Math.round(t.lowBpm), intensityHigh: Math.round(t.highBpm) }
+      ? {
+          intensityType: 'heartRate',
+          intensityLow: Math.round(t.lowBpm),
+          intensityHigh: Math.round(t.highBpm),
+        }
       : t.type === 'pace'
         ? {
             intensityType: 'speed',

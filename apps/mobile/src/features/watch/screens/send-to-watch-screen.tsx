@@ -13,13 +13,7 @@ import { Button, Card, Screen, Text } from '@/ui';
 
 import { plannedWatchWorkouts } from '@peakr/watch';
 import { todayIso } from '@/data/ids';
-import {
-  routeFile,
-  shareFile,
-  watchRouteOf,
-  workoutFiles,
-  type WorkoutFiles,
-} from '../export';
+import { routeFile, shareFile, watchRouteOf, workoutFiles, type WorkoutFiles } from '../export';
 import { directEnabled, isDirect } from '../options';
 import { useWatchChoice } from '../queries';
 import { createRemoteWatchProvider } from '../remote-provider';
@@ -65,7 +59,8 @@ export function SendToWatchScreen({ id }: { id: string }) {
   const direct = choice && isDirect(choice) && directEnabled(choice) ? choice : null;
   const name = direct ? t(`watch.options.${direct}`) : '';
   const connected =
-    direct !== null && (integrations?.some((i) => i.provider === direct && i.status === 'active') ?? false);
+    direct !== null &&
+    (integrations?.some((i) => i.provider === direct && i.status === 'active') ?? false);
   const routable = workout.sport === 'run' || workout.sport === 'bike';
 
   const shareAll = async () => {
@@ -98,8 +93,7 @@ export function SendToWatchScreen({ id }: { id: string }) {
     }
   };
 
-  const reason = (failure: WatchFailure) =>
-    t(`watch.send.reasons.${failure}`, { watch: name });
+  const reason = (failure: WatchFailure) => t(`watch.send.reasons.${failure}`, { watch: name });
 
   const sendDirect = async () => {
     if (!direct) return;

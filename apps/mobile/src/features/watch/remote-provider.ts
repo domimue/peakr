@@ -33,9 +33,27 @@ const defaultInvoke: Invoke = async (path, body) => {
 };
 
 const CAPABILITIES: Record<DirectWatch, WatchCapabilities> = {
-  garmin: { workouts: true, routes: true, activities: true, sports: ['run', 'bike', 'swim'], strength: false },
-  coros: { workouts: true, routes: false, activities: true, sports: ['run', 'bike', 'swim'], strength: false },
-  suunto: { workouts: true, routes: true, activities: true, sports: ['run', 'bike', 'swim'], strength: false },
+  garmin: {
+    workouts: true,
+    routes: true,
+    activities: true,
+    sports: ['run', 'bike', 'swim'],
+    strength: false,
+  },
+  coros: {
+    workouts: true,
+    routes: false,
+    activities: true,
+    sports: ['run', 'bike', 'swim'],
+    strength: false,
+  },
+  suunto: {
+    workouts: true,
+    routes: true,
+    activities: true,
+    sports: ['run', 'bike', 'swim'],
+    strength: false,
+  },
 };
 
 interface Reply {

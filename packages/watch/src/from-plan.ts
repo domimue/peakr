@@ -38,8 +38,7 @@ export interface WatchContext {
 export type NotExportable = 'strength' | 'winter' | 'walk' | 'empty';
 
 export type ExportResult =
-  | { ok: true; workouts: WatchWorkout[] }
-  | { ok: false; reason: NotExportable };
+  { ok: true; workouts: WatchWorkout[] } | { ok: false; reason: NotExportable };
 
 /** Pace range around a target: ±3 %, wide enough not to beep on every wobble. */
 const PACE_TOLERANCE = 0.03;

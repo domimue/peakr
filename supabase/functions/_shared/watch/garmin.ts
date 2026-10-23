@@ -104,7 +104,8 @@ export function garminWorkoutPayload(w: WatchWorkout): Record<string, unknown> {
   };
 }
 
-export type ApiResult<T> = { ok: true; value: T } | { ok: false; failure: OpResultFailure; detail?: string };
+export type ApiResult<T> =
+  { ok: true; value: T } | { ok: false; failure: OpResultFailure; detail?: string };
 type OpResultFailure = Extract<OpResult, { ok: false }>['failure'];
 
 export interface GarminTrainingApi {

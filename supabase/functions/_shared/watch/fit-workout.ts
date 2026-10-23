@@ -84,7 +84,8 @@ function duration(step: WatchStep): Record<string, unknown> {
 /** FIT step messages in order; a repeat becomes its steps followed by one "repeat" step. */
 export function fitSteps(nodes: readonly WatchNode[]): Record<string, unknown>[] {
   const out: Record<string, unknown>[] = [];
-  const add = (message: Record<string, unknown>) => out.push({ ...message, messageIndex: out.length });
+  const add = (message: Record<string, unknown>) =>
+    out.push({ ...message, messageIndex: out.length });
   for (const node of nodes) {
     if (node.kind === 'step') {
       add({

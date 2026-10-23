@@ -30,7 +30,8 @@ export interface SuuntoClientOptions {
   base?: string;
 }
 
-const toBase64 = (text: string): string => btoa(String.fromCharCode(...new TextEncoder().encode(text)));
+const toBase64 = (text: string): string =>
+  btoa(String.fromCharCode(...new TextEncoder().encode(text)));
 const bytesToBase64 = (bytes: Uint8Array): string => {
   let binary = '';
   for (const b of bytes) binary += String.fromCharCode(b);
@@ -145,9 +146,13 @@ export async function verifySuuntoSignature(
     false,
     ['sign'],
   );
-  const mac = new Uint8Array(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(rawBody)));
+  const mac = new Uint8Array(
+    await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(rawBody)),
+  );
   const hex = [...mac].map((b) => b.toString(16).padStart(2, '0')).join('');
-  return timingSafeEqual(signature.toLowerCase(), hex) || timingSafeEqual(signature, bytesToBase64(mac));
+  return (
+    timingSafeEqual(signature.toLowerCase(), hex) || timingSafeEqual(signature, bytesToBase64(mac))
+  );
 }
 
 function timingSafeEqual(a: string, b: string): boolean {

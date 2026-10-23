@@ -81,7 +81,11 @@ function getStateKey(): Promise<CryptoKey> {
  * the Edge Function (only its SHA-256 challenge goes into the authorize URL).
  */
 export async function pkceVerifier(state: string): Promise<string> {
-  const mac = await crypto.subtle.sign('HMAC', await getStateKey(), encoder.encode(`pkce:${state}`));
+  const mac = await crypto.subtle.sign(
+    'HMAC',
+    await getStateKey(),
+    encoder.encode(`pkce:${state}`),
+  );
   return toBase64Url(new Uint8Array(mac));
 }
 

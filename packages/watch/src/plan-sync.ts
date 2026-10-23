@@ -33,7 +33,9 @@ export function plannedWatchWorkouts(
   today: string,
   days: number = AUTO_SYNC_DAYS,
 ): WatchWorkout[] {
-  const planned = allWorkouts(input.state.plan).filter((w) => statusOf(input.state, w.id) === 'planned');
+  const planned = allWorkouts(input.state.plan).filter(
+    (w) => statusOf(input.state, w.id) === 'planned',
+  );
   const out: WatchWorkout[] = [];
   for (const w of planned) {
     const result = toWatchWorkouts(w, {

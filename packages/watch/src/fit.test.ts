@@ -52,7 +52,11 @@ describe('workout FIT file (decodes again with the official SDK)', () => {
     const [warmup, interval, recovery, , cooldown] = decoded.steps;
     expect(warmup).toMatchObject({ intensity: 'warmup', durationType: 'time', durationTime: 600 });
     expect(interval).toMatchObject({ durationType: 'distance', durationDistance: 1000 });
-    expect(recovery).toMatchObject({ intensity: 'recovery', durationType: 'time', durationTime: 90 });
+    expect(recovery).toMatchObject({
+      intensity: 'recovery',
+      durationType: 'time',
+      durationTime: 90,
+    });
     expect(cooldown).toMatchObject({ durationType: 'open', targetType: 'open' });
     expect(decoded.steps).toHaveLength(5);
   });

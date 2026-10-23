@@ -35,12 +35,60 @@ describe('watch payload validation', () => {
     ['unknown sport', { ...good, sport: 'golf' }],
     ['bad date', { ...good, date: '02.11.2026' }],
     ['no steps', { ...good, steps: 'x' }],
-    ['negative duration', { ...good, steps: [{ kind: 'step', intensity: 'active', durationSec: -5, target: { type: 'open' } }] }],
-    ['unknown intensity', { ...good, steps: [{ kind: 'step', intensity: 'sprint', target: { type: 'open' } }] }],
-    ['inverted heart-rate range', { ...good, steps: [{ kind: 'step', intensity: 'active', target: { type: 'heartRate', lowBpm: 160, highBpm: 120 } }] }],
-    ['inverted pace range', { ...good, steps: [{ kind: 'step', intensity: 'active', target: { type: 'pace', fastestSecPerKm: 400, slowestSecPerKm: 300 } }] }],
-    ['inverted swim pace', { ...good, steps: [{ kind: 'step', intensity: 'active', target: { type: 'swimPace', fastestSecPer100m: 120, slowestSecPer100m: 90 } }] }],
-    ['unknown target', { ...good, steps: [{ kind: 'step', intensity: 'active', target: { type: 'power' } }] }],
+    [
+      'negative duration',
+      {
+        ...good,
+        steps: [{ kind: 'step', intensity: 'active', durationSec: -5, target: { type: 'open' } }],
+      },
+    ],
+    [
+      'unknown intensity',
+      { ...good, steps: [{ kind: 'step', intensity: 'sprint', target: { type: 'open' } }] },
+    ],
+    [
+      'inverted heart-rate range',
+      {
+        ...good,
+        steps: [
+          {
+            kind: 'step',
+            intensity: 'active',
+            target: { type: 'heartRate', lowBpm: 160, highBpm: 120 },
+          },
+        ],
+      },
+    ],
+    [
+      'inverted pace range',
+      {
+        ...good,
+        steps: [
+          {
+            kind: 'step',
+            intensity: 'active',
+            target: { type: 'pace', fastestSecPerKm: 400, slowestSecPerKm: 300 },
+          },
+        ],
+      },
+    ],
+    [
+      'inverted swim pace',
+      {
+        ...good,
+        steps: [
+          {
+            kind: 'step',
+            intensity: 'active',
+            target: { type: 'swimPace', fastestSecPer100m: 120, slowestSecPer100m: 90 },
+          },
+        ],
+      },
+    ],
+    [
+      'unknown target',
+      { ...good, steps: [{ kind: 'step', intensity: 'active', target: { type: 'power' } }] },
+    ],
     ['empty repeat', { ...good, steps: [{ kind: 'repeat', count: 2, steps: [] }] }],
     ['not an object', 'x'],
   ])('rejects %s', (_name, value) => {
@@ -63,14 +111,40 @@ describe('watch payload validation', () => {
   });
 
   it('validates routes: coordinates in range, elevation optional, size limited', () => {
-    const r = { id: 'r', name: 'Loop', sport: 'bike', points: [{ lat: 47, lon: 8, ele: 400 }, { lat: 47.1, lon: 8.1 }] };
+    const r = {
+      id: 'r',
+      name: 'Loop',
+      sport: 'bike',
+      points: [
+        { lat: 47, lon: 8, ele: 400 },
+        { lat: 47.1, lon: 8.1 },
+      ],
+    };
     expect(route(r)).toMatchObject({ sport: 'bike' });
     expect(route(r)?.points[1]?.ele).toBeNull();
-    expect(route({ ...r, points: [{ lat: 95, lon: 8 }, { lat: 47, lon: 8 }] })).toBeNull();
-    expect(route({ ...r, points: [{ lat: 47, lon: 8, ele: 'x' }, { lat: 47, lon: 8 }] })).toBeNull();
+    expect(
+      route({
+        ...r,
+        points: [
+          { lat: 95, lon: 8 },
+          { lat: 47, lon: 8 },
+        ],
+      }),
+    ).toBeNull();
+    expect(
+      route({
+        ...r,
+        points: [
+          { lat: 47, lon: 8, ele: 'x' },
+          { lat: 47, lon: 8 },
+        ],
+      }),
+    ).toBeNull();
     expect(route({ ...r, points: [{ lat: 47, lon: 8 }] })).toBeNull();
     expect(route({ ...r, sport: 'swim' })).toBeNull();
-    expect(route({ ...r, points: Array.from({ length: 6001 }, () => ({ lat: 1, lon: 1 })) })).toBeNull();
+    expect(
+      route({ ...r, points: Array.from({ length: 6001 }, () => ({ lat: 1, lon: 1 })) }),
+    ).toBeNull();
     expect(route({ ...r, points: [null, null] })).toBeNull();
     expect(route(null)).toBeNull();
   });

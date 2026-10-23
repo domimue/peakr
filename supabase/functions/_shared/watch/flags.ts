@@ -4,12 +4,7 @@
  * `supabase secrets set WATCH_GARMIN_TRAINING=1` and so on – the code is shipped and tested before.
  */
 
-export type WatchFlag =
-  | 'garminTraining'
-  | 'garminCourses'
-  | 'garminActivity'
-  | 'coros'
-  | 'suunto';
+export type WatchFlag = 'garminTraining' | 'garminCourses' | 'garminActivity' | 'coros' | 'suunto';
 
 const ENV: Record<WatchFlag, string> = {
   garminTraining: 'WATCH_GARMIN_TRAINING',

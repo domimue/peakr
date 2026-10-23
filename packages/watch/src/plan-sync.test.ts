@@ -1,4 +1,11 @@
-import { generatePlan, moveWorkout, setWorkoutStatus, newPlanState, allWorkouts, type HrZone } from '@peakr/engine';
+import {
+  generatePlan,
+  moveWorkout,
+  setWorkoutStatus,
+  newPlanState,
+  allWorkouts,
+  type HrZone,
+} from '@peakr/engine';
 import { describe, expect, it } from 'vitest';
 
 import { grid } from '../../engine/src/plan/fixtures';
@@ -38,11 +45,16 @@ describe('keeping a watch in step with the plan', () => {
   it('leaves skipped and done workouts out', () => {
     const { c, state } = setup();
     const before = plannedWatchWorkouts({ state, profile: c.profile, hrZones }, c.start);
-    const first = allWorkouts(state.plan).find((w) => before.some((b) => b.id.split(':')[0] === w.id));
+    const first = allWorkouts(state.plan).find((w) =>
+      before.some((b) => b.id.split(':')[0] === w.id),
+    );
     if (!first) throw new Error('no workout in the window');
     const skipped = setWorkoutStatus(state, first.id, 'skipped');
     if (!skipped.ok) throw new Error('skip failed');
-    const after = plannedWatchWorkouts({ state: skipped.value, profile: c.profile, hrZones }, c.start);
+    const after = plannedWatchWorkouts(
+      { state: skipped.value, profile: c.profile, hrZones },
+      c.start,
+    );
     expect(after.some((w) => w.id.split(':')[0] === first.id)).toBe(false);
     expect(after.length).toBeLessThan(before.length);
   });
@@ -50,14 +62,20 @@ describe('keeping a watch in step with the plan', () => {
   it('a moved workout is an update on the watch, not a duplicate', () => {
     const { c, state } = setup();
     const before = plannedWatchWorkouts({ state, profile: c.profile, hrZones }, c.start);
-    const pushed = before.map((w) => ({ workoutId: w.id, externalId: `x-${w.id}`, hash: workoutHash(w) }));
+    const pushed = before.map((w) => ({
+      workoutId: w.id,
+      externalId: `x-${w.id}`,
+      hash: workoutHash(w),
+    }));
     // Identical plan: nothing to send.
     expect(planSync(before, pushed).create).toHaveLength(0);
     expect(planSync(before, pushed).update).toHaveLength(0);
 
     const target = allWorkouts(state.plan).find((w) => before.some((b) => b.id === w.id));
     if (!target) throw new Error('no workout');
-    const day = new Date(Date.parse(`${target.date}T00:00:00Z`) + 86_400_000).toISOString().slice(0, 10);
+    const day = new Date(Date.parse(`${target.date}T00:00:00Z`) + 86_400_000)
+      .toISOString()
+      .slice(0, 10);
     const moved = moveWorkout(
       state,
       target.id,
@@ -66,7 +84,10 @@ describe('keeping a watch in step with the plan', () => {
       c.start,
     );
     if (!moved.ok) throw new Error('move failed');
-    const after = plannedWatchWorkouts({ state: moved.value.state, profile: c.profile, hrZones }, c.start);
+    const after = plannedWatchWorkouts(
+      { state: moved.value.state, profile: c.profile, hrZones },
+      c.start,
+    );
     const sync = planSync(after, pushed);
     expect(sync.update.map((u) => u.previous.workoutId)).toContain(target.id);
     expect(sync.create.some((w) => w.id === target.id)).toBe(false);

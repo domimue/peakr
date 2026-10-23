@@ -92,7 +92,8 @@ export function workout(value: unknown): WatchWorkout | null {
   const sport = SPORTS.find((s) => s === value.sport);
   const id = text(value.id, 128);
   const name = text(value.name, 120);
-  const date = typeof value.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.date) ? value.date : null;
+  const date =
+    typeof value.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.date) ? value.date : null;
   if (!sport || !id || !name || !date || !Array.isArray(value.steps)) return null;
   const steps: WatchNode[] = [];
   let count = 0;
