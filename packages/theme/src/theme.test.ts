@@ -4,6 +4,7 @@ import { logoColors } from './brand';
 import {
   colors,
   schemes,
+  sleepStageColors,
   sportColors,
   status,
   statusText,
@@ -103,6 +104,31 @@ describe.each(SCHEMES)('%s sport colours', (name) => {
       expect(contrastRatio(c, colors[name].surface)).toBeGreaterThanOrEqual(3);
       expect(c).not.toBe(colors.volt);
     }
+  });
+
+  it('differ clearly from each other', () => {
+    for (let i = 0; i < values.length; i++) {
+      for (let j = i + 1; j < values.length; j++) {
+        const a = values[i] as string;
+        const b = values[j] as string;
+        const dh = Math.min(Math.abs(hue(a) - hue(b)), 360 - Math.abs(hue(a) - hue(b)));
+        expect(dh >= 25 || contrastRatio(a, b) >= 1.5, `${a} vs ${b}`).toBe(true);
+      }
+    }
+  });
+});
+
+describe.each(SCHEMES)('%s sleep stage colours', (name) => {
+  const values = Object.values(sleepStageColors[name]);
+
+  it('are ≥ 3:1 against bg and surface, never Volt, and exposed as tokens', () => {
+    for (const c of values) {
+      expect(contrastRatio(c, colors[name].bg)).toBeGreaterThanOrEqual(3);
+      expect(contrastRatio(c, colors[name].surface)).toBeGreaterThanOrEqual(3);
+      expect(c).not.toBe(colors.volt);
+    }
+    expect(schemes[name].sleepDeep).toBe(sleepStageColors[name].deep);
+    expect(schemes[name].sleepAwake).toBe(sleepStageColors[name].awake);
   });
 
   it('differ clearly from each other', () => {

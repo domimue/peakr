@@ -13,7 +13,13 @@ const { store, resetStore } =
   healthRepo as unknown as typeof import('@/data/repositories/__mocks__/health-repository');
 
 const status = (p: Partial<HealthStatus> = {}): HealthStatus => ({
-  connection: { status: 'active', delivery: 'pull', backfillDays: 365, developerKey: true },
+  connection: {
+    status: 'active',
+    delivery: 'pull',
+    backfillDays: 365,
+    provides: ['resting_hr', 'sleep_duration'],
+    developerKey: true,
+  },
   groups: ['sleep', 'hrv_rhr'],
   sync: { earliestDay: '2026-01-01', backfillDone: false, lastPulledAt: null, lastError: null },
   offers: { oauth: false, personalKey: true },

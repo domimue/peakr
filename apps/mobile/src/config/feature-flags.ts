@@ -15,6 +15,17 @@ export const featureFlags = {
   suuntoWatch: false,
   /** Zwift Training Connections (push scheduled workouts) – Zwift approves each platform. */
   zwiftTrainingConnections: false,
+  /**
+   * Garmin health data over OAuth (Health API push, Starter tier) – flip together with the Edge
+   * Function secret `GARMIN_HEALTH` once Garmin has approved Peakr.
+   */
+  garminHealth: false,
+  /**
+   * Developer only: paste a Garmin Personal API key (pull, own data). The Personal API terms are
+   * written for a person's own tools, not for a third-party app, so this never ships switched on
+   * (docs/health-garmin.md). Needs the server secret `GARMIN_PERSONAL_KEY=1` as well.
+   */
+  garminPersonalKey: false,
   /** Generated round trips via a RoutingProvider (Phase 8b). */
   generatedRoutes: false,
 } as const;

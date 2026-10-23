@@ -105,6 +105,7 @@ async function status(admin: Admin, userId: string): Promise<Response> {
           status: integration.status,
           delivery: DELIVERY[integration.credential_mode].delivery,
           backfillDays: DELIVERY[integration.credential_mode].backfillDays,
+          provides: DELIVERY[integration.credential_mode].provides,
           // Shown to developers only, so they know which path they are testing.
           developerKey: integration.credential_mode === 'personal_key',
         }

@@ -13,6 +13,8 @@ export interface HealthConnection {
   delivery: 'push' | 'pull';
   /** Days of history Peakr fetches on connect; 0 = data starts on the connection day. */
   backfillDays: number;
+  /** Metrics this connection delivers; everything else is shown as "not provided". */
+  provides: HealthMetric[];
   /** Connected with a developer personal API key (shown in developer builds only). */
   developerKey: boolean;
 }

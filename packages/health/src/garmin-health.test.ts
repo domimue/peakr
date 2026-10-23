@@ -418,7 +418,8 @@ describe('GarminHealthProvider', () => {
       { mode: 'personal_key', apiKey: 'k' },
       { fetch: m.fetch, now: () => 1_900_000_000_000 },
     );
-    expect(p.delivery).toEqual({ mode: 'personal_key', delivery: 'pull', backfillDays: 365 });
+    expect(p.delivery).toMatchObject({ mode: 'personal_key', delivery: 'pull', backfillDays: 365 });
+    expect(p.delivery.provides).not.toContain('vo2max');
     const r = await p.pull(groups, '2026-10-22', '2026-10-22');
     expect(r.ok).toBe(true);
     expect(p.currentToken()).toEqual({ accessToken: token, expiresAt: 2_000_000_000_000 });

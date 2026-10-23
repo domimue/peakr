@@ -16,7 +16,7 @@ import { AvailabilityScreen } from '../screens/availability-screen';
 import { PauseScreen } from '../screens/pause-screen';
 import { PlanScreen } from '../screens/plan-screen';
 import { WorkoutScreen } from '../screens/workout-screen';
-import { ProgressScreen } from '../../progress/progress-screen';
+import { InsightsScreen } from '@/features/insights/insights-screen';
 import { TodayScreen } from '../../today/today-screen';
 
 /** The Plan tab with its calendar view selected. */
@@ -264,14 +264,14 @@ describe('Progress tab', () => {
         status: { '2026-10-19-1': 'done', '2026-10-26-1': 'done', '2026-10-27-1': 'done' },
       },
     };
-    await renderWithQuery(<ProgressScreen />);
+    await renderWithQuery(<InsightsScreen />);
     expect(await screen.findByText('October 2026')).toBeOnTheScreen();
     expect(screen.getByText(/^3 sessions · /)).toBeOnTheScreen();
     expect(screen.getAllByText(/^\d+:\d\d \/km$/).length).toBeGreaterThan(0);
     await fireEvent.press(screen.getByLabelText(/^Easy run, Easy, Mon, Oct 26/));
     expect(router.push).toHaveBeenCalledWith('/training/workout/2026-10-26-1');
 
-    await fireEvent.press(screen.getByText('Performance'));
+    await fireEvent.press(screen.getByText('Records'));
     expect(screen.getAllByLabelText('Sessions: 3').length).toBeGreaterThan(0);
     expect(
       screen.getByLabelText(/^Bar chart of the last 12 weeks: average \d+ minutes/),
@@ -285,9 +285,9 @@ describe('Progress tab', () => {
 
   it('clear empty states without completed sessions', async () => {
     storePlan();
-    await renderWithQuery(<ProgressScreen />);
+    await renderWithQuery(<InsightsScreen />);
     expect(await screen.findByText('No completed sessions yet')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByText('Performance'));
+    await fireEvent.press(screen.getByText('Records'));
     expect(screen.getByText('No completed sessions in this period.')).toBeOnTheScreen();
     expect(
       screen.getByText('Your bests appear after your first completed session.'),

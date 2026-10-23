@@ -95,9 +95,25 @@ export interface HealthDelivery {
   delivery: 'push' | 'pull';
   /** Days of history Peakr tries to fetch on connect (0 = none available). */
   backfillDays: number;
+  /**
+   * Metrics Peakr reads from this kind of connection – the rest are "not provided" in the app
+   * instead of an empty chart. Personal API: no VO2max or fitness-age summary is read (not in the
+   * endpoints Peakr calls). Health API push: Body Battery is not part of the summaries mapped.
+   */
+  provides: readonly HealthMetric[];
 }
 
 export const DELIVERY: Record<CredentialMode, HealthDelivery> = {
-  oauth: { mode: 'oauth', delivery: 'push', backfillDays: 0 },
-  personal_key: { mode: 'personal_key', delivery: 'pull', backfillDays: 365 },
+  oauth: {
+    mode: 'oauth',
+    delivery: 'push',
+    backfillDays: 0,
+    provides: HEALTH_METRICS.filter((m) => m !== 'body_battery_high' && m !== 'body_battery_low'),
+  },
+  personal_key: {
+    mode: 'personal_key',
+    delivery: 'pull',
+    backfillDays: 365,
+    provides: HEALTH_METRICS.filter((m) => m !== 'vo2max' && m !== 'fitness_age'),
+  },
 };

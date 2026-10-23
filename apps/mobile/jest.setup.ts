@@ -10,7 +10,9 @@ jest.mock('victory-native', () => ({
   CartesianChart: () => null,
   Bar: () => null,
   Area: () => null,
+  AreaRange: () => null,
   Line: () => null,
+  Scatter: () => null,
 }));
 
 // MapLibre is native-only; without a map style key the app shows the tile-less route shape anyway.
@@ -32,6 +34,7 @@ jest.mock('expo-sharing', () => ({
   shareAsync: jest.fn(() => Promise.resolve()),
 }));
 jest.mock('@shopify/react-native-skia', () => ({
+  Circle: () => null,
   DashPathEffect: () => null,
   Line: () => null,
   vec: (x: number, y: number) => ({ x, y }),
@@ -65,6 +68,8 @@ jest.mock('expo-task-manager', () => ({ defineTask: jest.fn() }));
 
 // Weather settings and the cached forecast live in SQLite; every test gets the in-memory version.
 jest.mock('@/data/repositories/weather-repository');
+// Health values live in SQLite as well (Insights → Health, Today's recovery line).
+jest.mock('@/data/repositories/health-repository');
 
 // Location is native-only; tests set the permission answer and the position per case.
 jest.mock('expo-location', () => ({

@@ -10,8 +10,7 @@ import { router } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { Pressable, StyleSheet, View } from 'react-native';
 
 import { todayIso } from '@/data/ids';
 import { useLinkedActivities } from '@/features/activities/queries';
@@ -23,7 +22,6 @@ import { calendarTitle, typeColor, typeName } from '../plan/kind';
 import { usePlan } from '../plan/queries';
 import { WeeklyChart } from './weekly-chart';
 
-type Section = 'history' | 'performance';
 type Period = 4 | 12 | 52;
 
 const PERIODS: readonly Period[] = [4, 12, 52];
@@ -36,21 +34,18 @@ function hoursText(t: TFunction, minutes: number): string {
 }
 
 /**
- * Progress: History (completed sessions by month with month totals) and Performance (period
- * picker, totals, minutes per week with the average, personal bests, lifetime totals). Activities
- * imported from Strava / watches join here in a later phase.
+ * Training and Records of Insights (CLAUDE.md "UI patterns"): Training = completed sessions by
+ * month with month totals; Records = period picker, totals, minutes per week with the average,
+ * personal bests, lifetime totals. Both need a plan; without one they show the way to the quiz.
  */
-export function ProgressScreen() {
+export function PlanInsights({ section }: { section: 'history' | 'performance' }) {
   const { t } = useTranslation();
-  const { colors } = useTheme();
   const { data: stored, isPending, isError, refetch } = usePlan();
-  const [section, setSection] = useState<Section>('history');
   const [period, setPeriod] = useState<Period>(12);
 
-  let content: React.ReactNode;
-  if (isPending) content = <ListState kind="loading" label={t('common.loading')} />;
-  else if (isError) {
-    content = (
+  if (isPending) return <ListState kind="loading" label={t('common.loading')} />;
+  if (isError) {
+    return (
       <ListState
         kind="error"
         title={t('common.loadError')}
@@ -58,8 +53,9 @@ export function ProgressScreen() {
         onRetry={() => void refetch()}
       />
     );
-  } else if (!stored) {
-    content = (
+  }
+  if (!stored) {
+    return (
       <ListState
         kind="empty"
         icon="progress"
@@ -68,30 +64,8 @@ export function ProgressScreen() {
         onAction={() => router.push('/onboarding')}
       />
     );
-  } else if (section === 'history') {
-    content = <History />;
-  } else {
-    content = <Performance period={period} onPeriod={setPeriod} />;
   }
-
-  return (
-    <SafeAreaView edges={['top']} style={[styles.root, { backgroundColor: colors.bg }]}>
-      <ScrollView contentContainerStyle={styles.content} testID="progress-scroll">
-        <Text variant="title" accessibilityRole="header">
-          {t('progress.title')}
-        </Text>
-        <SegmentedControl
-          options={[
-            { value: 'history', label: t('progress.history') },
-            { value: 'performance', label: t('progress.performance') },
-          ]}
-          value={section}
-          onChange={setSection}
-        />
-        {content}
-      </ScrollView>
-    </SafeAreaView>
-  );
+  return section === 'history' ? <History /> : <Performance period={period} onPeriod={setPeriod} />;
 }
 
 function History() {
@@ -306,8 +280,6 @@ function BestRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1 },
-  content: { padding: spacing.md, gap: spacing.md, paddingBottom: spacing.xl },
   gap: { gap: spacing.md },
   gapSm: { gap: spacing.sm },
   flex: { flex: 1 },
