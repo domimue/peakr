@@ -189,10 +189,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "plan_weeks_plan_id_week_index_pk": {
-          "columns": [
-            "plan_id",
-            "week_index"
-          ],
+          "columns": ["plan_id", "week_index"],
           "name": "plan_weeks_plan_id_week_index_pk"
         }
       },
@@ -257,20 +254,14 @@
       "indexes": {
         "plan_workouts_date": {
           "name": "plan_workouts_date",
-          "columns": [
-            "plan_id",
-            "date"
-          ],
+          "columns": ["plan_id", "date"],
           "isUnique": false
         }
       },
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "plan_workouts_plan_id_id_pk": {
-          "columns": [
-            "plan_id",
-            "id"
-          ],
+          "columns": ["plan_id", "id"],
           "name": "plan_workouts_plan_id_id_pk"
         }
       },
@@ -491,11 +482,7 @@
       "foreignKeys": {},
       "compositePrimaryKeys": {
         "sync_tombstones_entity_plan_id_id_pk": {
-          "columns": [
-            "entity",
-            "plan_id",
-            "id"
-          ],
+          "columns": ["entity", "plan_id", "id"],
           "name": "sync_tombstones_entity_plan_id_id_pk"
         }
       },

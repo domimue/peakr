@@ -1326,6 +1326,127 @@
     "placeholder": "Subscriptions are not available in this build yet. In-app purchase follows in a later version.",
     "back": "Back to my forecast"
   },
+  "gymAddon": {
+    "title": "Peakr Gym",
+    "tagline": "Log every set, see your progress and keep your history – next to your endurance plan.",
+    "exampleBadge": "Example",
+    "preview": {
+      "sampleTitle": "Sample session: Upper body",
+      "sampleHint": "This is an example, not your data.",
+      "sampleSets": "{{sets}} sets · {{volume}} kg volume · 52 min",
+      "exampleStats": "Example statistics",
+      "exampleStatsHint": "Example data. With Peakr Gym these are your own numbers.",
+      "exampleBench": "Bench press – best set",
+      "exampleBenchValue": "{{kg}} kg × {{reps}}",
+      "exampleWeek": "Sets this week (example)",
+      "plannedTitle": "Today's planned strength session",
+      "plannedHint": "You can read it and mark it done without the add-on.",
+      "openPlanned": "Open planned session",
+      "features": {
+        "log": "Log weight, reps and RPE for every set, with rest timer, supersets and plate calculator.",
+        "history": "Full history, personal records and volume per exercise and muscle group.",
+        "plan": "Planned strength sessions open pre-filled, and feed your training load.",
+        "offline": "Works offline in the gym and syncs afterwards."
+      },
+      "unlock": "Unlock Peakr Gym"
+    },
+    "paywall": {
+      "title": "Unlock Peakr Gym",
+      "trial": "7 days free. You enter your payment details now; the first charge comes only after the trial. Cancel anytime before it ends.",
+      "independent": "An add-on: it works with any Peakr tier, or on its own. Your endurance plan never depends on it.",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "perMonth": "{{price}} / month",
+      "perYear": "{{price}} / year",
+      "start": "Start 7-day free trial",
+      "startPlain": "Subscribe",
+      "restore": "Restore purchases",
+      "restored": "Purchases restored.",
+      "restoreFailed": "Could not restore purchases.",
+      "unavailable": "Purchases are not available in this build.",
+      "loading": "Loading prices…",
+      "failed": "The purchase did not go through. You have not been charged.",
+      "active": "Peakr Gym is active.",
+      "manage": "Manage subscriptions",
+      "devUnlock": "Unlock without purchase (development)"
+    },
+    "doneOnly": {
+      "title": "Mark as done",
+      "hint": "Without Peakr Gym you log how long it took and how hard it was."
+    }
+  },
+  "subscription": {
+    "title": "Subscription",
+    "intro": "Your training tier and the Gym add-on are separate subscriptions. Change or cancel one without touching the other.",
+    "tierTitle": "Training tier",
+    "addonTitle": "Peakr Gym add-on",
+    "none": "No active subscription.",
+    "tierNames": {
+      "training": "Training",
+      "plus": "Training + Nutrition"
+    },
+    "period": {
+      "monthly": "Monthly",
+      "yearly": "Yearly"
+    },
+    "trial": "Free trial",
+    "price": "Price",
+    "nextBilling": "Next billing",
+    "trialEnds": "Trial ends (first charge)",
+    "endsOn": "Access until",
+    "cancelledNote": "Cancelled. Access stays until the end of the paid period.",
+    "store": {
+      "play_store": "Google Play",
+      "app_store": "App Store",
+      "stripe": "Peakr website (Stripe)",
+      "other": "Other"
+    },
+    "manage": "Manage or cancel",
+    "manageOnWeb": "This subscription was bought on the website; manage it there.",
+    "cancelOnly": "Cancelling opens {{store}} for this subscription only.",
+    "getAddon": "Get the Gym add-on",
+    "unknownDate": "–"
+  },
+  "stravaPost": {
+    "title": "Strava",
+    "toggle": "Post this session to Strava",
+    "settingTitle": "Post gym sessions to Strava",
+    "settingHint": "Off by default. When on, each finished session is posted automatically, with its sets. You can still switch it off per session.",
+    "settingOn": "On",
+    "settingOff": "Off",
+    "post": "Post to Strava",
+    "posting": "Posting to Strava…",
+    "posted": "Posted to Strava",
+    "failed": "Could not post to Strava",
+    "retry": "Try again",
+    "openOnStrava": "Strava activity {{id}}",
+    "notConnected": "Connect Strava first (Profile → Connections).",
+    "scopeTitle": "Strava needs permission to post",
+    "scopeBody": "Your Strava connection can only read activities. Allow Peakr to post, and your connection stays as it is.",
+    "scopeAllow": "Allow posting",
+    "scopeDenied": "Posting was not allowed. Your Strava connection is unchanged.",
+    "reconnect": "Strava needs to be reconnected (Profile → Connections).",
+    "rateLimited": "Strava is busy right now. Try again in a few minutes.",
+    "unavailableTitle": "Structured upload not available",
+    "unavailableBody": "Strava did not accept the structured strength upload for Peakr. You can post a plain weight-training activity with a text summary instead – it will not show a muscle map.",
+    "postPlain": "Post plain summary",
+    "genericNote": "{{count}} sets use a generic exercise type on Strava.",
+    "quickNote": "This quick log has no sets; it is posted as a plain activity with duration.",
+    "error": "Strava said: {{reason}}"
+  },
+  "healthWrite": {
+    "title": "Health data",
+    "settingTitle": "Save sessions to {{store}}",
+    "settingHint": "Finished gym sessions are saved as a strength workout with duration and an energy estimate. Off by default.",
+    "permission": "Allow Peakr to save workouts",
+    "unsupported": "Not available on this device.",
+    "saved": "Saved to {{store}}",
+    "failed": "Could not save to {{store}}",
+    "stores": {
+      "healthConnect": "Health Connect",
+      "healthKit": "Apple Health"
+    }
+  },
   "licenses": {
     "title": "Third-party notices",
     "intro": "Peakr uses the following third-party software and fonts.",
@@ -1795,6 +1916,66 @@
       "many_other": "{{count}} activities synced from {{source}}"
     }
   },
+  "watch": {
+    "title": "Your watch",
+    "intro": "Peakr can put your workouts on your watch. Pick the brand you use – you can change it any time in Profile.",
+    "profileRow": "Watch",
+    "none": "I don't use a watch",
+    "options": {
+      "garmin": "Garmin",
+      "coros": "COROS",
+      "suunto": "Suunto",
+      "apple": "Apple Watch",
+      "file": "Other watch",
+      "none": "No watch"
+    },
+    "hints": {
+      "garmin": "Workouts and routes straight to your watch, and your activities come back by themselves.",
+      "coros": "The next 7 days as a training plan in the COROS app, and your activities come back by themselves.",
+      "suunto": "Routes and workouts to the Suunto app, and your activities come back by themselves.",
+      "apple": "With the iPhone app – workouts appear in the Workout app on your Apple Watch.",
+      "file": "Save a workout file (.FIT) or a route (.GPX) and import it into your watch's app."
+    },
+    "soon": "Direct sync follows once the partner approval is through. Until then you can send files.",
+    "iosOnly": "Available with the iPhone app.",
+    "continue": "Continue",
+    "skip": "Skip for now",
+    "saved": "Saved",
+    "send": {
+      "title": "Send to watch",
+      "action": "Watch",
+      "fileTitle": "Workout file",
+      "fileBody": "A .FIT workout with your heart-rate zones and paces. Save it or share it to Garmin Connect (or your watch's app) to import it.",
+      "fileButton": "Share workout file",
+      "routeTitle": "Route",
+      "routeBody": "Your chosen route as a .GPX course for your watch.",
+      "routeButton": "Share route file",
+      "directTitle": "Straight to your watch",
+      "directButton": "Send to {{watch}}",
+      "directConnect": "Connect {{watch}}",
+      "directSoon": "Direct sync with {{watch}} is not switched on yet.",
+      "done": "Sent to {{watch}}",
+      "notExportable": "This session can't go to a watch: strength, walks and winter sports stay in the app.",
+      "failed": "That didn't work: {{reason}}",
+      "reasons": {
+        "not_connected": "{{watch}} is not connected (any more).",
+        "not_available": "Direct sync is not available yet.",
+        "unsupported": "{{watch}} does not take this. Use the workout file instead.",
+        "rate_limited": "Too many requests – try again in a few minutes.",
+        "rejected": "{{watch}} refused the workout.",
+        "network": "No connection."
+      },
+      "shareFailed": "The file could not be shared.",
+      "brickLegs": "Bike and run go as two workouts."
+    },
+    "settings": {
+      "connected": "Connected",
+      "disconnect": "Disconnect",
+      "connect": "Connect {{watch}}",
+      "syncNow": "Send my next days now",
+      "autoSync": "Your next 14 days are kept in step with your plan automatically while {{watch}} is connected."
+    }
+  },
   "connections": {
     "title": "Connections",
     "signInFirst": "Sign in to connect Strava – your activities are linked to your account.",
@@ -1910,6 +2091,9 @@
   },
   "gym": {
     "title": "Gym",
+    "sharing": {
+      "title": "Sharing"
+    },
     "hub": {
       "lastSession": "Last session",
       "noSessions": "No session logged yet. Start a routine or log a session.",

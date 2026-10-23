@@ -508,7 +508,7 @@
   },
   "pricing": {
     "metaTitle": "Pricing – one fair subscription with a 7-day free trial | Peakr",
-    "metaDescription": "Peakr Training costs 7.90 per month or 59 per year, with a 7-day free trial. Training + Nutrition is coming soon.",
+    "metaDescription": "Peakr Training costs 7.90 per month or 59 per year, with a 7-day free trial. The Gym add-on is 3.90 per month or 29 per year. Training + Nutrition is coming soon.",
     "title": "Simple, fair pricing",
     "lead": "One subscription for your whole training plan – all sports, all integrations. Try it free for 7 days.",
     "billingLabel": "Billing period",
@@ -546,6 +546,21 @@
         ]
       }
     },
+    "addon": {
+      "name": "Peakr Gym",
+      "title": "Add-on: Peakr Gym",
+      "tagline": "Your strength workspace – log every set, keep your history and see your progress.",
+      "note": "A separate subscription: add it to Training or Training + Nutrition, or use it on its own. Cancel one without touching the other.",
+      "features": [
+        "Log weight, reps and RPE for every set, with rest timer, supersets and plate calculator",
+        "Full history, personal records and volume per exercise and muscle group",
+        "Planned strength sessions open pre-filled and feed your training load",
+        "Post finished sessions to Strava with their sets, and save them to Health Connect",
+        "Works offline in the gym"
+      ],
+      "withoutTitle": "Without the add-on",
+      "without": "You still see your planned strength sessions and mark them done with duration and effort. Your endurance plan never depends on the add-on."
+    },
     "trial": {
       "title": "How the 7-day free trial works",
       "items": [
@@ -573,6 +588,10 @@
         {
           "question": "Is there a free version?",
           "answer": "The calculators on this website are free. In the app, the quiz, your forecast and a preview of week 1 are free – the full plan needs a subscription or a running trial."
+        },
+        {
+          "question": "Do I need the Gym add-on for strength training?",
+          "answer": "No. Your plan includes strength sessions and you can mark them done with duration and effort. The Gym add-on adds set-by-set logging, history, statistics and sharing to Strava. It is a separate subscription with its own 7-day free trial."
         },
         {
           "question": "Can I switch between monthly and yearly?",

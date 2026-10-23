@@ -431,6 +431,20 @@ verify_jwt = false
 [functions.weather]
 verify_jwt = false
 
+# Gym session → Strava (structured weight-training upload; user JWT checked in the function).
+[functions.strava-upload]
+verify_jwt = false
+
+# Watch platforms (Garmin, COROS, Suunto): export / push / import with the user's JWT, checked in
+# the function. Gated by the WATCH_* feature flags until each partner programme approves Peakr.
+[functions.watch]
+verify_jwt = false
+
+# Completed-activity notifications of the watch platforms; they send no Supabase JWT, so the
+# callback URL carries WATCH_WEBHOOK_SECRET as ?key= (Suunto: plus an optional HMAC).
+[functions.watch-webhook]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

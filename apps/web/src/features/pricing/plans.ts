@@ -16,6 +16,15 @@ export const TIERS: readonly Tier[] = [
   { key: 'plus', prices: { monthly: 11.9, yearly: 89 }, comingSoon: true },
 ];
 
+/**
+ * The Gym add-on (entitlement `gym`): its own subscription next to either tier, or on its own.
+ * Same 7-day trial rules; purchasable on the web once checkout is live.
+ */
+export const GYM_ADDON: Pick<Tier, 'prices' | 'comingSoon'> = {
+  prices: { monthly: 3.9, yearly: 29 },
+  comingSoon: false,
+};
+
 /** "CHF 7.90" – whole amounts without decimals ("CHF 59"). */
 export function formatPrice(amount: number): string {
   const t = messages.pricing;

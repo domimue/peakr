@@ -79,13 +79,9 @@ export function ProfileScreen() {
     },
   ];
   const account: Row[] = [
+    { icon: 'watch', title: t('watch.profileRow'), href: '/watch' },
     { icon: 'connections', title: t('profile.connections'), href: '/integrations' },
-    {
-      icon: 'subscription',
-      title: t('profile.subscription'),
-      href: soon('subscription'),
-      soon: true,
-    },
+    { icon: 'subscription', title: t('profile.subscription'), href: '/subscription' },
     session
       ? {
           icon: 'account',

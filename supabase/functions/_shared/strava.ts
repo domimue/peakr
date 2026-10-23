@@ -4,6 +4,7 @@ import { decryptToken, encryptToken } from './crypto.ts';
 import { getProvider } from './providers.ts';
 import { pushToUser } from './push.ts';
 import { mapStravaActivity, type ActivityRow, type StravaActivity } from './strava-map.ts';
+import { isOwnUpload, looksLikeOwnUpload, recordedUploadIds } from './strava-own.ts';
 import {
   MAX_GPX_CHARS,
   mapStravaRoute,
@@ -317,6 +318,11 @@ export async function importActivity(
     }
     throw e;
   }
+  // A gym session Peakr posted itself: the detailed session is already in the app.
+  if (await isOwnUpload(admin, integration.user_id, activity)) {
+    await deleteActivity(admin, integration.user_id, activityId);
+    return;
+  }
   const row = mapStravaActivity(integration.user_id, activity);
   if (!row) {
     await deleteActivity(admin, integration.user_id, activityId);
@@ -369,7 +375,13 @@ export async function importSince(
       token,
       `/athlete/activities?after=${after}&per_page=100&page=${page}`,
     );
+    const own = await recordedUploadIds(
+      admin,
+      integration.user_id,
+      list.map((a) => String(a.id)),
+    );
     const rows = list
+      .filter((a) => !own.has(String(a.id)) && !looksLikeOwnUpload(a))
       .map((a) => mapStravaActivity(integration.user_id, a))
       .filter((r): r is ActivityRow => r !== null);
     await upsert(admin, rows);
@@ -510,6 +522,7 @@ export async function removeStravaData(admin: SupabaseClient, userId: string): P
     .eq('deleted', false);
   if (routeError) throw routeError;
   await removeBaseline(admin, userId);
+  await admin.from('strava_uploads').delete().eq('user_id', userId);
   await admin.from('integrations').delete().eq('user_id', userId).eq('provider', 'strava');
 }
 

@@ -21,8 +21,10 @@ import {
   useAuthListener,
   useSessionStore,
 } from '@/features/auth/session-store';
+import { useBillingStore } from '@/features/billing/billing-store';
 import { LiveSessionRestore } from '@/features/gym/live-session-restore';
 import { registerPushToken } from '@/features/notifications/push';
+import { useWatchAutoSync } from '@/features/watch/auto-sync';
 import { MorningWeatherAlerts } from '@/features/weather/morning-alert';
 import { fontFamilies, toNavigationTheme, useTheme } from '@/ui';
 
@@ -74,8 +76,14 @@ function BackgroundSync() {
   const userId = useSessionStore(selectAccountUserId);
   useBackgroundSync();
   useActivityRealtime();
+  // Garmin / COROS / Suunto: the next two weeks follow the plan (off until the platform is approved).
+  useWatchAutoSync();
   useEffect(() => {
     if (userId) void registerPushToken(userId);
+  }, [userId]);
+  // Entitlements follow the Supabase user, the same id the web checkout uses in RevenueCat.
+  useEffect(() => {
+    void useBillingStore.getState().init(userId);
   }, [userId]);
   return null;
 }

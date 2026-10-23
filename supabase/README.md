@@ -10,6 +10,9 @@ Security, and Edge Functions for everything that needs a secret.
 | `functions/strava-webhook/` | Strava Webhook Events API: validation + activity/athlete events    |
 | `functions/strava-sync/` | "Sync now", 180-day history, streams on request (user) and the nightly catch-up (pg_cron) |
 | `functions/strava-baseline/` | Baseline for plan calibration: last 60 days of runs/rides/swims, reference only |
+| `functions/strava-upload/` | Gym session → Strava: structured weight-training upload (JSON sets), status polling, `STRAVA_UPLOAD_DRY_RUN=1` for tests |
+| `functions/watch/` | Watch platforms (Garmin, COROS, Suunto): FIT/GPX export, push workouts and routes with re-sync, import; behind `WATCH_*` flags – see `docs/watch-integrations.md` |
+| `functions/watch-webhook/` | Completed-activity notifications of the watch platforms (`?key=WATCH_WEBHOOK_SECRET`), same `activities` pipeline as Strava |
 | `functions/weather/`     | Weather check: hourly forecast per ~5 km cell (MeteoSwiss for Switzerland, Open-Meteo elsewhere), cached per hour |
 | `functions/delete-account/` | Account deletion: revokes Strava, deletes all rows and the auth user |
 | `functions/_shared/`     | Token encryption, signed OAuth state, provider registry, Strava import, Expo push |
@@ -31,6 +34,7 @@ Security, and Edge Functions for everything that needs a secret.
 | `strava_routes`      | Edge Functions only            | routes planned in Strava (rides, runs) with their GPX; own rows readable |
 | `baseline_activities` | Edge Functions only           | reference-only Strava activities (last 60 days) for plan calibration; never synced as history, no Realtime; own rows readable |
 | `baseline_imports`   | Edge Functions only            | last baseline import per user + custom Strava HR zones; own row readable |
+| `strava_uploads`     | Edge Functions only            | gym sessions posted to Strava (state + Strava activity id); the webhook ignores these activities; own rows readable |
 | `weather_cache`      | Edge Functions only            | forecasts per ~5 km grid cell and UTC hour; no user id, no access for app or website |
 | `push_tokens`        | the app (own device)           | Expo push tokens + "notify me" per device                   |
 | `waitlist`           | the website (insert only)      | Phase 1b                                                    |
@@ -52,6 +56,7 @@ pnpm exec supabase functions deploy strava-sync
 pnpm exec supabase functions deploy delete-account
 pnpm exec supabase functions deploy strava-baseline
 pnpm exec supabase functions deploy weather
+pnpm exec supabase functions deploy strava-upload
 pnpm exec supabase secrets set --env-file supabase/functions/.env
 ```
 

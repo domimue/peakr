@@ -6,6 +6,7 @@ import PlanScreen from '../../../app/(tabs)/plan';
 import ProfileScreen from '../../../app/(tabs)/profile';
 import ProgressScreen from '../../../app/(tabs)/progress';
 import TodayScreen from '../../../app/(tabs)/today';
+import { useBillingStore } from '@/features/billing/billing-store';
 import { usePlanUiStore } from '@/features/plan/plan-ui-store';
 import { useSettingsStore } from '@/features/settings/settings-store';
 import { renderWithQuery } from '@/test-utils/render-with-query';
@@ -34,8 +35,21 @@ describe('tab screens without a plan', () => {
     usePlanUiStore.setState({ view: 'weeks' });
   });
 
+  it('Gym without the add-on shows an example preview and the paywall', async () => {
+    const push = jest.spyOn(router, 'push').mockImplementation(() => undefined);
+    useBillingStore.setState({ devGym: false });
+    await renderWithQuery(<GymScreen />);
+    expect(await screen.findByTestId('gym-preview-session')).toBeOnTheScreen();
+    expect(screen.getAllByText('Example').length).toBeGreaterThanOrEqual(2);
+    expect(screen.queryByTestId('gym-last-session')).not.toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('Unlock Peakr Gym'));
+    expect(push).toHaveBeenCalledWith('/gym/addon');
+    push.mockRestore();
+  });
+
   it('Gym opens the workspace: routines, library, quick log and import', async () => {
     const push = jest.spyOn(router, 'push').mockImplementation(() => undefined);
+    useBillingStore.setState({ devGym: true });
     await renderWithQuery(<GymScreen />);
     expect(await screen.findByTestId('gym-last-session')).toBeOnTheScreen();
     expect(screen.getByText(/No session logged yet/)).toBeOnTheScreen();
@@ -43,6 +57,7 @@ describe('tab screens without a plan', () => {
     expect(push).toHaveBeenCalledWith('/gym/routines');
     await fireEvent.press(screen.getByText('Exercise library'));
     expect(push).toHaveBeenCalledWith('/gym/library');
+    useBillingStore.setState({ devGym: false });
     push.mockRestore();
   });
 
