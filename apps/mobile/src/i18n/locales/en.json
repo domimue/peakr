@@ -1107,7 +1107,8 @@
       "google": "Continue with Google",
       "later": "Later (development)",
       "failed": "Sign-in didn’t work. Please try again.",
-      "notConfigured": "Accounts are not set up in this build yet. Your plan stays on this device."
+      "notConfigured": "Accounts are not set up in this build yet. Your plan stays on this device.",
+      "haveAccount": "Already have an account? Sign in"
     },
     "callback": {
       "signingIn": "Signing you in…",

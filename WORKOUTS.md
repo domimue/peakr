@@ -358,7 +358,7 @@ Each mode can be combined with a **strength priority**: `endurance first` (defau
 
 ### 8.6 Exercise library (our own content, extendable; users can add custom exercises)
 
-The library is our own work (no data, wording or images from another app): structure in `packages/engine/src/plan/library/exercises.json`, texts in the app's locale files under `exercises.<id>`. At least 150 exercises, machines and cable stations first (generic names, no brands – what Swiss gyms typically have: selectorised and plate-loaded machines, cable stations, Smith machine, back and neck machines, circuit machines).
+The library is our own work (no data, wording or images from another app): structure in `packages/engine/src/plan/library/exercises.json`, texts in `packages/i18n/src/locales/en/exercises.json` under `<id>` (shared by app and website). At least 150 exercises, machines and cable stations first (generic names, no brands – what Swiss gyms typically have: selectorised and plate-loaded machines, cable stations, Smith machine, back and neck machines, circuit machines).
 
 Fields:
 - Structure: `id, pattern, primaryMuscles[], secondaryMuscles[], equipment[], legLoad, unilateral, trackingMode, illustration?`
@@ -485,4 +485,4 @@ Preselection: everything is ticked except Strava races and sessions far longer t
 
 ## 12. "Why this session?" texts
 
-Every template has a `whyKey` with a short explanation (1–2 sentences, plain language) plus a dynamic sentence from the scheduler, e.g. "Strength comes on Wednesday, so today stays easy." Keys live in `locales/en.json` under `why.*`. English first.
+Every template has a `whyKey` with a short explanation (1–2 sentences, plain language) plus a dynamic sentence from the scheduler, e.g. "Strength comes on Wednesday, so today stays easy." Keys live in `packages/i18n/src/locales/en/plan.json` under `why.*` (shared by app and website). English first.
