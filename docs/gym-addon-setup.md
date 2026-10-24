@@ -1,5 +1,8 @@
 # Gym add-on: store setup and Strava testing
 
+The tiers (Training, Training + Nutrition), the webhook and the trial reminder are set up in
+`docs/subscriptions-setup.md`; this page covers only what the add-on adds.
+
 What you have to create outside the repo for the `gym` add-on, and how to test the Strava upload
 without filling your own feed. The prices below are the targets from CLAUDE.md "Monetisation"; the
 app reads the real prices from the stores through RevenueCat and never hard-codes them.

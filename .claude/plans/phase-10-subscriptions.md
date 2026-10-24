@@ -44,4 +44,4 @@ store, subscription screen), `docs/gym-addon-setup.md`.
 5. [x] Subscription screen: change period/tier, restore, trial status, tests
 6. [x] Server: migration, `@peakr/billing` pure code + vitest, `revenuecat-webhook`,
        `trial-reminders` (pg_cron), push always-visible, delete-account cleanup
-7. [ ] Docs: `docs/subscriptions-setup.md`, supabase/README, queue
+7. [x] Docs: `docs/subscriptions-setup.md`, supabase/README, queue
