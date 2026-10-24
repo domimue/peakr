@@ -221,3 +221,21 @@ export function changeFrom(
   if (sameTier && current.period === target.period) return null;
   return base(current.productId);
 }
+
+/** Android application id (Play's cancel page needs it next to the subscription id). */
+const ANDROID_PACKAGE = 'com.peakr.app';
+
+/**
+ * The store page that cancels exactly this subscription. RevenueCat's management URL first; the
+ * stores' documented pages as a fallback. Web (Stripe) subscriptions are cancelled on the website.
+ */
+export function cancelUrlOf(subscription: ActiveSubscription): string | null {
+  if (subscription.store === 'stripe') return null;
+  if (subscription.managementUrl) return subscription.managementUrl;
+  if (subscription.store === 'play_store') {
+    const sku = subscription.productId.split(':')[0] ?? subscription.productId;
+    return `https://play.google.com/store/account/subscriptions?sku=${encodeURIComponent(sku)}&package=${ANDROID_PACKAGE}`;
+  }
+  if (subscription.store === 'app_store') return 'https://apps.apple.com/account/subscriptions';
+  return null;
+}
