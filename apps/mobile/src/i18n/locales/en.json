@@ -1311,7 +1311,10 @@
   },
   "paywall": {
     "title": "Unlock your full plan",
-    "trial": "7 days free with full access to everything. You enter your payment details now; the first charge is only after the trial. Cancel anytime before it ends.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "perMonth": "{{price}} / month",
+    "perYear": "{{price}} / year",
     "tiers": {
       "training": {
         "name": "Training",
@@ -1322,8 +1325,37 @@
         "description": "Everything in Training plus nutrition tracking, energy balance and body tracking."
       }
     },
+    "included": {
+      "plan": "Your full plan, every week to your goal",
+      "calendar": "Move, skip and rebuild workouts – the week rebalances",
+      "zones": "Heart-rate, pace and swim zones, editable",
+      "routes": "Routes with per-km pace for the terrain",
+      "integrations": "Strava, watches, Zwift and file exports",
+      "health": "Health data from your watch next to your training",
+      "everything": "Everything in Training",
+      "nutrition": "Food tracking with barcode scan",
+      "energy": "Energy balance from food and workouts",
+      "body": "Weight trend and body measurements"
+    },
     "comingSoon": "Coming soon",
-    "placeholder": "Subscriptions are not available in this build yet. In-app purchase follows in a later version.",
+    "freeUntil": "Free until {{date}}, then {{price}}",
+    "reminder": "We'll remind you one day before.",
+    "trialTerms": "You enter your payment details in {{store}} now. Nothing is charged during the trial.",
+    "noTrialTerms": "{{price}}, renews automatically. You have already used your free trial.",
+    "startTrial": "Start {{days}}-day free trial",
+    "subscribe": "Subscribe",
+    "cancelAnytime": "Cancel anytime in {{store}}. If you cancel before the trial ends, you pay nothing.",
+    "restore": "Restore purchases",
+    "nothingToRestore": "No active subscription found for this account.",
+    "restoreFailed": "Could not restore purchases. Check your connection and try again.",
+    "failed": "The purchase did not go through. You have not been charged.",
+    "loading": "Loading prices…",
+    "loadFailed": "Prices could not be loaded. Check your connection and try again.",
+    "unavailable": "Purchases are not available in this build.",
+    "active": "Your subscription is active.",
+    "continue": "Continue to my plan",
+    "terms": "Terms",
+    "privacy": "Privacy",
     "back": "Back to my forecast"
   },
   "gymAddon": {
