@@ -190,6 +190,9 @@ importers:
       '@peakr/engine':
         specifier: workspace:*
         version: link:../../packages/engine
+      '@peakr/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       '@peakr/quiz':
         specifier: workspace:*
         version: link:../../packages/quiz
@@ -380,6 +383,9 @@ importers:
       '@peakr/i18n':
         specifier: workspace:*
         version: link:../../packages/i18n
+      '@peakr/quiz':
+        specifier: workspace:*
+        version: link:../../packages/quiz
       '@peakr/theme':
         specifier: workspace:*
         version: link:../../packages/theme

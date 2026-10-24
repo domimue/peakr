@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import ProfileScreen from '../../../../app/(tabs)/profile';
 
 import * as repo from '@/data/repositories/plan-repository';
-import en from '@/i18n/locales/en.json';
+import { enMessages as en } from '@/i18n/messages';
 import { renderWithQuery } from '@/test-utils/render-with-query';
 
 import { PlanPreviewScreen } from '../plan-preview-screen';

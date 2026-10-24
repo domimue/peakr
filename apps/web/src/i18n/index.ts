@@ -1,7 +1,7 @@
-import { defaultLanguage, translations } from '@peakr/i18n';
-
-// Single locale for now; becomes locale-aware when de/fr/it/es are added.
-const { common, web } = translations[defaultLanguage];
+// Single locale for now; becomes locale-aware when de/fr/it/es are added. Imported by file, so a
+// page only bundles the texts it uses (the quiz and exercise texts live in `./plan`).
+import common from '@peakr/i18n/locales/en/common.json';
+import web from '@peakr/i18n/locales/en/web.json';
 
 /** Shared keys (zones, units, validation, …) plus the website-only copy, from /packages/i18n. */
 export const messages = { ...common, ...web };

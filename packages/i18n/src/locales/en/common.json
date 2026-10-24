@@ -1,6 +1,8 @@
 {
   "common": {
-    "estimate": "Estimate"
+    "estimate": "Estimate",
+    "yes": "Yes",
+    "no": "No"
   },
   "fields": {
     "age": "Age",
@@ -50,7 +52,9 @@
     "paceValue": "{{pace}} {{unit}}",
     "paceRange": "{{slow}}–{{fast}} {{unit}}",
     "paceOrSlower": "{{pace}} {{unit}} or slower",
-    "paceOrFaster": "{{pace}} {{unit}} or faster"
+    "paceOrFaster": "{{pace}} {{unit}} or faster",
+    "kg": "kg",
+    "cm": "cm"
   },
   "validation": {
     "invalidNumber": "Enter a whole number.",
@@ -72,6 +76,11 @@
     "underageWeightLoss": "The weight-loss goal is only available from age {{min}}.",
     "gpxEmpty": "The file is empty.",
     "gpxNoPoints": "The file contains no track or route.",
-    "gpxTooLarge": "The file is too large to import."
+    "gpxTooLarge": "The file is too large to import.",
+    "tooLong": "Use at most {{max}} characters.",
+    "dateOutOfRange": "Choose a date between {{min}} and {{max}} weeks from today.",
+    "mustConfirm": "Please confirm to continue.",
+    "invalidOption": "Please choose one of the options.",
+    "tooFewSelected": "Choose at least {{min}}."
   }
 }

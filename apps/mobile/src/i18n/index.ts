@@ -2,16 +2,15 @@ import { getLocales } from 'expo-localization';
 import { createInstance } from 'i18next';
 import { initReactI18next } from 'react-i18next';
 
-import en from './locales/en.json';
-import enExercises from './locales/en/exercises.json';
+import { enExercises, enMessages } from './messages';
 
 /** Typed UI texts: `t('...')` keys are checked against these (see `i18next.d.ts`). */
 export const resources = {
-  en: { translation: en },
+  en: { translation: enMessages },
 } as const;
 
 /**
- * Exercise library texts live in their own file (CLAUDE.md "Gym") and are merged in as
+ * Exercise library texts (CLAUDE.md "Gym", shared with the website) are merged in as
  * `exercises.<id>.*` at runtime. They are looked up by exercise id, so they stay out of the typed
  * keys (which would otherwise grow past what the compiler can check).
  */
