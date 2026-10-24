@@ -9,6 +9,8 @@ import type {
   LegacyCustomExercise,
   SetType,
   Goal,
+  HealthMetric,
+  HealthSource,
   HrZone,
   HrZoneInput,
   ImportedSport,
@@ -362,4 +364,29 @@ export const activityStreams = sqliteTable(
     latlng: text('latlng'),
   },
   (t) => [primaryKey({ columns: [t.source, t.externalId] })],
+);
+
+// Body and recovery data (CLAUDE.md "Health"): one value per metric, day and source. Garmin rows
+// come from the server (`garmin-health/list`), Health Connect / HealthKit rows are read on this
+// device and never uploaded. Deduplicated on read with the engine's source priority. Kept apart
+// from activities; deletable on its own.
+export const healthDaily = sqliteTable(
+  'health_daily',
+  {
+    metric: text('metric').$type<HealthMetric>().notNull(),
+    /** Calendar day (`YYYY-MM-DD`). */
+    day: text('day').notNull(),
+    source: text('source').$type<HealthSource>().notNull(),
+    value: real('value').notNull(),
+    /** Extra structure for the detail views (sleep stages, bed and wake time …). */
+    detail: text('detail', { mode: 'json' }).$type<Record<string, unknown>>(),
+    /** When the source recorded it (ISO date-time), shown next to the number. */
+    recordedAt: text('recorded_at').notNull(),
+    /** The source's own record ids. */
+    sourceIds: text('source_ids', { mode: 'json' }).$type<string[]>().notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.metric, t.day, t.source] }),
+    index('health_daily_day').on(t.day),
+  ],
 );

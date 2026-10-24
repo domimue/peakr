@@ -112,6 +112,18 @@ export const sportColors = {
 
 export type SportColorKey = keyof (typeof sportColors)['dark'];
 
+/**
+ * Sleep stages (Insights → Health → Sleep): the segments of the stages bar. Deep and light sleep
+ * share a hue and differ in lightness; every stage is ≥ 3:1 against bg and surface, none is Volt,
+ * and each segment is labelled with its name and minutes.
+ */
+export const sleepStageColors = {
+  dark: { deep: '#3E63DD', light: '#7CB7FF', rem: '#B58CFF', awake: '#FF9F7A' },
+  light: { deep: '#1E3A8A', light: '#2F6FD0', rem: '#7A3FC9', awake: '#B5471B' },
+} as const;
+
+export type SleepStageKey = keyof (typeof sleepStageColors)['dark'];
+
 export type ColorScheme = 'dark' | 'light';
 export type ZoneNumber = 1 | 2 | 3 | 4 | 5;
 
@@ -150,6 +162,10 @@ export interface SchemeColors extends Record<WorkoutTypeColorKey, string> {
   sportBrick: string;
   sportWinter: string;
   sportCommute: string;
+  sleepDeep: string;
+  sleepLight: string;
+  sleepRem: string;
+  sleepAwake: string;
 }
 
 function typeTokens(name: ColorScheme): Record<WorkoutTypeColorKey, string> {
@@ -184,6 +200,10 @@ function scheme(name: ColorScheme): SchemeColors {
     sportBrick: sport.brick,
     sportWinter: sport.winter,
     sportCommute: sport.commute,
+    sleepDeep: sleepStageColors[name].deep,
+    sleepLight: sleepStageColors[name].light,
+    sleepRem: sleepStageColors[name].rem,
+    sleepAwake: sleepStageColors[name].awake,
   };
 }
 

@@ -30,6 +30,7 @@ export {
 export { calculateCss, type CssField, type CssInput, type CssResult } from './swim';
 export { mad, median, quantile, theilSen, trimmedMean } from './stats';
 export * from './baseline';
+export * from './health';
 export { paceZonesFromBoundaries, ZONE_NUMBERS, type PaceZone, type ZoneNumber } from './zones';
 export { planConfig, type PlanConfig } from './plan/config';
 export { generatePlan, type PlanContinuation, type PlanField } from './plan/generate';

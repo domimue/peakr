@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { decryptToken, encryptToken } from './crypto.ts';
+import { deleteHealthData } from './health/store.ts';
 import { getProvider } from './providers.ts';
 import { pushToUser } from './push.ts';
 import type { WatchActivityRow } from './watch/model.ts';
@@ -242,4 +243,6 @@ export async function removeWatchData(
     await tombstoneWatchActivity(admin, userId, provider, r.external_id as string);
   }
   await admin.from('watch_pushes').delete().eq('user_id', userId).eq('provider', provider);
+  // Disconnecting Garmin deletes its health data too (CLAUDE.md "Health").
+  if (provider === 'garmin') await deleteHealthData(admin, userId);
 }

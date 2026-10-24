@@ -9,6 +9,10 @@ import type { HealthProvider } from './types';
  *   - request share authorisation for `HKWorkoutType` and active energy only (no read access),
  *   - add `NSHealthShareUsageDescription` / `NSHealthUpdateUsageDescription` and the HealthKit
  *     entitlement through the config plugin.
+ *   - reading (Insights → Health): HKCategoryTypeIdentifier.sleepAnalysis, restingHeartRate,
+ *     heartRateVariabilitySDNN (note: SDNN, not RMSSD – shown as its own source, never mixed into
+ *     a Garmin baseline without a label), stepCount, flightsClimbed, oxygenSaturation,
+ *     respiratoryRate, bodyMass, bodyFatPercentage, vo2Max, mapped with `device-map.ts`.
  * Until then writing reports "unsupported" and the switch in the app stays hidden.
  */
 export const health: HealthProvider = {
@@ -17,4 +21,7 @@ export const health: HealthProvider = {
   hasWritePermission: async () => false,
   requestWritePermission: async () => false,
   writeStrengthWorkout: async () => ({ ok: false, reason: 'unsupported' }),
+  readableMetrics: async () => [],
+  requestReadPermission: async () => [],
+  readDaily: async () => [],
 };

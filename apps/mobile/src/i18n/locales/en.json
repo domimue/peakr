@@ -17,7 +17,7 @@
     "today": "Today",
     "plan": "Plan",
     "gym": "Gym",
-    "progress": "Progress",
+    "insights": "Insights",
     "profile": "Profile"
   },
   "plan": {
@@ -2830,6 +2830,275 @@
       "morningAlertHint": "One notification in the morning, only on training days with a weather hint.",
       "morningHour": "Notification time",
       "attribution": "Weather data: MeteoSwiss (Switzerland) and Open-Meteo.com, licensed under CC BY 4.0."
+    }
+  },
+  "insights": {
+    "title": "Insights",
+    "segments": {
+      "health": "Health",
+      "training": "Training",
+      "records": "Records"
+    }
+  },
+  "health": {
+    "hoursMinutes": "{{h}} h {{m}} min",
+    "minutes_one": "{{count}} min",
+    "minutes_other": "{{count}} min",
+    "metrics": {
+      "sleep_duration": {
+        "label": "Sleep",
+        "value": "{{value}} min",
+        "about": "Time asleep in the night that ended on this day, as recorded by your watch."
+      },
+      "sleep_score": {
+        "label": "Sleep score (Garmin)",
+        "value": "{{value}}",
+        "about": "Garmin's own sleep score, shown as Garmin reports it."
+      },
+      "hrv_night": {
+        "label": "Overnight HRV",
+        "value": "{{value}} ms",
+        "about": "Average heart rate variability measured while you slept."
+      },
+      "resting_hr": {
+        "label": "Resting heart rate",
+        "value": "{{value}} bpm",
+        "about": "Lowest steady heart rate of the day, as recorded by your watch."
+      },
+      "stress_avg": {
+        "label": "Stress (Garmin)",
+        "value": "{{value}}",
+        "about": "Garmin's average stress level of the day on its own 0–100 scale."
+      },
+      "steps": {
+        "label": "Steps",
+        "value": "{{value}} steps",
+        "about": "Steps counted on this day."
+      },
+      "floors": {
+        "label": "Floors",
+        "value": "{{value}} floors",
+        "about": "Floors climbed on this day."
+      },
+      "intensity_min": {
+        "label": "Intensity minutes",
+        "value": "{{value}} min",
+        "about": "Moderate minutes plus vigorous minutes counted twice, as Garmin counts them."
+      },
+      "active_kcal": {
+        "label": "Active calories",
+        "value": "{{value}} kcal",
+        "about": "Energy burned through activity on this day, as reported by the device."
+      },
+      "spo2_avg": {
+        "label": "Blood oxygen (SpO2)",
+        "value": "{{value}} %",
+        "about": "Average SpO2 reading of the day where your watch measured it."
+      },
+      "respiration_avg": {
+        "label": "Respiration",
+        "value": "{{value}} brpm",
+        "about": "Average breaths per minute while awake."
+      },
+      "weight": {
+        "label": "Weight",
+        "value": "{{value}} kg",
+        "about": "From your connected scale or your own entries in the source app."
+      },
+      "body_fat": {
+        "label": "Body fat",
+        "value": "{{value}} %",
+        "about": "From your connected scale."
+      },
+      "muscle_mass": {
+        "label": "Muscle mass",
+        "value": "{{value}} kg",
+        "about": "From your connected scale."
+      },
+      "bmi": {
+        "label": "BMI",
+        "value": "{{value}}",
+        "about": "From your connected scale."
+      },
+      "vo2max": {
+        "label": "VO2max (estimate)",
+        "value": "{{value}}",
+        "about": "Your watch's VO2max estimate in ml/kg/min."
+      },
+      "body_battery_high": {
+        "label": "Body Battery high (Garmin)",
+        "value": "{{value}}",
+        "about": "Highest Body Battery value of the day, exactly as Garmin reports it."
+      },
+      "body_battery_low": {
+        "label": "Body Battery low (Garmin)",
+        "value": "{{value}}",
+        "about": "Lowest Body Battery value of the day, exactly as Garmin reports it."
+      },
+      "fitness_age": {
+        "label": "Fitness age (Garmin)",
+        "value": "{{value}} years",
+        "about": "Garmin's fitness age estimate."
+      }
+    },
+    "groups": {
+      "sleep": {
+        "title": "Sleep",
+        "reads": "Sleep duration, sleep stages, bed and wake time, Garmin sleep score"
+      },
+      "hrv_rhr": {
+        "title": "HRV and resting heart rate",
+        "reads": "Overnight HRV, resting heart rate"
+      },
+      "stress": {
+        "title": "Stress and Body Battery",
+        "reads": "Garmin stress level, Body Battery high and low"
+      },
+      "activity": {
+        "title": "Daily activity",
+        "reads": "Steps, floors, intensity minutes, active calories, VO2max estimate"
+      },
+      "spo2_resp": {
+        "title": "Blood oxygen and respiration",
+        "reads": "Average SpO2, breaths per minute"
+      },
+      "body_comp": {
+        "title": "Body composition",
+        "reads": "Weight, body fat, muscle mass, BMI from a connected scale"
+      },
+      "womens_health": {
+        "title": "Women's health",
+        "reads": "Cycle tracking data. Off unless you switch it on. Peakr does not show it yet; switching it on only allows reading it once that view exists."
+      }
+    },
+    "overview": {
+      "title": "Health",
+      "today": "Today",
+      "yesterday": "Yesterday",
+      "daysAgo_one": "{{count}} day ago",
+      "daysAgo_other": "{{count}} days ago",
+      "recorded": "{{source}} · {{time}}",
+      "recordedDay": "{{source}} · {{day}}, {{time}}",
+      "historyFrom": "Data from {{date}} on",
+      "historyFromConnection": "Data starts on the day you connected – this Garmin connection does not deliver older days.",
+      "backfilling": "Fetching your older data – this can take a while.",
+      "syncNow": "Sync now",
+      "syncing": "Syncing…",
+      "lastSynced": "Last fetched {{time}}",
+      "syncError": "The last fetch did not work. Peakr tries again on its own.",
+      "settings": "Health data settings",
+      "pushHint": "New values arrive by themselves after your watch syncs with Garmin Connect."
+    },
+    "baseline": {
+      "within": "Within your usual range",
+      "above": "Above your usual range",
+      "below": "Below your usual range",
+      "wellAbove": "Well above your usual range",
+      "wellBelow": "Well below your usual range",
+      "building": "Your usual range appears after {{needed}} days with data ({{count}} so far)",
+      "range": "Your usual range: {{low}} – {{high}}",
+      "band": "Your usual range (last 30 days)",
+      "trendUp": "Higher than the 30 days before",
+      "trendDown": "Lower than the 30 days before",
+      "trendFlat": "About the same as the 30 days before",
+      "ownHistory": "Compared with your own history only – never with other people."
+    },
+    "missing": {
+      "not_connected": "Connect Garmin or Health Connect to see this.",
+      "not_enabled": "Not switched on. Turn on \"{{group}}\" in Health data settings.",
+      "not_provided": "Your connected sources do not provide this.",
+      "no_data": "Nothing recorded in the last 7 days. Your watch records this only while you wear it (sleep and HRV overnight) and after it has synced."
+    },
+    "empty": {
+      "title": "Your body data in Peakr",
+      "body": "Connect Garmin to see sleep, HRV, resting heart rate, stress and more next to your training – compared with your own history.",
+      "connect": "Set up health data"
+    },
+    "detail": {
+      "periods": {
+        "week": "7 days",
+        "month": "30 days",
+        "year": "12 months"
+      },
+      "values": "Values",
+      "noValues": "No values in this period.",
+      "chartA11y": "Line chart of {{metric}} over {{period}}: {{count}} values, latest {{latest}}.",
+      "legendValue": "Your values",
+      "legendHard": "Hard session",
+      "hardSessions": "Hard sessions in this period",
+      "hardSessionsHint": "Dips and rises often follow hard training. Each dot under the chart is one of these sessions.",
+      "noHardSessions": "No hard sessions in this period.",
+      "consult": "If this keeps up, talk to a doctor."
+    },
+    "sleep": {
+      "lastNight": "Last night",
+      "stages": {
+        "deep": "Deep",
+        "light": "Light",
+        "rem": "REM",
+        "awake": "Awake"
+      },
+      "stageValue": "{{stage}} {{minutes}}",
+      "bedWake": "In bed {{bed}} · awake {{wake}}",
+      "week": "This week",
+      "weekA11y": "{{day}}: {{duration}}",
+      "noStages": "No sleep stages for this night."
+    },
+    "body": {
+      "title": "Body composition",
+      "none": "No scale measurements yet. Weigh in on a connected scale to see them here."
+    },
+    "consent": {
+      "title": "Health data",
+      "intro": "Choose what Peakr may read. Each group is separate, you can switch it off at any time, and switching a group off deletes what Peakr stored for it.",
+      "privacy": "Your health data is stored encrypted, is never shown to anyone else and is never used to train models.",
+      "save": "Save",
+      "saved": "Saved",
+      "saveError": "Could not save. Check your connection and try again.",
+      "connectionTitle": "Garmin",
+      "connected": "Connected",
+      "connectedExpired": "Connection expired – connect again.",
+      "connectGarmin": "Connect Garmin",
+      "garminComing": "Garmin health data arrives once Garmin has approved Peakr.",
+      "deviceBody": "Reads the same groups from Health Connect on this phone (the last 30 days). The values stay on this phone. Garmin values win when both have one for the same day.",
+      "deviceConnect": "Allow Health Connect",
+      "deviceConnected": "Allowed",
+      "deleteTitle": "Delete all health data",
+      "deleteBody": "Deletes every health value Peakr stored, on the server and on this phone. Your account, plan and connections stay.",
+      "deleteConfirm": "Delete health data",
+      "deleteCancel": "Cancel",
+      "deleted": "Health data deleted.",
+      "deleteError": "Could not delete. Try again."
+    },
+    "developer": {
+      "title": "Developer: Garmin personal API key",
+      "body": "For your own account only. Garmin's Personal API is meant for a person's own tools, so this stays a developer option. The key is sent to Peakr's server once, stored encrypted and never kept on this phone.",
+      "field": "Personal API key",
+      "connect": "Connect key",
+      "disconnect": "Remove key and its data",
+      "connectedKey": "Connected with a personal API key",
+      "errors": {
+        "invalid_key": "Garmin did not accept this key.",
+        "already_connected": "Garmin is already connected with OAuth.",
+        "unavailable": "Garmin could not be reached. Try again later."
+      }
+    },
+    "recovery": {
+      "above": "{{metric}} {{amount}} above your baseline",
+      "below": "{{metric}} {{amount}} below your baseline",
+      "join": "{{first}}, {{second}}",
+      "makeEasier": "Make today easier",
+      "confirmTitle": "Make today easier?",
+      "confirmBody": "Peakr eases today's session (shorter, lower intensity). You can change it back in the plan.",
+      "confirm": "Make it easier",
+      "cancel": "Keep as planned",
+      "done": "Today's session is now easier.",
+      "consult": "If this keeps up, talk to a doctor."
+    },
+    "sources": {
+      "garmin": "Garmin",
+      "healthConnect": "Health Connect",
+      "healthKit": "Apple Health"
     }
   }
 }

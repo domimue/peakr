@@ -64,6 +64,13 @@
       "when": 1792524093678,
       "tag": "0008_gym",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1792785471285,
+      "tag": "0009_health",
+      "breakpoints": true
     }
   ]
 }

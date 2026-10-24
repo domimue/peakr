@@ -4,7 +4,7 @@ import { router } from 'expo-router';
 import GymScreen from '../../../app/(tabs)/gym';
 import PlanScreen from '../../../app/(tabs)/plan';
 import ProfileScreen from '../../../app/(tabs)/profile';
-import ProgressScreen from '../../../app/(tabs)/progress';
+import InsightsScreen from '../../../app/(tabs)/insights';
 import TodayScreen from '../../../app/(tabs)/today';
 import { useBillingStore } from '@/features/billing/billing-store';
 import { usePlanUiStore } from '@/features/plan/plan-ui-store';
@@ -61,8 +61,8 @@ describe('tab screens without a plan', () => {
     push.mockRestore();
   });
 
-  it('Progress explains that it fills once there is a plan', async () => {
-    await renderWithQuery(<ProgressScreen />);
+  it('Insights → Training explains that it fills once there is a plan', async () => {
+    await renderWithQuery(<InsightsScreen />);
     expect(
       await screen.findByText('Your progress appears here once you have a plan.'),
     ).toBeOnTheScreen();

@@ -7,4 +7,7 @@ export const health: HealthProvider = {
   hasWritePermission: async () => false,
   requestWritePermission: async () => false,
   writeStrengthWorkout: async () => ({ ok: false, reason: 'unsupported' }),
+  readableMetrics: async () => [],
+  requestReadPermission: async () => [],
+  readDaily: async () => [],
 };

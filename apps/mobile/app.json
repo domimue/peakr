@@ -44,7 +44,17 @@
       "predictiveBackGestureEnabled": false,
       "permissions": [
         "android.permission.health.WRITE_EXERCISE",
-        "android.permission.health.WRITE_ACTIVE_CALORIES_BURNED"
+        "android.permission.health.WRITE_ACTIVE_CALORIES_BURNED",
+        "android.permission.health.READ_SLEEP",
+        "android.permission.health.READ_RESTING_HEART_RATE",
+        "android.permission.health.READ_HEART_RATE_VARIABILITY",
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.READ_FLOORS_CLIMBED",
+        "android.permission.health.READ_OXYGEN_SATURATION",
+        "android.permission.health.READ_RESPIRATORY_RATE",
+        "android.permission.health.READ_WEIGHT",
+        "android.permission.health.READ_BODY_FAT",
+        "android.permission.health.READ_VO2_MAX"
       ],
       "intentFilters": [
         {
