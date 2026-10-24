@@ -22,6 +22,7 @@ import {
   useSessionStore,
 } from '@/features/auth/session-store';
 import { useBillingStore } from '@/features/billing/billing-store';
+import { TrialReminderTap } from '@/features/billing/trial-reminder-tap';
 import { LiveSessionRestore } from '@/features/gym/live-session-restore';
 import { registerPushToken } from '@/features/notifications/push';
 import { useWatchAutoSync } from '@/features/watch/auto-sync';
@@ -56,6 +57,7 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <BackgroundSync />
         <MorningWeatherAlerts />
+        <TrialReminderTap />
         {success ? <LiveSessionRestore /> : null}
         <ThemeProvider value={toNavigationTheme(theme)}>
           <StatusBar style={theme.scheme === 'dark' ? 'light' : 'dark'} />

@@ -453,6 +453,14 @@ verify_jwt = false
 [functions.zwift-push]
 verify_jwt = false
 
+# RevenueCat webhook: RevenueCat sends its own Authorization header (REVENUECAT_WEBHOOK_AUTH).
+[functions.revenuecat-webhook]
+verify_jwt = false
+
+# Trial-ending reminder: pg_cron sends x-cron-secret instead of a JWT.
+[functions.trial-reminders]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327
