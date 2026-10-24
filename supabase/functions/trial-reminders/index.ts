@@ -7,7 +7,8 @@
  * Called hourly by pg_cron (see the migration). Reads trials from `entitlements` (kept current by
  * `revenuecat-webhook`), skips those already in `trial_reminders`, and records each one it sends,
  * so a trial is reminded exactly once even when a run fails half-way and the next hour retries.
- * Without an email provider (RESEND_API_KEY + EMAIL_FROM) only the push goes out.
+ * Without an email provider (RESEND_API_KEY + EMAIL_FROM) only the push goes out. Website buyers
+ * without an account yet are reached at their checkout email.
  *
  * `verify_jwt = false` because the cron call carries a secret instead of a JWT.
  */
@@ -19,6 +20,24 @@ import { pushToUser } from '../_shared/push.ts';
 import { adminClient, json } from '../_shared/supabase.ts';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * The account's email; for a website buyer who has not created the account yet (still the
+ * anonymous quiz user) the email from their Stripe checkout.
+ */
+async function emailOf(admin: ReturnType<typeof adminClient>, userId: string) {
+  const { data } = await admin.auth.admin.getUserById(userId);
+  if (data?.user?.email) return data.user.email;
+  const { data: checkout } = await admin
+    .from('web_checkouts')
+    .select('email')
+    .eq('user_id', userId)
+    .not('email', 'is', null)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return (checkout?.email as string | undefined) ?? null;
+}
 
 Deno.serve(async (req) => {
   if (req.method !== 'POST') return json({ error: 'not_found' }, 404);
@@ -82,8 +101,7 @@ Deno.serve(async (req) => {
         console.warn('Trial reminder push failed', String(e));
       }
       if (email) {
-        const { data } = await admin.auth.admin.getUserById(reminder.userId);
-        const address = data?.user?.email;
+        const address = await emailOf(admin, reminder.userId);
         if (address) {
           try {
             await email.send({ to: address, ...texts.email });

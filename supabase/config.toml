@@ -162,7 +162,8 @@ site_url = "http://127.0.0.1:3000"
 # external_url = ""
 # A list of *exact* URLs that auth providers are permitted to redirect to post authentication.
 # `peakr://**` covers the app's magic-link and OAuth callbacks (peakr://auth/callback).
-additional_redirect_urls = ["https://127.0.0.1:3000", "peakr://**", "exp+peakr://**"]
+# The website signs in through /auth/callback (production URL: see docs/web-checkout-setup.md).
+additional_redirect_urls = ["https://127.0.0.1:3000", "http://127.0.0.1:3000/auth/callback", "peakr://**", "exp+peakr://**"]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
 # JWT issuer URL. If not set, defaults to auth.external_url.
@@ -459,6 +460,10 @@ verify_jwt = false
 
 # Trial-ending reminder: pg_cron sends x-cron-secret instead of a JWT.
 [functions.trial-reminders]
+verify_jwt = false
+
+# "Create your account" reminder for website buyers: pg_cron sends x-cron-secret.
+[functions.checkout-reminders]
 verify_jwt = false
 
 [analytics]

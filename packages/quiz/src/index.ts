@@ -87,3 +87,12 @@ export {
   type ForecastWeek,
   type PhaseSegment,
 } from './forecast';
+export {
+  durationText,
+  exerciseLines,
+  structureLines,
+  targetText,
+  workoutTitle,
+  zoneNumber,
+  type Translate,
+} from './workout-text';

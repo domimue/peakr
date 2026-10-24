@@ -7,6 +7,7 @@
     "@expo/ui": "~58.0.20",
     "@maplibre/maplibre-react-native": "~11.5.0",
     "@peakr/engine": "workspace:*",
+    "@peakr/i18n": "workspace:*",
     "@peakr/quiz": "workspace:*",
     "@peakr/theme": "workspace:*",
     "@peakr/watch": "workspace:*",

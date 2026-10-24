@@ -8,8 +8,7 @@ import {
   TRACKING_MODES,
 } from '@peakr/engine';
 
-import en from '@/i18n/locales/en.json';
-import enExercises from '@/i18n/locales/en/exercises.json';
+import { enExercises, enMessages as en } from '@/i18n/messages';
 
 import { PATTERN_ICONS } from '../exercise-text';
 

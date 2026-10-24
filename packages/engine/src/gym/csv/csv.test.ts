@@ -20,10 +20,7 @@ import { dateKey, parseDateTime, parseDuration, parseNumber } from './values';
 
 /** English library names and aliases, as the app passes them to the matcher. */
 const texts = JSON.parse(
-  readFileSync(
-    new URL('../../../../../apps/mobile/src/i18n/locales/en/exercises.json', import.meta.url),
-    'utf8',
-  ),
+  readFileSync(new URL('../../../../i18n/src/locales/en/exercises.json', import.meta.url), 'utf8'),
 ) as Record<string, { name: string; aliases: string[] }>;
 const candidates: MatchCandidate[] = exercises.map((e) => ({
   id: e.id,

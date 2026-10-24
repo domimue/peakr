@@ -3,11 +3,15 @@ import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
+import { authAvailable } from '@/features/auth/session-store';
 import { Button, Card, PeakrLogo, Screen, spacing, Text, useTheme } from '@/ui';
 
 import { hasProgress, useQuizStore } from '../quiz-store';
 
-/** Start of the onboarding quiz: what to expect, that the quiz is free, and resume. */
+/**
+ * Start of the onboarding quiz: what to expect, that the quiz is free, and resume. Someone who
+ * already has an account (e.g. bought on the website) signs in instead – the sync brings their plan.
+ */
 export function IntroScreen() {
   const { t } = useTranslation();
   const { scheme } = useTheme();
@@ -46,6 +50,13 @@ export function IntroScreen() {
             await reset();
             router.push('/onboarding/quiz');
           }}
+        />
+      ) : null}
+      {authAvailable ? (
+        <Button
+          variant="secondary"
+          label={t('auth.signIn.haveAccount')}
+          onPress={() => router.push('/auth/sign-in')}
         />
       ) : null}
     </Screen>

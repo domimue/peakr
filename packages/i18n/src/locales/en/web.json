@@ -10,9 +10,10 @@
     "features": "Features",
     "pricing": "Pricing",
     "tools": "Free tools",
-    "waitlist": "Join the waitlist",
     "label": "Main navigation",
-    "skipToContent": "Skip to content"
+    "skipToContent": "Skip to content",
+    "account": "Account",
+    "buildPlan": "Build my plan"
   },
   "footer": {
     "tagline": "Hybrid training plans driven by heart rate zones.",
@@ -81,22 +82,12 @@
     "toolsTeaser": {
       "title": "Try the free calculators",
       "body": "Heart rate zones, Zone 2, race predictions and swim pace – free, no account needed."
-    }
-  },
-  "waitlist": {
-    "title": "Join the waitlist",
-    "body": "Be the first to try Peakr when it launches. One email at launch – no spam.",
-    "emailLabel": "Email address",
-    "emailPlaceholder": "you@example.com",
-    "consent": "I agree that Peakr may store my email address to inform me about the launch. I can withdraw my consent at any time.",
-    "privacyLink": "Privacy policy",
-    "submit": "Join the waitlist",
-    "submitting": "Joining…",
-    "success": "Thanks – you’re on the list. We’ll email you when Peakr launches.",
-    "errors": {
-      "invalidEmail": "Please enter a valid email address.",
-      "consentRequired": "Please confirm that we may store your email address.",
-      "unavailable": "Something went wrong on our side. Please try again in a moment."
+    },
+    "start": {
+      "title": "Build your personal plan",
+      "body": "Answer a few questions about your goal, your week and your body – it takes about 3 minutes. You see your forecast and your first week for free.",
+      "button": "Build my plan",
+      "trial": "Then try the full plan free for 7 days."
     }
   },
   "cta": {
@@ -268,8 +259,8 @@
           "body": "This policy explains which personal data the Peakr website and the Peakr app process and why. It follows the Swiss Federal Act on Data Protection (revFADP) and, where applicable, the EU General Data Protection Regulation (GDPR)."
         },
         {
-          "heading": "Waitlist",
-          "body": "If you join the waitlist we store your email address, the consent text you agreed to and the time of your sign-up. We use this only to email you about the launch of Peakr. The legal basis is your consent (Art. 6(1)(a) GDPR). You can withdraw your consent at any time by emailing us; we will then delete your address. We delete the waitlist at the latest 12 months after launch."
+          "heading": "Quiz and email on this website",
+          "body": "When you take the quiz on this website, your answers are stored under an anonymous sign-in so you can continue later and so we can calculate your forecast and plan; they contain no name or email. If you also leave your email before the forecast and agree to it, we store it with the consent text and time and may email you about your plan and with tips for getting started (Art. 6(1)(a) GDPR); you can withdraw this consent at any time. When you create an account, your answers and your plan move into it. Answers of a quiz that is never turned into an account are deleted after 90 days."
         },
         {
           "heading": "Your account",
@@ -297,11 +288,11 @@
         },
         {
           "heading": "Payments (planned)",
-          "body": "Subscriptions are not available yet. Once they are, payments in the app are processed by Google Play or the App Store and payments on this website by Stripe Payments Europe Ltd.; we never see your full card details. RevenueCat Inc. manages which subscription your account has, across app and website. [TODO: complete this section before payments launch.]"
+          "body": "Payments in the app are processed by Google Play or the App Store, payments on this website by Stripe Payments Europe Ltd. (card details are entered on Stripe’s checkout page; we never see them). We store the checkout email, the Stripe customer and subscription references and the trial end, so we can attach the purchase to your account, remind you before your trial ends and – if you pay but never create your account – send you one email with a link to finish it. RevenueCat Inc. manages which subscription your account has, across app and website."
         },
         {
           "heading": "Database hosting (Supabase)",
-          "body": "Waitlist sign-ups, accounts and synchronised app data are stored with Supabase Inc. as our processor in a data centre in the EU [TODO: confirm region]. Supabase processes the data only on our behalf, under a data processing agreement."
+          "body": "Quiz answers, accounts, purchases and synchronised app data are stored with Supabase Inc. as our processor in a data centre in the EU [TODO: confirm region]. Supabase processes the data only on our behalf, under a data processing agreement."
         },
         {
           "heading": "Website hosting (Vercel)",
@@ -313,7 +304,7 @@
         },
         {
           "heading": "Cookies and analytics",
-          "body": "This website currently uses no tracking cookies and no analytics. Fonts are served from our own domain, not from third parties. If we add analytics later, it will only load after you have given your consent, and this policy will be updated first."
+          "body": "This website uses no tracking cookies and no analytics. It sets only cookies that are needed for what you ask it to do: the sign-in session (also the anonymous one that keeps your quiz answers) and one cookie that remembers which quiz belongs to this browser, so the account you create can take it over. Fonts are served from our own domain, not from third parties. If we add analytics later, it will only load after you have given your consent, and this policy will be updated first."
         },
         {
           "heading": "Retention and deletion",
@@ -503,7 +494,7 @@
     },
     "cta": {
       "title": "Ready for a plan that fits your week?",
-      "body": "Peakr is coming soon to Android and iOS. Join the waitlist and be the first to build your plan."
+      "body": "Answer a few questions and see your forecast and your first week – free. Then try the full plan for 7 days."
     }
   },
   "pricing": {
@@ -522,7 +513,7 @@
     "yearlyEquivalent": "That’s {{price}} per month, billed yearly.",
     "trialBadge": "7-day free trial",
     "comingSoon": "Coming soon",
-    "choose": "Join the waitlist",
+    "choose": "Start with the quiz",
     "tiers": {
       "training": {
         "name": "Training",
@@ -559,7 +550,8 @@
         "Works offline in the gym"
       ],
       "withoutTitle": "Without the add-on",
-      "without": "You still see your planned strength sessions and mark them done with duration and effort. Your endurance plan never depends on the add-on."
+      "without": "You still see your planned strength sessions and mark them done with duration and effort. Your endurance plan never depends on the add-on.",
+      "howTo": "Add it in the app once your plan is running, or on its own – with the same 7-day free trial."
     },
     "trial": {
       "title": "How the 7-day free trial works",
@@ -595,7 +587,7 @@
         },
         {
           "question": "Can I switch between monthly and yearly?",
-          "answer": "Yes. You can switch the billing period or change your tier at any time in the app under Profile → Subscription."
+          "answer": "Yes. If you subscribed on the website, switch in the customer portal linked from your account. If you subscribed in the app, switch in Profile → Subscription."
         },
         {
           "question": "How do I cancel?",
@@ -611,13 +603,13 @@
         },
         {
           "question": "When is Training + Nutrition available?",
-          "answer": "We are building it now. Join the waitlist and we will let you know when it launches."
+          "answer": "We are building it now. We will let you know in the app and by email when it launches."
         }
       ]
     },
     "cta": {
-      "title": "Be the first to train with Peakr",
-      "body": "Peakr is coming soon. Join the waitlist and we will email you when your 7-day free trial is ready."
+      "title": "See your plan before you pay",
+      "body": "Take the quiz, see your forecast and your first week for free – then start your 7-day free trial."
     }
   },
   "deleteAccount": {
@@ -655,5 +647,168 @@
     },
     "googlePlayLink": "Open Google Play subscriptions",
     "appStoreLink": "Open App Store subscriptions"
+  },
+  "auth": {
+    "metaTitle": "Log in | Peakr",
+    "metaDescription": "Log in to your Peakr account to see your subscription.",
+    "title": "Log in to Peakr",
+    "lead": "Use the email, Google or Apple account you use in the app.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "sendLink": "Email me a sign-in link",
+    "sending": "Sending…",
+    "sent": "We sent a sign-in link to {{email}}. Open it on this device – or enter the 6-digit code from the email here.",
+    "codeLabel": "6-digit code",
+    "verify": "Log in with code",
+    "otherEmail": "Use another email",
+    "or": "or",
+    "google": "Continue with Google",
+    "apple": "Continue with Apple",
+    "errors": {
+      "invalidEmail": "Please enter a valid email address.",
+      "invalidCode": "That code didn’t work. Check the latest email and try again.",
+      "unavailable": "Signing in is not possible right now. Please try again in a moment.",
+      "link": "That sign-in link has expired or was opened in another browser. Request a new one, or enter the code from the email."
+    },
+    "terms": "By continuing you agree to our {{terms}} and {{privacy}}.",
+    "termsLink": "Terms",
+    "privacyLink": "Privacy policy"
+  },
+  "funnel": {
+    "quiz": {
+      "metaTitle": "Build your personal plan | Peakr",
+      "saveError": "Your answers could not be saved just now. Check your connection – we’ll try again on the next step.",
+      "finishError": "Your answers could not be saved. Please try again.",
+      "haveAccount": "Already have Peakr?",
+      "logIn": "Log in"
+    },
+    "email": {
+      "metaTitle": "Your plan is almost ready | Peakr",
+      "title": "Get a reminder of your plan?",
+      "lead": "Optional. Leave your email and we can remind you of your plan later, with a few tips to get started. No spam, unsubscribe anytime.",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "consent": "Yes, Peakr may email me about my plan and with tips for getting started. I can unsubscribe at any time.",
+      "privacyLink": "Privacy policy",
+      "submit": "Save and see my forecast",
+      "skip": "Skip – show my forecast",
+      "errors": {
+        "invalidEmail": "Please enter a valid email address.",
+        "consentRequired": "Please tick the box if you want us to email you – or skip this step.",
+        "unavailable": "That didn’t work just now. You can skip this step and continue."
+      }
+    },
+    "forecast": {
+      "metaTitle": "Your plan forecast | Peakr",
+      "missing": "Your answers are not complete yet.",
+      "continueQuiz": "Continue the quiz",
+      "cta": "Start my 7-day free trial",
+      "ctaHint": "Card required, nothing charged for 7 days. Cancel anytime before."
+    },
+    "paywall": {
+      "metaTitle": "Choose your plan | Peakr",
+      "title": "Unlock your full plan",
+      "lead": "Everything in your forecast, ready in the app the moment you finish.",
+      "billingLabel": "Billing period",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "perMonth": "{{price}} / month",
+      "perYear": "{{price}} / year",
+      "yearlyEquivalent": "That’s {{price}} per month.",
+      "trialFree": "Free for 7 days, then {{price}}.",
+      "firstCharge": "Your first charge is on {{date}}. We remind you by email one day before.",
+      "noTrial": "You already used your free trial, so your subscription starts today.",
+      "start": "Start my free trial",
+      "startNoTrial": "Subscribe",
+      "comingSoon": "Coming soon",
+      "cancelAnytime": "Cancel anytime in your account – before {{date}} you pay nothing.",
+      "secure": "Secure checkout by Stripe. You can manage or cancel your subscription on the website at any time.",
+      "unavailable": "Checkout is not available right now. Please try again in a moment.",
+      "alreadySubscribed": "You already have an active Peakr subscription – no need to pay twice.",
+      "toAccount": "Go to my account",
+      "emailHasPeakr": "{{email}} already has a Peakr account. Log in first so your plan and your subscription stay in one place.",
+      "logIn": "Log in",
+      "legal": "By starting your subscription you agree to our {{terms}}. It renews automatically until you cancel.",
+      "termsLink": "Terms of service"
+    },
+    "success": {
+      "metaTitle": "Welcome to Peakr",
+      "title": "Your trial has started 🎉",
+      "titleNoTrial": "Your subscription is active 🎉",
+      "lead": "One last step: create your account, so the app can show you your plan.",
+      "trialEnds": "Free until {{date}}. We remind you one day before.",
+      "createTitle": "Create your account",
+      "createLead": "Use the email from your checkout – {{email}} – or Google / Apple.",
+      "pending": "We’re still confirming your payment. This page updates in a moment.",
+      "refresh": "Refresh",
+      "invalid": "We couldn’t find this checkout. If you paid, check your email for the link, or contact us.",
+      "expired": "This checkout was not completed, so nothing was charged.",
+      "backToPlan": "Back to my plan"
+    },
+    "claim": {
+      "failed": "We couldn’t attach your purchase to this account. Log in with the email you used at checkout, or contact us – nothing is lost.",
+      "notYours": "This checkout belongs to another email address. Log in with the email you used at checkout."
+    },
+    "getApp": {
+      "metaTitle": "Get the Peakr app",
+      "metaDescription": "Download Peakr for Android and log in – your plan is already waiting for you.",
+      "title": "Get the app",
+      "lead": "Download Peakr and log in with the same account – your plan is already there.",
+      "welcome": "Your account is ready. Download the app and log in with {{email}}.",
+      "keptPlan": "You already had a plan in Peakr, so we kept it. You can build a new one in the app any time.",
+      "alreadySubscribed": "You already had an active subscription, so we cancelled the new trial right away – nothing will be charged.",
+      "open": "Open the app",
+      "googlePlay": "Get it on Google Play",
+      "appStore": "Download on the App Store",
+      "iosSoon": "iPhone version coming soon",
+      "qrTitle": "On your computer?",
+      "qrLead": "Scan the code with your phone to get the app.",
+      "qrAlt": "QR code that opens the Peakr app download page",
+      "notYet": "Peakr is almost ready for the stores. We’ll email you the moment you can download it.",
+      "steps": [
+        "Install Peakr from the store.",
+        "Log in with the same email, Google or Apple account.",
+        "Your plan is there – start with today’s session."
+      ]
+    },
+    "account": {
+      "metaTitle": "Your account | Peakr",
+      "title": "Your account",
+      "signedInAs": "Signed in as {{email}}",
+      "subscriptionTitle": "Subscription",
+      "none": "You don’t have an active subscription.",
+      "noneCta": "Build my plan",
+      "tiers": {
+        "training": "Peakr Training",
+        "plus": "Peakr Training + Nutrition",
+        "gym": "Peakr Gym"
+      },
+      "status": {
+        "trial": "Free trial until {{date}}",
+        "active": "Renews on {{date}}",
+        "cancelled": "Cancelled – access until {{date}}",
+        "expired": "Ended on {{date}}",
+        "lifetime": "Active"
+      },
+      "price": "Then {{price}}",
+      "stores": {
+        "stripe": "Bought on the website",
+        "play_store": "Bought in Google Play",
+        "app_store": "Bought in the App Store",
+        "other": "Bought in a store"
+      },
+      "manage": "Manage or cancel subscription",
+      "manageHint": "Opens the secure Stripe customer portal: switch between monthly and yearly, update your card, see invoices or cancel.",
+      "manageStore": "Manage in Google Play",
+      "manageAppStore": "Manage in the App Store",
+      "storeHint": "Subscriptions bought in the app are managed in the store you bought them in.",
+      "portalError": "The customer portal is not available right now. Please try again in a moment.",
+      "cancelledNotice": "You already had an active subscription, so we cancelled the new web trial right away – nothing will be charged.",
+      "getApp": "Get the app",
+      "signOut": "Log out",
+      "deleteTitle": "Delete account",
+      "deleteLead": "Delete your account and all your data.",
+      "deleteLink": "How to delete my account"
+    }
   }
 }

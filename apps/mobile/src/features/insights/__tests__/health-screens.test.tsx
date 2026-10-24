@@ -9,7 +9,7 @@ import * as healthRepo from '@/data/repositories/health-repository';
 import * as planRepo from '@/data/repositories/plan-repository';
 import { useSessionStore } from '@/features/auth/session-store';
 import * as api from '@/features/health-data/api';
-import en from '@/i18n/locales/en.json';
+import { enMessages as en } from '@/i18n/messages';
 import { renderWithQuery } from '@/test-utils/render-with-query';
 
 import { TodayScreen } from '@/features/today/today-screen';

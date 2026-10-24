@@ -1,7 +1,7 @@
 import { workoutLibrary } from '@peakr/engine';
 import { strengthQuestions } from '@peakr/quiz';
 
-import en from '@/i18n/locales/en.json';
+import { enMessages as en } from '@/i18n/messages';
 
 function lookup(key: string): unknown {
   return key

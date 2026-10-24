@@ -22,7 +22,7 @@ describe('siteUrl', () => {
 });
 
 describe('sitemap and robots', () => {
-  it('lists the landing, marketing, tools and legal pages with absolute URLs', () => {
+  it('lists the landing, marketing, tools, get-the-app and legal pages with absolute URLs', () => {
     vi.stubEnv('NEXT_PUBLIC_SITE_URL', 'https://peakr.example');
     expect(sitemap().map((entry) => entry.url)).toEqual([
       'https://peakr.example',
@@ -33,6 +33,7 @@ describe('sitemap and robots', () => {
       'https://peakr.example/tools/zone-2',
       'https://peakr.example/tools/pace',
       'https://peakr.example/tools/swim-css',
+      'https://peakr.example/get-app',
       'https://peakr.example/privacy',
       'https://peakr.example/terms',
       'https://peakr.example/imprint',

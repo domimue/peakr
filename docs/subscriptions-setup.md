@@ -143,11 +143,8 @@ App (react-native-purchases) ──purchase──▶ Google Play / App Store
 9. **Customer attributes**: nothing to set up. The app writes `peakr_price` and `peakr_product`
    before every purchase; the trial reminder reads the amount from them (RevenueCat events of a
    trial carry a price of 0).
-10. **Stripe / Web Billing** (when the web checkout goes live): connect Stripe in RevenueCat,
-    create the Stripe products with monthly and yearly prices and a 7-day trial with the card
-    collected upfront, attach them to `training` (and `plus`), and send the Supabase user id as
-    the app user id. The app then unlocks web purchases by itself; it never links to the web
-    checkout (store rules).
+10. **Stripe** (the website checkout): see [`docs/web-checkout-setup.md`](web-checkout-setup.md).
+    The app unlocks web purchases by itself; it never links to the web checkout (store rules).
 
 ## 4. Supabase
 

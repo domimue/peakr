@@ -16,7 +16,7 @@ describe('tool pages', () => {
       '/tools/zone-2',
       '/tools/pace',
       '/tools/swim-css',
-      '/#waitlist',
+      '/quiz',
     ]);
   });
 
@@ -31,6 +31,6 @@ describe('tool pages', () => {
     expect(screen.getByRole('heading', { level: 2, name: heading })).toBeDefined();
     expect(
       screen.getByRole('link', { name: 'Build your personal plan' }).getAttribute('href'),
-    ).toBe('/#waitlist');
+    ).toBe('/quiz');
   });
 });

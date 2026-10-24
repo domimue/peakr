@@ -40,7 +40,7 @@ describe('pricing page', () => {
     expect(within(plus!).queryByRole('link')).toBeNull();
   });
 
-  it('explains the trial, has an FAQ and sends every CTA to the waitlist', () => {
+  it('explains the trial, has an FAQ and sends every CTA to the quiz', () => {
     render(<PricingPage />);
     expect(
       screen.getByRole('heading', { level: 2, name: 'How the 7-day free trial works' }),
@@ -48,14 +48,10 @@ describe('pricing page', () => {
     expect(screen.getByText('Reminder one day before')).toBeDefined();
     expect(screen.getByText('How do I cancel?')).toBeDefined();
     const ctas = [
-      ...screen.getAllByRole('link', { name: 'Join the waitlist' }),
+      ...screen.getAllByRole('link', { name: 'Start with the quiz' }),
       screen.getByRole('link', { name: 'Build your personal plan' }),
     ];
-    expect(ctas.map((link) => link.getAttribute('href'))).toEqual([
-      '/#waitlist',
-      '/#waitlist',
-      '/#waitlist',
-    ]);
+    expect(ctas.map((link) => link.getAttribute('href'))).toEqual(['/quiz', '/quiz']);
   });
 
   it('prices the Gym add-on as its own subscription next to the tiers', async () => {

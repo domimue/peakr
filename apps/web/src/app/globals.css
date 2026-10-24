@@ -18,3 +18,45 @@
     letter-spacing: -0.02em;
   }
 }
+
+/* Quiz steps slide in from the side they come from (no motion when reduced motion is asked). */
+@keyframes quiz-in-forward {
+  from {
+    opacity: 0;
+    transform: translateX(24px);
+  }
+}
+@keyframes quiz-in-back {
+  from {
+    opacity: 0;
+    transform: translateX(-24px);
+  }
+}
+.quiz-enter-forward {
+  animation: quiz-in-forward 250ms ease-out;
+}
+.quiz-enter-back {
+  animation: quiz-in-back 250ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .quiz-enter-forward,
+  .quiz-enter-back {
+    animation: none;
+  }
+}
+
+/* Forecast load chart: the bars grow in one after another. */
+@keyframes load-bar-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+.load-bar {
+  transform-origin: bottom;
+  animation: load-bar-grow 450ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .load-bar {
+    animation: none;
+  }
+}

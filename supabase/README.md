@@ -14,9 +14,10 @@ Security, and Edge Functions for everything that needs a secret.
 | `functions/watch/` | Watch platforms (Garmin, COROS, Suunto): FIT/GPX export, push workouts and routes with re-sync, import; behind `WATCH_*` flags – see `docs/watch-integrations.md` |
 | `functions/watch-webhook/` | Completed-activity notifications of the watch platforms (`?key=WATCH_WEBHOOK_SECRET`), same `activities` pipeline as Strava |
 | `functions/weather/`     | Weather check: hourly forecast per ~5 km cell (MeteoSwiss for Switzerland, Open-Meteo elsewhere), cached per hour |
-| `functions/delete-account/` | Account deletion: revokes Strava, deletes all rows, the RevenueCat customer and the auth user |
+| `functions/delete-account/` | Account deletion: revokes Strava, cancels website (Stripe) subscriptions, deletes all rows, the RevenueCat customer and the auth user |
 | `functions/revenuecat-webhook/` | RevenueCat events → `entitlements` (state read back from the RevenueCat API) |
 | `functions/trial-reminders/` | Hourly (pg_cron): push + email one day before a trial converts – see `docs/subscriptions-setup.md` |
+| `functions/checkout-reminders/` | Hourly (pg_cron): one "create your account" email to website buyers who never did – see `docs/web-checkout-setup.md` |
 | `functions/_shared/`     | Token encryption, signed OAuth state, provider registry, Strava import, Expo push |
 | `templates/`             | Sign-in emails (link **and** 6-digit code)                            |
 | `config.toml`            | Local CLI config; the hosted project is configured in the dashboard   |
@@ -41,7 +42,9 @@ Security, and Edge Functions for everything that needs a secret.
 | `push_tokens`        | the app (own device)           | Expo push tokens + "notify me" per device                   |
 | `entitlements`       | Edge Functions only            | mirror of RevenueCat entitlements (training, plus, gym), active or expired; own rows readable; `has_entitlement(uid, name)` for the backend |
 | `trial_reminders`    | Edge Functions only            | trial-ending reminders sent (one per trial); no access for app or website |
-| `waitlist`           | the website (insert only)      | Phase 1b                                                    |
+| `quiz_sessions`      | the website (visitor's session) | website quiz answers per (anonymous) user, resumable; optional email with consent; anonymous rows deleted after 90 days (pg_cron) |
+| `web_checkouts`      | the website server (service role) | Stripe Checkout sessions and their owner (anonymous quiz user until the account claims it); `funnel_email_status(email)` for trial and account checks |
+| `waitlist`           | nobody any more                | Phase 1b; the form was replaced by the quiz funnel (Phase 10b) |
 
 Sync (app side: `apps/mobile/src/data/sync`): SQLite stays the source for the UI. Every edit marks
 rows dirty with a device timestamp (`updated_at`); the app pushes dirty rows, then pulls rows whose
@@ -63,6 +66,7 @@ pnpm exec supabase functions deploy weather
 pnpm exec supabase functions deploy strava-upload
 pnpm exec supabase functions deploy revenuecat-webhook
 pnpm exec supabase functions deploy trial-reminders
+pnpm exec supabase functions deploy checkout-reminders
 pnpm exec supabase secrets set --env-file supabase/functions/.env
 ```
 

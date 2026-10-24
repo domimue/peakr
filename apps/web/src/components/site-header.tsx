@@ -1,6 +1,7 @@
 import Link from 'next/link';
 
 import { PeakrLogo } from '@/components/brand/peakr-logo';
+import { QUIZ_HREF } from '@/features/tools/tools';
 import { messages } from '@/i18n';
 
 const t = messages.nav;
@@ -34,11 +35,14 @@ export function SiteHeader() {
               {label}
             </Link>
           ))}
+          <Link href="/account" className="text-muted hover:text-foreground">
+            {t.account}
+          </Link>
           <Link
-            href="/#waitlist"
+            href={QUIZ_HREF}
             className="hidden rounded-button border-1.5 border-border px-4 py-2 font-semibold hover:bg-surface sm:inline-block"
           >
-            {t.waitlist}
+            {t.buildPlan}
           </Link>
         </div>
       </nav>
