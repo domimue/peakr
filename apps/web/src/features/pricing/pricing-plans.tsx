@@ -84,12 +84,7 @@ function AddonCard({ period }: { period: BillingPeriod }) {
         <span className="font-semibold">{copy.withoutTitle}: </span>
         {copy.without}
       </p>
-      <Link
-        href={QUIZ_HREF}
-        className="inline-flex min-h-12 items-center self-start rounded-button bg-accent px-6 font-semibold text-on-accent transition-colors hover:bg-accent-pressed"
-      >
-        {t.choose}
-      </Link>
+      <p className="text-sm font-semibold">{copy.howTo}</p>
     </section>
   );
 }

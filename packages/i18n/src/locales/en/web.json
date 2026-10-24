@@ -10,12 +10,10 @@
     "features": "Features",
     "pricing": "Pricing",
     "tools": "Free tools",
-    "waitlist": "Join the waitlist",
     "label": "Main navigation",
     "skipToContent": "Skip to content",
-    "account": "Log in",
-    "buildPlan": "Build my plan",
-    "getApp": "Get the app"
+    "account": "Account",
+    "buildPlan": "Build my plan"
   },
   "footer": {
     "tagline": "Hybrid training plans driven by heart rate zones.",
@@ -84,22 +82,12 @@
     "toolsTeaser": {
       "title": "Try the free calculators",
       "body": "Heart rate zones, Zone 2, race predictions and swim pace – free, no account needed."
-    }
-  },
-  "waitlist": {
-    "title": "Join the waitlist",
-    "body": "Be the first to try Peakr when it launches. One email at launch – no spam.",
-    "emailLabel": "Email address",
-    "emailPlaceholder": "you@example.com",
-    "consent": "I agree that Peakr may store my email address to inform me about the launch. I can withdraw my consent at any time.",
-    "privacyLink": "Privacy policy",
-    "submit": "Join the waitlist",
-    "submitting": "Joining…",
-    "success": "Thanks – you’re on the list. We’ll email you when Peakr launches.",
-    "errors": {
-      "invalidEmail": "Please enter a valid email address.",
-      "consentRequired": "Please confirm that we may store your email address.",
-      "unavailable": "Something went wrong on our side. Please try again in a moment."
+    },
+    "start": {
+      "title": "Build your personal plan",
+      "body": "Answer a few questions about your goal, your week and your body – it takes about 3 minutes. You see your forecast and your first week for free.",
+      "button": "Build my plan",
+      "trial": "Then try the full plan free for 7 days."
     }
   },
   "cta": {
@@ -271,8 +259,8 @@
           "body": "This policy explains which personal data the Peakr website and the Peakr app process and why. It follows the Swiss Federal Act on Data Protection (revFADP) and, where applicable, the EU General Data Protection Regulation (GDPR)."
         },
         {
-          "heading": "Waitlist",
-          "body": "If you join the waitlist we store your email address, the consent text you agreed to and the time of your sign-up. We use this only to email you about the launch of Peakr. The legal basis is your consent (Art. 6(1)(a) GDPR). You can withdraw your consent at any time by emailing us; we will then delete your address. We delete the waitlist at the latest 12 months after launch."
+          "heading": "Quiz and email on this website",
+          "body": "When you take the quiz on this website, your answers are stored under an anonymous sign-in so you can continue later and so we can calculate your forecast and plan; they contain no name or email. If you also leave your email before the forecast and agree to it, we store it with the consent text and time and may email you about your plan and with tips for getting started (Art. 6(1)(a) GDPR); you can withdraw this consent at any time. When you create an account, your answers and your plan move into it. Answers of a quiz that is never turned into an account are deleted after 90 days."
         },
         {
           "heading": "Your account",
@@ -300,11 +288,11 @@
         },
         {
           "heading": "Payments (planned)",
-          "body": "Subscriptions are not available yet. Once they are, payments in the app are processed by Google Play or the App Store and payments on this website by Stripe Payments Europe Ltd.; we never see your full card details. RevenueCat Inc. manages which subscription your account has, across app and website. [TODO: complete this section before payments launch.]"
+          "body": "Payments in the app are processed by Google Play or the App Store, payments on this website by Stripe Payments Europe Ltd. (card details are entered on Stripe’s checkout page; we never see them). We store the checkout email, the Stripe customer and subscription references and the trial end, so we can attach the purchase to your account, remind you before your trial ends and – if you pay but never create your account – send you one email with a link to finish it. RevenueCat Inc. manages which subscription your account has, across app and website."
         },
         {
           "heading": "Database hosting (Supabase)",
-          "body": "Waitlist sign-ups, accounts and synchronised app data are stored with Supabase Inc. as our processor in a data centre in the EU [TODO: confirm region]. Supabase processes the data only on our behalf, under a data processing agreement."
+          "body": "Quiz answers, accounts, purchases and synchronised app data are stored with Supabase Inc. as our processor in a data centre in the EU [TODO: confirm region]. Supabase processes the data only on our behalf, under a data processing agreement."
         },
         {
           "heading": "Website hosting (Vercel)",
@@ -316,7 +304,7 @@
         },
         {
           "heading": "Cookies and analytics",
-          "body": "This website currently uses no tracking cookies and no analytics. Fonts are served from our own domain, not from third parties. If we add analytics later, it will only load after you have given your consent, and this policy will be updated first."
+          "body": "This website uses no tracking cookies and no analytics. It sets only cookies that are needed for what you ask it to do: the sign-in session (also the anonymous one that keeps your quiz answers) and one cookie that remembers which quiz belongs to this browser, so the account you create can take it over. Fonts are served from our own domain, not from third parties. If we add analytics later, it will only load after you have given your consent, and this policy will be updated first."
         },
         {
           "heading": "Retention and deletion",
@@ -506,7 +494,7 @@
     },
     "cta": {
       "title": "Ready for a plan that fits your week?",
-      "body": "Peakr is coming soon to Android and iOS. Join the waitlist and be the first to build your plan."
+      "body": "Answer a few questions and see your forecast and your first week – free. Then try the full plan for 7 days."
     }
   },
   "pricing": {
@@ -525,7 +513,7 @@
     "yearlyEquivalent": "That’s {{price}} per month, billed yearly.",
     "trialBadge": "7-day free trial",
     "comingSoon": "Coming soon",
-    "choose": "Join the waitlist",
+    "choose": "Start with the quiz",
     "tiers": {
       "training": {
         "name": "Training",
@@ -562,7 +550,8 @@
         "Works offline in the gym"
       ],
       "withoutTitle": "Without the add-on",
-      "without": "You still see your planned strength sessions and mark them done with duration and effort. Your endurance plan never depends on the add-on."
+      "without": "You still see your planned strength sessions and mark them done with duration and effort. Your endurance plan never depends on the add-on.",
+      "howTo": "Add it in the app once your plan is running, or on its own – with the same 7-day free trial."
     },
     "trial": {
       "title": "How the 7-day free trial works",
@@ -598,7 +587,7 @@
         },
         {
           "question": "Can I switch between monthly and yearly?",
-          "answer": "Yes. You can switch the billing period or change your tier at any time in the app under Profile → Subscription."
+          "answer": "Yes. If you subscribed on the website, switch in the customer portal linked from your account. If you subscribed in the app, switch in Profile → Subscription."
         },
         {
           "question": "How do I cancel?",
@@ -614,13 +603,13 @@
         },
         {
           "question": "When is Training + Nutrition available?",
-          "answer": "We are building it now. Join the waitlist and we will let you know when it launches."
+          "answer": "We are building it now. We will let you know in the app and by email when it launches."
         }
       ]
     },
     "cta": {
-      "title": "Be the first to train with Peakr",
-      "body": "Peakr is coming soon. Join the waitlist and we will email you when your 7-day free trial is ready."
+      "title": "See your plan before you pay",
+      "body": "Take the quiz, see your forecast and your first week for free – then start your 7-day free trial."
     }
   },
   "deleteAccount": {

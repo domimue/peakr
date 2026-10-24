@@ -1,12 +1,10 @@
 import { render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { describe, expect, it } from 'vitest';
 
-vi.mock('../actions', () => ({ joinWaitlist: vi.fn() }));
-
-const { default: Home } = await import('@/app/page');
+import Home from '@/app/page';
 
 describe('landing page', () => {
-  it('shows the positioning, the waitlist and links to every tool', () => {
+  it('shows the positioning, sends the main CTA into the quiz and links every tool', () => {
     render(<Home />);
     expect(
       screen.getByRole('heading', {
@@ -14,7 +12,7 @@ describe('landing page', () => {
         name: 'One training plan for running, cycling, swimming and strength.',
       }),
     ).toBeDefined();
-    expect(screen.getByRole('heading', { level: 2, name: 'Join the waitlist' })).toBeDefined();
+    expect(screen.getByRole('link', { name: 'Build my plan' }).getAttribute('href')).toBe('/quiz');
     const hrefs = screen.getAllByRole('link').map((link) => link.getAttribute('href'));
     expect(hrefs).toEqual(
       expect.arrayContaining([

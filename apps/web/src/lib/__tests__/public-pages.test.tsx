@@ -34,7 +34,7 @@ describe('public pages', () => {
     expect(new Set(descriptions).size).toBe(pages.length);
   });
 
-  it('features page shows every section and sends the CTA to the waitlist', () => {
+  it('features page shows every section and sends the CTA to the quiz', () => {
     render(<FeaturesPage />);
     expect(screen.getByRole('heading', { level: 1 })).toBeDefined();
     for (const heading of [
@@ -53,7 +53,7 @@ describe('public pages', () => {
     expect(screen.getAllByRole('img', { name: 'Screenshot coming soon' })).toHaveLength(5);
     expect(
       screen.getByRole('link', { name: 'Build your personal plan' }).getAttribute('href'),
-    ).toBe('/#waitlist');
+    ).toBe('/quiz');
   });
 
   it('header links the main pages and the footer links every public page', () => {
@@ -72,7 +72,8 @@ describe('public pages', () => {
       '/features',
       '/pricing',
       '/tools',
-      '/#waitlist',
+      '/account',
+      '/quiz',
     ]);
     expect(hrefs('Footer')).toEqual([
       '/features',

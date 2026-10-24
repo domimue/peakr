@@ -1,7 +1,6 @@
 import Link from 'next/link';
 
-import { WaitlistForm } from '@/features/waitlist/waitlist-form';
-import { TOOLS } from '@/features/tools/tools';
+import { QUIZ_HREF, TOOLS } from '@/features/tools/tools';
 import { messages } from '@/i18n';
 import { pageMetadata } from '@/lib/metadata';
 
@@ -26,7 +25,7 @@ export default function Home() {
             <h1 className="text-2xl leading-tight sm:text-3xl">{t.hero.title}</h1>
             <p className="text-lg leading-relaxed text-muted">{t.hero.lead}</p>
           </div>
-          <WaitlistCard />
+          <StartCard />
         </section>
       </div>
 
@@ -96,21 +95,25 @@ export default function Home() {
   );
 }
 
-function WaitlistCard() {
-  const w = messages.waitlist;
+/** The page's one primary action: into the quiz funnel. */
+function StartCard() {
+  const c = t.start;
   return (
     <section
-      id="waitlist"
-      aria-labelledby="waitlist-title"
-      className="flex scroll-mt-6 flex-col gap-4 rounded-3xl border border-border bg-surface p-6 sm:p-8"
+      aria-labelledby="start-title"
+      className="flex flex-col gap-4 rounded-3xl border border-border bg-surface p-6 sm:p-8"
     >
-      <div className="flex flex-col gap-2">
-        <h2 id="waitlist-title" className="text-xl">
-          {w.title}
-        </h2>
-        <p className="text-muted">{w.body}</p>
-      </div>
-      <WaitlistForm />
+      <h2 id="start-title" className="text-xl">
+        {c.title}
+      </h2>
+      <p className="text-muted">{c.body}</p>
+      <Link
+        href={QUIZ_HREF}
+        className="inline-flex min-h-12 items-center justify-center rounded-button bg-accent px-6 font-semibold text-on-accent transition-colors hover:bg-accent-pressed"
+      >
+        {c.button}
+      </Link>
+      <p className="text-sm text-muted">{c.trial}</p>
     </section>
   );
 }

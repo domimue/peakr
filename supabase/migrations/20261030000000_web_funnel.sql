@@ -154,3 +154,22 @@ select cron.schedule(
   );
   $$
 );
+
+-- ---------------------------------------------------------------------------------------------
+-- Daily: quiz answers of anonymous visitors who never bought nor created an account are kept for
+-- 90 days (privacy policy), then deleted.
+
+select cron.schedule(
+  'quiz-sessions-cleanup',
+  '23 4 * * *',
+  $$
+  delete from public.quiz_sessions q
+  using auth.users u
+  where u.id = q.user_id
+    and coalesce(u.is_anonymous, false)
+    and q.updated_at < now() - interval '90 days'
+    and not exists (
+      select 1 from public.web_checkouts c where c.user_id = q.user_id and c.status = 'complete'
+    );
+  $$
+);
