@@ -22,9 +22,11 @@ function config() {
 export const supabaseConfigured = () => config() !== null;
 
 export async function sessionClient(): Promise<SupabaseClient | null> {
+  // Read the cookies first, also without a project: the page then always renders per request
+  // instead of being prerendered at build time (where it would redirect everyone).
+  const store = await cookies();
   const c = config();
   if (!c) return null;
-  const store = await cookies();
   return createServerClient(c.url, c.key, {
     cookies: {
       getAll: () => store.getAll(),
