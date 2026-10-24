@@ -11,6 +11,6 @@ _(none)_
 
 ## Done
 
-- Phase 10 – Subscriptions & paywall (app); waits on the user for the store/RevenueCat setup and the email provider decision (docs/subscriptions-setup.md)
+- Phase 10 – Subscriptions & paywall (app); waits on the user for the store/RevenueCat setup (docs/subscriptions-setup.md); email via Resend (approved)
 - Phase 9d – Health tab (Garmin + Health Connect); waits on the user for Garmin field checks (docs/health-garmin.md)
 - Claude GitHub Action for `@claude` mentions, OAuth token only

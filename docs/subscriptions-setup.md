@@ -163,10 +163,11 @@ pnpm exec supabase secrets set REVENUECAT_SECRET_KEY=… REVENUECAT_WEBHOOK_AUTH
   catch-up already needs (`supabase/README.md`).
 - **Email for the trial reminder**: the function sends through Resend when `RESEND_API_KEY` and
   `EMAIL_FROM` (e.g. `Peakr <hello@your-domain>`, a verified sender domain) are set; without them
-  only the push goes out. **Decision needed**: Resend is a new external service (free tier
-  3,000 emails/month). Any other provider fits behind `EmailProvider` in
-  `supabase/functions/_shared/email.ts`; the same provider can also be the custom SMTP sender for
-  the sign-in emails.
+  only the push goes out. Resend is the chosen provider (free tier 3,000 emails/month): create an
+  account, verify the sending domain (DNS records), create an API key with "sending access".
+  Another provider would fit behind `EmailProvider` in `supabase/functions/_shared/email.ts`.
+  Resend can also be the custom SMTP sender for the sign-in emails (Supabase → Authentication →
+  Emails → SMTP Settings: host `smtp.resend.com`, port 465, user `resend`, password = API key).
 
 ## 5. Test checklist
 
