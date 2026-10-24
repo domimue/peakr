@@ -50,9 +50,9 @@ RevenueCat / Supabase setup and the end-to-end test in Stripe test mode.
 
 ## Steps
 
-1. [ ] i18n: shared `plan.json` + `exercises.json`, app uses them, web translator; workout text
+1. [x] i18n: shared `plan.json` + `exercises.json`, app uses them, web translator; workout text
        helpers in `@peakr/quiz`; tests
-2. [ ] Supabase: migration (`quiz_sessions`, `web_checkouts`, helper functions, cron),
+2. [x] Supabase: migration (`quiz_sessions`, `web_checkouts`, helper functions, cron),
        `checkout-reminders`, trial reminder email fallback, delete-account cancels Stripe
 3. [ ] Web infra: deps (`@supabase/ssr`, `stripe`, `qrcode`), server/browser clients, proxy,
        funnel cookie, `/auth/callback`, `/login`

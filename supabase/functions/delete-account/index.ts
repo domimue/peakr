@@ -10,11 +10,14 @@
  * 3. Deletes the customer at RevenueCat (best effort), then the auth user with the admin API.
  *
  * Idempotent: every step accepts that its rows are already gone, and a user that no longer exists
- * counts as deleted. Tokens are never logged. An active subscription is not touched – the app tells
- * the user to cancel it in Google Play / the App Store (or the Stripe portal).
+ * counts as deleted. Tokens are never logged. A store subscription is not touched – the app tells
+ * the user to cancel it in Google Play / the App Store. A subscription bought on the website is
+ * cancelled here (before its rows go), because without the account nobody could reach the Stripe
+ * customer portal any more.
  */
 
 import { deleteSubscriber } from '../_shared/billing/store.ts';
+import { cancelStripeSubscription } from '../_shared/billing/stripe.ts';
 import { getProvider } from '../_shared/providers.ts';
 import { accessToken, type StravaIntegration } from '../_shared/strava.ts';
 import { adminClient, json, userFromRequest } from '../_shared/supabase.ts';
@@ -23,6 +26,8 @@ type Admin = ReturnType<typeof adminClient>;
 
 /** Child tables before their parents; `profiles` is keyed by `id`, all others by `user_id`. */
 const USER_TABLES = [
+  'quiz_sessions',
+  'web_checkouts',
   'health_daily',
   'health_sync_state',
   'health_consents',
@@ -60,6 +65,19 @@ async function revokeIntegrations(admin: Admin, userId: string): Promise<void> {
       const status = (e as { status?: number }).status;
       console.warn('Revoke failed during account deletion', row.provider, status ?? 'unknown');
     }
+  }
+}
+
+/** Website subscriptions of the user; a failure stops the deletion so the retry cancels them. */
+async function cancelWebSubscriptions(admin: Admin, userId: string): Promise<void> {
+  const { data, error } = await admin
+    .from('web_checkouts')
+    .select('subscription_id')
+    .eq('user_id', userId)
+    .not('subscription_id', 'is', null);
+  if (error) throw error;
+  for (const id of new Set((data ?? []).map((r) => r.subscription_id as string))) {
+    await cancelStripeSubscription(id);
   }
 }
 
@@ -101,6 +119,7 @@ Deno.serve(async (req) => {
     const user = await userFromRequest(req, admin);
     if (!user) return json({ error: 'unauthorized' }, 401);
     await revokeIntegrations(admin, user.id);
+    await cancelWebSubscriptions(admin, user.id);
     await deleteRows(admin, user.id);
     // The RevenueCat customer (purchase history keyed by this id); the store subscription itself
     // is cancelled by the user in the store.

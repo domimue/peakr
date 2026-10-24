@@ -461,6 +461,10 @@ verify_jwt = false
 [functions.trial-reminders]
 verify_jwt = false
 
+# "Create your account" reminder for website buyers: pg_cron sends x-cron-secret.
+[functions.checkout-reminders]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

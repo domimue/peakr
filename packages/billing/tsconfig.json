@@ -9,6 +9,7 @@
     "src",
     "../../supabase/functions/_shared/billing/revenuecat.ts",
     "../../supabase/functions/_shared/billing/reminder.ts",
+    "../../supabase/functions/_shared/billing/checkout-reminder.ts",
     "vitest.config.ts"
   ]
 }

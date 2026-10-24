@@ -2,3 +2,4 @@
 // with no build step) and are re-exported here for the tests.
 export * from '../../../supabase/functions/_shared/billing/revenuecat.ts';
 export * from '../../../supabase/functions/_shared/billing/reminder.ts';
+export * from '../../../supabase/functions/_shared/billing/checkout-reminder.ts';
