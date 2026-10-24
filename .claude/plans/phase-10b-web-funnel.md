@@ -56,7 +56,7 @@ RevenueCat / Supabase setup and the end-to-end test in Stripe test mode.
        `checkout-reminders`, trial reminder email fallback, delete-account cancels Stripe
 3. [x] Web infra: deps (`@supabase/ssr`, `stripe`, `qrcode`), server/browser clients, proxy,
        funnel cookie, `/auth/callback`, `/login`
-4. [ ] Quiz runner + save/resume actions, `/quiz`, email capture
+4. [x] Quiz runner + save/resume actions, `/quiz`, email capture
 5. [ ] Forecast page (load chart, week 1)
 6. [ ] Paywall + checkout action, Stripe webhook, RevenueCat client
 7. [ ] Success page, claim (plan rows), `/get-app`

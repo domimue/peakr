@@ -2,7 +2,9 @@
   "common": {
     "estimate": "Estimate",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "decrease": "Decrease",
+    "increase": "Increase"
   },
   "fields": {
     "age": "Age",

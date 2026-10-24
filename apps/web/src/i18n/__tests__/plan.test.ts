@@ -24,6 +24,7 @@ describe('plan translator', () => {
   it('reads the shared quiz, workout and exercise texts', () => {
     expect(t('quiz.goal.title')).not.toBe('quiz.goal.title');
     expect(t('workoutText.minutes', { count: 30 })).toContain('30');
+    expect(t('workouts.run.easy', { defaultValue: 'x' })).not.toBe('x');
     expect(t('common.yes')).toBe('Yes');
   });
 });

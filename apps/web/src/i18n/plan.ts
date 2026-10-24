@@ -1,5 +1,4 @@
 import common from '@peakr/i18n/locales/en/common.json';
-import exercises from '@peakr/i18n/locales/en/exercises.json';
 import plan from '@peakr/i18n/locales/en/plan.json';
 import type { Translate } from '@peakr/quiz';
 
@@ -11,9 +10,10 @@ import { interpolate } from '.';
  * `defaultValue` when a key is missing (otherwise the key itself, like i18next).
  */
 
-type Tree = { readonly [key: string]: string | Tree | readonly unknown[] };
+export type Tree = { readonly [key: string]: string | Tree | readonly unknown[] };
 
-const ROOT: Tree = { ...(common as Tree), ...(plan as Tree), exercises: exercises as Tree };
+/** Common + quiz/plan texts (the quiz runs in the browser; exercise names: `./workouts`). */
+export const PLAN_TREE: Tree = { ...(common as Tree), ...(plan as Tree) };
 
 const plural = new Intl.PluralRules('en');
 
@@ -27,7 +27,7 @@ function lookup(tree: Tree, key: string): unknown {
 }
 
 /** A translate function over `tree` (the shared texts by default; a tree is passed in tests). */
-export function createTranslate(tree: Tree = ROOT): Translate {
+export function createTranslate(tree: Tree = PLAN_TREE): Translate {
   return (key, params = {}) => {
     const count = params.count;
     let value: unknown;
