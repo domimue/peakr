@@ -21,6 +21,15 @@ export type SubscriptionStore = 'play_store' | 'app_store' | 'stripe' | 'other';
  * App Store: one product per period; the add-on has its own subscription group.
  */
 export const PRODUCTS = {
+  /** The two tiers share one subscription group on the App Store (upgrade/downgrade inside it). */
+  training: {
+    play: 'peakr_training',
+    appStore: { monthly: 'peakr_training_monthly', yearly: 'peakr_training_yearly' },
+  },
+  plus: {
+    play: 'peakr_plus',
+    appStore: { monthly: 'peakr_plus_monthly', yearly: 'peakr_plus_yearly' },
+  },
   gym: {
     play: 'peakr_gym',
     appStore: { monthly: 'peakr_gym_monthly', yearly: 'peakr_gym_yearly' },
@@ -29,6 +38,20 @@ export const PRODUCTS = {
 
 /** RevenueCat offering that holds the add-on packages (the tiers live in `default`). */
 export const GYM_OFFERING = 'gym';
+export const TIER_OFFERING = 'default';
+
+export type TierKey = 'training' | 'plus';
+
+/** Training + Nutrition is shown but not purchasable until the nutrition part ships. */
+export const PURCHASABLE_TIERS: readonly TierKey[] = ['training'];
+
+/** Which tier a store product belongs to (product ids contain the tier name). */
+export function tierOf(productId: string): TierKey | null {
+  const id = productId.toLowerCase();
+  if (id.includes('plus')) return 'plus';
+  if (id.includes('training')) return 'training';
+  return null;
+}
 
 export interface ActiveSubscription {
   kind: SubscriptionKind;
@@ -51,9 +74,11 @@ export interface Entitlements {
   /** Training tier (`plus` includes `training`). */
   tier: 'none' | 'training' | 'plus';
   gym: boolean;
+  /** `training` was active once and has lapsed (cancelled and expired, or refunded). */
+  hadTraining: boolean;
 }
 
-export const NO_ENTITLEMENTS: Entitlements = { tier: 'none', gym: false };
+export const NO_ENTITLEMENTS: Entitlements = { tier: 'none', gym: false, hadTraining: false };
 
 /** The slice of RevenueCat's `CustomerInfo` we read (structural, so tests need no SDK). */
 export interface CustomerInfoLike {
@@ -66,8 +91,12 @@ export interface CustomerInfoLike {
         periodType: string;
         willRenew: boolean;
         expirationDate: string | null;
+        /** Google Play base plan (`monthly` / `yearly`); null on the App Store. */
+        productPlanIdentifier?: string | null;
       }
     >;
+    /** Active and expired entitlements. */
+    all?: Record<string, unknown>;
   };
   managementURL: string | null;
   subscriptionsByProductIdentifier?: Record<string, { managementURL: string | null }>;
@@ -98,7 +127,12 @@ function storeOf(store: string): SubscriptionStore {
 export function entitlementsOf(info: CustomerInfoLike): Entitlements {
   const active = info.entitlements.active;
   const tier = active.plus ? 'plus' : active.training ? 'training' : 'none';
-  return { tier, gym: Boolean(active.gym) };
+  const all = info.entitlements.all ?? {};
+  return {
+    tier,
+    gym: Boolean(active.gym),
+    hadTraining: tier === 'none' && Boolean(all.training ?? all.plus),
+  };
 }
 
 /**
@@ -122,7 +156,7 @@ export function subscriptionsOf(
       kind: entitlement === 'gym' ? 'gym' : 'tier',
       entitlement,
       productId: e.productIdentifier,
-      period: periodOf(e.productIdentifier),
+      period: periodOf(e.productPlanIdentifier ?? e.productIdentifier),
       store,
       isTrial: e.periodType.toUpperCase() === 'TRIAL',
       willRenew: e.willRenew,
@@ -133,4 +167,57 @@ export function subscriptionsOf(
       priceString: priceByProduct[e.productIdentifier] ?? null,
     };
   });
+}
+
+/**
+ * What the app may show (CLAUDE.md "Monetisation", no free tier):
+ * - `full` – `training` is active (paid or in the trial);
+ * - `readOnly` – it was active once and has ended: the plan and history stay visible, nothing can
+ *   be edited, regenerated, paused, exported or connected;
+ * - `preview` – never subscribed: quiz, forecast, week 1 and the paywall only;
+ * - `pending` – billing has not answered yet (render nothing rather than a wrong paywall).
+ */
+export type Access = 'full' | 'readOnly' | 'preview' | 'pending';
+
+export type BillingStatus = 'idle' | 'loading' | 'ready' | 'unavailable' | 'error';
+
+export function accessOf(input: {
+  status: BillingStatus;
+  entitlements: Entitlements;
+  /** Development build: no RevenueCat key or not loaded yet means full access. */
+  devBuild: boolean;
+  /** Last level the store reported on this device, for starts where the SDK fails. */
+  cached: Access | null;
+}): Access {
+  const { status, entitlements, devBuild, cached } = input;
+  if (status === 'ready') {
+    if (entitlements.tier !== 'none') return 'full';
+    return entitlements.hadTraining ? 'readOnly' : 'preview';
+  }
+  if (devBuild) return 'full';
+  if (status === 'error' || status === 'unavailable') return cached ?? 'preview';
+  return cached ?? 'pending';
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/** First charge after a free trial that starts now ("Free until Oct 31"). */
+export function firstChargeDate(now: Date, trialDays: number): Date {
+  return new Date(now.getTime() + trialDays * DAY_MS);
+}
+
+/**
+ * Store product to replace when switching tier or period through the store's change flow
+ * (Google Play: the subscription id without the base plan). Null when there is nothing to replace
+ * in this store – no tier yet, a web (Stripe) subscription, or already on exactly this plan.
+ */
+export function changeFrom(
+  current: ActiveSubscription | undefined,
+  target: { productId: string; period: BillingPeriod | null },
+): string | null {
+  if (!current || current.kind !== 'tier' || current.store === 'stripe') return null;
+  const base = (id: string) => id.split(':')[0] ?? id;
+  const sameTier = tierOf(current.productId) === tierOf(target.productId);
+  if (sameTier && current.period === target.period) return null;
+  return base(current.productId);
 }

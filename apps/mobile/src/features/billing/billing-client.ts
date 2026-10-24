@@ -1,11 +1,20 @@
 import { Platform } from 'react-native';
 import Purchases, {
+  INTRO_ELIGIBILITY_STATUS,
+  PRORATION_MODE,
   PURCHASES_ERROR_CODE,
   type CustomerInfo,
   type PurchasesPackage,
 } from 'react-native-purchases';
 
-import { GYM_OFFERING, periodOf, type BillingPeriod } from './model';
+import {
+  GYM_OFFERING,
+  periodOf,
+  TIER_OFFERING,
+  tierOf,
+  type BillingPeriod,
+  type TierKey,
+} from './model';
 
 /**
  * RevenueCat wrapper (`react-native-purchases`): the only file that touches the SDK. Public SDK
@@ -23,6 +32,8 @@ export interface PackageSummary {
   id: string;
   productId: string;
   period: BillingPeriod | null;
+  /** Tier of a package in the tier offering; null for the add-on. */
+  tier: TierKey | null;
   priceString: string;
   /** Free-trial length in days, when the store product has an introductory trial. */
   trialDays: number | null;
@@ -69,39 +80,110 @@ function trialDaysOf(pkg: PurchasesPackage): number | null {
   return unit ? unit * intro.periodNumberOfUnits * intro.cycles : null;
 }
 
-/** Prices of every product in every offering, for the subscription screen. */
+/**
+ * iOS knows whether this Apple ID already used the trial of a subscription group; Google Play only
+ * offers the trial to eligible users in the first place (RevenueCat leaves it out otherwise).
+ */
+async function ineligibleForTrial(productIds: string[]): Promise<Set<string>> {
+  if (Platform.OS !== 'ios' || productIds.length === 0) return new Set();
+  try {
+    const result = await Purchases.checkTrialOrIntroductoryPriceEligibility(productIds);
+    return new Set(
+      Object.entries(result)
+        .filter(
+          ([, e]) => e.status === INTRO_ELIGIBILITY_STATUS.INTRO_ELIGIBILITY_STATUS_INELIGIBLE,
+        )
+        .map(([id]) => id),
+    );
+  } catch {
+    return new Set();
+  }
+}
+
+const byPeriod = (a: PackageSummary, b: PackageSummary) =>
+  (a.period === 'monthly' ? -1 : 0) - (b.period === 'monthly' ? -1 : 0);
+
+/**
+ * Packages of the tier offering (`default`) and the add-on offering (`gym`), with store prices
+ * and trial length, plus the price of every product for the subscription screen.
+ */
 export async function loadOfferings(): Promise<{
+  tiers: PackageSummary[];
   gym: PackageSummary[];
   prices: Record<string, string>;
 }> {
   const offerings = await Purchases.getOfferings();
   packages.clear();
   const prices: Record<string, string> = {};
+  const offeringOf = new Map<string, string>();
   for (const offering of Object.values(offerings.all)) {
     for (const pkg of offering.availablePackages) {
       prices[pkg.product.identifier] = pkg.product.priceString;
-      if (offering.identifier === GYM_OFFERING) packages.set(pkg.identifier, pkg);
+      if (offering.identifier !== GYM_OFFERING && offering.identifier !== TIER_OFFERING) continue;
+      const key = `${offering.identifier}:${pkg.identifier}`;
+      packages.set(key, pkg);
+      offeringOf.set(key, offering.identifier);
     }
   }
-  const gym = [...packages.values()]
-    .map((pkg) => ({
-      id: pkg.identifier,
+  const ineligible = await ineligibleForTrial(
+    [...packages.values()].map((pkg) => pkg.product.identifier),
+  );
+  const summaries = [...packages.entries()].map(([key, pkg]) => ({
+    offering: offeringOf.get(key),
+    summary: {
+      id: key,
       productId: pkg.product.identifier,
       period: periodOf(pkg.product.identifier) ?? periodOf(pkg.identifier),
+      tier: offeringOf.get(key) === TIER_OFFERING ? tierOf(pkg.product.identifier) : null,
       priceString: pkg.product.priceString,
-      trialDays: trialDaysOf(pkg),
-    }))
-    .sort((a, b) => (a.period === 'monthly' ? -1 : 0) - (b.period === 'monthly' ? -1 : 0));
-  return { gym, prices };
+      trialDays: ineligible.has(pkg.product.identifier) ? null : trialDaysOf(pkg),
+    } satisfies PackageSummary,
+  }));
+  const of = (offering: string) =>
+    summaries
+      .filter((s) => s.offering === offering)
+      .map((s) => s.summary)
+      .sort(byPeriod);
+  return { tiers: of(TIER_OFFERING), gym: of(GYM_OFFERING), prices };
 }
 
 export type PurchaseResult = 'purchased' | 'cancelled' | 'error';
 
-export async function purchase(packageId: string): Promise<PurchaseResult> {
+export interface PurchaseOptions {
+  /**
+   * Google Play: the subscription to replace (tier or period change). Upgrades take effect now
+   * with the remaining time credited, downgrades at the next renewal. The App Store handles a
+   * change inside the subscription group by itself.
+   */
+  replace?: { productId: string; downgrade: boolean } | null;
+}
+
+export async function purchase(
+  packageId: string,
+  options: PurchaseOptions = {},
+): Promise<PurchaseResult> {
   const pkg = packages.get(packageId);
   if (!pkg) return 'error';
   try {
-    await Purchases.purchasePackage(pkg);
+    // The trial reminder (one day before the first charge) names the price; the webhook reads it
+    // back from these attributes because RevenueCat events of a trial carry a price of 0.
+    await Purchases.setAttributes({
+      peakr_price: pkg.product.priceString,
+      peakr_product: pkg.product.identifier,
+    }).catch(() => undefined);
+    const replace = Platform.OS === 'android' ? options.replace : null;
+    await Purchases.purchasePackage(
+      pkg,
+      null,
+      replace
+        ? {
+            oldProductIdentifier: replace.productId,
+            prorationMode: replace.downgrade
+              ? PRORATION_MODE.DEFERRED
+              : PRORATION_MODE.IMMEDIATE_WITH_TIME_PRORATION,
+          }
+        : null,
+    );
     return 'purchased';
   } catch (error) {
     const e = error as { code?: unknown; userCancelled?: boolean };
