@@ -21,6 +21,8 @@ export async function pushToUser(
   userId: string,
   data: Record<string, string>,
   alert: { title: string; body: string },
+  /** `alwaysAlert`: visible on every device (the trial-ending reminder), whatever the setting. */
+  options: { alwaysAlert?: boolean } = {},
 ): Promise<void> {
   const { data: tokens, error } = await admin
     .from('push_tokens')
@@ -29,7 +31,7 @@ export async function pushToUser(
   if (error) throw error;
   if (!tokens || tokens.length === 0) return;
   const messages: PushMessage[] = tokens.map((t) =>
-    t.activity_alerts
+    t.activity_alerts || options.alwaysAlert
       ? { to: t.token, data, title: alert.title, body: alert.body, priority: 'high' }
       : { to: t.token, data, priority: 'high', _contentAvailable: true },
   );

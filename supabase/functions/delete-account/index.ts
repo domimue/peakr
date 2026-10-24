@@ -7,13 +7,14 @@
  *    already revoked token must not block the deletion.
  * 2. Deletes every row of the user. Most tables cascade from auth.users anyway; deleting them
  *    explicitly first means nothing is left behind if the last step fails and the app retries.
- * 3. Deletes the auth user with the admin API.
+ * 3. Deletes the customer at RevenueCat (best effort), then the auth user with the admin API.
  *
  * Idempotent: every step accepts that its rows are already gone, and a user that no longer exists
  * counts as deleted. Tokens are never logged. An active subscription is not touched – the app tells
  * the user to cancel it in Google Play / the App Store (or the Stripe portal).
  */
 
+import { deleteSubscriber } from '../_shared/billing/store.ts';
 import { getProvider } from '../_shared/providers.ts';
 import { accessToken, type StravaIntegration } from '../_shared/strava.ts';
 import { adminClient, json, userFromRequest } from '../_shared/supabase.ts';
@@ -34,6 +35,8 @@ const USER_TABLES = [
   'plans',
   'routes',
   'push_tokens',
+  'trial_reminders',
+  'entitlements',
 ] as const;
 
 async function revokeIntegrations(admin: Admin, userId: string): Promise<void> {
@@ -99,6 +102,9 @@ Deno.serve(async (req) => {
     if (!user) return json({ error: 'unauthorized' }, 401);
     await revokeIntegrations(admin, user.id);
     await deleteRows(admin, user.id);
+    // The RevenueCat customer (purchase history keyed by this id); the store subscription itself
+    // is cancelled by the user in the store.
+    await deleteSubscriber(user.id);
     await deleteAuthUser(admin, user.id);
     console.log('Account deleted', user.id);
     return json({ ok: true });

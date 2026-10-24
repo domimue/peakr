@@ -32,6 +32,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import type { StoredPlanInput } from '@/data/db/schema';
 import { todayIso } from '@/data/ids';
 import * as repo from '@/data/repositories/plan-repository';
+import { useCanEditPlan } from '@/features/billing/billing-store';
 
 /** TanStack Query hooks over the local plan repository plus the engine edits on top of it. */
 
@@ -77,6 +78,7 @@ interface SaveArgs {
 export function usePlanActions() {
   const client = useQueryClient();
   const { data: stored } = usePlan();
+  const canEdit = useCanEditPlan();
   const save = useMutation({
     mutationFn: ({ planId, state, input }: SaveArgs) => repo.savePlanState(planId, state, input),
     onMutate: ({ state, input }) => {
@@ -109,7 +111,7 @@ export function usePlanActions() {
     issues: [{ field: 'workout' as const, code: 'notFound' as const }],
   };
 
-  return {
+  const actions = {
     ready: stored !== undefined && stored !== null,
     move(id: string, toDate: string): EditResult<MoveResult> {
       if (!stored) return missing;
@@ -212,4 +214,21 @@ export function usePlanActions() {
       return commit({ ok: true, value: { ...stored.state, plan } }, input);
     },
   };
+  // Without an active subscription the plan is read-only (CLAUDE.md "Monetisation"): every edit
+  // is refused here, whatever screen asked for it.
+  return canEdit ? actions : lockActions(actions);
+}
+
+const LOCKED = {
+  ok: false as const,
+  issues: [{ field: 'workout' as const, code: 'locked' as const }],
+};
+
+/** Every action refused with `locked` (exported for tests). */
+export function lockActions<T extends { ready: boolean }>(actions: T): T {
+  const locked: Record<string, unknown> = { ready: false };
+  for (const [key, value] of Object.entries(actions)) {
+    if (typeof value === 'function') locked[key] = () => LOCKED;
+  }
+  return locked as T;
 }

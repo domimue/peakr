@@ -54,7 +54,8 @@ import {
 import { addDays, formatDate, mondayOf, weekDates } from '../calendar';
 import { workoutKm } from '../components/workout-card';
 import { calendarTitle, kindIcon, typeColor, typeName } from '../kind';
-import { useHasGym } from '@/features/billing/billing-store';
+import { useAccess, useHasGym } from '@/features/billing/billing-store';
+import { LockedCard } from '@/features/billing/locked';
 import { useActiveWorkoutStore } from '@/features/gym/active-workout-store';
 
 import { usePlanUiStore } from '../plan-ui-store';
@@ -168,6 +169,9 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
   const { data: stored, isPending } = usePlan();
   const actions = usePlanActions();
   const hasGym = useHasGym();
+  // Without an active subscription a workout can be read, nothing else (week 1 only in preview).
+  const access = useAccess();
+  const canEdit = access === 'full';
   const setFeedback = usePlanUiStore((s) => s.setFeedback);
   const showWeek = usePlanUiStore((s) => s.showWeek);
   const [moving, setMoving] = useState(startMoving);
@@ -196,6 +200,14 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
   }
 
   const { state, input } = stored;
+  const inWeekOne = state.plan.weeks[0]?.workouts.some((o) => o.id === w.id) ?? false;
+  if (!canEdit && access !== 'readOnly' && !inWeekOne) {
+    return (
+      <Screen>
+        <LockedCard access={access} />
+      </Screen>
+    );
+  }
   const kind = workoutKind(w);
   const color = typeColor(colors, w);
   const status = statusOf(state, w.id);
@@ -254,10 +266,17 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
 
   // Routes exist for runs and rides only (terrain intelligence).
   const routable = w.sport === 'run' || w.sport === 'bike';
-  const quickActions: { icon: IconName; label: string; onPress: () => void; active?: boolean }[] = [
+  const allQuickActions: {
+    key: string;
+    icon: IconName;
+    label: string;
+    onPress: () => void;
+    active?: boolean;
+  }[] = [
     ...(routable
       ? [
           {
+            key: 'route',
             icon: 'route' as const,
             label: t('workout.actions.route'),
             onPress: () => router.push(`/training/route/${encodeURIComponent(w.id)}`),
@@ -269,6 +288,7 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
     ...(w.sport !== 'strength' && w.sport !== 'walk'
       ? [
           {
+            key: 'watch',
             icon: 'watch' as const,
             label: t('watch.send.action'),
             onPress: () => router.push(`/watch/send/${encodeURIComponent(w.id)}`),
@@ -276,22 +296,29 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
         ]
       : []),
     {
+      key: 'link',
       icon: 'link',
       label: t('workout.actions.link'),
       onPress: () => router.push('/coming-soon/linkActivity'),
     },
     {
+      key: 'warmup',
       icon: 'warmup',
       label: t('workout.actions.warmup'),
       onPress: () => setWarmupOpen((open) => !open),
       active: warmupOpen,
     },
     {
+      key: 'skip',
       icon: status === 'skipped' ? 'undo' : 'skip',
       label: status === 'skipped' ? t('plan.workout.undo') : t('workout.actions.skip'),
       onPress: () => run(actions.setStatus(w.id, status === 'skipped' ? 'planned' : 'skipped')),
     },
   ];
+  // Read-only: the warm-up stays, routes, watch, linking and skipping need the subscription.
+  const quickActions = canEdit
+    ? allQuickActions
+    : allQuickActions.filter((a) => a.key === 'warmup');
 
   return (
     <Screen>
@@ -401,7 +428,7 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
         />
       ) : null}
 
-      {weather && !outline ? (
+      {weather && !outline && canEdit ? (
         <WeatherHintCard
           workout={w}
           weather={weather}
@@ -436,7 +463,7 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
                   {`ⓘ ${t(note.key as never, { ...note.params }) as string}`}
                 </Text>
               ))}
-              {indoor.kind !== 'pool' ? (
+              {indoor.kind !== 'pool' && canEdit ? (
                 <SendToZwift workout={w} indoor={indoor} title={title} />
               ) : null}
             </>
@@ -502,52 +529,57 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
 
       {error ? <Text style={{ color: colors.errorText }}>{error}</Text> : null}
 
-      <View style={styles.actions}>
-        {status !== 'done' && w.sport === 'strength' && hasGym ? (
-          // Planned strength opens into a Gym session, pre-filled with the prescribed exercises.
-          <Button
-            icon="strength"
-            label={t('plan.workout.startInGym')}
-            onPress={() => {
-              useActiveWorkoutStore.getState().setWorkout(w);
-              router.push({ pathname: '/gym/session', params: { workoutId: w.id } });
-            }}
-          />
-        ) : null}
-        {status !== 'done' && w.sport === 'strength' && !hasGym ? (
-          // Without the Gym add-on the session can be read and marked done with duration and effort.
-          <Button
-            icon="check"
-            label={t('gymAddon.doneOnly.title')}
-            onPress={() => router.push({ pathname: '/gym/quick-log', params: { workoutId: w.id } })}
-          />
-        ) : null}
-        {status !== 'done' && !(w.sport === 'strength' && !hasGym) ? (
-          <Button
-            icon="check"
-            variant={w.sport === 'strength' ? 'secondary' : 'primary'}
-            label={t('plan.workout.markDone')}
-            onPress={markDone}
-          />
-        ) : status !== 'done' ? null : (
-          <Button
-            icon="undo"
-            variant="secondary"
-            label={t('plan.workout.undo')}
-            onPress={() => run(actions.setStatus(w.id, 'planned'))}
-          />
-        )}
-        {!moving ? (
-          <Button
-            icon="move"
-            variant="secondary"
-            label={t('plan.workout.move')}
-            onPress={() => setMoving(true)}
-          />
-        ) : null}
-      </View>
+      {canEdit ? null : <LockedCard access={access} />}
+      {canEdit ? (
+        <View style={styles.actions}>
+          {status !== 'done' && w.sport === 'strength' && hasGym ? (
+            // Planned strength opens into a Gym session, pre-filled with the prescribed exercises.
+            <Button
+              icon="strength"
+              label={t('plan.workout.startInGym')}
+              onPress={() => {
+                useActiveWorkoutStore.getState().setWorkout(w);
+                router.push({ pathname: '/gym/session', params: { workoutId: w.id } });
+              }}
+            />
+          ) : null}
+          {status !== 'done' && w.sport === 'strength' && !hasGym ? (
+            // Without the Gym add-on the session can be read and marked done with duration and effort.
+            <Button
+              icon="check"
+              label={t('gymAddon.doneOnly.title')}
+              onPress={() =>
+                router.push({ pathname: '/gym/quick-log', params: { workoutId: w.id } })
+              }
+            />
+          ) : null}
+          {status !== 'done' && !(w.sport === 'strength' && !hasGym) ? (
+            <Button
+              icon="check"
+              variant={w.sport === 'strength' ? 'secondary' : 'primary'}
+              label={t('plan.workout.markDone')}
+              onPress={markDone}
+            />
+          ) : status !== 'done' ? null : (
+            <Button
+              icon="undo"
+              variant="secondary"
+              label={t('plan.workout.undo')}
+              onPress={() => run(actions.setStatus(w.id, 'planned'))}
+            />
+          )}
+          {!moving ? (
+            <Button
+              icon="move"
+              variant="secondary"
+              label={t('plan.workout.move')}
+              onPress={() => setMoving(true)}
+            />
+          ) : null}
+        </View>
+      ) : null}
 
-      {moving ? (
+      {moving && canEdit ? (
         <ChipGroup
           label={t('plan.workout.moveTo')}
           options={moveDays.map((d) => ({

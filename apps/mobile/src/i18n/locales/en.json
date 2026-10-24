@@ -140,7 +140,8 @@
       "invalidDate": "Please choose today or a later day.",
       "notFound": "This workout is no longer in your plan.",
       "notPaused": "Your plan is not paused.",
-      "notEnoughAvailability": "Please plan at least 2 days with 20 minutes or more."
+      "notEnoughAvailability": "Please plan at least 2 days with 20 minutes or more.",
+      "locked": "Changing your plan needs an active subscription."
     },
     "devStart": "Start plan without purchase (development)",
     "km": "{{value}} km",
@@ -1311,7 +1312,10 @@
   },
   "paywall": {
     "title": "Unlock your full plan",
-    "trial": "7 days free with full access to everything. You enter your payment details now; the first charge is only after the trial. Cancel anytime before it ends.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "perMonth": "{{price}} / month",
+    "perYear": "{{price}} / year",
     "tiers": {
       "training": {
         "name": "Training",
@@ -1322,8 +1326,37 @@
         "description": "Everything in Training plus nutrition tracking, energy balance and body tracking."
       }
     },
+    "included": {
+      "plan": "Your full plan, every week to your goal",
+      "calendar": "Move, skip and rebuild workouts – the week rebalances",
+      "zones": "Heart-rate, pace and swim zones, editable",
+      "routes": "Routes with per-km pace for the terrain",
+      "integrations": "Strava, watches, Zwift and file exports",
+      "health": "Health data from your watch next to your training",
+      "everything": "Everything in Training",
+      "nutrition": "Food tracking with barcode scan",
+      "energy": "Energy balance from food and workouts",
+      "body": "Weight trend and body measurements"
+    },
     "comingSoon": "Coming soon",
-    "placeholder": "Subscriptions are not available in this build yet. In-app purchase follows in a later version.",
+    "freeUntil": "Free until {{date}}, then {{price}}",
+    "reminder": "We'll remind you one day before.",
+    "trialTerms": "You enter your payment details in {{store}} now. Nothing is charged during the trial.",
+    "noTrialTerms": "{{price}}, renews automatically. You have already used your free trial.",
+    "startTrial": "Start {{days}}-day free trial",
+    "subscribe": "Subscribe",
+    "cancelAnytime": "Cancel anytime in {{store}}. If you cancel before the trial ends, you pay nothing.",
+    "restore": "Restore purchases",
+    "nothingToRestore": "No active subscription found for this account.",
+    "restoreFailed": "Could not restore purchases. Check your connection and try again.",
+    "failed": "The purchase did not go through. You have not been charged.",
+    "loading": "Loading prices…",
+    "loadFailed": "Prices could not be loaded. Check your connection and try again.",
+    "unavailable": "Purchases are not available in this build.",
+    "active": "Your subscription is active.",
+    "continue": "Continue to my plan",
+    "terms": "Terms",
+    "privacy": "Privacy",
     "back": "Back to my forecast"
   },
   "gymAddon": {
@@ -1389,23 +1422,43 @@
       "monthly": "Monthly",
       "yearly": "Yearly"
     },
-    "trial": "Free trial",
     "price": "Price",
     "nextBilling": "Next billing",
     "trialEnds": "Trial ends (first charge)",
     "endsOn": "Access until",
-    "cancelledNote": "Cancelled. Access stays until the end of the paid period.",
+    "cancelledNote": "Cancelled. Your plan stays fully usable until {{date}}, then it becomes read-only. Your account and history stay.",
     "store": {
       "play_store": "Google Play",
       "app_store": "App Store",
       "stripe": "Peakr website (Stripe)",
       "other": "Other"
     },
-    "manage": "Manage or cancel",
+    "manage": "Manage in the store",
     "manageOnWeb": "This subscription was bought on the website; manage it there.",
-    "cancelOnly": "Cancelling opens {{store}} for this subscription only.",
+    "cancelOnly": "Opens {{store}} for this subscription only. Access stays until the end of the paid period.",
     "getAddon": "Get the Gym add-on",
-    "unknownDate": "–"
+    "unknownDate": "–",
+    "status": "Status",
+    "statusTrial": "Free trial",
+    "statusActive": "Active",
+    "statusCancelled": "Cancelled",
+    "trialNote": "Nothing has been charged yet. The first payment is on {{date}}; we'll remind you one day before.",
+    "cancelledAddonNote": "Cancelled. Peakr Gym stays active until {{date}}.",
+    "cancel": "Cancel subscription",
+    "switchTo": {
+      "monthly": "Switch to monthly ({{price}} / month)",
+      "yearly": "Switch to yearly ({{price}} / year)",
+      "plus": "Upgrade to Training + Nutrition ({{price}})"
+    },
+    "plusSoon": "Training + Nutrition",
+    "changed": "Your plan change was sent to the store.",
+    "changeFailed": "The change did not go through. Nothing was charged.",
+    "noneNote": "Start with the 7-day free trial to unlock your full plan.",
+    "endedNote": "Your subscription has ended. Your plan is read-only until you subscribe again.",
+    "seePlans": "See plans",
+    "restore": "Restore purchases",
+    "restored": "Purchases restored.",
+    "restoreFailed": "Could not restore purchases."
   },
   "stravaPost": {
     "title": "Strava",
@@ -1690,7 +1743,8 @@
     "restHint": "Recovery is part of the plan – nothing scheduled today.",
     "markDone": "Mark as done",
     "openSession": "Open session",
-    "seeWeek": "See this week"
+    "seeWeek": "See this week",
+    "seeWeekOne": "See week 1"
   },
   "calendar": {
     "add": "Add",
@@ -3100,5 +3154,19 @@
       "healthConnect": "Health Connect",
       "healthKit": "Apple Health"
     }
+  },
+  "locked": {
+    "preview": {
+      "title": "Part of your subscription",
+      "body": "Your forecast and week 1 are free. The full plan – editing, routes, integrations, exports and your health data – starts with the 7-day free trial.",
+      "action": "Start 7-day free trial"
+    },
+    "readOnly": {
+      "title": "Your plan is read-only",
+      "body": "Your subscription has ended. Your plan and history stay here; changes, routes, integrations and exports need an active subscription.",
+      "action": "Subscribe again"
+    },
+    "weekOne": "Week 1 is your free preview.",
+    "readOnlyBanner": "Read-only – your subscription has ended."
   }
 }

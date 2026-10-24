@@ -64,8 +64,11 @@ export interface PlanState {
 
 export type EditField = PlanField | 'workout' | 'date' | 'pause';
 
-/** Why an edit was refused (plus the `generatePlan` codes when a rebuild fails). */
-export type EditCode = 'notFound' | 'outsidePlan' | 'paused' | 'notPaused' | 'noRoute';
+/**
+ * Why an edit was refused (plus the `generatePlan` codes when a rebuild fails). `locked` is never
+ * produced by the engine: the app uses it when the plan is read-only (no active subscription).
+ */
+export type EditCode = 'notFound' | 'outsidePlan' | 'paused' | 'notPaused' | 'noRoute' | 'locked';
 
 export interface EditIssue {
   field: EditField;

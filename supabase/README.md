@@ -14,7 +14,9 @@ Security, and Edge Functions for everything that needs a secret.
 | `functions/watch/` | Watch platforms (Garmin, COROS, Suunto): FIT/GPX export, push workouts and routes with re-sync, import; behind `WATCH_*` flags – see `docs/watch-integrations.md` |
 | `functions/watch-webhook/` | Completed-activity notifications of the watch platforms (`?key=WATCH_WEBHOOK_SECRET`), same `activities` pipeline as Strava |
 | `functions/weather/`     | Weather check: hourly forecast per ~5 km cell (MeteoSwiss for Switzerland, Open-Meteo elsewhere), cached per hour |
-| `functions/delete-account/` | Account deletion: revokes Strava, deletes all rows and the auth user |
+| `functions/delete-account/` | Account deletion: revokes Strava, deletes all rows, the RevenueCat customer and the auth user |
+| `functions/revenuecat-webhook/` | RevenueCat events → `entitlements` (state read back from the RevenueCat API) |
+| `functions/trial-reminders/` | Hourly (pg_cron): push + email one day before a trial converts – see `docs/subscriptions-setup.md` |
 | `functions/_shared/`     | Token encryption, signed OAuth state, provider registry, Strava import, Expo push |
 | `templates/`             | Sign-in emails (link **and** 6-digit code)                            |
 | `config.toml`            | Local CLI config; the hosted project is configured in the dashboard   |
@@ -37,6 +39,8 @@ Security, and Edge Functions for everything that needs a secret.
 | `strava_uploads`     | Edge Functions only            | gym sessions posted to Strava (state + Strava activity id); the webhook ignores these activities; own rows readable |
 | `weather_cache`      | Edge Functions only            | forecasts per ~5 km grid cell and UTC hour; no user id, no access for app or website |
 | `push_tokens`        | the app (own device)           | Expo push tokens + "notify me" per device                   |
+| `entitlements`       | Edge Functions only            | mirror of RevenueCat entitlements (training, plus, gym), active or expired; own rows readable; `has_entitlement(uid, name)` for the backend |
+| `trial_reminders`    | Edge Functions only            | trial-ending reminders sent (one per trial); no access for app or website |
 | `waitlist`           | the website (insert only)      | Phase 1b                                                    |
 
 Sync (app side: `apps/mobile/src/data/sync`): SQLite stays the source for the UI. Every edit marks
@@ -57,6 +61,8 @@ pnpm exec supabase functions deploy delete-account
 pnpm exec supabase functions deploy strava-baseline
 pnpm exec supabase functions deploy weather
 pnpm exec supabase functions deploy strava-upload
+pnpm exec supabase functions deploy revenuecat-webhook
+pnpm exec supabase functions deploy trial-reminders
 pnpm exec supabase secrets set --env-file supabase/functions/.env
 ```
 
@@ -202,8 +208,10 @@ user types `DELETE`, the app calls `delete-account` with their JWT, and the func
 1. revokes Peakr's access at Strava (refreshing an expired token first; failures are logged
    without the token or the provider's response and do not block the deletion),
 2. deletes the user's `activities`, `workouts`, `plans`, `routes`, `push_tokens`,
-   `integration_tokens`, `integrations` and `profiles` rows explicitly (most also cascade),
-3. deletes the auth user with the admin API.
+   `entitlements`, `trial_reminders`, `integration_tokens`, `integrations` and `profiles` rows
+   explicitly (most also cascade),
+3. deletes the customer at RevenueCat (best effort, needs `REVENUECAT_SECRET_KEY`),
+4. deletes the auth user with the admin API.
 
 It is idempotent: a second call finds nothing to delete, and the app treats "user no longer
 exists" as success, so a lost answer can simply be retried. Afterwards the app wipes its SQLite

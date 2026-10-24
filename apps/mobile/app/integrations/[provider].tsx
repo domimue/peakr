@@ -2,8 +2,12 @@ import { useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 
 import { usePendingConnect } from '@/features/baseline/pending-connect';
+import { withTraining } from '@/features/billing/locked';
 import { BaselineConnectResult } from '@/features/baseline/screens/baseline-connect-result';
 import { ConnectionsScreen } from '@/features/integrations/screens/connections-screen';
+
+// The baseline connection belongs to plan creation (free); Connections itself needs the plan.
+const Connections = withTraining(ConnectionsScreen);
 
 /**
  * Deep link back from the OAuth flow (`peakr://integrations/strava?status=connected`) when it did
@@ -16,5 +20,5 @@ export default function IntegrationResult() {
   const [pending] = useState(() => usePendingConnect.getState().flow);
   const result = status === 'connected' || status === 'denied' ? status : 'error';
   if (pending) return <BaselineConnectResult flow={pending} result={result} />;
-  return <ConnectionsScreen result={result} />;
+  return <Connections result={result} />;
 }
