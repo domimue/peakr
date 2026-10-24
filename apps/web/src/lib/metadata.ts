@@ -18,3 +18,8 @@ export function pageMetadata({
     twitter: { card: 'summary_large_image', title, description },
   };
 }
+
+/** Funnel, checkout, account and auth pages: personal, never indexed, not in the sitemap. */
+export function privateMetadata(title: string): Metadata {
+  return { title: { absolute: title }, robots: { index: false, follow: false } };
+}

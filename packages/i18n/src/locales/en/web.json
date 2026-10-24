@@ -655,5 +655,31 @@
     },
     "googlePlayLink": "Open Google Play subscriptions",
     "appStoreLink": "Open App Store subscriptions"
+  },
+  "auth": {
+    "metaTitle": "Log in | Peakr",
+    "metaDescription": "Log in to your Peakr account to see your subscription.",
+    "title": "Log in to Peakr",
+    "lead": "Use the email, Google or Apple account you use in the app.",
+    "emailLabel": "Email",
+    "emailPlaceholder": "you@example.com",
+    "sendLink": "Email me a sign-in link",
+    "sending": "Sending…",
+    "sent": "We sent a sign-in link to {{email}}. Open it on this device – or enter the 6-digit code from the email here.",
+    "codeLabel": "6-digit code",
+    "verify": "Log in with code",
+    "otherEmail": "Use another email",
+    "or": "or",
+    "google": "Continue with Google",
+    "apple": "Continue with Apple",
+    "errors": {
+      "invalidEmail": "Please enter a valid email address.",
+      "invalidCode": "That code didn’t work. Check the latest email and try again.",
+      "unavailable": "Signing in is not possible right now. Please try again in a moment.",
+      "link": "That sign-in link has expired or was opened in another browser. Request a new one, or enter the code from the email."
+    },
+    "terms": "By continuing you agree to our {{terms}} and {{privacy}}.",
+    "termsLink": "Terms",
+    "privacyLink": "Privacy policy"
   }
 }
