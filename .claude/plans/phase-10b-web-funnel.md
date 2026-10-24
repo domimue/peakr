@@ -59,7 +59,7 @@ RevenueCat / Supabase setup and the end-to-end test in Stripe test mode.
 4. [x] Quiz runner + save/resume actions, `/quiz`, email capture
 5. [x] Forecast page (load chart, week 1)
 6. [x] Paywall + checkout action, Stripe webhook, RevenueCat client
-7. [ ] Success page, claim (plan rows), `/get-app`
+7. [x] Success page, claim (plan rows), `/get-app`
 8. [ ] `/account`: status, portal, sign out
 9. [ ] CTAs into the funnel (home, header, features, pricing, tools), waitlist UI removed
 10. [ ] App: "I already have an account" on the intro screen

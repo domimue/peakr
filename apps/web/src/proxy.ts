@@ -8,5 +8,12 @@ export function proxy(request: NextRequest) {
 
 // Only the pages that use a session; the marketing pages and tools stay fully static.
 export const config = {
-  matcher: ['/quiz/:path*', '/checkout/:path*', '/account/:path*', '/login', '/auth/:path*'],
+  matcher: [
+    '/quiz/:path*',
+    '/checkout/:path*',
+    '/account/:path*',
+    '/login',
+    '/auth/:path*',
+    '/get-app',
+  ],
 };

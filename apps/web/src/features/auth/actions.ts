@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation';
 
+import { claimAfterSignIn } from '@/features/funnel/after-sign-in';
 import { sessionClient } from '@/lib/supabase/server';
 import { siteUrl } from '@/lib/site';
 
@@ -53,7 +54,9 @@ export async function verifySignInCode(
   if (!supabase) return { status: 'error', error: 'unavailable', email };
   const { error } = await supabase.auth.verifyOtp({ email, token: code, type: 'email' });
   if (error) return { status: 'error', error: 'invalidCode', email };
-  redirect(safeNext(formData.get('next')));
+  const next = safeNext(formData.get('next'));
+  if (!next.startsWith('/checkout/claim')) await claimAfterSignIn();
+  redirect(next);
 }
 
 export async function signInWithProvider(formData: FormData): Promise<void> {
