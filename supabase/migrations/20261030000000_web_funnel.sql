@@ -47,10 +47,11 @@ create policy "Users update their own quiz session"
   with check ((select auth.uid()) = user_id);
 
 revoke all on public.quiz_sessions from anon, authenticated;
+-- `user_id` in the update grant: an upsert sets every column it sends (RLS keeps it the own id).
 grant select on public.quiz_sessions to authenticated;
 grant insert (user_id, answers, step_id, finished, quiz_date, email, email_consent_text,
   email_consent_at) on public.quiz_sessions to authenticated;
-grant update (answers, step_id, finished, quiz_date, email, email_consent_text, email_consent_at)
+grant update (user_id, answers, step_id, finished, quiz_date, email, email_consent_text, email_consent_at)
   on public.quiz_sessions to authenticated;
 
 -- ---------------------------------------------------------------------------------------------

@@ -1,12 +1,14 @@
 # Deploying the website (Vercel + own domain)
 
-The website in `apps/web` is a Next.js app inside the pnpm monorepo. Every page is prerendered
-as static HTML. The only server code is the waitlist Server Action, which writes to Supabase.
+The website in `apps/web` is a Next.js app inside the pnpm monorepo. The marketing pages and tools
+are prerendered as static HTML; the quiz funnel, checkout, account and sign-in pages render per
+request. Their setup (Stripe, RevenueCat, Supabase Auth, all environment variables) is in
+[`web-checkout-setup.md`](web-checkout-setup.md).
 
 ## 1. Supabase (once)
 
 Follow [`supabase/README.md`](../supabase/README.md): create the project in an EU region, run the
-waitlist migration, and copy the project URL and the **publishable** key.
+migrations, and copy the project URL, the **publishable** key and the **secret** key.
 
 ## 2. Create the Vercel project
 
@@ -15,7 +17,8 @@ waitlist migration, and copy the project URL and the **publishable** key.
 3. Configure the project:
    - **Framework preset:** Next.js (detected automatically)
    - **Root Directory:** `apps/web`. Leave "Include files outside the root directory" switched
-     on, because the site imports `packages/engine` and `packages/i18n`.
+     on, because the site imports `packages/engine`, `packages/quiz`, `packages/i18n` and
+     `packages/theme`.
    - **Install / Build command:** keep the defaults. Vercel finds `pnpm-lock.yaml` in the repo root.
    - **Node.js version** (Settings → Build and Deployment): 22.x or newer.
 4. **Environment variables** (Settings → Environment Variables):
@@ -26,6 +29,9 @@ waitlist migration, and copy the project URL and the **publishable** key.
    | `SUPABASE_PUBLISHABLE_KEY`  | `sb_publishable_…` (or the legacy anon key) | Production, Preview |
    | `NEXT_PUBLIC_SITE_URL`      | `https://your-domain.ch` (after step 3) | Production          |
    | `ENABLE_EXPERIMENTAL_COREPACK` | `1`                                  | all                 |
+
+   The funnel needs more variables (secret key, Stripe, RevenueCat, cookie secret, store links):
+   see [`web-checkout-setup.md`](web-checkout-setup.md) § 4.
 
    `ENABLE_EXPERIMENTAL_COREPACK=1` makes Vercel use the exact pnpm version from the root
    `package.json` (`packageManager` field) instead of its own default version.
@@ -60,11 +66,11 @@ Vercel production domain (`VERCEL_PROJECT_PRODUCTION_URL`). That's fine for a fi
 ## Checks after the first deployment
 
 - `https://peakr.ch/robots.txt` allows crawling and points to the sitemap.
-- `https://peakr.ch/sitemap.xml` lists 8 URLs on your domain.
+- `https://peakr.ch/sitemap.xml` lists every public page on your domain (no quiz, checkout or
+  account pages – those are `noindex`).
 - Paste the URL into a social card preview (e.g. <https://www.opengraph.xyz>). It should show
   the dark Peakr card.
-- Join the waitlist with your own address and check that the row appears in Supabase
-  (**Table Editor → waitlist**).
+- Run the funnel once in Stripe test mode ([`web-checkout-setup.md`](web-checkout-setup.md) § 6).
 
 ## Before going public
 

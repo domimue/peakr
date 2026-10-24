@@ -63,4 +63,4 @@ RevenueCat / Supabase setup and the end-to-end test in Stripe test mode.
 8. [x] `/account`: status, portal, sign out
 9. [x] CTAs into the funnel (home, header, features, pricing, tools), waitlist UI removed
 10. [x] App: "I already have an account" on the intro screen
-11. [ ] Docs: `docs/web-checkout-setup.md`, supabase/README, queue
+11. [x] Docs: `docs/web-checkout-setup.md`, supabase/README, queue
