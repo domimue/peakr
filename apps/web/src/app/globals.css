@@ -44,3 +44,19 @@
     animation: none;
   }
 }
+
+/* Forecast load chart: the bars grow in one after another. */
+@keyframes load-bar-grow {
+  from {
+    transform: scaleY(0);
+  }
+}
+.load-bar {
+  transform-origin: bottom;
+  animation: load-bar-grow 450ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .load-bar {
+    animation: none;
+  }
+}
