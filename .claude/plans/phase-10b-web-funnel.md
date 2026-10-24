@@ -58,7 +58,7 @@ RevenueCat / Supabase setup and the end-to-end test in Stripe test mode.
        funnel cookie, `/auth/callback`, `/login`
 4. [x] Quiz runner + save/resume actions, `/quiz`, email capture
 5. [x] Forecast page (load chart, week 1)
-6. [ ] Paywall + checkout action, Stripe webhook, RevenueCat client
+6. [x] Paywall + checkout action, Stripe webhook, RevenueCat client
 7. [ ] Success page, claim (plan rows), `/get-app`
 8. [ ] `/account`: status, portal, sign out
 9. [ ] CTAs into the funnel (home, header, features, pricing, tools), waitlist UI removed
