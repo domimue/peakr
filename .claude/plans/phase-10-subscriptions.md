@@ -40,7 +40,7 @@ store, subscription screen), `docs/gym-addon-setup.md`.
 1. [x] Model: tier packages, access levels, trial text helpers, tests
 2. [x] Client + store: tier offering, trial eligibility, attributes, change flow, access cache
 3. [x] Paywall screen (real), purchase → plan → sign-in, tests
-4. [ ] Gates across the app, tests
+4. [x] Gates across the app, tests
 5. [ ] Subscription screen: change period/tier, restore, trial status, tests
 6. [ ] Server: migration, `@peakr/billing` pure code + vitest, `revenuecat-webhook`,
        `trial-reminders` (pg_cron), push always-visible, delete-account cleanup

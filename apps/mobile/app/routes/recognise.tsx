@@ -1,3 +1,4 @@
+import { withTraining } from '@/features/billing/locked';
 import { RouteRecogniseScreen } from '@/features/routes/screens/route-recognise-screen';
 
-export default RouteRecogniseScreen;
+export default withTraining(RouteRecogniseScreen);

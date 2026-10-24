@@ -8,6 +8,8 @@ import { todayIso } from '@/data/ids';
 import { Button, Card, Icon, ListState, spacing, Text, useTheme } from '@/ui';
 import { sessionDoneHaptic } from '@/ui/haptics';
 
+import { useAccess } from '../billing/billing-store';
+import { LockedCard } from '../billing/locked';
 import { formatDate, initialWeek, mondayOf, weekOfPlan } from '../plan/calendar';
 import { WeekProgressCard } from '../plan/components/week-progress-card';
 import { WeekStrip } from '../plan/components/week-strip';
@@ -31,6 +33,7 @@ export function TodayScreen() {
   const { data: stored, isPending, isError, refetch } = usePlan();
   const actions = usePlanActions();
   const showWeek = usePlanUiStore((s) => s.showWeek);
+  const access = useAccess();
   const today = todayIso();
 
   const title = (
@@ -70,6 +73,23 @@ export function TodayScreen() {
     );
   }
 
+  // No subscription yet: week 1 (on the Plan tab) and the paywall, nothing else.
+  if (access === 'preview' || access === 'pending') {
+    return (
+      <Shell>
+        {title}
+        <LockedCard access={access} />
+        {access === 'preview' ? (
+          <Button
+            variant="secondary"
+            label={t('today.seeWeekOne')}
+            onPress={() => router.push('/plan')}
+          />
+        ) : null}
+      </Shell>
+    );
+  }
+
   const { state, input } = stored;
   const { plan } = state;
   const monday = initialWeek(plan, today);
@@ -89,6 +109,7 @@ export function TodayScreen() {
   return (
     <Shell>
       {title}
+      {access === 'readOnly' ? <LockedCard access={access} /> : null}
       <WeekStrip
         monday={monday}
         today={today}
@@ -188,7 +209,7 @@ export function TodayScreen() {
         ))}
       </View>
 
-      {next ? (
+      {next && access === 'full' ? (
         <View style={styles.actions}>
           <Button label={t('today.markDone')} icon="check" onPress={() => markDone(next)} />
           <Button

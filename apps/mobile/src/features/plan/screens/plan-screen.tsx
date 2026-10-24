@@ -7,6 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { todayIso } from '@/data/ids';
 import type { StoredPlan } from '@/data/repositories/plan-repository';
+import { useAccess } from '@/features/billing/billing-store';
+import { LockedCard } from '@/features/billing/locked';
 import { Badge, ListState, SegmentedControl, spacing, Text, useTheme } from '@/ui';
 
 import { formatDate, initialWeek } from '../calendar';
@@ -25,6 +27,9 @@ export function PlanScreen() {
   const { data: stored, isPending, isError, refetch } = usePlan();
   const view = usePlanUiStore((s) => s.view);
   const setView = usePlanUiStore((s) => s.setView);
+  const access = useAccess();
+  // Without a subscription only week 1 is shown (the free preview), as a list.
+  const preview = access === 'preview' || access === 'pending';
 
   const options: { value: PlanView; label: string }[] = [
     { value: 'weeks', label: t('plan.views.weeks') },
@@ -35,7 +40,7 @@ export function PlanScreen() {
       <Text variant="title" accessibilityRole="header">
         {t('plan.title')}
       </Text>
-      <SegmentedControl options={options} value={view} onChange={setView} />
+      {preview ? null : <SegmentedControl options={options} value={view} onChange={setView} />}
     </View>
   );
 
@@ -64,6 +69,8 @@ export function PlanScreen() {
         )}
       </View>
     );
+  } else if (preview) {
+    content = <WeeksView stored={stored} header={header} preview={access} />;
   } else if (view === 'calendar') {
     content = <CalendarView stored={stored} header={header} />;
   } else {
@@ -82,7 +89,16 @@ export function PlanScreen() {
  * their colours, progress, sessions and km done / planned, recovery / travel / race tags). Each
  * week expands to its days and sessions; the current week starts expanded.
  */
-function WeeksView({ stored, header }: { stored: StoredPlan; header: ReactNode }) {
+function WeeksView({
+  stored,
+  header,
+  preview,
+}: {
+  stored: StoredPlan;
+  header: ReactNode;
+  /** Free preview: week 1 only, then the way to the paywall. */
+  preview?: 'preview' | 'pending';
+}) {
   const { t, i18n } = useTranslation();
   const showWeek = usePlanUiStore((s) => s.showWeek);
   const list = useRef<FlatList<PlanWeek>>(null);
@@ -121,12 +137,12 @@ function WeeksView({ stored, header }: { stored: StoredPlan; header: ReactNode }
     <FlatList
       ref={list}
       testID="plan-weeks"
-      data={plan.weeks}
+      data={preview ? plan.weeks.slice(0, 1) : plan.weeks}
       keyExtractor={(w) => w.startDate}
       extraData={toggled}
       // Start at the current week (once, after the first layout).
       onContentSizeChange={() => {
-        if (scrolled.current || currentIndex === 0) return;
+        if (scrolled.current || currentIndex === 0 || preview) return;
         scrolled.current = true;
         list.current?.scrollToIndex({ index: currentIndex, animated: false, viewOffset: 16 });
       }}
@@ -143,6 +159,16 @@ function WeeksView({ stored, header }: { stored: StoredPlan; header: ReactNode }
         </View>
       }
       ListEmptyComponent={<ListState kind="empty" title={t('plan.noWeeks')} />}
+      ListFooterComponent={
+        preview ? (
+          <View style={styles.footer}>
+            <Text variant="caption" tone="secondary">
+              {t('locked.weekOne')}
+            </Text>
+            <LockedCard access={preview} />
+          </View>
+        ) : undefined
+      }
       renderItem={({ item: week }) => (
         <WeekProgressCard
           week={week}
@@ -152,11 +178,11 @@ function WeeksView({ stored, header }: { stored: StoredPlan; header: ReactNode }
           tags={weekTags(week, input, plan.targetDate)}
           header
           isCurrent={week.startDate === current}
-          expanded={isOpen(week.startDate)}
+          expanded={preview ? true : isOpen(week.startDate)}
           onToggle={() => toggle(week.startDate)}
           today={today}
           onOpenWorkout={(id) => router.push(`/training/workout/${encodeURIComponent(id)}`)}
-          onOpenCalendar={() => showWeek(week.startDate)}
+          onOpenCalendar={preview ? undefined : () => showWeek(week.startDate)}
         />
       )}
     />
@@ -173,4 +199,5 @@ const styles = StyleSheet.create({
   head: { gap: spacing.md },
   listHead: { gap: spacing.sm, marginBottom: spacing.md },
   separator: { height: spacing.sm },
+  footer: { gap: spacing.sm, marginTop: spacing.md },
 });

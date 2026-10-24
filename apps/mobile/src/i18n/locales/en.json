@@ -140,7 +140,8 @@
       "invalidDate": "Please choose today or a later day.",
       "notFound": "This workout is no longer in your plan.",
       "notPaused": "Your plan is not paused.",
-      "notEnoughAvailability": "Please plan at least 2 days with 20 minutes or more."
+      "notEnoughAvailability": "Please plan at least 2 days with 20 minutes or more.",
+      "locked": "Changing your plan needs an active subscription."
     },
     "devStart": "Start plan without purchase (development)",
     "km": "{{value}} km",
@@ -1722,7 +1723,8 @@
     "restHint": "Recovery is part of the plan – nothing scheduled today.",
     "markDone": "Mark as done",
     "openSession": "Open session",
-    "seeWeek": "See this week"
+    "seeWeek": "See this week",
+    "seeWeekOne": "See week 1"
   },
   "calendar": {
     "add": "Add",
@@ -3132,5 +3134,19 @@
       "healthConnect": "Health Connect",
       "healthKit": "Apple Health"
     }
+  },
+  "locked": {
+    "preview": {
+      "title": "Part of your subscription",
+      "body": "Your forecast and week 1 are free. The full plan – editing, routes, integrations, exports and your health data – starts with the 7-day free trial.",
+      "action": "Start 7-day free trial"
+    },
+    "readOnly": {
+      "title": "Your plan is read-only",
+      "body": "Your subscription has ended. Your plan and history stay here; changes, routes, integrations and exports need an active subscription.",
+      "action": "Subscribe again"
+    },
+    "weekOne": "Week 1 is your free preview.",
+    "readOnlyBanner": "Read-only – your subscription has ended."
   }
 }

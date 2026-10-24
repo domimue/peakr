@@ -1,3 +1,4 @@
+import { withTraining } from '@/features/billing/locked';
 import { TravelScreen } from '@/features/plan/screens/travel-screen';
 
-export default TravelScreen;
+export default withTraining(TravelScreen);
