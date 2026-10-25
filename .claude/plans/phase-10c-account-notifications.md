@@ -37,7 +37,7 @@ as grouped rows (notifications, units, appearance, haptics, language, privacy).
 ## Steps
 
 - [x] Engine: grid test "never hard on consecutive days", generator downgrade test
-- [ ] Deletion: storage, all providers, missing tables; web deletion request form
+- [x] Deletion: storage, all providers, missing tables; web deletion page (`/account/delete`)
 - [ ] Reminder: migration, `daily-reminders` Edge Function + tests, cron
 - [ ] App: notification settings screen, time zone upload, weather hint upload, retire local alert
 - [ ] App: settings store persisted; units, haptics, language, privacy, appearance screens

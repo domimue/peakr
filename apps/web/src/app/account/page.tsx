@@ -94,7 +94,7 @@ async function Account({ searchParams }: Pick<PageProps<'/account'>, 'searchPara
         <h2 className="text-lg">{t.deleteTitle}</h2>
         <p className="text-sm text-muted">{t.deleteLead}</p>
         <Link
-          href="/delete-account"
+          href="/account/delete"
           className="self-start text-sm font-medium underline underline-offset-2"
         >
           {t.deleteLink}

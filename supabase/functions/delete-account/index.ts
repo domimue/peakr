@@ -3,11 +3,13 @@
  *
  *   POST /delete-account  (Authorization: user JWT)  → { ok: true }
  *
- * 1. Revokes Peakr's access at every connected service (Strava now), best effort – an expired or
- *    already revoked token must not block the deletion.
+ * 1. Revokes Peakr's access at every connected service (Strava, Garmin, COROS, Suunto), best
+ *    effort – an expired or already revoked token must not block the deletion.
  * 2. Deletes every row of the user. Most tables cascade from auth.users anyway; deleting them
  *    explicitly first means nothing is left behind if the last step fails and the app retries.
- * 3. Deletes the customer at RevenueCat (best effort), then the auth user with the admin API.
+ * 3. Deletes the user's files in Storage: everything under `<user id>/` in every bucket (the
+ *    convention for user files, e.g. progress photos).
+ * 4. Deletes the customer at RevenueCat (best effort), then the auth user with the admin API.
  *
  * Idempotent: every step accepts that its rows are already gone, and a user that no longer exists
  * counts as deleted. Tokens are never logged. A store subscription is not touched – the app tells
@@ -21,6 +23,7 @@ import { cancelStripeSubscription } from '../_shared/billing/stripe.ts';
 import { getProvider } from '../_shared/providers.ts';
 import { accessToken, type StravaIntegration } from '../_shared/strava.ts';
 import { adminClient, json, userFromRequest } from '../_shared/supabase.ts';
+import { watchAccessToken, type WatchIntegration } from '../_shared/watch-store.ts';
 
 type Admin = ReturnType<typeof adminClient>;
 
@@ -28,6 +31,11 @@ type Admin = ReturnType<typeof adminClient>;
 const USER_TABLES = [
   'quiz_sessions',
   'web_checkouts',
+  'daily_reminders',
+  'reminder_days',
+  'notification_settings',
+  'strava_uploads',
+  'watch_pushes',
   'health_daily',
   'health_sync_state',
   'health_consents',
@@ -58,8 +66,12 @@ async function revokeIntegrations(admin: Admin, userId: string): Promise<void> {
     // removing it here is all that can be done.
     if (!provider || row.credential_mode === 'personal_key') continue;
     try {
-      // Refreshes an expired Strava token first, so the deauthorisation still reaches Strava.
-      await provider.revoke(await accessToken(admin, row as StravaIntegration));
+      // Refreshes an expired token first, so the deauthorisation still reaches the provider.
+      const token =
+        row.provider === 'strava'
+          ? await accessToken(admin, row as StravaIntegration)
+          : await watchAccessToken(admin, row as WatchIntegration);
+      await provider.revoke(token);
     } catch (e) {
       // The error text can contain the provider's response, never log it.
       const status = (e as { status?: number }).status;
@@ -107,6 +119,38 @@ async function deleteRows(admin: Admin, userId: string): Promise<void> {
   if (profileError) throw new Error(`Deleting profiles failed: ${profileError.message}`);
 }
 
+/** Every object path below `prefix` in a bucket (Storage lists one folder level per call). */
+async function listFiles(admin: Admin, bucket: string, prefix: string): Promise<string[]> {
+  const files: string[] = [];
+  const PAGE = 1000;
+  for (let offset = 0; ; offset += PAGE) {
+    const { data, error } = await admin.storage.from(bucket).list(prefix, { limit: PAGE, offset });
+    if (error) throw new Error(`Listing ${bucket}/${prefix} failed: ${error.message}`);
+    for (const entry of data ?? []) {
+      const path = `${prefix}/${entry.name}`;
+      // Folders have no id; files do.
+      if (entry.id === null) files.push(...(await listFiles(admin, bucket, path)));
+      else files.push(path);
+    }
+    if ((data ?? []).length < PAGE) return files;
+  }
+}
+
+async function deleteStorage(admin: Admin, userId: string): Promise<void> {
+  const { data: buckets, error } = await admin.storage.listBuckets();
+  if (error) throw new Error(`Listing buckets failed: ${error.message}`);
+  for (const bucket of buckets ?? []) {
+    const files = await listFiles(admin, bucket.id, userId);
+    for (let i = 0; i < files.length; i += 100) {
+      const { error: removeError } = await admin.storage
+        .from(bucket.id)
+        .remove(files.slice(i, i + 100));
+      if (removeError)
+        throw new Error(`Deleting files in ${bucket.id} failed: ${removeError.message}`);
+    }
+  }
+}
+
 async function deleteAuthUser(admin: Admin, userId: string): Promise<void> {
   const { error } = await admin.auth.admin.deleteUser(userId);
   if (error && error.status !== 404) throw new Error(`Deleting auth user failed: ${error.message}`);
@@ -121,6 +165,7 @@ Deno.serve(async (req) => {
     await revokeIntegrations(admin, user.id);
     await cancelWebSubscriptions(admin, user.id);
     await deleteRows(admin, user.id);
+    await deleteStorage(admin, user.id);
     // The RevenueCat customer (purchase history keyed by this id); the store subscription itself
     // is cancelled by the user in the store.
     await deleteSubscriber(user.id);

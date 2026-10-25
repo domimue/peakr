@@ -1134,8 +1134,8 @@
       "delete": {
         "button": "Delete account",
         "title": "Delete your account?",
-        "data": "Your account and all its data are removed for good: profile, quiz answers, training zones, your plan, synced activities, strength logs and connections. Peakr’s access to Strava is revoked. This can’t be undone.",
-        "subscription": "Deleting your account does not cancel an active subscription. Cancel it separately in Google Play or the App Store (or in the customer portal if you subscribed on the website).",
+        "data": "Your account and all its data are removed for good: profile, quiz answers, training zones, settings, your plan, synced activities, health data, strength logs, uploaded files and connections. Peakr’s access to Strava and your watch account is revoked. This can’t be undone.",
+        "subscription": "Deleting your account does not cancel a subscription from Google Play or the App Store – cancel it there separately. A subscription bought on the Peakr website is cancelled with the account.",
         "manageGooglePlay": "Open Google Play subscriptions",
         "manageAppStore": "Open App Store subscriptions",
         "confirmLabel": "Type {{word}} to confirm",

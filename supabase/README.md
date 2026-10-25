@@ -14,7 +14,7 @@ Security, and Edge Functions for everything that needs a secret.
 | `functions/watch/` | Watch platforms (Garmin, COROS, Suunto): FIT/GPX export, push workouts and routes with re-sync, import; behind `WATCH_*` flags – see `docs/watch-integrations.md` |
 | `functions/watch-webhook/` | Completed-activity notifications of the watch platforms (`?key=WATCH_WEBHOOK_SECRET`), same `activities` pipeline as Strava |
 | `functions/weather/`     | Weather check: hourly forecast per ~5 km cell (MeteoSwiss for Switzerland, Open-Meteo elsewhere), cached per hour |
-| `functions/delete-account/` | Account deletion: revokes Strava, cancels website (Stripe) subscriptions, deletes all rows, the RevenueCat customer and the auth user |
+| `functions/delete-account/` | Account deletion (app and website): revokes every integration, cancels website (Stripe) subscriptions, deletes all rows, Storage files, the RevenueCat customer and the auth user |
 | `functions/revenuecat-webhook/` | RevenueCat events → `entitlements` (state read back from the RevenueCat API) |
 | `functions/trial-reminders/` | Hourly (pg_cron): push + email one day before a trial converts – see `docs/subscriptions-setup.md` |
 | `functions/checkout-reminders/` | Hourly (pg_cron): one "create your account" email to website buyers who never did – see `docs/web-checkout-setup.md` |
@@ -205,25 +205,31 @@ deauthorisation at Strava and account deletion delete the tokens and every impor
 
 ## Account deletion
 
-Profile → Account → Delete account (Google Play and the App Store require in-app deletion; the
-website's `/delete-account` page is the required web route and describes the same steps). The
-user types `DELETE`, the app calls `delete-account` with their JWT, and the function:
+Profile → Account → Delete account in the app, or **Account → Delete account** on the website
+(`/account/delete`, signed in; Google Play requires a web route – the public `/delete-account`
+page explains both and the email path). The user types `DELETE`, the app or the website server
+calls `delete-account` with the user's JWT, and the function:
 
-1. revokes Peakr's access at Strava (refreshing an expired token first; failures are logged
-   without the token or the provider's response and do not block the deletion),
-2. deletes the user's `activities`, `workouts`, `plans`, `routes`, `push_tokens`,
-   `entitlements`, `trial_reminders`, `integration_tokens`, `integrations` and `profiles` rows
-   explicitly (most also cascade),
-3. deletes the customer at RevenueCat (best effort, needs `REVENUECAT_SECRET_KEY`),
-4. deletes the auth user with the admin API.
+1. revokes Peakr's access at every connected service – Strava, Garmin, COROS, Suunto –
+   refreshing an expired token first (failures are logged without the token or the provider's
+   response and do not block the deletion; a Garmin personal key has nothing to revoke),
+2. cancels website (Stripe) subscriptions – nobody could reach the customer portal afterwards,
+3. deletes every row of the user explicitly (most also cascade): quiz, checkouts, reminders,
+   notification settings, health, baseline, streams, routes, uploads, watch pushes, activities,
+   workouts, plans, push tokens, entitlements, integration tokens, integrations, profile,
+4. deletes the user's files in Storage – everything under `<user id>/` in every bucket (user
+   files always live under that prefix),
+5. deletes the customer at RevenueCat (best effort, needs `REVENUECAT_SECRET_KEY`),
+6. deletes the auth user with the admin API.
 
 It is idempotent: a second call finds nothing to delete, and the app treats "user no longer
 exists" as success, so a lost answer can simply be retried. Afterwards the app wipes its SQLite
 data (plan, activities, strength data, quiz progress, sync state), signs out locally and goes back
-to onboarding. Offline, or when the function fails, nothing is deleted on the phone. Subscriptions
-are not cancelled – the app and the website tell the user to cancel in Google Play / the App Store
-or the Stripe portal. Email requests: delete the user in **Authentication → Users** after
-revoking Strava (or call the function with that user's session).
+to onboarding. Offline, or when the function fails, nothing is deleted on the phone. Store
+subscriptions are not cancelled – the app and the website tell the user to cancel in Google Play /
+the App Store. Email requests: reply with the link to `/account/delete` (the user signs in with
+that address and confirms, which runs the full deletion above); only if they cannot sign in,
+delete the user in **Authentication → Users** after revoking Strava.
 
 ## Reading the waitlist
 

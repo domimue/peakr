@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import { LegalPage, LegalSection } from '@/features/legal/legal-page';
 import { messages } from '@/i18n';
 import { pageMetadata } from '@/lib/metadata';
@@ -30,6 +32,14 @@ export default function DeleteAccountPage() {
             <li key={step}>{step}</li>
           ))}
         </ol>
+      </LegalSection>
+      <LegalSection heading={t.webHeading}>
+        <p>{t.webBody}</p>
+        <p className="mt-2">
+          <Link href="/account/delete" className={linkClass}>
+            {t.webLink}
+          </Link>
+        </p>
       </LegalSection>
       <LegalSection heading={t.emailHeading}>
         <p>
