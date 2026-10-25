@@ -10,11 +10,17 @@ const runner: UserProfile = {
   experience: 'advanced',
   sports: ['run'],
   terrain: 'flat',
-  strength: { mode: 'none', equipment: 'none' },
+  strength: { mode: 'none', equipment: 'home' },
 };
 
 function plan(availability: Availability): Plan {
-  const result = generatePlan(runner, { kind: 'marathon' }, availability, '2026-10-19', '2027-04-18');
+  const result = generatePlan(
+    runner,
+    { kind: 'marathon' },
+    availability,
+    '2026-10-19',
+    '2027-04-18',
+  );
   if (!result.ok) throw new Error(JSON.stringify(result.issues));
   return result.value;
 }

@@ -4,11 +4,11 @@ import { useTranslation } from 'react-i18next';
 
 import { useSessionStore } from '@/features/auth/session-store';
 import { usePlan } from '@/features/plan/queries';
-import { useSettingsStore, type ThemePreference } from '@/features/settings/settings-store';
+import { useReminderSettings } from '@/features/notifications/queries';
+import { clockText } from '@/features/notifications/reminder-settings';
+import { useSettingsStore } from '@/features/settings/settings-store';
 import { useWeatherSettings } from '@/features/weather/queries';
-import { Screen, SegmentedControl, SettingsGroup, SettingsRow, type IconName } from '@/ui';
-
-import type { ComingSoonTopic } from './coming-soon-screen';
+import { Screen, SettingsGroup, SettingsRow, type IconName } from '@/ui';
 
 interface Row {
   icon: IconName;
@@ -18,26 +18,21 @@ interface Row {
   soon?: boolean;
 }
 
-const soon = (topic: ComingSoonTopic): Href => `/coming-soon/${topic}`;
-
-/**
- * Profile: grouped settings rows with icons. Rows of later phases open a "coming soon" page
- * instead of being hidden, so the structure of the app is visible from the start.
- */
+/** Profile: grouped settings rows with icons (CLAUDE.md "UI patterns"). */
 export function ProfileScreen() {
-  const { t } = useTranslation();
-  const themePreference = useSettingsStore((s) => s.themePreference);
-  const setThemePreference = useSettingsStore((s) => s.setThemePreference);
+  const { t, i18n } = useTranslation();
+  const { themePreference, units, haptics, language } = useSettingsStore();
+  const { data: reminder } = useReminderSettings();
   const { data: stored } = usePlan();
   const { data: weather } = useWeatherSettings();
   const session = useSessionStore((s) => (s.isAnonymous ? null : s.session));
   const paused = stored ? activePause(stored.state) !== null : false;
 
-  const themeOptions: { value: ThemePreference; label: string }[] = [
-    { value: 'system', label: t('profile.themeSystem') },
-    { value: 'light', label: t('profile.themeLight') },
-    { value: 'dark', label: t('profile.themeDark') },
-  ];
+  const themeLabel = {
+    system: t('profile.themeSystem'),
+    light: t('profile.themeLight'),
+    dark: t('profile.themeDark'),
+  }[themePreference];
 
   const training: Row[] = [
     { icon: 'tune', title: t('plan.availability.title'), href: '/training/availability' },
@@ -58,9 +53,8 @@ export function ProfileScreen() {
     {
       icon: 'units',
       title: t('profile.units'),
-      value: t('profile.metric'),
-      href: soon('units'),
-      soon: true,
+      value: units === 'imperial' ? t('settings.units.imperial') : t('settings.units.metric'),
+      href: '/settings/units',
     },
     { icon: 'heart', title: t('profile.hrZones'), href: '/training/zones' },
     {
@@ -69,13 +63,35 @@ export function ProfileScreen() {
       value: weather?.enabled ? t('weather.settings.on') : t('weather.settings.off'),
       href: '/training/weather',
     },
-    { icon: 'bell', title: t('profile.notifications'), href: soon('notifications'), soon: true },
+    {
+      icon: 'bell',
+      title: t('profile.notifications'),
+      value: reminder
+        ? reminder.enabled
+          ? clockText(reminder.minute, i18n.language)
+          : t('notifications.off')
+        : undefined,
+      href: '/settings/notifications',
+    },
+    {
+      icon: 'bolt',
+      title: t('settings.haptics.title'),
+      value: haptics ? t('notifications.on') : t('notifications.off'),
+      href: '/settings/haptics',
+    },
     {
       icon: 'language',
       title: t('profile.language'),
-      value: 'English',
-      href: soon('language'),
-      soon: true,
+      value: language === 'system' ? t('settings.language.system') : 'English',
+      href: '/settings/language',
+    },
+  ];
+  const appearance: Row[] = [
+    {
+      icon: 'appearance',
+      title: t('profile.theme'),
+      value: themeLabel,
+      href: '/settings/appearance',
     },
   ];
   const account: Row[] = [
@@ -90,7 +106,7 @@ export function ProfileScreen() {
           href: '/auth/account',
         }
       : { icon: 'account', title: t('profile.signIn'), href: '/auth/sign-in' },
-    { icon: 'privacy', title: t('profile.privacy'), href: soon('privacy'), soon: true },
+    { icon: 'privacy', title: t('profile.privacy'), href: '/settings/privacy' },
   ];
   const about: Row[] = [{ icon: 'info', title: t('profile.licenses'), href: '/licenses' }];
   if (__DEV__) {
@@ -116,13 +132,7 @@ export function ProfileScreen() {
     <Screen title={t('profile.title')}>
       <SettingsGroup title={t('profile.training')}>{rows(training)}</SettingsGroup>
       <SettingsGroup title={t('profile.settings')}>{rows(settings)}</SettingsGroup>
-      <SettingsGroup title={t('profile.appearance')}>
-        <SegmentedControl
-          options={themeOptions}
-          value={themePreference}
-          onChange={setThemePreference}
-        />
-      </SettingsGroup>
+      <SettingsGroup title={t('profile.appearance')}>{rows(appearance)}</SettingsGroup>
       <SettingsGroup title={t('profile.accountGroup')}>{rows(account)}</SettingsGroup>
       <SettingsGroup title={t('profile.about')}>{rows(about)}</SettingsGroup>
     </Screen>

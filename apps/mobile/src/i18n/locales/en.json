@@ -145,6 +145,7 @@
     },
     "devStart": "Start plan without purchase (development)",
     "km": "{{value}} km",
+    "mi": "{{value}} mi",
     "summary": {
       "sessions_one": "session",
       "sessions_other": "sessions"
@@ -210,7 +211,7 @@
     "weekComplete": "Week complete",
     "progress": {
       "sessions": "Sessions {{done}}/{{planned}}",
-      "distance": "Distance {{done}}/{{planned}} km"
+      "distance": "Distance {{done}}/{{planned}} {{unit}}"
     },
     "tags": {
       "recovery": "Recovery week",
@@ -330,7 +331,8 @@
     "account": "Account",
     "privacy": "Privacy",
     "accountGroup": "Account & privacy",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "theme": "Theme"
   },
   "dev": {
     "planPreview": {
@@ -2067,15 +2069,12 @@
       "noHome": "No home start point yet. Set one in Terrain profile so the weather check also works without location access.",
       "setHome": "Set home start point",
       "permissionDenied": "No location access – the weather check uses your home start point instead.",
-      "notificationsDenied": "Notifications are turned off for Peakr. Allow them in the system settings to get the morning notification.",
       "sessionHour": "Usual training time",
       "sessionHourHint": "The forecast is checked for this time on each training day.",
       "earlier": "Earlier",
       "later": "Later",
-      "morningAlert": "Morning notification",
-      "morningAlertHint": "One notification in the morning, only on training days with a weather hint.",
-      "morningHour": "Notification time",
-      "attribution": "Weather data: MeteoSwiss (Switzerland) and Open-Meteo.com, licensed under CC BY 4.0."
+      "attribution": "Weather data: MeteoSwiss (Switzerland) and Open-Meteo.com, licensed under CC BY 4.0.",
+      "reminderLink": "Weather in the morning reminder"
     }
   },
   "insights": {
@@ -2360,5 +2359,66 @@
     },
     "weekOne": "Week 1 is your free preview.",
     "readOnlyBanner": "Read-only – your subscription has ended."
+  },
+  "notifications": {
+    "intro": "At most one notification a day: in the morning on days with a planned workout, naming the session. Nothing on rest days.",
+    "on": "On",
+    "off": "Off",
+    "signedOut": "Sign in to get the reminder – it is sent from your account, so it also follows your plan from other devices.",
+    "denied": "Notifications are turned off for Peakr in the system settings.",
+    "openSettings": "Open system settings",
+    "reminder": {
+      "label": "Daily workout reminder",
+      "hint": "Sent at the time below in your current time zone, only on workout days.",
+      "time": "Reminder time",
+      "earlier": "Earlier",
+      "later": "Later",
+      "weather": "Weather in the reminder",
+      "weatherHint": "When rain, snow, ice or a storm is expected around your session, the reminder says so and names the indoor option – in the same notification.",
+      "weatherOff": "Turn on the weather check to get weather hints in the reminder.",
+      "title": "Today: {{workout}}",
+      "zone": "Zone {{zone}}",
+      "body": "Tap for the steps and targets.",
+      "channel": "Daily workout reminder"
+    },
+    "activity": {
+      "label": "Synced activities",
+      "hint": "A notification when an activity from Strava or your watch arrives. Otherwise it only shows in the app."
+    }
+  },
+  "settings": {
+    "units": {
+      "label": "Distances and paces",
+      "metric": "Metric",
+      "metricHint": "Kilometres, min/km",
+      "imperial": "Imperial",
+      "imperialHint": "Miles, min/mi",
+      "note": "Heart rate, elevation gain and swim paces per 100 m stay as they are."
+    },
+    "appearance": {
+      "systemHint": "Follows your phone: light by day, dark at night if it is set up that way."
+    },
+    "haptics": {
+      "title": "Haptics",
+      "label": "Haptic feedback",
+      "onHint": "A short vibration when you complete a session or a set, and on the number keypad."
+    },
+    "language": {
+      "system": "Phone language",
+      "systemHint": "Uses your phone's language when Peakr is available in it, otherwise English.",
+      "more": "German, French, Italian and Spanish follow English."
+    },
+    "privacy": {
+      "storedTitle": "What Peakr stores",
+      "stored": "Your plan, settings and completed sessions live on this phone and in your Peakr account for sync and backup. Activities come only from services you connect.",
+      "never": "Your data is never shown to anyone else, never sold and never used to train AI models.",
+      "connections": "Connect or disconnect Strava and your watch; disconnecting deletes the imported data.",
+      "health": "Health data",
+      "healthHint": "Choose which body and recovery data Peakr reads, or delete all of it.",
+      "notifications": "What Peakr may notify you about.",
+      "policy": "Privacy policy",
+      "delete": "Delete account",
+      "deleteHint": "Removes your account and all its data for good."
+    }
   }
 }

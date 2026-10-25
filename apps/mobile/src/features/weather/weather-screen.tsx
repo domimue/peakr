@@ -8,7 +8,6 @@ import { Button, Card, Screen, SegmentedControl, spacing, Stepper, Text, useThem
 import { useHomeStart } from '../routes/queries';
 import { formatLatLon } from '../routes/start-point';
 import { askLocationPermission } from './location';
-import { askNotificationPermission } from './morning-alert';
 import { useSaveWeatherSettings, useWeatherSettings } from './queries';
 import type { WeatherSettings } from './settings';
 
@@ -18,8 +17,9 @@ const clock = (hour: number) => `${String(hour).padStart(2, '0')}:00`;
 
 /**
  * Profile → Weather check: on/off, which location, the usual training time (the plan has no time
- * of day) and the optional morning notification. The location permission is asked only when the
- * check is turned on with "current location"; without it the home start point is used.
+ * of day). Weather hints go into the daily reminder (Profile → Notifications). The location
+ * permission is asked only when the check is turned on with "current location"; without it the
+ * home start point is used.
  */
 export function WeatherScreen() {
   const { data: settings } = useWeatherSettings();
@@ -53,15 +53,6 @@ function WeatherForm({ settings }: { settings: WeatherSettings }) {
       return;
     }
     update({ source });
-  };
-
-  const setMorningAlert = async (morningAlert: boolean) => {
-    setNotice(null);
-    if (morningAlert && !(await askNotificationPermission())) {
-      setNotice(t('weather.settings.notificationsDenied'));
-      return;
-    }
-    update({ morningAlert });
   };
 
   const onOff = (on: boolean): OnOff => (on ? 'on' : 'off');
@@ -126,29 +117,13 @@ function WeatherForm({ settings }: { settings: WeatherSettings }) {
             {t('weather.settings.sessionHourHint')}
           </Text>
 
-          <View style={styles.group}>
-            <Text variant="label">{t('weather.settings.morningAlert')}</Text>
-            <SegmentedControl
-              options={onOffOptions}
-              value={onOff(settings.morningAlert)}
-              onChange={(v) => void setMorningAlert(v === 'on')}
-            />
-            <Text variant="caption" tone="secondary">
-              {t('weather.settings.morningAlertHint')}
-            </Text>
-          </View>
-          {settings.morningAlert ? (
-            <Stepper
-              label={t('weather.settings.morningHour')}
-              value={settings.morningHour}
-              min={5}
-              max={10}
-              onChange={(morningHour) => update({ morningHour })}
-              format={clock}
-              decreaseLabel={t('weather.settings.earlier')}
-              increaseLabel={t('weather.settings.later')}
-            />
-          ) : null}
+          <Button
+            small
+            variant="secondary"
+            icon="bell"
+            label={t('weather.settings.reminderLink')}
+            onPress={() => router.push('/settings/notifications')}
+          />
         </>
       ) : null}
 

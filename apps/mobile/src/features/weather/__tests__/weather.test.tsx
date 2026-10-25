@@ -23,7 +23,7 @@ import { usePlanUiStore } from '../../plan/plan-ui-store';
 import { TodayScreen } from '../../today/today-screen';
 import { fetchForecast } from '../api';
 import { WeatherChip } from '../components/weather-chip';
-import { morningAlerts } from '../morning-alert';
+import { reminderDays } from '../../notifications/reminder-days';
 import { useDismissedHints } from '../queries';
 import { DEFAULT_WEATHER_SETTINGS, type WeatherSettings } from '../settings';
 import { WeatherScreen } from '../weather-screen';
@@ -257,7 +257,7 @@ describe('weather settings', () => {
   });
 });
 
-describe('morning notification', () => {
+describe('weather in the daily reminder', () => {
   const plan = (() => {
     const r = generatePlan(
       input.profile,
@@ -271,42 +271,26 @@ describe('morning notification', () => {
   })();
   const state = newPlanState(plan);
   const t = i18n.t.bind(i18n);
-  const on: WeatherSettings = { ...enabled, morningAlert: true };
 
-  it('one notification at 07:00 naming the workout, the weather and the option', () => {
-    const alerts = morningAlerts(
-      t,
-      'en',
-      forecast(RAIN_AT_18),
-      state,
-      input.profile,
-      on,
-      MONDAY,
-      new Date(2026, 9, 26, 6, 0),
-    );
-    expect(alerts).toHaveLength(1);
+  it('names the workout and merges the weather line into the same reminder', () => {
+    const days = reminderDays(t, 'en', state, input.profile, forecast(RAIN_AT_18), enabled, MONDAY);
     const easy = findWorkout(plan, EASY) as Workout;
-    expect(alerts[0]).toMatchObject({ id: `weather-${MONDAY}`, workoutId: easy.id });
-    expect(alerts[0]?.at).toEqual(new Date(2026, 9, 26, 7, 0));
-    expect(alerts[0]?.title).toMatch(/^Today: /);
-    expect(alerts[0]?.body).toBe('heavy rain from 6:00 PM – Treadmill option available.');
+    const monday = days.find((d) => d.date === MONDAY);
+    expect(monday).toMatchObject({ workoutId: easy.id, body: 'Tap for the steps and targets.' });
+    expect(monday?.title).toMatch(/^Today: .+, Zone 2$/);
+    expect(monday?.weather).toBe('Heavy rain from 6:00 PM – Treadmill option available.');
+    // One entry per day, never a second one for the weather.
+    expect(new Set(days.map((d) => d.date)).size).toBe(days.length);
   });
 
-  it('none once the morning time has passed, when off, or in fine weather', () => {
-    const args = [t, 'en', forecast(RAIN_AT_18), state, input.profile] as const;
-    expect(morningAlerts(...args, on, MONDAY, new Date(2026, 9, 26, 8, 0))).toEqual([]);
-    expect(morningAlerts(...args, enabled, MONDAY, new Date(2026, 9, 26, 6, 0))).toEqual([]);
+  it('no weather line in fine weather, with the check off, or without a forecast', () => {
+    const args = [t, 'en', state, input.profile] as const;
+    const monday = (d: ReturnType<typeof reminderDays>) => d.find((x) => x.date === MONDAY);
+    expect(monday(reminderDays(...args, forecast(), enabled, MONDAY))?.weather).toBeNull();
     expect(
-      morningAlerts(
-        t,
-        'en',
-        forecast(),
-        state,
-        input.profile,
-        on,
-        MONDAY,
-        new Date(2026, 9, 26, 6),
-      ),
-    ).toEqual([]);
+      monday(reminderDays(...args, forecast(RAIN_AT_18), DEFAULT_WEATHER_SETTINGS, MONDAY))
+        ?.weather,
+    ).toBeNull();
+    expect(monday(reminderDays(...args, null, enabled, MONDAY))?.weather).toBeNull();
   });
 });

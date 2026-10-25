@@ -16,6 +16,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { todayIso } from '@/data/ids';
 import type { StoredPlan } from '@/data/repositories/plan-repository';
 import { Badge, Button, Card, Icon, IconButton, spacing, Text, useTheme } from '@/ui';
+import { useUnits } from '@/features/settings/units';
 
 import { addDays, formatDate, initialWeek } from '../calendar';
 import { MoveFeedbackCard } from './move-feedback';
@@ -198,13 +199,14 @@ function WeekSection({
   children,
 }: WeekSectionProps) {
   const { t, i18n } = useTranslation();
+  const { distance } = useUnits();
   const { colors } = useTheme();
   const p = weekProgress(state, week, input.profile);
   const tags = weekTags(week, input, targetDate);
   const date = (iso: string) => formatDate(iso, i18n.language, { day: 'numeric', month: 'short' });
   const totals = [
     t('workoutText.minutesRange', { min: p.minMin, max: p.maxMin }),
-    p.kmPlanned > 0 ? t('plan.km', { value: Math.round(p.kmPlanned) }) : null,
+    p.kmPlanned > 0 ? distance(p.kmPlanned, 0) : null,
   ]
     .filter(Boolean)
     .join(' · ');

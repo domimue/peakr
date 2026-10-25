@@ -12,7 +12,7 @@ import {
   type LiveSet,
   type SetType,
 } from '@peakr/engine';
-import * as Haptics from 'expo-haptics';
+import { sessionDoneHaptic } from '@/ui/haptics';
 import { useKeepAwake } from 'expo-keep-awake';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -122,7 +122,7 @@ export function LiveSessionScreen() {
   };
 
   const complete = (entryId: string, setId: string) => {
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    sessionDoneHaptic();
     dispatch({ type: 'completeSet', entryId, setId });
   };
 
@@ -382,7 +382,7 @@ function RestBar({ now: tick, exerciseName: name }: { now: number; exerciseName:
   useEffect(() => {
     if (!rest || left > 0 || buzzed.current === rest.endsAt) return;
     buzzed.current = rest.endsAt;
-    void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    sessionDoneHaptic();
   }, [rest, left]);
 
   if (!rest) return null;

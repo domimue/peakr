@@ -13,6 +13,8 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 
 import { Badge, Button, Icon, radius, SegmentedProgress, spacing, Text, useTheme } from '@/ui';
+import { useSettingsStore } from '@/features/settings/settings-store';
+import { distanceUnit, KM_PER_MILE } from '@/features/settings/units';
 
 import { addDays, formatDate, weekDates } from '../calendar';
 import { typeColor, typeName } from '../kind';
@@ -56,6 +58,7 @@ export function WeekProgressCard({
 }: WeekProgressCardProps) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
+  const units = useSettingsStore((s) => s.units);
   const p = weekProgress(state, week, profile);
   const date = (iso: string) => formatDate(iso, i18n.language, { day: 'numeric', month: 'short' });
   const range = `${date(week.startDate)} – ${date(addDays(week.startDate, 6))}`;
@@ -64,9 +67,11 @@ export function WeekProgressCard({
     done: p.sessionsDone,
     planned: p.sessionsPlanned,
   });
+  const toUnit = (km: number) => Math.round(units === 'imperial' ? km / KM_PER_MILE : km);
   const distance = t('plan.progress.distance', {
-    done: Math.round(p.kmDone),
-    planned: Math.round(p.kmPlanned),
+    done: toUnit(p.kmDone),
+    planned: toUnit(p.kmPlanned),
+    unit: distanceUnit(units),
   });
   const segments = p.segments.map((s) => ({
     key: s.workoutId,
