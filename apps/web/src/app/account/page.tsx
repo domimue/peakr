@@ -12,6 +12,8 @@ import {
 } from '@/features/account/subscription';
 import { signOut } from '@/features/auth/actions';
 import { formatInstant } from '@/features/funnel/format';
+import { openAppUrl } from '@/features/get-app/app-links';
+import { OpenAppLink } from '@/features/get-app/open-app-link';
 import { interpolate, messages } from '@/i18n';
 import { privateMetadata } from '@/lib/metadata';
 import { currentUser, isAccount, sessionClient } from '@/lib/supabase/server';
@@ -80,9 +82,9 @@ async function Account({ searchParams }: Pick<PageProps<'/account'>, 'searchPara
       </section>
 
       <div className="flex flex-col gap-3 sm:flex-row">
-        <Link href="/get-app" className={secondaryButton}>
+        <OpenAppLink appHref={openAppUrl('account')} className={secondaryButton}>
           {t.getApp}
-        </Link>
+        </OpenAppLink>
         <form action={signOut}>
           <button type="submit" className={`${secondaryButton} w-full`}>
             {t.signOut}

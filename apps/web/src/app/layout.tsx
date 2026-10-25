@@ -29,6 +29,8 @@ const peakrDisplay = localFont({
 
 const t = messages.meta;
 
+const APP_STORE_ID = process.env.NEXT_PUBLIC_APP_STORE_ID?.match(/^\d+$/)?.[0] ?? null;
+
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl()),
   title: { default: t.title, template: `%s | ${t.siteName}` },
@@ -51,6 +53,9 @@ export const metadata: Metadata = {
     apple: { url: '/apple-touch-icon.png', sizes: '180x180' },
   },
   manifest: '/manifest.webmanifest',
+  // iOS Smart App Banner, once the app is in the App Store (NEXT_PUBLIC_APP_STORE_ID, the numeric
+  // id from the App Store URL). Safari shows "Open" instead of "Get" when Peakr is installed.
+  ...(APP_STORE_ID ? { itunes: { appId: APP_STORE_ID } } : {}),
 };
 
 export const viewport: Viewport = {

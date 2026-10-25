@@ -1,6 +1,8 @@
 import Link from 'next/link';
 
 import { PeakrLogo } from '@/components/brand/peakr-logo';
+import { openAppUrl } from '@/features/get-app/app-links';
+import { OpenAppLink } from '@/features/get-app/open-app-link';
 import { QUIZ_HREF } from '@/features/tools/tools';
 import { messages } from '@/i18n';
 
@@ -38,6 +40,13 @@ export function SiteHeader() {
           <Link href="/account" className="text-muted hover:text-foreground">
             {t.account}
           </Link>
+          {/* Opens the installed app on a phone, Get the app on a computer. */}
+          <OpenAppLink
+            appHref={openAppUrl('header')}
+            className="hidden text-muted hover:text-foreground md:inline"
+          >
+            {t.app}
+          </OpenAppLink>
           <Link
             href={QUIZ_HREF}
             className="hidden rounded-button border-1.5 border-border px-4 py-2 font-semibold hover:bg-surface sm:inline-block"

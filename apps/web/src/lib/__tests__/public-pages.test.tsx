@@ -73,6 +73,8 @@ describe('public pages', () => {
       '/pricing',
       '/tools',
       '/account',
+      // "Get the app": the app link on a phone, Get the app on a computer (jsdom).
+      '/get-app',
       '/quiz',
     ]);
     expect(hrefs('Footer')).toEqual([
