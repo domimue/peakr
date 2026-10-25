@@ -28,7 +28,7 @@ export function placementOf(value: unknown): LinkPlacement {
 const stripSlash = (url: string) => url.replace(/\/+$/, '');
 
 /**
- * Origin of app links. A subdomain (e.g. https://open.peakr.ch) in NEXT_PUBLIC_APP_LINK_URL: iOS
+ * Origin of app links. A subdomain (e.g. https://peakr-open.vercel.app) in NEXT_PUBLIC_APP_LINK_URL: iOS
  * and Chrome only hand a tapped link to the app when it leads to a different site than the one
  * the visitor is on. Without it the main domain is used, which still works from email and other
  * apps.
