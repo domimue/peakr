@@ -145,11 +145,8 @@ pnpm exec supabase secrets set STRIPE_SECRET_KEY=sk_… SITE_URL=https://<your-d
 
 Use **test-mode** Stripe values for Preview deployments and live values for Production only.
 
-**Store badges**: Google and Apple require their official artwork, unchanged. Download the
-"Get it on Google Play" badge (PNG) from <https://play.google.com/intl/en_us/badges/> and the
-"Download on the App Store" badge (SVG) from <https://developer.apple.com/app-store/marketing/guidelines/>,
-and save them as `apps/web/public/badges/google-play.png` and `apps/web/public/badges/app-store.svg`.
-Until the files are there, the page shows plain buttons with the same text.
+**Store badges, app links and the confirmation email**: see `docs/app-links.md` (badge files,
+`NEXT_PUBLIC_APP_LINK_URL`, `ANDROID_CERT_SHA256`, `APPLE_TEAM_ID`, `RESEND_API_KEY`, `EMAIL_FROM`).
 
 ## 5. Edge cases and what happens
 
