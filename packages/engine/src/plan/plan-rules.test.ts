@@ -132,6 +132,26 @@ describe('generatePlan rules over the fixture grid', () => {
     for (const day of days(plan)) expect(day.filter(isHardEndurance).length).toBeLessThanOrEqual(1);
   });
 
+  each('never puts hard sessions on consecutive days', ({ plan }) => {
+    const all = days(plan);
+    for (let i = 1; i < all.length; i++) {
+      const today = all[i]?.filter((w) => w.hard) ?? [];
+      const yesterday = all[i - 1]?.filter((w) => w.hard) ?? [];
+      if (today.length > 0 && yesterday.length > 0) {
+        throw new Error(`hard on ${yesterday[0]?.date} and ${today[0]?.date}`);
+      }
+    }
+  });
+
+  each('names the reason when a hard session had to be made easy', ({ plan }) => {
+    for (const w of plan.weeks.flatMap((x) => x.workouts)) {
+      if (w.notes.some((n) => n.key === 'notes.downgraded')) {
+        expect(w.hard).toBe(false);
+        expect(w.role).toBe('easy');
+      }
+    }
+  });
+
   each('never repeats the same strength session on consecutive days', ({ plan }) => {
     for (const week of plan.weeks) {
       for (const w of week.workouts.filter((x) => x.sport === 'strength')) {

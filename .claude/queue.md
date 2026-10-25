@@ -3,11 +3,11 @@
 Prompts the user has given that are not finished yet. Newest at the bottom;
 work top to bottom. See "Working mode (Claude sessions)" in CLAUDE.md.
 
-Hourly check-in (scheduled task): `trig_015hyppkG4BqGmcHrfZ17J21`
+Hourly check-in (scheduled task): `trig_015a2Y5t1X2rX23SExeZEBub`
 
 ## Open
 
-_(none)_
+- Phase 10c – Account, notifications & hard-day rule (plan: .claude/plans/phase-10c-account-notifications.md)
 
 ## Done
 
