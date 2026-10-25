@@ -563,7 +563,8 @@
     "continue": "Continue to my plan",
     "terms": "Terms",
     "privacy": "Privacy",
-    "back": "Back to my forecast"
+    "back": "Back to my forecast",
+    "personal": "Personal build – everything is unlocked, no subscription needed."
   },
   "gymAddon": {
     "title": "Peakr Gym",
@@ -1110,7 +1111,8 @@
       "later": "Later (development)",
       "failed": "Sign-in didn’t work. Please try again.",
       "notConfigured": "Accounts are not set up in this build yet. Your plan stays on this device.",
-      "haveAccount": "Already have an account? Sign in"
+      "haveAccount": "Already have an account? Sign in",
+      "skip": "Continue without an account"
     },
     "callback": {
       "signingIn": "Signing you in…",

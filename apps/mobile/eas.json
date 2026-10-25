@@ -19,6 +19,17 @@
         "buildType": "apk"
       }
     },
+    "personal": {
+      "distribution": "internal",
+      "channel": "personal",
+      "environment": "preview",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "PEAKR_PERSONAL_BUILD": "1"
+      }
+    },
     "production": {
       "channel": "production",
       "autoIncrement": true,

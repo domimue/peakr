@@ -21,11 +21,19 @@ function linkHosts(): string[] {
   return fromEnv && fromEnv.length > 0 ? fromEnv : DEFAULT_HOSTS;
 }
 
+/**
+ * EAS profile `personal` (eas.json): everything unlocked without billing, for the owner's own use.
+ * Guarded so a production build can never carry it, even if the variable leaks into its env.
+ */
+const personalBuild =
+  process.env.PEAKR_PERSONAL_BUILD === '1' && process.env.EAS_BUILD_PROFILE !== 'production';
+
 export default ({ config }: ConfigContext): ExpoConfig => {
   const hosts = linkHosts();
   const base = config as ExpoConfig;
   return {
     ...base,
+    extra: { ...base.extra, personalBuild },
     ios: {
       ...base.ios,
       associatedDomains: hosts.map((host) => `applinks:${host}`),

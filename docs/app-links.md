@@ -74,10 +74,10 @@ variables below**.
 
 Set on Vercel:
 
-| Variable | Value |
-| --- | --- |
-| `ANDROID_PACKAGE_NAME` | `com.peakr.app` (default) |
-| `ANDROID_CERT_SHA256` | the SHA-256 fingerprints, comma-separated, format `AA:BB:…` (32 pairs) |
+| Variable               | Value                                                                  |
+| ---------------------- | ---------------------------------------------------------------------- |
+| `ANDROID_PACKAGE_NAME` | `com.peakr.app` (default)                                              |
+| `ANDROID_CERT_SHA256`  | the SHA-256 fingerprints, comma-separated, format `AA:BB:…` (32 pairs) |
 
 **You need two fingerprints – both, always:**
 
@@ -99,10 +99,10 @@ Shortcut: Play Console → **Grow users → Deep links** (after the first upload
 
 ### 3. iOS: `/.well-known/apple-app-site-association` (prepared now, used with the iOS release)
 
-| Variable | Value |
-| --- | --- |
+| Variable        | Value                                                             |
+| --------------- | ----------------------------------------------------------------- |
 | `APPLE_TEAM_ID` | 10 characters, developer.apple.com → Account → Membership details |
-| `IOS_BUNDLE_ID` | `com.peakr.app` (default) |
+| `IOS_BUNDLE_ID` | `com.peakr.app` (default)                                         |
 
 Served as `application/json`, no file extension, no redirect, status 200 (404 until the Team ID
 is set). The app's associated-domains entitlement (`applinks:peakr-web.vercel.app`, `applinks:peakr-open.vercel.app`)
@@ -115,20 +115,20 @@ Changing hosts always needs a new build.
 
 ### 4. Store links, badges and Smart App Banner
 
-| Variable | When |
-| --- | --- |
+| Variable                     | When                                                                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
 | `NEXT_PUBLIC_PLAY_STORE_URL` | `https://play.google.com/store/apps/details?id=com.peakr.app`, once published (the referrer is appended automatically) |
-| `NEXT_PUBLIC_APP_STORE_URL` | with the iOS release; until then the App Store button reads "coming soon" and is disabled |
-| `NEXT_PUBLIC_APP_STORE_ID` | the numeric id from the App Store URL – turns on the iOS Smart App Banner |
+| `NEXT_PUBLIC_APP_STORE_URL`  | with the iOS release; until then the App Store button reads "coming soon" and is disabled                              |
+| `NEXT_PUBLIC_APP_STORE_ID`   | the numeric id from the App Store URL – turns on the iOS Smart App Banner                                              |
 
 **Badges** – use the official artwork unchanged (no recolouring, no redrawing, no stretching):
 
 - Google Play: <https://play.google.com/intl/en_us/badges/> → download the PNG and save it as
-  `apps/web/public/badges/google-play.png`. The PNG includes its own clear space; the page shows
-  it at 72 px height (≈ 48 px visible badge).
+  `apps/web/public/badges/google-play.png`. Only the empty transparent margin around the badge
+  may be trimmed (done for the current file); the page adds the clear space itself.
 - App Store: <https://developer.apple.com/app-store/marketing/guidelines/> → "Download on the App
   Store" badge, black SVG, saved as `apps/web/public/badges/app-store.svg`. The page shows it at
-  48 px height with a quarter of its height as clear space on every side.
+  48 px height with a quarter of its height as clear space on every side – the same for both.
 
 Until the files exist, plain buttons with the same text are shown. A store without a link never
 shows a badge (a disabled "coming soon" button instead – a greyed-out badge would alter it).
@@ -152,7 +152,7 @@ the checkout confirmation email. Apply the migration `20261101000000_checkout_co
    upload key; a Play internal-testing install → Play signing key).
 2. Check the hosted file:
    `curl -i https://peakr-open.vercel.app/.well-known/assetlinks.json` → `200`, `content-type:
-   application/json`, no `location` header. Same for `https://peakr-web.vercel.app/...`.
+application/json`, no `location` header. Same for `https://peakr-web.vercel.app/...`.
    Google's checker: `https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://peakr-open.vercel.app&relation=delegate_permission/common.handle_all_urls`
 3. Verification state on the device:
    ```sh
@@ -199,7 +199,7 @@ the checkout confirmation email. Apply the migration `20261101000000_checkout_co
 - **Host not claimed by the build**: `npx expo config --type introspect` in `apps/mobile` shows the
   intent filter hosts and `associated-domains`; a new host needs a new build.
 - **Android re-verification** only happens on install/update or with `pm verify-app-links
-  --re-verify`; **iOS** fetches through Apple's CDN on install and caches it.
+--re-verify`; **iOS** fetches through Apple's CDN on install and caches it.
 - **Same-site taps**: a link to `peakr-web.vercel.app` tapped on `peakr-web.vercel.app` stays in the browser on iOS (and
   usually Chrome). That is why the buttons point to `peakr-open.vercel.app`.
 - **In-app browsers** (Instagram, some mail apps) may not hand links to apps. The fallback page

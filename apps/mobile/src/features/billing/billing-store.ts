@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import { personalBuild } from '@/config/build';
+
 import {
   accessOf,
   changeFrom,
@@ -153,19 +155,22 @@ export const useBillingStore = create<BillingState>()((set, get) => {
   };
 });
 
-/** Whether the Gym add-on is active (or granted in a development build). */
+/** Whether the Gym add-on is active (or granted in a development or personal build). */
 export function useHasGym(): boolean {
-  return useBillingStore((s) => s.entitlements.gym || s.devGym);
+  return useBillingStore((s) => personalBuild || s.entitlements.gym || s.devGym);
 }
 
 export function useTier(): Entitlements['tier'] {
   return useBillingStore((s) => s.entitlements.tier);
 }
 
-/** What the training plan may show and do (`full` / `readOnly` / `preview` / `pending`). */
+/**
+ * What the training plan may show and do (`full` / `readOnly` / `preview` / `pending`). A personal
+ * build (`@/config/build`) always has `full`.
+ */
 export function useAccess(): Access {
   return useBillingStore((s) =>
-    s.devTraining
+    personalBuild || s.devTraining
       ? 'full'
       : accessOf({
           status: s.status,

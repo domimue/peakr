@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Linking, Platform, StyleSheet, View } from 'react-native';
 
+import { personalBuild } from '@/config/build';
 import { todayIso } from '@/data/ids';
 import { authAvailable, selectAccountUserId, useSessionStore } from '@/features/auth/session-store';
 import { useBaselineStore } from '@/features/baseline/baseline-store';
@@ -122,11 +123,14 @@ export function PaywallScreen() {
     setMessage(t(ok ? 'paywall.nothingToRestore' : 'paywall.restoreFailed'));
   };
 
-  if (access === 'full' && status === 'ready') {
+  // Subscribed – or a personal build, which has no billing and everything unlocked.
+  if (access === 'full' && (status === 'ready' || personalBuild)) {
     return (
       <Screen title={t('paywall.title')}>
         <Card>
-          <Text variant="heading">{t('paywall.active')}</Text>
+          <Text variant="heading">
+            {t(status === 'ready' ? 'paywall.active' : 'paywall.personal')}
+          </Text>
           <Button
             label={t('paywall.continue')}
             disabled={createPlan.isPending}
