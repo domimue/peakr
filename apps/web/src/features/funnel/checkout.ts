@@ -7,6 +7,7 @@ import { sendStripeSubscription, setPriceAttributes } from '@/lib/revenuecat';
 import { siteUrl } from '@/lib/site';
 import { formatMoney, priceId, stripeClient, type Period, type Tier } from '@/lib/stripe';
 
+import { sendCheckoutConfirmation } from './confirmation-email';
 import type { QuizProgress, Visitor } from './visitor';
 
 /**
@@ -256,6 +257,11 @@ export async function completeCheckout(
         product,
       );
     }
+  }
+
+  // Not for a trial that was cancelled at once (the buyer already had a subscription).
+  if (!row.cancelled_reason) {
+    await sendCheckoutConfirmation(admin, { sessionId, email: row.email, trialEnd: row.trial_end });
   }
 
   return {

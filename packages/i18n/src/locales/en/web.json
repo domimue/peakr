@@ -13,7 +13,8 @@
     "label": "Main navigation",
     "skipToContent": "Skip to content",
     "account": "Account",
-    "buildPlan": "Build my plan"
+    "buildPlan": "Build my plan",
+    "app": "Get the app"
   },
   "footer": {
     "tagline": "Hybrid training plans driven by heart rate zones.",
@@ -747,7 +748,9 @@
       "refresh": "Refresh",
       "invalid": "We couldn’t find this checkout. If you paid, check your email for the link, or contact us.",
       "expired": "This checkout was not completed, so nothing was charged.",
-      "backToPlan": "Back to my plan"
+      "backToPlan": "Back to my plan",
+      "appTitle": "Already created your account?",
+      "appLead": "Then you’re all set – open Peakr on your phone and log in."
     },
     "claim": {
       "failed": "We couldn’t attach your purchase to this account. Log in with the email you used at checkout, or contact us – nothing is lost.",
@@ -761,19 +764,32 @@
       "welcome": "Your account is ready. Download the app and log in with {{email}}.",
       "keptPlan": "You already had a plan in Peakr, so we kept it. You can build a new one in the app any time.",
       "alreadySubscribed": "You already had an active subscription, so we cancelled the new trial right away – nothing will be charged.",
-      "open": "Open the app",
+      "open": "Open Peakr",
       "googlePlay": "Get it on Google Play",
       "appStore": "Download on the App Store",
-      "iosSoon": "iPhone version coming soon",
       "qrTitle": "On your computer?",
       "qrLead": "Scan the code with your phone to get the app.",
-      "qrAlt": "QR code that opens the Peakr app download page",
-      "notYet": "Peakr is almost ready for the stores. We’ll email you the moment you can download it.",
+      "qrAlt": "QR code that opens Peakr on your phone, or the store if it is not installed",
       "steps": [
         "Install Peakr from the store.",
         "Log in with the same email, Google or Apple account.",
         "Your plan is there – start with today’s session."
-      ]
+      ],
+      "notInstalled": "Not installed yet? Get it from the store, then log in with the same account.",
+      "googlePlayName": "Google Play",
+      "appStoreName": "the App Store",
+      "googlePlaySoon": "Google Play – coming soon",
+      "appStoreSoon": "App Store – coming soon",
+      "fallbackMetaTitle": "Open Peakr",
+      "fallbackHeading": "Open Peakr",
+      "fallbackIntro": "Peakr lives on your phone. Install it, log in with the account from your checkout, and your plan is there.",
+      "fallbackTitle": "Peakr isn’t on this phone yet",
+      "fallbackLead": "Install it from the store – it takes a minute. Then log in with the same email, Google or Apple account.",
+      "fallbackSoonTitle": "The iPhone app is coming soon",
+      "fallbackSoonLead": "Peakr is on Android for now. We’ll email you the moment it’s in the App Store – your account and plan are ready for it.",
+      "redirecting": "Taking you to {{store}} …",
+      "stay": "Stay on this page",
+      "alreadyInstalled": "Already installed? Open Peakr"
     },
     "account": {
       "metaTitle": "Your account | Peakr",
@@ -808,7 +824,7 @@
       "storeHint": "Subscriptions bought in the app are managed in the store you bought them in.",
       "portalError": "The customer portal is not available right now. Please try again in a moment.",
       "cancelledNotice": "You already had an active subscription, so we cancelled the new web trial right away – nothing will be charged.",
-      "getApp": "Get the app",
+      "getApp": "Open Peakr",
       "signOut": "Log out",
       "deleteTitle": "Delete account",
       "deleteLead": "Delete your account and all your data.",

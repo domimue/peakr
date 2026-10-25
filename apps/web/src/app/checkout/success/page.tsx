@@ -6,6 +6,8 @@ import { card, primaryButton, secondaryButton } from '@/components/ui';
 import { SignInForm } from '@/features/auth/sign-in-form';
 import { completeCheckout } from '@/features/funnel/checkout';
 import { formatInstant } from '@/features/funnel/format';
+import { openAppUrl } from '@/features/get-app/app-links';
+import { OpenAppLink } from '@/features/get-app/open-app-link';
 import { getVisitor } from '@/features/funnel/visitor';
 import { interpolate, messages } from '@/i18n';
 import { privateMetadata } from '@/lib/metadata';
@@ -97,6 +99,13 @@ async function Success({ searchParams }: Pick<PageProps<'/checkout/success'>, 's
           </p>
         ) : null}
         <SignInForm next={claim} email={result.email ?? ''} />
+      </section>
+      <section className="flex flex-col items-start gap-3 border-t border-border pt-6">
+        <h2 className="text-lg">{t.appTitle}</h2>
+        <p className="text-muted">{t.appLead}</p>
+        <OpenAppLink appHref={openAppUrl('checkout')} className={secondaryButton}>
+          {messages.funnel.getApp.open}
+        </OpenAppLink>
       </section>
     </>
   );

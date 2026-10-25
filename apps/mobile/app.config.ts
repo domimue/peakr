@@ -1,0 +1,45 @@
+import type { ConfigContext, ExpoConfig } from 'expo/config';
+
+/**
+ * Links into the app on our own domain (Phase 10d, docs/app-links.md): Android App Links and iOS
+ * Universal Links for every `https://<host>/open/...` URL. The website serves the matching
+ * /.well-known/assetlinks.json and /.well-known/apple-app-site-association on each host.
+ *
+ * APP_LINK_HOSTS (comma-separated, set in eas.json or the EAS environment) overrides the hosts.
+ * The second host is the link subdomain the website's "Open Peakr" button points to: iOS and
+ * Chrome do not hand a tap to the app when it links to the same site the visitor is on.
+ */
+const DEFAULT_HOSTS = ['peakr.ch', 'open.peakr.ch'];
+const LINK_PATH_PREFIX = '/open';
+
+function linkHosts(): string[] {
+  const fromEnv = process.env.APP_LINK_HOSTS?.split(',')
+    .map((h: string) => h.trim().toLowerCase())
+    .filter(Boolean);
+  return fromEnv && fromEnv.length > 0 ? fromEnv : DEFAULT_HOSTS;
+}
+
+export default ({ config }: ConfigContext): ExpoConfig => {
+  const hosts = linkHosts();
+  const base = config as ExpoConfig;
+  return {
+    ...base,
+    ios: {
+      ...base.ios,
+      associatedDomains: hosts.map((host) => `applinks:${host}`),
+    },
+    android: {
+      ...base.android,
+      intentFilters: [
+        ...(base.android?.intentFilters ?? []),
+        {
+          action: 'VIEW',
+          // Android checks /.well-known/assetlinks.json on every host at install time.
+          autoVerify: true,
+          category: ['BROWSABLE', 'DEFAULT'],
+          data: hosts.map((host) => ({ scheme: 'https', host, pathPrefix: LINK_PATH_PREFIX })),
+        },
+      ],
+    },
+  };
+};
