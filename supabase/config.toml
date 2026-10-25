@@ -462,6 +462,10 @@ verify_jwt = false
 [functions.trial-reminders]
 verify_jwt = false
 
+# Daily workout reminder (every 15 minutes): pg_cron sends x-cron-secret.
+[functions.daily-reminders]
+verify_jwt = false
+
 # "Create your account" reminder for website buyers: pg_cron sends x-cron-secret.
 [functions.checkout-reminders]
 verify_jwt = false
