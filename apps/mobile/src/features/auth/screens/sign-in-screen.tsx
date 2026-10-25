@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
+import { takePendingLink } from '@/features/deep-links/pending-link';
 import { Button, Card, radius, Screen, spacing, Text, TextField, useTheme } from '@/ui';
 
 import {
@@ -19,7 +20,8 @@ import { authAvailable, selectAccountUserId, useSessionStore } from '../session-
 const EMAIL = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
 
 /**
- * Email magic link (+ code), Google and Apple. Leaves for Today as soon as an account is signed in;
+ * Email magic link (+ code), Google and Apple. Leaves for Today (or the link that brought the user
+ * here, see `deep-links`) as soon as an account is signed in;
  * an anonymous quiz session is converted into the account (see `auth.ts`).
  */
 export function SignInScreen() {
@@ -34,7 +36,7 @@ export function SignInScreen() {
   const [emailError, setEmailError] = useState<string | undefined>();
 
   useEffect(() => {
-    if (accountUserId) router.replace('/today');
+    if (accountUserId) router.replace(takePendingLink() ?? '/today');
   }, [accountUserId]);
 
   async function attempt(action: () => Promise<unknown>) {

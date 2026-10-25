@@ -7,7 +7,7 @@ Hourly check-in (scheduled task): `trig_015a2Y5t1X2rX23SExeZEBub`
 
 ## Open
 
-_(none)_
+- Phase 10d – App links, deep links & "Get the app" (in progress)
 
 ## Done
 

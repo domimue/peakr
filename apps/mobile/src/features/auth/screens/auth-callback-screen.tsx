@@ -2,6 +2,7 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { takePendingLink } from '@/features/deep-links/pending-link';
 import { Button, Screen, Text } from '@/ui';
 
 import { completeSignIn } from '../auth';
@@ -19,7 +20,7 @@ export function AuthCallbackScreen() {
   useEffect(() => {
     if (!code || providerError) return;
     completeSignIn(code)
-      .then(() => router.replace('/today'))
+      .then(() => router.replace(takePendingLink() ?? '/today'))
       .catch((e: unknown) => {
         console.warn('Sign-in link failed', e);
         setExchangeFailed(true);
