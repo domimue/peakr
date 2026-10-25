@@ -98,8 +98,9 @@ data yet.
      catch-up); the new pull job uses them.
 4. `supabase db push` (migration `20261028000000_health.sql`) and
    `supabase functions deploy garmin-health watch-webhook oauth delete-account`.
-5. In a development build set `garminPersonalKey: true` in `apps/mobile/src/config/feature-flags.ts`.
-   Insights → Health → "Set up health data" → paste the key under "Developer" → switch on the
+5. The personal build (docs/personal-build.md) shows the key mode automatically (flag
+   `garminPersonalKey` is on there; in a development build set it to `true` by hand). Sign in,
+   then Insights → Health → "Set up health data" → paste the key under "Developer" → switch on the
    groups → Save. The backfill runs in the background ("Fetching your older data").
 6. Send me the output of `GET /functions/v1/garmin-health/probe?date=<yesterday>` (with your user
    JWT) or of `gc-personal daily-summaries / sleep-summaries / hrv-summaries / weight-measurements`
