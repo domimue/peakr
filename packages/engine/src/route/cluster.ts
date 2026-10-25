@@ -71,8 +71,10 @@ function meanDeviation(a: readonly LatLon[], b: readonly LatLon[]): number {
   return sum / a.length;
 }
 
+type Shape = Pick<Candidate, 'sport' | 'track' | 'samples' | 'lengthM'>;
+
 /** Same route: same sport, starts close, similar length, and paths overlap both ways. */
-function isSameRoute(a: Candidate, b: Candidate): boolean {
+function isSameRoute(a: Shape, b: Shape): boolean {
   if (a.sport !== b.sport) return false;
   if (haversineM(a.track[0] as LatLon, b.track[0] as LatLon) > cfg.startRadiusM) return false;
   const longer = Math.max(a.lengthM, b.lengthM);
@@ -81,6 +83,21 @@ function isSameRoute(a: Candidate, b: Candidate): boolean {
     meanDeviation(a.samples, b.samples) <= cfg.maxMeanDeviationM &&
     meanDeviation(b.samples, a.samples) <= cfg.maxMeanDeviationM
   );
+}
+
+/**
+ * Whether two tracks of the same sport are the same route (start, length, path) – used to drop
+ * near-identical generated round trips.
+ */
+export function sameTrack(sport: RouteSport, a: readonly LatLon[], b: readonly LatLon[]): boolean {
+  const of = (track: readonly LatLon[]) => ({
+    sport,
+    track: [...track],
+    samples: resampleTrack(track, cfg.samplePoints),
+    lengthM: trackLengthM(track),
+  });
+  if (a.length === 0 || b.length === 0) return false;
+  return isSameRoute(of(a), of(b));
 }
 
 function candidateOf(activity: TrackActivity): Candidate | null {

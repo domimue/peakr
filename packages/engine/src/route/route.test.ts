@@ -5,7 +5,7 @@ import { allWorkouts, newPlanState, setWorkoutRoute, type PlanState } from '../p
 import { generatePlan } from '../plan/generate';
 import type { ElevationPoint } from '../plan/terrain';
 import type { UserProfile, Workout } from '../plan/types';
-import { recogniseRoutes, type TrackActivity } from './cluster';
+import { recogniseRoutes, sameTrack, type TrackActivity } from './cluster';
 import { evaluateActivity, type ActivityStream } from './evaluate';
 import {
   boundingBox,
@@ -36,6 +36,13 @@ import {
   profileFromStreams,
   smoothProfile,
 } from './profile';
+import {
+  matchableCandidate,
+  pickRoundTrips,
+  roundTripDistanceM,
+  roundTripRequest,
+  type RoundTripCandidate,
+} from './routing';
 import { classifyTerrain, learnTerrainProfile } from './terrain-profile';
 
 // ---------------------------------------------------------------------------------------------
@@ -453,6 +460,126 @@ describe('route matching', () => {
     );
     expect(ranked.map((m) => m.routeId)).toEqual(['a', 'b', 'far']);
     expect(rankRoutes([route()], swim, profile, ORIGIN)).toEqual([]);
+  });
+
+  it('weighs the surface only when it is known', () => {
+    expect(scoreRoute(route({ surfaceSuitability: null }), easyRun, profile, ORIGIN).score).toBe(1);
+    expect(scoreRoute(route({ surfaceSuitability: 1 }), easyRun, profile, ORIGIN).score).toBe(1);
+    const gravel = scoreRoute(route({ surfaceSuitability: 0.2 }), easyRun, profile, ORIGIN);
+    expect(gravel.score).toBeCloseTo(1 - 0.3 * 0.8, 5);
+    expect(gravel.reasons).toEqual(['badSurface']);
+  });
+});
+
+describe('generated round trips', () => {
+  const flat: Workout = { ...easyRun, terrain: null };
+
+  it('asks for the distance the session takes at its gain per km', () => {
+    const speed = sessionFlatSpeedKmh(flat, profile, 'run');
+    expect(roundTripDistanceM(flat, profile, 'run')).toBe(
+      Math.round(((speed * flat.durationMin) / 60 / (1 + (2 * 8) / 1000)) * 1000),
+    );
+    const hilly: Workout = {
+      ...flat,
+      terrain: { gainPerKm: 30, distanceKm: 8, expectedGainM: 240, eccentric: false },
+    };
+    expect(roundTripDistanceM(hilly, profile, 'run')).toBeLessThan(
+      roundTripDistanceM(flat, profile, 'run'),
+    );
+    const bikeHilly: Workout = {
+      ...ride,
+      terrain: { gainPerKm: 15, distanceKm: 40, expectedGainM: 600, eccentric: false },
+    };
+    expect(roundTripDistanceM(bikeHilly, profile, 'bike')).toBeLessThan(
+      roundTripDistanceM({ ...ride, terrain: null }, profile, 'bike'),
+    );
+  });
+
+  it('builds the request with an elevation band, not for swims', () => {
+    const r = roundTripRequest(
+      { ...flat, terrain: { gainPerKm: 20, distanceKm: 8, expectedGainM: 160, eccentric: false } },
+      profile,
+      ORIGIN,
+    );
+    expect(r).toMatchObject({
+      start: ORIGIN,
+      sport: 'run',
+      elevationBand: { minGainPerKm: 15, maxGainPerKm: 25 },
+      count: 5,
+    });
+    expect(roundTripRequest(flat, profile, ORIGIN, 2)?.elevationBand.minGainPerKm).toBe(0);
+    expect(roundTripRequest(swim, profile, ORIGIN)).toBeNull();
+    expect(roundTripRequest({ ...flat, durationMin: 0 }, profile, ORIGIN)).toBeNull();
+  });
+
+  it('picks the best fitting candidates and drops near duplicates', () => {
+    const fitM = roundTripDistanceM(flat, profile, 'run');
+    const candidate = (id: string, half: number, jitter = 0, surface: number | null = null) => {
+      const points = loop(half, () => 400, ORIGIN, jitter);
+      return {
+        id,
+        points,
+        distanceM: trackLengthM(points),
+        surfaceSuitability: surface,
+      } satisfies RoundTripCandidate;
+    };
+    const picked = pickRoundTrips(
+      [
+        candidate('fit', fitM / 2),
+        candidate('twin', fitM / 2, 5),
+        candidate('gravel', fitM / 2, 400, 0),
+        candidate('long', fitM * 0.6),
+        candidate('far', fitM * 3),
+        { id: 'empty', points: [], distanceM: 0, surfaceSuitability: null },
+      ],
+      flat,
+      profile,
+      ORIGIN,
+    );
+    expect(picked.map((p) => p.candidate.id)).toEqual(['fit', 'long', 'gravel']);
+    expect(picked[0]?.match.score).toBeGreaterThan(0.9);
+    expect(picked[0]?.route.loop).toBe(true);
+    expect(pickRoundTrips([candidate('fit', fitM / 2)], swim, profile, ORIGIN)).toEqual([]);
+    expect(pickRoundTrips([candidate('fit', fitM / 2)], flat, profile, ORIGIN, 0)).toEqual([]);
+  });
+
+  it('turns a candidate into a matchable route', () => {
+    const dot = [
+      { ...ORIGIN, ele: 400 },
+      { ...ORIGIN, ele: 400 },
+    ];
+    const c: RoundTripCandidate = { id: 'dot', points: dot, distanceM: 0, surfaceSuitability: 1 };
+    expect(matchableCandidate(c, 'run', buildRouteProfile(dot))).toMatchObject({
+      id: 'dot',
+      sport: 'run',
+      distanceM: 0,
+      gainPerKm: 0,
+      surfaceSuitability: 1,
+    });
+  });
+
+  it('recognises the same track', () => {
+    expect(
+      sameTrack(
+        'run',
+        loop(2000, () => 0),
+        loop(2000, () => 0, ORIGIN, 5),
+      ),
+    ).toBe(true);
+    expect(
+      sameTrack(
+        'run',
+        loop(2000, () => 0),
+        loop(2000, () => 0, ORIGIN, 500),
+      ),
+    ).toBe(false);
+    expect(
+      sameTrack(
+        'run',
+        [],
+        loop(2000, () => 0),
+      ),
+    ).toBe(false);
   });
 });
 

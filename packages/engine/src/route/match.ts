@@ -8,8 +8,8 @@ import { findClimbs, hasHillRepeatSegment } from './profile';
 
 /**
  * Route matching (CLAUDE.md "Terrain intelligence" §3): how well a library route fits a planned
- * session – duration on that route, elevation band, sport, distance from the user's start, and a
- * suitable climb for hill sessions.
+ * session – duration on that route, elevation band, sport, distance from the user's start, a
+ * suitable climb for hill sessions and, where known, the surface.
  */
 
 const cfg = planConfig.routes;
@@ -21,10 +21,22 @@ export interface MatchableRoute {
   gainPerKm: number;
   profile: ElevationPoint[];
   start: LatLon;
+  /**
+   * Share of the route on a surface that suits the sport, 0 … 1 (generated round trips); absent
+   * or null when unknown, which leaves the score unchanged.
+   */
+  surfaceSuitability?: number | null;
 }
 
 export type MatchReason =
-  'wrongSport' | 'noClimb' | 'tooLong' | 'tooShort' | 'tooHilly' | 'tooFlat' | 'farFromStart';
+  | 'wrongSport'
+  | 'noClimb'
+  | 'tooLong'
+  | 'tooShort'
+  | 'tooHilly'
+  | 'tooFlat'
+  | 'farFromStart'
+  | 'badSurface';
 
 export interface RouteMatch {
   routeId: string;
@@ -80,11 +92,17 @@ export function scoreRoute(
   const startPart = start ? falloff(haversineM(start, route.start), cfg.match.startMaxM) : 1;
   if (startPart < 0.5) reasons.push('farFromStart');
 
+  const surface = route.surfaceSuitability ?? null;
+  if (surface !== null && surface < 0.5) reasons.push('badSurface');
+  const surfaceFactor =
+    surface === null ? 1 : 1 - cfg.generate.surfaceWeight * (1 - Math.max(0, Math.min(1, surface)));
+
   const weights = cfg.match.weights;
   return {
     routeId: route.id,
     score: round2(
-      duration * weights.duration + elevation * weights.elevation + startPart * weights.start,
+      (duration * weights.duration + elevation * weights.elevation + startPart * weights.start) *
+        surfaceFactor,
     ),
     durationSec,
     parts: { duration: round2(duration), elevation: round2(elevation), start: round2(startPart) },

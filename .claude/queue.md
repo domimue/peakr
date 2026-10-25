@@ -3,7 +3,7 @@
 Prompts the user has given that are not finished yet. Newest at the bottom;
 work top to bottom. See "Working mode (Claude sessions)" in CLAUDE.md.
 
-Hourly check-in (scheduled task): `trig_015a2Y5t1X2rX23SExeZEBub`
+Hourly check-in (scheduled task): `trig_01JGRKJomHcy59JEsWHvfDNY`
 
 ## Open
 
