@@ -41,4 +41,10 @@ as grouped rows (notifications, units, appearance, haptics, language, privacy).
 - [x] Reminder: migration, `daily-reminders` Edge Function + tests, cron
 - [x] App: notification settings screen, time zone upload, weather hint upload, retire local alert
 - [x] App: settings store persisted; units, haptics, language, privacy, appearance screens
-- [ ] Docs + lint/typecheck/test
+- [x] Docs + lint/typecheck/test
+
+## Left for later
+
+- Imperial units cover distances (plan, calendar, progress, workout) and the workout pace
+  limit; per-km route paces, step pace targets and onboarding texts still show metric.
+- Deploy: `supabase db push`, deploy `daily-reminders` and `delete-account` (see supabase/README.md).

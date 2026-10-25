@@ -284,7 +284,7 @@
         },
         {
           "heading": "Push notifications",
-          "body": "If you allow notifications, we store a push token for your device to send your daily workout reminder and the trial reminder. Notifications are delivered through Expo and Google Firebase Cloud Messaging or the Apple Push Notification service. You can turn them off in the app or in your device settings; the token is deleted together with your account."
+          "body": "If you allow notifications, we store a push token for your device to send your daily workout reminder and the trial reminder. For the daily reminder we also store your reminder time, your device's time zone and the reminder texts of the coming days (the workout name and, if you use the weather check, a short weather sentence – never your location). Notifications are delivered through Expo and Google Firebase Cloud Messaging or the Apple Push Notification service. You can turn them off in the app or in your device settings; the token is deleted together with your account."
         },
         {
           "heading": "Payments (planned)",

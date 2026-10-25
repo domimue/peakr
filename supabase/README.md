@@ -16,6 +16,7 @@ Security, and Edge Functions for everything that needs a secret.
 | `functions/weather/`     | Weather check: hourly forecast per ~5 km cell (MeteoSwiss for Switzerland, Open-Meteo elsewhere), cached per hour |
 | `functions/delete-account/` | Account deletion (app and website): revokes every integration, cancels website (Stripe) subscriptions, deletes all rows, Storage files, the RevenueCat customer and the auth user |
 | `functions/revenuecat-webhook/` | RevenueCat events → `entitlements` (state read back from the RevenueCat API) |
+| `functions/daily-reminders/` | Every 15 min (pg_cron): the daily workout reminder – one push per user and local morning, only on workout days, weather merged in (see "Daily workout reminder") |
 | `functions/trial-reminders/` | Hourly (pg_cron): push + email one day before a trial converts – see `docs/subscriptions-setup.md` |
 | `functions/checkout-reminders/` | Hourly (pg_cron): one "create your account" email to website buyers who never did – see `docs/web-checkout-setup.md` |
 | `functions/_shared/`     | Token encryption, signed OAuth state, provider registry, Strava import, Expo push |
@@ -41,6 +42,9 @@ Security, and Edge Functions for everything that needs a secret.
 | `weather_cache`      | Edge Functions only            | forecasts per ~5 km grid cell and UTC hour; no user id, no access for app or website |
 | `push_tokens`        | the app (own device)           | Expo push tokens + "notify me" per device                   |
 | `entitlements`       | Edge Functions only            | mirror of RevenueCat entitlements (training, plus, gym), active or expired; own rows readable; `has_entitlement(uid, name)` for the backend |
+| `notification_settings` | the app (own row)          | daily reminder on/off, local time (minutes after midnight), device time zone, weather line on/off |
+| `reminder_days`      | the app (own rows)             | reminder texts for the next 14 days in the user's language (workout id, title, body, weather line); the location never leaves the phone |
+| `daily_reminders`    | Edge Functions only            | reminders sent, one row per user and local date (written before the push: never two a day); no access for app or website |
 | `trial_reminders`    | Edge Functions only            | trial-ending reminders sent (one per trial); no access for app or website |
 | `quiz_sessions`      | the website (visitor's session) | website quiz answers per (anonymous) user, resumable; optional email with consent; anonymous rows deleted after 90 days (pg_cron) |
 | `web_checkouts`      | the website server (service role) | Stripe Checkout sessions and their owner (anonymous quiz user until the account claims it); `funnel_email_status(email)` for trial and account checks |
@@ -66,6 +70,7 @@ pnpm exec supabase functions deploy weather
 pnpm exec supabase functions deploy strava-upload
 pnpm exec supabase functions deploy revenuecat-webhook
 pnpm exec supabase functions deploy trial-reminders
+pnpm exec supabase functions deploy daily-reminders
 pnpm exec supabase functions deploy checkout-reminders
 pnpm exec supabase secrets set --env-file supabase/functions/.env
 ```
@@ -230,6 +235,30 @@ subscriptions are not cancelled – the app and the website tell the user to can
 the App Store. Email requests: reply with the link to `/account/delete` (the user signs in with
 that address and confirms, which runs the full deletion above); only if they cannot sign in,
 delete the user in **Authentication → Users** after revoking Strava.
+
+## Daily workout reminder
+
+CLAUDE.md "Account & notifications": one push a day in the morning (default 07:00 local, the user
+can change the time in 15-minute steps or turn it off in Profile → Notifications), only on days
+with a planned workout, naming it ("Today: Easy run, 50–55 min, Zone 2"). Weather hints are part of
+the same push, never a second one.
+
+- **App**: keeps `notification_settings` current (incl. the device time zone, re-sent on every
+  start so travel moves the reminder with the user) and uploads the texts of the next 14 days to
+  `reminder_days` whenever the plan, the forecast, the language or the settings change. The
+  weather line is computed on the phone from the forecast for the user's location – only the
+  sentence is uploaded. The Android channel is `reminder`.
+- **Server**: pg_cron calls `daily-reminders` every 15 minutes (migration
+  `20261031000000_notifications.sql`, same Vault secrets `project_url` + `cron_secret` as the other
+  jobs). It takes users whose local time is between their reminder time and 3 hours later, skips
+  those already reminded today, checks the `training` entitlement (incl. trial), picks today's
+  planned session (not done/skipped/deleted, not a commute, not in a pause, current plan), claims
+  the day in `daily_reminders` and then sends one Expo push to every device of the user. If the
+  app's text names another workout (moved on a device that has not synced yet), a plain English
+  fallback is sent instead.
+- **Test**: set `reminder_minute` of your row to a few minutes from now in your local time, wait
+  for the next quarter hour (or call the function with `x-cron-secret`), check the push and that
+  `daily_reminders` has today's row; calling it again sends nothing.
 
 ## Reading the waitlist
 

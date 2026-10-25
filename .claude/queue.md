@@ -7,10 +7,12 @@ Hourly check-in (scheduled task): `trig_015a2Y5t1X2rX23SExeZEBub`
 
 ## Open
 
-- Phase 10c – Account, notifications & hard-day rule (plan: .claude/plans/phase-10c-account-notifications.md)
+_(none)_
 
 ## Done
 
+- Phase 10c – Account, notifications & hard-day rule; deploy the migration and the
+  `daily-reminders` / `delete-account` functions (supabase/README.md)
 - Phase 10b – Website quiz funnel, Stripe checkout & account; waits on the user for the
   Stripe/RevenueCat/Supabase/Vercel setup (docs/web-checkout-setup.md)
 - Phase 10 – Subscriptions & paywall (app); waits on the user for the store/RevenueCat setup (docs/subscriptions-setup.md); email via Resend (approved)
