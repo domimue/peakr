@@ -25,12 +25,12 @@ export const featureFlags = {
    * written for a person's own tools, not for a third-party app, so this never ships switched on
    * (docs/health-garmin.md). Needs the server secret `GARMIN_PERSONAL_KEY=1` as well.
    */
-  garminPersonalKey: false,
+  garminPersonalKey: true,
   /**
    * Generated round trips (Phase 8b): the route picker's third option, served by the `round-trips`
    * Edge Function. Flip together with the secret `ORS_API_KEY` (docs/generated-routes.md).
    */
-  generatedRoutes: false,
+  generatedRoutes: true,
 } as const;
 
 export type FeatureFlag = keyof typeof featureFlags;
