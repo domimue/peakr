@@ -7,12 +7,12 @@ Hourly check-in (scheduled task): `trig_01JGRKJomHcy59JEsWHvfDNY`
 
 ## Open
 
-- Phase 8b – Generated round trips: RoutingProvider with OpenRouteService via an Edge Function,
-  DEM elevation (swisstopo in CH, global DEM elsewhere), matching score, cache per user and start,
-  third option in the route picker, save to library; tell the user accounts, keys and free limits
+_(none)_
 
 ## Done
 
+- Phase 8b – Generated round trips (OpenRouteService + swisstopo); waits on the user for the
+  ORS key and the feature flag (docs/generated-routes.md)
 - Phase 10d – App links, deep links & "Get the app"; waits on the user for the domain,
   fingerprints, Team ID and badge files (docs/app-links.md)
 - Phase 10c – Account, notifications & hard-day rule; deploy the migration and the
