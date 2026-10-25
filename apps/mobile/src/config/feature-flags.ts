@@ -28,7 +28,7 @@ export const featureFlags = {
    * (docs/health-garmin.md). Needs the server secret `GARMIN_PERSONAL_KEY=1` as well. On in the
    * personal build (see `personalBuildFlags`), which is never distributed.
    */
-  garminPersonalKey: false,
+  garminPersonalKey: true,
   /**
    * Generated round trips (Phase 8b): the route picker's third option, served by the `round-trips`
    * Edge Function (secret `ORS_API_KEY`, docs/generated-routes.md).
