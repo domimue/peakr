@@ -267,7 +267,12 @@ export {
   type MatchReason,
   type RouteMatch,
 } from './route/match';
-export { recogniseRoutes, type RecognisedRoute, type TrackActivity } from './route/cluster';
+export {
+  recogniseRoutes,
+  sameTrack,
+  type RecognisedRoute,
+  type TrackActivity,
+} from './route/cluster';
 export {
   evaluateActivity,
   type ActivityEvaluation,
@@ -284,7 +289,17 @@ export {
   type SportTerrain,
   type TerrainSample,
 } from './route/terrain-profile';
-export type { RoundTripCandidate, RoundTripRequest, RoutingProvider } from './route/routing';
+export {
+  desiredGainPerKm,
+  matchableCandidate,
+  pickRoundTrips,
+  roundTripDistanceM,
+  roundTripRequest,
+  type PickedRoundTrip,
+  type RoundTripCandidate,
+  type RoundTripRequest,
+  type RoutingProvider,
+} from './route/routing';
 export {
   buildZwo,
   zwiftSportOf,

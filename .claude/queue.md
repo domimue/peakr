@@ -3,7 +3,7 @@
 Prompts the user has given that are not finished yet. Newest at the bottom;
 work top to bottom. See "Working mode (Claude sessions)" in CLAUDE.md.
 
-Hourly check-in (scheduled task): `trig_015a2Y5t1X2rX23SExeZEBub`
+Hourly check-in (scheduled task): `trig_01JGRKJomHcy59JEsWHvfDNY`
 
 ## Open
 
@@ -11,6 +11,8 @@ _(none)_
 
 ## Done
 
+- Phase 8b – Generated round trips (OpenRouteService + swisstopo); waits on the user for the
+  ORS key and the feature flag (docs/generated-routes.md)
 - Phase 10d – App links, deep links & "Get the app"; waits on the user for the domain,
   fingerprints, Team ID and badge files (docs/app-links.md)
 - Phase 10c – Account, notifications & hard-day rule; deploy the migration and the

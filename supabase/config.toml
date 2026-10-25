@@ -470,6 +470,10 @@ verify_jwt = false
 [functions.checkout-reminders]
 verify_jwt = false
 
+# Generated round trips (OpenRouteService + DEM): user JWT checked in the function.
+[functions.round-trips]
+verify_jwt = false
+
 [analytics]
 enabled = true
 port = 54327

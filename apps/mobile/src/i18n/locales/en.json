@@ -725,6 +725,11 @@
       "name": "Map data",
       "description": "Route maps use the MapTiler Outdoor style. © MapTiler © OpenStreetMap contributors.",
       "license": "OpenStreetMap data is available under the Open Database License (ODbL)."
+    },
+    "routing": {
+      "name": "Generated routes and heights",
+      "description": "Round trips are generated with openrouteservice.org by HeiGIT from OpenStreetMap data. Heights in Switzerland: swisstopo (swissALTI3D, DHM25); elsewhere the global terrain model of openrouteservice.",
+      "license": "OpenStreetMap data: Open Database License (ODbL). swisstopo data: free use with source attribution (open government data)."
     }
   },
   "workoutTypes": {
@@ -1756,7 +1761,8 @@
       "gpx": "GPX import",
       "strava": "Recognised from Strava",
       "komoot": "From Komoot (GPX)",
-      "strava_route": "Planned in Strava"
+      "strava_route": "Planned in Strava",
+      "generated": "Generated round trip"
     },
     "terrain": {
       "flat": "Flat",
@@ -1775,7 +1781,8 @@
       "short": "Short",
       "medium": "Medium",
       "long": "Long",
-      "planned": "Planned in Strava"
+      "planned": "Planned in Strava",
+      "generated": "Generated"
     },
     "stats": {
       "distance": "Distance",
@@ -1867,7 +1874,8 @@
         "tooShort": "shorter than planned",
         "tooHilly": "hillier than planned",
         "tooFlat": "flatter than planned",
-        "farFromStart": "far from your start"
+        "farFromStart": "far from your start",
+        "badSurface": "unsuitable surface"
       }
     },
     "down": "down",
@@ -1887,6 +1895,28 @@
         "denied": "Location permission was not granted. Allow it in the system settings or enter coordinates instead.",
         "unavailable": "Your location could not be found. Check that location services are on, or enter coordinates instead."
       }
+    },
+    "generated": {
+      "title": "Generated round trips",
+      "needStart": "Peakr can plan round trips that fit this session from your home start point or from where you are now.",
+      "useLocation": "Use current location",
+      "loading": "Generating round trips…",
+      "none": "No generated round trip fits this session from here.",
+      "name": "Round trip {{n}} · {{km}} km",
+      "save": "Save to library",
+      "saved": "In your library",
+      "error": {
+        "offline": "You are offline. Round trips are generated online.",
+        "limit": "You have generated many round trips today. Try again tomorrow, or use your own routes.",
+        "subscription": "Generated round trips are part of the Training subscription.",
+        "failed": "Round trips could not be generated right now."
+      },
+      "heights": {
+        "swisstopo": "swisstopo (swissALTI3D)",
+        "ors": "global terrain model"
+      },
+      "attribution": "Routes: openrouteservice.org by HeiGIT · Map data © OpenStreetMap contributors · Heights: {{heights}}",
+      "attributionShort": "Route generated with openrouteservice.org by HeiGIT · Map data © OpenStreetMap contributors"
     }
   },
   "terrainProfile": {

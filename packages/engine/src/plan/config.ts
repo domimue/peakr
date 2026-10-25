@@ -394,6 +394,23 @@ export const planConfig = {
       /** Start score falls to 0 at this distance from the user's start. */
       startMaxM: 5000,
     },
+    /**
+     * Generated round trips (Phase 8b): how many candidates to ask the routing provider for, how
+     * much shorter a hilly session's route gets than its flat distance, and the elevation band the
+     * candidates are judged against.
+     */
+    generate: {
+      candidates: 5,
+      /** Run: flat metres one metre of climbing costs (rough; the real profile is scored after). */
+      runFlatMPerGainM: 8,
+      /** Half width of the desired gain-per-km band around the session's terrain. */
+      bandHalfWidthGainPerKm: 5,
+      /** Shortest and longest round trip that is generated. */
+      minDistanceM: 2000,
+      maxDistanceM: 150_000,
+      /** Share of the match score that depends on the surface (when the provider knows it). */
+      surfaceWeight: 0.3,
+    },
     /** Bike segment model: sustainable climbing rate (m/h) and max descent speed (km/h). */
     bike: {
       climbRateMh: { beginner: 500, intermediate: 700, advanced: 900 } satisfies Record<

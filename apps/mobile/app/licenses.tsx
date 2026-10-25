@@ -16,7 +16,7 @@ export default function LicensesScreen() {
           <Text>{t('licenses.archivo.description')}</Text>
           <Text tone="secondary">{t('licenses.archivo.license')}</Text>
         </Card>
-        {(['maplibre', 'maps'] as const).map((key) => (
+        {(['maplibre', 'maps', 'routing'] as const).map((key) => (
           <Card key={key}>
             <Text variant="heading">{t(`licenses.${key}.name`)}</Text>
             <Text>{t(`licenses.${key}.description`)}</Text>
