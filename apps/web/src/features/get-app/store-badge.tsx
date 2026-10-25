@@ -6,9 +6,8 @@ import type { StoreBadges } from './stores';
 const t = messages.funnel.getApp;
 
 /**
- * One store badge, linked. Google's PNG carries its own transparent clear space; Apple's SVG gets
- * the required clear space (a quarter of its height) around it. Neither is recoloured or resized
- * out of proportion. Without the file: a plain button with the same text. Without a store link
+ * One store badge, linked. Both are shown at the same height with the required clear space (a
+ * quarter of the badge height) around them; neither is recoloured or resized out of proportion. Without the file: a plain button with the same text. Without a store link
  * (the app is not in that store yet): a disabled "coming soon" button – never a greyed-out badge.
  */
 export function StoreBadge({
@@ -37,14 +36,10 @@ export function StoreBadge({
     );
   }
   return (
-    <a href={url} className={store === 'appStore' ? 'inline-flex p-3' : 'inline-flex'}>
+    <a href={url} className="inline-flex p-3">
       {/* Official badge artwork, used unchanged as Google and Apple require. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={badge}
-        alt={label}
-        className={store === 'appStore' ? 'h-12 w-auto' : 'h-18 w-auto'}
-      />
+      <img src={badge} alt={label} className="h-12 w-auto" />
     </a>
   );
 }
