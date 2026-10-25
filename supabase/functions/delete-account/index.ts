@@ -43,6 +43,7 @@ const USER_TABLES = [
   'baseline_imports',
   'activity_streams',
   'strava_routes',
+  'route_cache',
   'activities',
   'workouts',
   'plans',

@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    // The Edge Function code this package re-exports imports its siblings with `.ts` extensions.
+    "allowImportingTsExtensions": true
+  },
+  // Only the pure files; the Edge Functions themselves are checked with `deno check`.
+  "include": ["src", "../../supabase/functions/_shared/routing/model.ts", "vitest.config.ts"]
+}
