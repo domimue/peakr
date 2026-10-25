@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
+import { personalBuild } from '@/config/build';
 import { takePendingLink } from '@/features/deep-links/pending-link';
 import { Button, Card, radius, Screen, spacing, Text, TextField, useTheme } from '@/ui';
 
@@ -153,10 +154,10 @@ export function SignInScreen() {
           {error}
         </Text>
       ) : null}
-      {__DEV__ ? (
+      {__DEV__ || personalBuild ? (
         <Button
           variant="secondary"
-          label={t('auth.signIn.later')}
+          label={t(__DEV__ ? 'auth.signIn.later' : 'auth.signIn.skip')}
           onPress={() => router.replace('/today')}
         />
       ) : null}
