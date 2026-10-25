@@ -10,7 +10,7 @@ the browser loads the fallback page.
 
 ```
 "Open Peakr" (header, account, checkout success, Get the app, confirmation email)
-   │  https://open.peakr.ch/open[/<target>]?from=<placement>
+   │  https://peakr-open.vercel.app/open[/<target>]?from=<placement>
    ▼
 Phone with Peakr installed ──► Android / iOS opens the app ──► app route /open/... ─┐
 Phone without Peakr ─────────► browser loads /open (website) ──► store badge,        │
@@ -25,9 +25,9 @@ Computer ────────────────────► the but
   `/open/subscription`. Also `peakr://open/...`. Anything else opens Today
   (`apps/mobile/src/features/deep-links/targets.ts`). Only `/open/*` paths are claimed by the app,
   so every other page of the website stays in the browser.
-- **Why a link subdomain** (`open.peakr.ch`): iOS never hands a tap to the app when the link goes
-  to the same site the visitor is already on, and Chrome behaves the same way for same-site
-  navigation. The website's buttons therefore point to the subdomain. Links from email or other
+- **Why a separate link host** (`peakr-open.vercel.app`): iOS never hands a tap to the app when the
+  link goes to the same site the visitor is already on, and Chrome behaves the same way for
+  same-site navigation. The website's buttons therefore point to the link host. Links from email or other
   apps work on the main domain too; both hosts are claimed by the app.
 - **App side**: cold and warm start both land on the `open` route, which waits for the stored
   session. Without an account it remembers the target (24 h, in SQLite-backed storage, so it
@@ -46,13 +46,26 @@ Computer ────────────────────► the but
 
 ### 1. Domains (Vercel)
 
-1. Vercel → project → **Settings → Domains** → add `open.peakr.ch` (same project as the website).
-   DNS: a **CNAME** `open` → `cname.vercel-dns.com`.
-2. Make sure `peakr.ch` (the apex) is **not** redirected to `www`, or claim the host that is
-   actually served: Apple's CDN does not follow redirects for `apple-app-site-association`, and
-   Android verification fails on a redirect too. If you prefer `www`, set `APP_LINK_HOSTS`
-   (see 3.) to `www.peakr.ch,open.peakr.ch`.
-3. Env var `NEXT_PUBLIC_APP_LINK_URL=https://open.peakr.ch` (Production), then redeploy.
+The app claims two hosts (`apps/mobile/app.config.ts`):
+
+- `peakr-web.vercel.app` – the website
+- `peakr-open.vercel.app` – the link host the "Open Peakr" buttons point to (Vercel → project →
+  Domains → Add Existing, assigned to Production, no redirect). Both are already set up.
+
+`vercel.app` is on the Public Suffix List, so these two count as different sites – exactly what
+iOS and Chrome need to hand a tap from the website to the app.
+
+Env vars on Vercel (Production), then redeploy:
+
+- `NEXT_PUBLIC_APP_LINK_URL=https://peakr-open.vercel.app`
+- `NEXT_PUBLIC_SITE_URL=https://peakr-web.vercel.app` – set it explicitly, so canonical links,
+  emails and Stripe return URLs never pick the link host.
+
+**Moving to an own domain later** (e.g. `example.ch` + `open.example.ch`): add both in Vercel,
+change `DEFAULT_HOSTS` in `app.config.ts` (or set `APP_LINK_HOSTS`), change
+`NEXT_PUBLIC_APP_LINK_URL` and `NEXT_PUBLIC_SITE_URL`, and ship a new app build – installed apps
+only open links on the hosts they were built with. The apex must not redirect to `www` (Apple's
+CDN and Android verification do not follow redirects).
 
 The verification files are generated at build time – **redeploy after changing any of the
 variables below**.
@@ -92,13 +105,13 @@ Shortcut: Play Console → **Grow users → Deep links** (after the first upload
 | `IOS_BUNDLE_ID` | `com.peakr.app` (default) |
 
 Served as `application/json`, no file extension, no redirect, status 200 (404 until the Team ID
-is set). The app's associated-domains entitlement (`applinks:peakr.ch`, `applinks:open.peakr.ch`)
+is set). The app's associated-domains entitlement (`applinks:peakr-web.vercel.app`, `applinks:peakr-open.vercel.app`)
 is in `apps/mobile/app.config.ts`; EAS enables the capability for the App ID on the next build.
 
-**App hosts** in the app: `apps/mobile/app.config.ts` claims `peakr.ch` and `open.peakr.ch`. A
-different domain → set `APP_LINK_HOSTS=example.com,open.example.com` in the EAS build
-environment (or in `eas.json` → `build.<profile>.env`) and build again. Changing hosts always
-needs a new build.
+**App hosts** in the app: `apps/mobile/app.config.ts` claims `peakr-web.vercel.app` and
+`peakr-open.vercel.app`. A different domain → change `DEFAULT_HOSTS` there (or set
+`APP_LINK_HOSTS=example.com,open.example.com` in the EAS build environment) and build again.
+Changing hosts always needs a new build.
 
 ### 4. Store links, badges and Smart App Banner
 
@@ -138,9 +151,9 @@ the checkout confirmation email. Apply the migration `20261101000000_checkout_co
 1. Install a build signed with a key whose fingerprint is in `assetlinks.json` (an EAS build →
    upload key; a Play internal-testing install → Play signing key).
 2. Check the hosted file:
-   `curl -i https://open.peakr.ch/.well-known/assetlinks.json` → `200`, `content-type:
-   application/json`, no `location` header. Same for `https://peakr.ch/...`.
-   Google's checker: `https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://open.peakr.ch&relation=delegate_permission/common.handle_all_urls`
+   `curl -i https://peakr-open.vercel.app/.well-known/assetlinks.json` → `200`, `content-type:
+   application/json`, no `location` header. Same for `https://peakr-web.vercel.app/...`.
+   Google's checker: `https://digitalassetlinks.googleapis.com/v1/statements:list?source.web.site=https://peakr-open.vercel.app&relation=delegate_permission/common.handle_all_urls`
 3. Verification state on the device:
    ```sh
    adb shell pm verify-app-links --re-verify com.peakr.app
@@ -151,26 +164,26 @@ the checkout confirmation email. Apply the migration `20261101000000_checkout_co
 4. Open links:
    ```sh
    adb shell am start -a android.intent.action.VIEW -c android.intent.category.BROWSABLE \
-     -d "https://open.peakr.ch/open/plan"
+     -d "https://peakr-open.vercel.app/open/plan"
    adb shell am start -a android.intent.action.VIEW -d "peakr://open/subscription"
    ```
    Cold start: `adb shell am force-stop com.peakr.app` first. Warm start: with the app open.
    Signed out: the sign-in opens, and after logging in the plan (or subscription) opens.
-5. Real flow: on the phone open `https://peakr.ch/get-app` in Chrome → "Open Peakr" opens the
+5. Real flow: on the phone open `https://peakr-web.vercel.app/get-app` in Chrome → "Open Peakr" opens the
    app. Uninstall → same button → fallback page → Play Store after ~2.5 s.
 6. Play Console → **Grow users → Deep links** shows per domain whether verification works for the
    store-signed app.
 
 ### iOS Universal Links (with the iOS release; needs a real device)
 
-1. `curl -i https://open.peakr.ch/.well-known/apple-app-site-association` → `200`, JSON, no
-   redirect. Apple's CDN copy: `https://app-site-association.cdn-apple.com/a/v1/open.peakr.ch`
+1. `curl -i https://peakr-open.vercel.app/.well-known/apple-app-site-association` → `200`, JSON, no
+   redirect. Apple's CDN copy: `https://app-site-association.cdn-apple.com/a/v1/peakr-open.vercel.app`
    (can lag a few hours behind).
-2. Install the build on an iPhone. Paste `https://open.peakr.ch/open/plan` into Notes or
+2. Install the build on an iPhone. Paste `https://peakr-open.vercel.app/open/plan` into Notes or
    Messages and tap it → Peakr opens. (Typing the URL into Safari's address bar never opens an
    app – that is iOS behaviour, not a bug.)
-3. On the website (`peakr.ch/get-app`) tap "Open Peakr" → the app opens (link goes to the
-   subdomain, so it is cross-site).
+3. On the website (`peakr-web.vercel.app/get-app`) tap "Open Peakr" → the app opens (link goes to the
+   link host, so it is cross-site).
 4. Developer mode: Settings → Developer → **Associated Domains Development** lets you test
    against your server directly; for that add `?mode=developer` to the entitlement temporarily.
 5. Smart App Banner: with `NEXT_PUBLIC_APP_STORE_ID` set, Safari shows the banner on every page.
@@ -187,7 +200,7 @@ the checkout confirmation email. Apply the migration `20261101000000_checkout_co
   intent filter hosts and `associated-domains`; a new host needs a new build.
 - **Android re-verification** only happens on install/update or with `pm verify-app-links
   --re-verify`; **iOS** fetches through Apple's CDN on install and caches it.
-- **Same-site taps**: a link to `peakr.ch` tapped on `peakr.ch` stays in the browser on iOS (and
-  usually Chrome). That is why the buttons point to `open.peakr.ch`.
+- **Same-site taps**: a link to `peakr-web.vercel.app` tapped on `peakr-web.vercel.app` stays in the browser on iOS (and
+  usually Chrome). That is why the buttons point to `peakr-open.vercel.app`.
 - **In-app browsers** (Instagram, some mail apps) may not hand links to apps. The fallback page
   then shows the store and "Already installed? Open Peakr", which links to the other host.

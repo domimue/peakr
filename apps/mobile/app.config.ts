@@ -6,10 +6,12 @@ import type { ConfigContext, ExpoConfig } from 'expo/config';
  * /.well-known/assetlinks.json and /.well-known/apple-app-site-association on each host.
  *
  * APP_LINK_HOSTS (comma-separated, set in eas.json or the EAS environment) overrides the hosts.
- * The second host is the link subdomain the website's "Open Peakr" button points to: iOS and
- * Chrome do not hand a tap to the app when it links to the same site the visitor is on.
+ * The second host is the link host the website's "Open Peakr" button points to: iOS and Chrome do
+ * not hand a tap to the app when it links to the same site the visitor is on. (vercel.app is a
+ * public suffix, so the two vercel.app hosts count as different sites.) Moving to an own domain
+ * later means a new build with the new hosts.
  */
-const DEFAULT_HOSTS = ['peakr.ch', 'open.peakr.ch'];
+const DEFAULT_HOSTS = ['peakr-web.vercel.app', 'peakr-open.vercel.app'];
 const LINK_PATH_PREFIX = '/open';
 
 function linkHosts(): string[] {
