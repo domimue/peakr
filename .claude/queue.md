@@ -7,7 +7,9 @@ Hourly check-in (scheduled task): `trig_015a2Y5t1X2rX23SExeZEBub`
 
 ## Open
 
-_(none)_
+- Phase 8b – Generated round trips: RoutingProvider with OpenRouteService via an Edge Function,
+  DEM elevation (swisstopo in CH, global DEM elsewhere), matching score, cache per user and start,
+  third option in the route picker, save to library; tell the user accounts, keys and free limits
 
 ## Done
 
