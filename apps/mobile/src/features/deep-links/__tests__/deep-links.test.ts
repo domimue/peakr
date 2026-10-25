@@ -1,3 +1,4 @@
+import { parseInstallReferrer } from '../install-referrer';
 import { savePendingLink, takePendingLink } from '../pending-link';
 import { openTarget, parseStoredTarget } from '../targets';
 
@@ -74,5 +75,22 @@ describe('pending link', () => {
     expect(takePendingLink(1)).toBeNull();
     store.set('peakr.pendingLink', '{nope');
     expect(takePendingLink(1)).toBeNull();
+  });
+});
+
+describe('parseInstallReferrer', () => {
+  it('reads the utm parameters the website puts on the Play Store link', () => {
+    expect(
+      parseInstallReferrer(
+        'utm_source=website&utm_medium=checkout&utm_campaign=get_the_app',
+        '2026-10-25T10:00:00.000Z',
+      ),
+    ).toEqual({
+      source: 'website',
+      medium: 'checkout',
+      campaign: 'get_the_app',
+      readAt: '2026-10-25T10:00:00.000Z',
+    });
+    expect(parseInstallReferrer('', 'x')).toMatchObject({ source: null, medium: null });
   });
 });

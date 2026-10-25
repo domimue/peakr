@@ -24,6 +24,7 @@ import {
 import { useBillingStore } from '@/features/billing/billing-store';
 import { TrialReminderTap } from '@/features/billing/trial-reminder-tap';
 import { LiveSessionRestore } from '@/features/gym/live-session-restore';
+import { captureInstallReferrer } from '@/features/deep-links/install-referrer';
 import { DailyReminder } from '@/features/notifications/daily-reminder';
 import { registerPushToken } from '@/features/notifications/push';
 import { useSettingsStore } from '@/features/settings/settings-store';
@@ -49,6 +50,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (success) void useSettingsStore.getState().hydrate();
   }, [success]);
+
+  // Android: where this install came from (attribution only, read once).
+  useEffect(() => {
+    void captureInstallReferrer();
+  }, []);
 
   useEffect(() => {
     if (error) console.error('Database migration failed', error);
