@@ -35,14 +35,28 @@ pnpm exec supabase functions deploy round-trips
 pnpm exec supabase secrets set ORS_API_KEY=<your token>
 ```
 
-and flip `generatedRoutes` to `true` in `apps/mobile/src/config/feature-flags.ts`.
+The app flag `generatedRoutes` in `apps/mobile/src/config/feature-flags.ts` is on.
+
+**Personal build**: the function checks the `training` entitlement on the server, and the personal
+build has no RevenueCat purchase. Sign in (not "Continue without an account") and give your own
+user a permanent entitlement row once, in the Supabase SQL editor:
+
+```sql
+insert into public.entitlements (user_id, entitlement, product_id, store, period_type, will_renew)
+select id, 'training', 'personal', 'other', 'normal', false
+from auth.users where email = '<your email>'
+on conflict (user_id, entitlement) do nothing;
+```
+
+This also covers the daily workout reminder, which checks the same entitlement. Delete the row
+once you buy a real subscription (RevenueCat then writes its own).
 
 Optional secrets:
 
 - `ORS_BASE_URL` – a self-hosted ORS or a paid endpoint instead of `https://api.openrouteservice.org`.
 - `SWISSTOPO_PROFILE_URL` – a different profile endpoint.
-- `ROUTING_SKIP_ENTITLEMENT=1` – development projects only (e.g. the personal build without a
-  RevenueCat entitlement); never on production.
+- `ROUTING_SKIP_ENTITLEMENT=1` – local / development projects only; it lets every signed-in user
+  generate routes. For the personal build use the entitlement row above instead.
 
 ## Free limits
 

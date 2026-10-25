@@ -52,6 +52,15 @@ Add them on expo.dev → project → **Environment variables**, environment **pr
 
 Never add a secret / service-role key here.
 
+## Server features in the personal build
+
+The unlock is in the app only. Edge Functions that check the subscription on the server
+(generated round trips, the daily workout reminder) need a sign-in and an entitlement row for your
+user – see "Personal build" in `docs/generated-routes.md` (one SQL insert). Developer-only flags
+(`personalBuildFlags` in `src/config/feature-flags.ts`, currently the Garmin personal key) are on
+in this build; the server side still needs its secret (`GARMIN_PERSONAL_KEY=1`,
+`docs/health-garmin.md`).
+
 ## Optional: "Open Peakr" opens this app
 
 The website's app links verify against the signing certificate. For the personal APK only the
