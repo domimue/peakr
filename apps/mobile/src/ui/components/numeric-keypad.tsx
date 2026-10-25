@@ -1,4 +1,4 @@
-import * as Haptics from 'expo-haptics';
+import { selectionHaptic } from '../haptics';
 import { Modal, Pressable, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -81,7 +81,7 @@ export function NumericKeypad({
 }: NumericKeypadProps) {
   const { colors } = useTheme();
   const press = (key: string) => {
-    void Haptics.selectionAsync();
+    selectionHaptic();
     onChange(keypadInput(value, key, allowDecimal));
   };
   const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', allowDecimal ? '.' : '', '0', 'del'];
@@ -141,7 +141,7 @@ export function NumericKeypad({
                 small
                 wide
                 onPress={() => {
-                  void Haptics.selectionAsync();
+                  selectionHaptic();
                   onChange(keypadStep(value, placeholder, s.delta));
                 }}
               />

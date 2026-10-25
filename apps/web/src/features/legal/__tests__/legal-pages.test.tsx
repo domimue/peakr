@@ -50,7 +50,7 @@ describe('legal pages', () => {
     expect(screen.getByText(/Swiss law applies/)).toBeDefined();
   });
 
-  it('delete-account page explains the in-app steps, email request and store subscriptions', () => {
+  it('delete-account page explains the in-app and website steps, email request and store subscriptions', () => {
     render(<DeleteAccountPage />);
     expect(
       screen.getByRole('heading', { level: 1, name: 'Delete your Peakr account' }),
@@ -58,9 +58,14 @@ describe('legal pages', () => {
     expect(screen.getByText('Go to Profile → Account.')).toBeDefined();
     const email = messages.legal.operator.email;
     expect(screen.getByRole('link', { name: email }).getAttribute('href')).toBe(`mailto:${email}`);
-    expect(screen.getByText(/revoke Peakr’s access to your Strava account/)).toBeDefined();
+    expect(
+      screen.getByRole('link', { name: 'Delete my account on the website' }).getAttribute('href'),
+    ).toBe('/account/delete');
+    expect(screen.getByText(/revoke Peakr’s access to Strava, Garmin/)).toBeDefined();
     expect(screen.getByText(/Push notification tokens/)).toBeDefined();
-    expect(screen.getByText(/does not cancel an active subscription/)).toBeDefined();
+    expect(
+      screen.getByText(/does not cancel a subscription you bought in Google Play/),
+    ).toBeDefined();
     expect(
       screen.getByRole('link', { name: 'Open Google Play subscriptions' }).getAttribute('href'),
     ).toBe('https://play.google.com/store/account/subscriptions');

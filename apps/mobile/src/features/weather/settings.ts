@@ -13,17 +13,12 @@ export interface WeatherSettings {
   source: WeatherLocationSource;
   /** Local hour the user usually trains – the plan has no time of day. */
   sessionHour: number;
-  /** One morning notification on days with a hint (merged into the daily reminder later). */
-  morningAlert: boolean;
-  morningHour: number;
 }
 
 export const DEFAULT_WEATHER_SETTINGS: WeatherSettings = {
   enabled: false,
   source: 'current',
   sessionHour: planConfig.weather.defaultSessionHour,
-  morningAlert: false,
-  morningHour: 7,
 };
 
 const hour = (v: unknown, fallback: number) =>
@@ -38,7 +33,5 @@ export function parseWeatherSettings(raw: unknown): WeatherSettings {
     enabled: r.enabled === true,
     source: r.source === 'home' ? 'home' : 'current',
     sessionHour: hour(r.sessionHour, d.sessionHour),
-    morningAlert: r.morningAlert === true,
-    morningHour: hour(r.morningHour, d.morningHour),
   };
 }

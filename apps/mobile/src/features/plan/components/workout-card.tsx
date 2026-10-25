@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View, type AccessibilityActionEvent } from 'react-native';
 
 import { Icon, IconBadge, radius, spacing, Text, useTheme, zoneColorKey } from '@/ui';
+import { useUnits } from '@/features/settings/units';
 
 import { durationText } from '../../onboarding/workout-text';
 import { calendarTitle, kindIcon, typeColor, typeName } from '../kind';
@@ -58,6 +59,7 @@ export function WorkoutCard({
   onMoveAction,
 }: WorkoutCardProps) {
   const { t } = useTranslation();
+  const { distance } = useUnits();
   const { colors } = useTheme();
   const kind = workoutKind(w);
   const color = typeColor(colors, w);
@@ -66,7 +68,7 @@ export function WorkoutCard({
   const type = typeName(t, w.type);
   const km = workoutKm(w, profile);
   const minutes = durationText(t, w);
-  const meta = km === null ? minutes : `${minutes} · ${t('plan.km', { value: km })}`;
+  const meta = km === null ? minutes : `${minutes} · ${distance(km)}`;
   const statusLabel = status === 'planned' ? null : t(`plan.status.${status}`);
   const dim = status === 'skipped' || paused;
 

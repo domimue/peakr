@@ -284,7 +284,7 @@
         },
         {
           "heading": "Push notifications",
-          "body": "If you allow notifications, we store a push token for your device to send your daily workout reminder and the trial reminder. Notifications are delivered through Expo and Google Firebase Cloud Messaging or the Apple Push Notification service. You can turn them off in the app or in your device settings; the token is deleted together with your account."
+          "body": "If you allow notifications, we store a push token for your device to send your daily workout reminder and the trial reminder. For the daily reminder we also store your reminder time, your device's time zone and the reminder texts of the coming days (the workout name and, if you use the weather check, a short weather sentence – never your location). Notifications are delivered through Expo and Google Firebase Cloud Messaging or the Apple Push Notification service. You can turn them off in the app or in your device settings; the token is deleted together with your account."
         },
         {
           "heading": "Payments (planned)",
@@ -614,9 +614,9 @@
   },
   "deleteAccount": {
     "metaTitle": "Delete your Peakr account | Peakr",
-    "metaDescription": "How to delete your Peakr account and all associated data – in the app or by email – and what happens to your subscription.",
+    "metaDescription": "How to delete your Peakr account and all associated data – in the app, on the website or by email – and what happens to your subscription.",
     "title": "Delete your Peakr account",
-    "lead": "You can delete your Peakr account and all associated data at any time – directly in the app or by email.",
+    "lead": "You can delete your Peakr account and all associated data at any time – in the app, on this website or by email.",
     "inAppHeading": "In the app",
     "inAppSteps": [
       "Open the Peakr app and sign in.",
@@ -624,26 +624,30 @@
       "Tap “Delete account”.",
       "Confirm the deletion. Your account is deleted immediately and you are signed out."
     ],
+    "webHeading": "On the website",
+    "webBody": "Sign in with the email address you use for Peakr, type DELETE to confirm, and your account is deleted immediately.",
+    "webLink": "Delete my account on the website",
     "emailHeading": "By email",
     "emailBody": "No access to the app any more? Send an email from the address you use for Peakr to {{email}} with the subject “Delete my Peakr account”. We will confirm the deletion by email.",
     "deletedHeading": "What gets deleted",
     "deletedItems": [
       "Your account and login (email address, sign-in with Google or Apple)",
-      "Your profile, quiz answers, training zones and your training plan",
-      "Your synced activities and workout history, and the reference activities used to calibrate your plan",
-      "Integration tokens – we also revoke Peakr’s access to your Strava account",
-      "Push notification tokens of your devices"
+      "Your profile, quiz answers, training zones, settings and your training plan",
+      "Your synced activities and workout history, health data, and the reference activities used to calibrate your plan",
+      "Files you uploaded (such as progress photos)",
+      "Integration tokens – we also revoke Peakr’s access to Strava, Garmin, COROS and Suunto",
+      "Push notification tokens of your devices and your reminder settings"
     ],
     "keptHeading": "What we have to keep",
     "keptBody": "Payment and invoice records are kept as long as Swiss law requires (up to 10 years) and are not used for anything else. [TODO: confirm retention with your accountant.]",
     "timeframeHeading": "Timeframe",
-    "timeframeBody": "Deletion in the app happens immediately. Requests by email are completed within 30 days at the latest. Backups are overwritten automatically within [TODO: backup retention, e.g. 7 days].",
+    "timeframeBody": "Deletion in the app and on the website happens immediately. Requests by email are completed within 30 days at the latest. Backups are overwritten automatically within [TODO: backup retention, e.g. 7 days].",
     "subscriptionHeading": "Your subscription is not cancelled automatically",
-    "subscriptionBody": "Deleting your account does not cancel an active subscription. Cancel it separately where you bought it:",
+    "subscriptionBody": "Deleting your account does not cancel a subscription you bought in Google Play or the App Store. Cancel it separately where you bought it:",
     "subscriptionStores": {
       "googlePlay": "Google Play: Play Store → Payments & subscriptions → Subscriptions",
       "appStore": "App Store: Settings → your name → Subscriptions",
-      "web": "Website: the Stripe customer portal, linked from your account page and your subscription emails"
+      "web": "Website: a subscription bought on the Peakr website is cancelled automatically when you delete your account"
     },
     "googlePlayLink": "Open Google Play subscriptions",
     "appStoreLink": "Open App Store subscriptions"
@@ -808,7 +812,26 @@
       "signOut": "Log out",
       "deleteTitle": "Delete account",
       "deleteLead": "Delete your account and all your data.",
-      "deleteLink": "How to delete my account"
+      "deleteLink": "Delete my account",
+      "deletePage": {
+        "metaTitle": "Delete account | Peakr",
+        "title": "Delete your account",
+        "lead": "This permanently deletes the Peakr account {{email}} and all its data. It cannot be undone.",
+        "subscriptionHeading": "Your subscription",
+        "subscriptionBody": "A subscription bought on this website is cancelled automatically. A subscription bought in Google Play or the App Store is not – cancel it there, otherwise it keeps renewing.",
+        "confirmLabel": "Type {{word}} to confirm",
+        "errorConfirm": "Type {{word}} in capital letters to confirm.",
+        "errorFailed": "Your account could not be deleted right now. Nothing was removed – please try again in a moment.",
+        "submit": "Delete my account permanently",
+        "cancel": "Cancel"
+      },
+      "deletedPage": {
+        "metaTitle": "Account deleted | Peakr",
+        "title": "Your account has been deleted",
+        "body": "Your Peakr account and all its data have been removed, and Peakr’s access to your connected services was revoked.",
+        "subscription": "If you subscribed in Google Play or the App Store, check there that the subscription is cancelled.",
+        "home": "Back to the home page"
+      }
     }
   }
 }

@@ -24,9 +24,10 @@ import {
 import { useBillingStore } from '@/features/billing/billing-store';
 import { TrialReminderTap } from '@/features/billing/trial-reminder-tap';
 import { LiveSessionRestore } from '@/features/gym/live-session-restore';
+import { DailyReminder } from '@/features/notifications/daily-reminder';
 import { registerPushToken } from '@/features/notifications/push';
+import { useSettingsStore } from '@/features/settings/settings-store';
 import { useWatchAutoSync } from '@/features/watch/auto-sync';
-import { MorningWeatherAlerts } from '@/features/weather/morning-alert';
 import { fontFamilies, toNavigationTheme, useTheme } from '@/ui';
 
 void SplashScreen.preventAutoHideAsync();
@@ -44,6 +45,11 @@ export default function RootLayout() {
   });
   const ready = (success || error !== undefined) && (fontsLoaded || fontError !== null);
 
+  // Theme, units, haptics and language from SQLite, once the tables exist.
+  useEffect(() => {
+    if (success) void useSettingsStore.getState().hydrate();
+  }, [success]);
+
   useEffect(() => {
     if (error) console.error('Database migration failed', error);
     if (fontError) console.error('Font loading failed', fontError);
@@ -56,7 +62,7 @@ export default function RootLayout() {
     <GestureHandlerRootView style={{ flex: 1 }}>
       <QueryClientProvider client={queryClient}>
         <BackgroundSync />
-        <MorningWeatherAlerts />
+        <DailyReminder />
         <TrialReminderTap />
         {success ? <LiveSessionRestore /> : null}
         <ThemeProvider value={toNavigationTheme(theme)}>

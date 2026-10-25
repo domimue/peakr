@@ -43,6 +43,8 @@ import {
   useTheme,
   type IconName,
 } from '@/ui';
+import type { Units } from '@/features/settings/app-settings';
+import { distanceText, paceText, useUnits } from '@/features/settings/units';
 import { sessionDoneHaptic } from '@/ui/haptics';
 
 import {
@@ -145,13 +147,11 @@ function stepItems(
   return items;
 }
 
-const formatPace = (sec: number) => `${formatDuration(sec)}/km`;
-
 /** What was actually done: "52 min · 10.3 km · ⌀ 142 bpm". */
-function actualText(t: TFunction, { activity: a }: LinkedActivity): string {
+function actualText(t: TFunction, units: Units, { activity: a }: LinkedActivity): string {
   return [
     t('workoutText.minutes', { count: Math.round(a.durationSec / 60) }),
-    a.distanceM !== null ? t('plan.km', { value: Math.round(a.distanceM / 100) / 10 }) : null,
+    a.distanceM !== null ? distanceText(t, units, a.distanceM / 1000) : null,
     a.avgHr !== null ? t('workout.avgHr', { value: Math.round(a.avgHr) }) : null,
   ]
     .filter(Boolean)
@@ -165,6 +165,7 @@ function actualText(t: TFunction, { activity: a }: LinkedActivity): string {
  */
 export function WorkoutScreen({ id, startMoving = false, initialSetting }: WorkoutScreenProps) {
   const { t, i18n } = useTranslation();
+  const { distance, units } = useUnits();
   const { colors } = useTheme();
   const { data: stored, isPending } = usePlan();
   const actions = usePlanActions();
@@ -228,7 +229,7 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
     limit === null
       ? null
       : !useIndoor
-        ? formatPace(limit)
+        ? paceText(units, limit)
         : indoor?.kind === 'treadmill'
           ? t('workout.speedLimit', { speed: treadmillSpeedKmh(limit) })
           : null;
@@ -352,7 +353,7 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
           <Text variant="title" testID="duration-range">
             {durationText(t, w)}
           </Text>
-          {km !== null ? <Text variant="label">{`≈ ${t('plan.km', { value: km })}`}</Text> : null}
+          {km !== null ? <Text variant="label">{`≈ ${distance(km)}`}</Text> : null}
         </View>
         <View style={styles.inline}>
           <Icon name="watch" size={14} color={colors.textMuted} />
@@ -371,7 +372,7 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
                   hour: '2-digit',
                   minute: '2-digit',
                 }),
-                actual: actualText(t, linked),
+                actual: actualText(t, units, linked),
               })}
             </Text>
           </View>

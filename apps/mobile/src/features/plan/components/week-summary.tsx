@@ -10,6 +10,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { Card, Icon, numeric, spacing, Text, useTheme, type IconName } from '@/ui';
+import { useUnits } from '@/features/settings/units';
 
 import { SPORT_ICON } from '../kind';
 
@@ -22,6 +23,7 @@ export interface WeekSummaryProps {
 /** The week at a glance: number of sessions and estimated km per discipline. */
 export function WeekSummary({ week, state, profile }: WeekSummaryProps) {
   const { t } = useTranslation();
+  const { distance } = useUnits();
   const { colors } = useTheme();
   const counted = week.workouts.filter((w) => statusOf(state, w.id) !== 'skipped');
   const summary = summarizeWorkouts(counted, profile);
@@ -36,7 +38,7 @@ export function WeekSummary({ week, state, profile }: WeekSummaryProps) {
     },
     ...SPORTS.filter((s) => summary.distances[s] !== undefined).map((s) => ({
       icon: SPORT_ICON[s],
-      value: t('plan.km', { value: Math.round(summary.distances[s] ?? 0) }),
+      value: distance(summary.distances[s] ?? 0, 0),
       label: t(`plan.sports.${s}`),
       color: colors[s === 'run' ? 'sportRun' : s === 'bike' ? 'sportBike' : 'sportSwim'],
     })),

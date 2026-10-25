@@ -68,6 +68,7 @@ jest.mock('expo-task-manager', () => ({ defineTask: jest.fn() }));
 
 // Weather settings and the cached forecast live in SQLite; every test gets the in-memory version.
 jest.mock('@/data/repositories/weather-repository');
+jest.mock('@/data/repositories/settings-repository');
 // Health values live in SQLite as well (Insights → Health, Today's recovery line).
 jest.mock('@/data/repositories/health-repository');
 

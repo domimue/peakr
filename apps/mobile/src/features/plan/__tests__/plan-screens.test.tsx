@@ -406,11 +406,11 @@ describe('workout detail', () => {
     expect(screen.getByText('Not sent to a watch yet')).toBeOnTheScreen();
     expect(
       screen.getByText(
-        /^Heart rate is your target\. Pace is a limit: no faster than \d+:\d\d\/km\.$/,
+        /^Heart rate is your target\. Pace is a limit: no faster than \d+:\d\d \/km\.$/,
       ),
     ).toBeOnTheScreen();
     expect(
-      screen.getAllByText(/^Zone 2 · \d+–\d+ bpm · no faster than \d+:\d\d\/km$/).length,
+      screen.getAllByText(/^Zone 2 · \d+–\d+ bpm · no faster than \d+:\d\d \/km$/).length,
     ).toBeGreaterThan(0);
     expect(screen.getByTestId('step-1')).toBeOnTheScreen();
     expect(screen.getByText('Why this session')).toBeOnTheScreen();
@@ -451,9 +451,9 @@ describe('workout detail', () => {
       '<workout_file>',
     );
     expect(screen.queryByText('The file could not be shared. Try again.')).toBeNull();
-    expect(screen.queryAllByText(/no faster than \d+:\d\d\/km$/)).toHaveLength(0);
+    expect(screen.queryAllByText(/no faster than \d+:\d\d \/km$/)).toHaveLength(0);
     await fireEvent.press(screen.getByText('Outdoor'));
-    expect(screen.getAllByText(/no faster than \d+:\d\d\/km$/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/no faster than \d+:\d\d \/km$/).length).toBeGreaterThan(0);
 
     await fireEvent.press(screen.getByLabelText('Choose route'));
     expect(router.push).toHaveBeenCalledWith('/training/route/2026-10-26-1');

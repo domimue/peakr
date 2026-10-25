@@ -62,7 +62,7 @@ describe('account screen – delete account', () => {
 
   it('explains what happens and only enables deletion after typing DELETE', async () => {
     await openConfirmation();
-    expect(screen.getByText(/does not cancel an active subscription/)).toBeOnTheScreen();
+    expect(screen.getByText(/does not cancel a subscription from Google Play/)).toBeOnTheScreen();
     expect(screen.getByText(/This can’t be undone/)).toBeOnTheScreen();
 
     const openUrl = jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);

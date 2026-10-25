@@ -13,6 +13,7 @@ interface PushMessage {
   title?: string;
   body?: string;
   priority: 'high' | 'normal';
+  channelId?: string;
   _contentAvailable?: boolean;
 }
 
@@ -21,8 +22,11 @@ export async function pushToUser(
   userId: string,
   data: Record<string, string>,
   alert: { title: string; body: string },
-  /** `alwaysAlert`: visible on every device (the trial-ending reminder), whatever the setting. */
-  options: { alwaysAlert?: boolean } = {},
+  /**
+   * `alwaysAlert`: visible on every device (trial-ending and daily reminder), whatever the
+   * activity setting. `channelId`: the Android notification channel the app created for it.
+   */
+  options: { alwaysAlert?: boolean; channelId?: string } = {},
 ): Promise<void> {
   const { data: tokens, error } = await admin
     .from('push_tokens')
@@ -32,7 +36,14 @@ export async function pushToUser(
   if (!tokens || tokens.length === 0) return;
   const messages: PushMessage[] = tokens.map((t) =>
     t.activity_alerts || options.alwaysAlert
-      ? { to: t.token, data, title: alert.title, body: alert.body, priority: 'high' }
+      ? {
+          to: t.token,
+          data,
+          title: alert.title,
+          body: alert.body,
+          priority: 'high',
+          ...(options.channelId ? { channelId: options.channelId } : {}),
+        }
       : { to: t.token, data, priority: 'high', _contentAvailable: true },
   );
   const headers: Record<string, string> = {

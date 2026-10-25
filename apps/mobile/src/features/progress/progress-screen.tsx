@@ -16,6 +16,7 @@ import { todayIso } from '@/data/ids';
 import { useLinkedActivities } from '@/features/activities/queries';
 import { RouteShape } from '@/features/routes/components/route-shape';
 import { Card, ListState, radius, SegmentedControl, spacing, StatTile, Text, useTheme } from '@/ui';
+import { useUnits } from '@/features/settings/units';
 
 import { formatDate } from '../plan/calendar';
 import { calendarTitle, typeColor, typeName } from '../plan/kind';
@@ -70,6 +71,7 @@ export function PlanInsights({ section }: { section: 'history' | 'performance' }
 
 function History() {
   const { t, i18n } = useTranslation();
+  const { distance } = useUnits();
   const { data: stored } = usePlan();
   const { data: linked } = useLinkedActivities();
   if (!stored) return null;
@@ -90,7 +92,7 @@ function History() {
         const totals = [
           t('progress.sessions', { count: m.sessions }),
           hoursText(t, m.minutes),
-          m.km > 0 ? t('plan.km', { value: Math.round(m.km) }) : null,
+          m.km > 0 ? distance(m.km, 0) : null,
         ]
           .filter(Boolean)
           .join(' · ');
@@ -123,10 +125,11 @@ function History() {
 
 function HistoryCard({ entry, polyline }: { entry: HistoryEntry; polyline: string | null }) {
   const { t, i18n } = useTranslation();
+  const { distance } = useUnits();
   const { colors } = useTheme();
   const w = entry.workout;
   const figures = [
-    entry.km > 0 ? t('plan.km', { value: entry.km }) : null,
+    entry.km > 0 ? distance(entry.km) : null,
     hoursText(t, entry.minutes),
     entry.paceSecPerKm !== null
       ? t('progress.pace', { pace: formatDuration(entry.paceSecPerKm) })
@@ -177,6 +180,7 @@ function HistoryCard({ entry, polyline }: { entry: HistoryEntry; polyline: strin
 
 function TotalsTiles({ totals, prefix }: { totals: Totals; prefix: string }) {
   const { t } = useTranslation();
+  const { distance } = useUnits();
   return (
     <View style={styles.tiles}>
       <StatTile
@@ -185,10 +189,7 @@ function TotalsTiles({ totals, prefix }: { totals: Totals; prefix: string }) {
         label={t('progress.tiles.sessions')}
       />
       <StatTile value={hoursText(t, totals.minutes)} label={t('progress.tiles.time')} />
-      <StatTile
-        value={t('plan.km', { value: Math.round(totals.km) })}
-        label={t('progress.tiles.distance')}
-      />
+      <StatTile value={distance(totals.km, 0)} label={t('progress.tiles.distance')} />
       <StatTile value={String(Math.round(totals.load))} label={t('progress.tiles.load')} />
     </View>
   );
@@ -196,6 +197,7 @@ function TotalsTiles({ totals, prefix }: { totals: Totals; prefix: string }) {
 
 function Performance({ period, onPeriod }: { period: Period; onPeriod: (p: Period) => void }) {
   const { t, i18n } = useTranslation();
+  const { distance } = useUnits();
   const { data: stored } = usePlan();
   if (!stored) return null;
   const perf = performance(stored.state, stored.input.profile, todayIso(), period);
@@ -253,7 +255,7 @@ function Performance({ period, onPeriod }: { period: Period; onPeriod: (p: Perio
             <BestRow
               key={s}
               label={t(`progress.best.longest.${s}`)}
-              value={t('plan.km', { value: longestKm[s] })}
+              value={distance(longestKm[s] ?? 0)}
             />
           ))}
           <Text variant="caption" tone="secondary">

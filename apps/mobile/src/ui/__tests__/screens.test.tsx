@@ -68,11 +68,25 @@ describe('tab screens without a plan', () => {
     ).toBeOnTheScreen();
   });
 
-  it('switches the theme preference on the profile screen', async () => {
+  it('opens the settings screens from grouped rows on the profile screen', async () => {
+    const push = jest.spyOn(router, 'push').mockImplementation(() => undefined);
     await renderWithQuery(<ProfileScreen />);
     // Dark is the default; light mode is optional.
     expect(useSettingsStore.getState().themePreference).toBe('dark');
-    await fireEvent.press(await screen.findByText('Light'));
-    expect(useSettingsStore.getState().themePreference).toBe('light');
+    await fireEvent.press(await screen.findByText('Theme'));
+    expect(push).toHaveBeenCalledWith('/settings/appearance');
+    for (const [row, href] of [
+      ['Notifications', '/settings/notifications'],
+      ['Units', '/settings/units'],
+      ['Haptics', '/settings/haptics'],
+      ['Language', '/settings/language'],
+      ['Privacy', '/settings/privacy'],
+    ] as const) {
+      await fireEvent.press(screen.getByText(row));
+      expect(push).toHaveBeenCalledWith(href);
+    }
+    expect(await screen.findByText(/^0?7:00/)).toBeOnTheScreen();
+    expect(screen.queryByText('Soon')).not.toBeOnTheScreen();
+    push.mockRestore();
   });
 });
