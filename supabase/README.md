@@ -13,6 +13,7 @@ Security, and Edge Functions for everything that needs a secret.
 | `functions/strava-upload/` | Gym session → Strava: structured weight-training upload (JSON sets), status polling, `STRAVA_UPLOAD_DRY_RUN=1` for tests |
 | `functions/watch/` | Watch platforms (Garmin, COROS, Suunto): FIT/GPX export, push workouts and routes with re-sync, import; behind `WATCH_*` flags – see `docs/watch-integrations.md` |
 | `functions/watch-webhook/` | Completed-activity notifications of the watch platforms (`?key=WATCH_WEBHOOK_SECRET`), same `activities` pipeline as Strava |
+| `functions/round-trips/` | Generated round trips (Phase 8b): OpenRouteService loops from a start point, swisstopo heights in Switzerland, cached per user and snapped start – see `docs/generated-routes.md` |
 | `functions/weather/`     | Weather check: hourly forecast per ~5 km cell (MeteoSwiss for Switzerland, Open-Meteo elsewhere), cached per hour |
 | `functions/delete-account/` | Account deletion (app and website): revokes every integration, cancels website (Stripe) subscriptions, deletes all rows, Storage files, the RevenueCat customer and the auth user |
 | `functions/revenuecat-webhook/` | RevenueCat events → `entitlements` (state read back from the RevenueCat API) |
@@ -39,6 +40,7 @@ Security, and Edge Functions for everything that needs a secret.
 | `baseline_activities` | Edge Functions only           | reference-only Strava activities (last 60 days) for plan calibration; never synced as history, no Realtime; own rows readable |
 | `baseline_imports`   | Edge Functions only            | last baseline import per user + custom Strava HR zones; own row readable |
 | `strava_uploads`     | Edge Functions only            | gym sessions posted to Strava (state + Strava activity id); the webhook ignores these activities; own rows readable |
+| `route_cache`        | Edge Functions only            | generated round trips per user and snapped start point (~100 m) / distance, 14 days; no access for app or website |
 | `weather_cache`      | Edge Functions only            | forecasts per ~5 km grid cell and UTC hour; no user id, no access for app or website |
 | `push_tokens`        | the app (own device)           | Expo push tokens + "notify me" per device                   |
 | `entitlements`       | Edge Functions only            | mirror of RevenueCat entitlements (training, plus, gym), active or expired; own rows readable; `has_entitlement(uid, name)` for the backend |
@@ -67,6 +69,7 @@ pnpm exec supabase functions deploy strava-sync
 pnpm exec supabase functions deploy delete-account
 pnpm exec supabase functions deploy strava-baseline
 pnpm exec supabase functions deploy weather
+pnpm exec supabase functions deploy round-trips
 pnpm exec supabase functions deploy strava-upload
 pnpm exec supabase functions deploy revenuecat-webhook
 pnpm exec supabase functions deploy trial-reminders
@@ -100,7 +103,8 @@ New schema changes go into a new file: `pnpm exec supabase migration new <name>`
    `docs/health-garmin.md`), `OAUTH_STATE_SECRET`,
    `STRAVA_CLIENT_ID`, `STRAVA_CLIENT_SECRET` (see `functions/.env.example`). Before launch also
    `OPEN_METEO_API_KEY` (Phase 8c): without it the weather check uses Open-Meteo's free API, which
-   is for non-commercial use only.
+   is for non-commercial use only. For generated round trips (Phase 8b) `ORS_API_KEY`, see
+   `docs/generated-routes.md`.
 8. **Project Settings → API keys**: project URL and **publishable** key into
    `apps/mobile/.env.local` (see `apps/mobile/.env.example`) and into the EAS environment
    variables. Never the secret / service-role key.

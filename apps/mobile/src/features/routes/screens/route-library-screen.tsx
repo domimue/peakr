@@ -23,13 +23,14 @@ import { gainPerKm } from '../import';
 import { useRoutes } from '../queries';
 
 type SportFilter = 'all' | RouteSport;
-type SourceFilter = 'all' | 'own' | 'planned' | 'recognised';
+type SourceFilter = 'all' | 'own' | 'planned' | 'recognised' | 'generated';
 
 /** Which library source each filter shows. */
 const SOURCES: Record<Exclude<SourceFilter, 'all'>, readonly StoredRoute['source'][]> = {
   own: ['gpx', 'komoot'],
   planned: ['strava_route'],
   recognised: ['strava'],
+  generated: ['generated'],
 };
 type DistanceFilter = 'all' | 'short' | 'medium' | 'long';
 type HillFilter = 'all' | Terrain;
@@ -140,6 +141,7 @@ export function RouteLibraryScreen() {
               { value: 'own', label: t('routes.filter.own') },
               { value: 'planned', label: t('routes.filter.planned') },
               { value: 'recognised', label: t('routes.filter.recognised') },
+              { value: 'generated', label: t('routes.filter.generated') },
             ]}
             selected={[source]}
             onToggle={setSource}

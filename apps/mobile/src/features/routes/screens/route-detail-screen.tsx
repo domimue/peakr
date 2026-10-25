@@ -73,6 +73,11 @@ export function RouteDetailScreen() {
         {`${t(`routes.sport.${route.sport}`)} · ${t(`routes.source.${route.source}`)}`}
       </Text>
       <RouteMap polyline={route.polyline} color={color} testID="route-map" />
+      {route.source === 'generated' ? (
+        <Text variant="micro" tone="secondary">
+          {t('routes.generated.attributionShort')}
+        </Text>
+      ) : null}
       <View style={styles.tiles}>
         <StatTile
           value={t('plan.km', { value: Math.round(route.distanceM / 100) / 10 })}

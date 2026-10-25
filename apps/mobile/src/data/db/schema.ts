@@ -300,7 +300,7 @@ export const activityLinks = sqliteTable('activity_links', {
 // files and routes recognised from past activities – and the recorded streams of activities
 // (distance, time, altitude, heart rate) for the grade-adjusted evaluation.
 
-export type RouteSource = 'gpx' | 'strava' | 'strava_route' | 'komoot';
+export type RouteSource = 'gpx' | 'strava' | 'strava_route' | 'komoot' | 'generated';
 
 export const routes = sqliteTable('routes', {
   id: text('id').primaryKey(),
