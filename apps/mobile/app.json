@@ -16,17 +16,25 @@
           {
             "CFBundleTypeName": "GPX route",
             "LSHandlerRank": "Alternate",
-            "LSItemContentTypes": ["com.topografix.gpx"]
+            "LSItemContentTypes": [
+              "com.topografix.gpx"
+            ]
           }
         ],
         "UTImportedTypeDeclarations": [
           {
             "UTTypeIdentifier": "com.topografix.gpx",
             "UTTypeDescription": "GPS Exchange Format",
-            "UTTypeConformsTo": ["public.xml"],
+            "UTTypeConformsTo": [
+              "public.xml"
+            ],
             "UTTypeTagSpecification": {
-              "public.filename-extension": ["gpx"],
-              "public.mime-type": ["application/gpx+xml"]
+              "public.filename-extension": [
+                "gpx"
+              ],
+              "public.mime-type": [
+                "application/gpx+xml"
+              ]
             }
           }
         ],
@@ -64,7 +72,10 @@
       "intentFilters": [
         {
           "action": "VIEW",
-          "category": ["DEFAULT", "BROWSABLE"],
+          "category": [
+            "DEFAULT",
+            "BROWSABLE"
+          ],
           "data": [
             {
               "scheme": "content",
@@ -87,7 +98,9 @@
           ]
         }
       ],
-      "blockedPermissions": ["android.permission.RECORD_AUDIO"]
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "output": "single",
