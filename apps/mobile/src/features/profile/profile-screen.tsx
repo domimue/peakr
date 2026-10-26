@@ -2,6 +2,7 @@ import { activePause } from '@peakr/engine';
 import { router, type Href } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
+import { useRemoteFlag } from '@/config/remote-flags';
 import { useSessionStore } from '@/features/auth/session-store';
 import { usePlan } from '@/features/plan/queries';
 import { useReminderSettings } from '@/features/notifications/queries';
@@ -27,6 +28,8 @@ export function ProfileScreen() {
   const { data: weather } = useWeatherSettings();
   const session = useSessionStore((s) => (s.isAnonymous ? null : s.session));
   const paused = stored ? activePause(stored.state) !== null : false;
+  // While Body holds the fourth tab, Insights opens from here.
+  const insightsRow = useRemoteFlag('addon_body_nutrition');
 
   const themeLabel = {
     system: t('profile.themeSystem'),
@@ -35,6 +38,15 @@ export function ProfileScreen() {
   }[themePreference];
 
   const training: Row[] = [
+    ...(insightsRow
+      ? [
+          {
+            icon: 'progress' as const,
+            title: t('insights.title'),
+            href: '/training/insights' as const,
+          },
+        ]
+      : []),
     { icon: 'tune', title: t('plan.availability.title'), href: '/training/availability' },
     {
       icon: paused ? 'play' : 'pause',

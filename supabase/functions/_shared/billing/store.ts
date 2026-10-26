@@ -1,6 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
-import { rowsFromSubscriber, type SubscriberResponse } from './revenuecat.ts';
+import { addonTrialsOf, rowsFromSubscriber, type SubscriberResponse } from './revenuecat.ts';
 
 /**
  * RevenueCat REST API (v1) with the secret key REVENUECAT_SECRET_KEY, and the `entitlements`
@@ -33,6 +33,14 @@ export async function refreshUser(admin: SupabaseClient, userId: string): Promis
     .from('entitlements')
     .insert(rows.map((r) => ({ ...r, updated_at: new Date().toISOString() })));
   if (error) throw error;
+  // Add-on trials are once per account: the first one is remembered, later events change nothing.
+  const trials = addonTrialsOf(rows);
+  if (trials.length > 0) {
+    const { error: trialError } = await admin
+      .from('addon_trials')
+      .upsert(trials, { onConflict: 'user_id,addon', ignoreDuplicates: true });
+    if (trialError) throw trialError;
+  }
   return rows.length;
 }
 

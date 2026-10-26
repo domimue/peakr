@@ -94,6 +94,8 @@ function mapSummary(type: GarminSummaryType, e: Json, receivedAt: string, sink: 
         });
       }
       sink.add('active_kcal', day, num(e.activeKilocalories), id, at);
+      // Garmin's own resting energy (BMR) – the Body add-on prefers it to the formula.
+      sink.add('resting_kcal', day, num(e.bmrKilocalories), id, at);
       sink.add('resting_hr', day, num(e.restingHeartRateInBeatsPerMinute), id, at);
       sink.add('stress_avg', day, num(e.averageStressLevel), id, at);
       return;

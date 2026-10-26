@@ -16,7 +16,10 @@ import { WeekStrip } from '../plan/components/week-strip';
 import { WorkoutCard } from '../plan/components/workout-card';
 import { usePlanUiStore } from '../plan/plan-ui-store';
 import { usePlan, usePlanActions } from '../plan/queries';
+import { CoachTeaser } from '../body/components/coach-teaser';
+import { EnergyTodayCard } from '../body/components/energy-today-card';
 import { RecoveryLine } from '../insights/health/recovery-line';
+import { useRemoteFlag } from '@/config/remote-flags';
 import { WeatherChip } from '../weather/components/weather-chip';
 import { WeatherHintCard } from '../weather/components/weather-hint-card';
 import { useWorkoutWeather } from '../weather/queries';
@@ -34,6 +37,7 @@ export function TodayScreen() {
   const actions = usePlanActions();
   const showWeek = usePlanUiStore((s) => s.showWeek);
   const access = useAccess();
+  const body = useRemoteFlag('addon_body_nutrition');
   const today = todayIso();
 
   const title = (
@@ -193,8 +197,13 @@ export function TodayScreen() {
             tags={weekTags(week, input, plan.targetDate)}
             header={false}
           />
+          {/* Body add-on teaser for users without it: only adds, Today works the same. */}
+          <CoachTeaser />
         </>
       ) : null}
+
+      {/* Body add-on: only adds; Today works the same without it. */}
+      <EnergyTodayCard />
 
       <Text variant="heading">{t('today.insights')}</Text>
       <View style={styles.insights} testID="insights">
@@ -208,6 +217,15 @@ export function TodayScreen() {
           </Card>
         ))}
       </View>
+      {body ? (
+        <Button
+          variant="secondary"
+          small
+          icon="progress"
+          label={t('today.openInsights')}
+          onPress={() => router.push('/training/insights')}
+        />
+      ) : null}
 
       {next && access === 'full' ? (
         <View style={styles.actions}>

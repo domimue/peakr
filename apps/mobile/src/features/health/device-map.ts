@@ -166,6 +166,43 @@ export function mapInstant(
   return out.sort((a, b) => a.day.localeCompare(b.day));
 }
 
+/** Workouts with their energy → one total per local day (the Body add-on's workout energy). */
+export function mapWorkoutEnergy(
+  sessions: readonly { startTime: string; kcal: number; metadata?: Meta['metadata'] }[],
+  ownPackage: string,
+): { day: string; value: number }[] {
+  const byDay = new Map<string, number>();
+  for (const s of sessions) {
+    if (!(s.kcal > 0) || isOwnHealthRecord(s.metadata ?? {}, ownPackage)) continue;
+    const day = localDay(s.startTime);
+    byDay.set(day, (byDay.get(day) ?? 0) + s.kcal);
+  }
+  return [...byDay.entries()]
+    .map(([day, value]) => ({ day, value: Math.round(value) }))
+    .sort((a, b) => a.day.localeCompare(b.day));
+}
+
+/**
+ * Nutrition records → kcal per local day, leaving out Peakr's own diary entries (written by this
+ * app) so the diary is never counted twice.
+ */
+export function mapNutrition(
+  records: readonly { startTime: string; kcal: number; metadata?: Meta['metadata'] }[],
+  ownPackage: string,
+): { day: string; value: number }[] {
+  const byDay = new Map<string, number>();
+  for (const r of records) {
+    const meta = r.metadata ?? {};
+    if (!(r.kcal > 0) || isOwnHealthRecord(meta, ownPackage)) continue;
+    if ((meta.clientRecordId ?? '').startsWith('peakr-food-')) continue;
+    const day = localDay(r.startTime);
+    byDay.set(day, (byDay.get(day) ?? 0) + r.kcal);
+  }
+  return [...byDay.entries()]
+    .map(([day, value]) => ({ day, value: Math.round(value) }))
+    .sort((a, b) => a.day.localeCompare(b.day));
+}
+
 /** Daily totals from the store's own aggregation (it removes overlaps between apps). */
 export function mapDailyTotals(
   metric: HealthMetric,

@@ -8,7 +8,12 @@
  * transfer events harmless.
  */
 
-export const ENTITLEMENTS = ['training', 'plus', 'gym'] as const;
+/**
+ * `plus` is the bundle "Peakr + Body" (training and the Body add-on in one subscription; its
+ * products grant `training`, `plus` and `body_nutrition`). `gym` and `body_nutrition` are add-ons
+ * with their own products.
+ */
+export const ENTITLEMENTS = ['training', 'plus', 'gym', 'body_nutrition'] as const;
 export type EntitlementId = (typeof ENTITLEMENTS)[number];
 
 export type Store = 'play_store' | 'app_store' | 'stripe' | 'other';
@@ -146,6 +151,31 @@ export function rowsFromSubscriber(userId: string, response: SubscriberResponse)
 /** Whether a row grants access at `now` (RevenueCat keeps expired entitlements in the response). */
 export function isActive(row: Pick<EntitlementRow, 'expires_at'>, now: Date): boolean {
   return row.expires_at === null || new Date(row.expires_at).getTime() > now.getTime();
+}
+
+/** Add-ons whose free trial is granted once per account, whatever store or product. */
+export const ONCE_PER_ACCOUNT_TRIALS = ['body_nutrition'] as const;
+export type TrialAddon = (typeof ONCE_PER_ACCOUNT_TRIALS)[number];
+
+/** A used add-on trial (`addon_trials`): kept when the entitlement rows are replaced. */
+export interface AddonTrialRow {
+  user_id: string;
+  addon: TrialAddon;
+  product_id: string;
+}
+
+/**
+ * The add-on trials a user is in right now – stored once and never removed, so the app offers the
+ * trial only to accounts that never had one (the bundle's trial counts too: Body was tried).
+ */
+export function addonTrialsOf(rows: readonly EntitlementRow[]): AddonTrialRow[] {
+  return rows
+    .filter(
+      (r): r is EntitlementRow & { entitlement: TrialAddon } =>
+        (ONCE_PER_ACCOUNT_TRIALS as readonly string[]).includes(r.entitlement) &&
+        r.period_type === 'trial',
+    )
+    .map((r) => ({ user_id: r.user_id, addon: r.entitlement, product_id: r.product_id }));
 }
 
 /** Constant-time comparison of the webhook's Authorization header with the configured value. */

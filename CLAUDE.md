@@ -141,7 +141,7 @@ Optional step during plan creation: the user connects Strava and lets Peakr read
 
 ## Energy & body rules (nutrition add-on)
 - **Resting energy**: Mifflin-St Jeor by default; Katch-McArdle if body fat % is known. Overridable by Health Connect/HealthKit resting energy.
-- **Active energy**: from completed workouts (Strava/Health data) or, if missing, estimated from planned workouts (duration, zone, body weight). Use only ~75 % of device-reported active energy by default (configurable) because wearables tend to overestimate.
+- **Active energy**: from completed workouts (Strava/Health data) or, if missing, estimated from planned workouts (duration, zone, body weight). Count device-reported active energy with a correction factor (default 0.8, configurable) because wearables tend to overestimate. Steps are the everyday-movement estimate when no wearable day total exists.
 - **Energy balance**: intake − (resting + active). Fat estimate 7,700 kcal per kg, shown as an estimate.
 - **Weight trend**: exponentially smoothed trend line; day-to-day scale changes are labelled as water/glycogen noise.
 - **Body composition** (optional): body fat %, body measurements (waist, hips, chest, arms, thighs …) with measurement instructions, progress photos (stored privately).
@@ -176,17 +176,18 @@ Optional step during plan creation: the user connects Strava and lets Peakr read
 - **Garmin Health API**: the data behind the Health tab (see "Health"). Available on the Personal tier for one's own data and on the Starter tier for all users of the app.
 - **Migrating from another gym app**: the path that ships is the **CSV/file export** those apps give their own users, imported with the mapping UI in the Gym area – no paid subscription on the user's side to get their own history out. An optional API connection (e.g. a personal API key behind a paid tier) stays behind a feature flag and is never the only way in. See WORKOUTS.md §8.7.
 - **Food database**: **Open Food Facts** for barcode lookup (free, ODbL – show attribution, cache results, let users correct entries). Users can create custom foods and recipes.
-- **Health Connect / HealthKit**: read weight, steps, resting and active energy, workouts; write nutrition and workouts where allowed. Request only the permissions actually needed.
+- **Health Connect / HealthKit**: read weight, body fat, steps, resting and active energy, nutrition and workouts; write nutrition and workouts where allowed. Request only the permissions actually needed. The Body add-on asks for its record types separately and only while the add-on is active; those values stay on the device.
 
 ## Monetisation
 - **Free without subscription**: on the **website** the calculators ("Tools"), the full quiz and the forecast with the week-1 preview; in the **app** only the quiz, the forecast and that same week-1 preview. There is **no free tier and no free tools inside the app** – after the forecast the paywall is the only way forward.
 - **Two tiers** (one subscription group, so users can switch):
   - **Training** (target ~7.90/month or ~59/year): full plan, calendar editing, regeneration, pause, routes, integrations, exports.
-  - **Training + Nutrition** (target ~11.90/month or ~89/year): everything in Training plus nutrition tracking with barcode scan, energy balance, body tracking. Until the nutrition part ships, this tier is shown as "coming soon".
+  - **Peakr + Body** bundle (entitlement `plus`, formerly "Training + Nutrition"; target ~11.90/month or ~89/year): Training plus the Body add-on at a discount against buying both. Its products also grant `training` and `body_nutrition`. Shown as "coming soon" while the remote flag `addon_body_nutrition` is off.
+- **Body add-on** (entitlement `body_nutrition`, proposed ~4.90/month or ~39/year – see docs/body-addon-setup.md): nutrition & body (see "Add-on rules"), bought on top of a tier. Own subscription group / Play product like Gym. **14-day free trial, once per account** (server table `addon_trials`). Ships hidden behind the remote flag `addon_body_nutrition` (Supabase `feature_flags`).
 - **Gym add-on** (entitlement `gym`, target ~3.90/month or ~29/year): the strength workspace described under "Gym". It is an **add-on, not a tier** – it can be bought alongside either tier, and also on its own by someone who only wants gym tracking. Because a store subscription group allows only one active subscription at a time, the add-on lives in its **own subscription group** on iOS and as its own product on Google Play. Same 7-day trial rules.
 - **7-day free trial**: the user **starts the subscription right after the forecast** and enters payment details upfront (Google Play / App Store / Stripe). Nothing is charged for 7 days; the paywall states the exact first charge date. **One day before the trial ends** the app sends a reminder (push + email) with the charge date, amount and a direct link to cancel. One trial per user/account.
-- Paywall appears **after** the quiz and forecast, on the web (Stripe) and in the app (in-app purchase). Entitlements handled via RevenueCat (`training`, `plus`, `gym`) regardless of where the user paid.
-- **Manage subscription in the app** (Profile → Subscription): see current tier, price, next billing date and trial status; **upgrade/downgrade** between Training and Training + Nutrition and switch monthly/yearly (via the store's subscription change flow; web subscribers via the Stripe customer portal); **cancel easily** without deleting the account (deep link to the store's cancel screen for app purchases, Stripe portal for web purchases). After cancelling, access stays until the end of the paid period; afterwards the user keeps the account, history and free tools, the plan becomes read-only.
+- Paywall appears **after** the quiz and forecast, on the web (Stripe) and in the app (in-app purchase). Entitlements handled via RevenueCat (`training`, `plus`, `gym`, `body_nutrition`) regardless of where the user paid.
+- **Manage subscription in the app** (Profile → Subscription): see current tier, price, next billing date and trial status; **upgrade/downgrade** between Training and Peakr + Body and switch monthly/yearly (via the store's subscription change flow; web subscribers via the Stripe customer portal); **cancel easily** without deleting the account (deep link to the store's cancel screen for app purchases, Stripe portal for web purchases). After cancelling, access stays until the end of the paid period; afterwards the user keeps the account, history and free tools, the plan becomes read-only.
 
 ## Account & notifications
 - **Log out** and **delete account** in Profile → Account. Deletion: confirmation step (type "DELETE" or confirm twice), explains that an active subscription must be cancelled separately in the store (with link) and that all data is removed; deletes all user data in Supabase (incl. storage, integration tokens, revoking Strava/Garmin access) within the store's required timeframe; also offered on the website (Google Play requires a web deletion link).
@@ -265,7 +266,7 @@ Peakr shows the body data the watch already records, so the user does not need t
 ## UI patterns (app)
 These are the conventions every screen follows. They are patterns common to training apps, implemented in **our own** visual language (Volt palette, Archivo, Peakr logo) – never a copy of another app's layout, icons, illustrations, gradients or wording.
 
-- **Navigation**: five bottom tabs – **Today, Plan, Gym, Insights, Profile**. Five is the limit on a phone, so sections share tabs: Plan holds the week list and the day-by-day calendar (segmented control), and **Insights** holds three segments – **Health** (body and recovery data, see "Health"), **Training** (activity history) and **Records** (performance charts and personal bests). Health is the segment Insights opens on once a watch is connected, because that is what people check daily; before that it opens on Training.
+- **Navigation**: five bottom tabs – **Today, Plan, Gym, Body, Profile** while the Body add-on is switched on (remote flag `addon_body_nutrition`); Insights then opens from Profile and Today. With the flag off: **Today, Plan, Gym, Insights, Profile**. Five is the hard limit (the Android tab bar cannot hold more), so sections share tabs: Plan holds the week list and the day-by-day calendar (segmented control), and **Insights** holds three segments – **Health** (body and recovery data, see "Health"), **Training** (activity history) and **Records** (performance charts and personal bests). Health is the segment Insights opens on once a watch is connected, because that is what people check daily; before that it opens on Training.
 - **Workout type colours**: every workout type owns a colour token (easy/recovery, long, tempo/threshold, intervals/VO2, hills, race/test, strength, cross-training/winter, commute). It appears as a bar on the left edge of every workout card, as the dot under a day in the week strip, and as the tint of the workout screen header. The tokens must be distinguishable in hue **and** lightness, must not be confusable with the brand accent (Volt is reserved for primary actions), and colour never carries meaning alone – the type is always named in text too.
 - **Today**: week strip Mon–Sun with today marked and a coloured dot under every day that has a session; weather chip; today's session as a card; week summary with segmented progress ("Sessions 2/4", "Distance 12/29 km"); insights; one primary action.
 - **Plan**: one card per week – date range, "Week 3 of 12", a tick when the week is complete, a segmented bar with one segment per session, sessions done/planned and distance done/planned, and a tag when the week is special (recovery, travel, race week).
@@ -300,7 +301,12 @@ The user hands over tasks one after another and expects them to be worked off wh
 - All energy and body math lives in /packages/engine, never in UI code
 - Calculations use the smoothed trend weight, never single weigh-ins
 - Every estimate (body fat via Navy, fat/lean mass, adaptive TDEE, workout energy) is labelled as an estimate in the UI
-- Data priority when sources overlap: manual entry > device/Health data > estimate
+- Data priority when sources overlap: manual entry > device/Health data > estimate. Per value and day (engine `pickBySource`):
+  - **Weight, body fat**: check-in > Garmin (scale via Garmin Connect) > Health Connect / HealthKit.
+  - **Intake**: Peakr diary (any entry that day) > Health Connect / HealthKit nutrition. Nutrition never comes from Garmin.
+  - **Resting energy**: Garmin (`bmrKilocalories`) > Health Connect / HealthKit > formula (Katch-McArdle with a body fat % of the last 30 days, else Mifflin-St Jeor).
+  - **Active energy**: a wearable's whole-day total (Garmin > Health Connect / HealthKit) × correction; otherwise workouts (health-store workout energy × correction > completed activities estimated from heart rate or MET > planned sessions) plus everyday movement (steps > default share of BMR).
+  - **Steps**: Garmin > Health Connect / HealthKit.
 - Days marked "incomplete" are excluded from adaptive TDEE and "calculation vs. scale"
 - Progress photos: private storage only, signed URLs, RLS per user
 
@@ -310,5 +316,8 @@ The user hands over tasks one after another and expects them to be worked off wh
 - Intake floor: max(BMR, 1,200 kcal women / 1,500 kcal men)
 - No loss goal if current BMI < 18.5 or the target weight results in BMI < 18.5
 - Under-18: only "maintain" allowed
+- Too-fast-loss warning: trend loss above 1.5 % of body weight per week, two weeks in a row → gentle warning and the suggestion to eat more
+- Rate presets: losing 0.25 / 0.5 / 0.75 / 1.0 kg/week, gaining 0.1 / 0.25 / 0.5 kg/week (custom in 0.05 steps); presets above the max rate are shown disabled with the reason
+- Weekly check-in suggestions change the daily target by at most ±150 kcal per week; the user accepts them, nothing changes automatically
 - Every target change stores its reason (user, adaptive recalculation, safety clamp)
 - Wording: gentle, non-judgmental, no shame language, no streak pressure for weighing, never praise extreme deficits or very fast loss

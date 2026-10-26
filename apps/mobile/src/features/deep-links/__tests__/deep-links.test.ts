@@ -8,12 +8,20 @@ describe('openTarget', () => {
     expect(openTarget(['today'])).toBe('/today');
     expect(openTarget(['plan'])).toBe('/plan');
     expect(openTarget(['gym'])).toBe('/gym');
-    expect(openTarget(['insights'])).toBe('/insights');
+    // Insights is a screen, so the link works whether Body or Insights holds the tab slot.
+    expect(openTarget(['insights'])).toBe('/training/insights');
     expect(openTarget(['profile'])).toBe('/profile');
     expect(openTarget(['account'])).toBe('/auth/account');
     expect(openTarget(['subscription'])).toBe('/subscription');
     // A trailing slash gives an empty segment.
     expect(openTarget(['plan', ''])).toBe('/plan');
+  });
+
+  it('opens the Body add-on screens, whose guard decides between screen and paywall', () => {
+    expect(openTarget(['body'])).toBe('/body/today');
+    expect(openTarget(['body-check-in'])).toBe('/body/check-in');
+    expect(openTarget(['body-progress'])).toBe('/body/progress');
+    expect(parseStoredTarget('/body/progress')).toBe('/body/progress');
   });
 
   it('opens a workout by id', () => {

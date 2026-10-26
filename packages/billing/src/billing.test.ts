@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  addonTrialsOf,
   cancelLink,
   dueReminders,
   isActive,
@@ -160,5 +161,64 @@ describe('trial-ending reminder', () => {
     expect(cancelLink({ ...reminder, store: 'play_store' }, null)).toBe(
       'https://play.google.com/store/account/subscriptions?sku=peakr_training&package=com.peakr.app',
     );
+  });
+});
+
+describe('Body add-on and bundle', () => {
+  const bundle: SubscriberResponse = {
+    subscriber: {
+      entitlements: {
+        training: { product_identifier: 'peakr_plus', expires_date: '2026-11-02T09:00:00Z' },
+        plus: { product_identifier: 'peakr_plus', expires_date: '2026-11-02T09:00:00Z' },
+        body_nutrition: { product_identifier: 'peakr_plus', expires_date: '2026-11-02T09:00:00Z' },
+      },
+      subscriptions: { peakr_plus: { store: 'play_store', period_type: 'trial' } },
+    },
+  };
+  const addon: SubscriberResponse = {
+    subscriber: {
+      entitlements: {
+        body_nutrition: { product_identifier: 'peakr_body', expires_date: '2026-11-09T09:00:00Z' },
+      },
+      subscriptions: { peakr_body: { store: 'app_store', period_type: 'TRIAL' } },
+    },
+  };
+
+  it('mirrors body_nutrition from the add-on and from the bundle', () => {
+    expect(rowsFromSubscriber(USER, bundle).map((r) => r.entitlement)).toEqual([
+      'training',
+      'plus',
+      'body_nutrition',
+    ]);
+    expect(rowsFromSubscriber(USER, addon)).toEqual([
+      expect.objectContaining({ entitlement: 'body_nutrition', period_type: 'trial' }),
+    ]);
+  });
+
+  it('remembers a Body trial once per account, from either product', () => {
+    expect(addonTrialsOf(rowsFromSubscriber(USER, addon))).toEqual([
+      { user_id: USER, addon: 'body_nutrition', product_id: 'peakr_body' },
+    ]);
+    expect(addonTrialsOf(rowsFromSubscriber(USER, bundle))).toHaveLength(1);
+    expect(addonTrialsOf(rowsFromSubscriber(USER, trialSubscriber))).toEqual([]);
+  });
+
+  it('sends one reminder for the bundle, named after it', () => {
+    const due = dueReminders(
+      rowsFromSubscriber(USER, bundle),
+      new Set(),
+      new Date('2026-11-01T12:00:00Z'),
+    );
+    expect(due).toHaveLength(1);
+    const [reminder] = due;
+    if (!reminder) throw new Error('no reminder');
+    expect(reminderTexts(reminder, null).push.body).toMatch(/^Peakr \+ Body:/);
+    const [own] = dueReminders(
+      rowsFromSubscriber(USER, addon),
+      new Set(),
+      new Date('2026-11-08T12:00:00Z'),
+    );
+    if (!own) throw new Error('no reminder');
+    expect(reminderTexts(own, null).push.body).toMatch(/^Peakr Body:/);
   });
 });

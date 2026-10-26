@@ -15,6 +15,10 @@ export type ValidationCode =
   | 'goalNeedsSports'
   | 'notEnoughAvailability'
   | 'underageWeightLoss'
+  | 'bmiTooLow'
+  | 'targetNotBelowCurrent'
+  | 'targetNotAboveCurrent'
+  | 'invalidFormat'
   | 'gpxEmpty'
   | 'gpxNoPoints'
   | 'gpxTooLarge';

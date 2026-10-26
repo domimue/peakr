@@ -18,7 +18,7 @@ type Segment = 'health' | 'training' | 'records';
  * history) and Records (performance and personal bests). Opens on Health once a health source is
  * connected, because that is what people check daily; before that on Training.
  */
-export function InsightsScreen() {
+export function InsightsScreen({ inStack = false }: { inStack?: boolean } = {}) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const { data: status } = useHealthStatus();
@@ -31,11 +31,20 @@ export function InsightsScreen() {
   const locked = access === 'preview' || access === 'pending';
 
   return (
-    <SafeAreaView edges={['top']} style={[styles.root, { backgroundColor: colors.bg }]}>
-      <ScrollView contentContainerStyle={styles.content} testID="insights-scroll">
-        <Text variant="title" accessibilityRole="header">
-          {t('insights.title')}
-        </Text>
+    <SafeAreaView
+      edges={inStack ? [] : ['top']}
+      style={[styles.root, { backgroundColor: colors.bg }]}
+    >
+      <ScrollView
+        contentContainerStyle={styles.content}
+        contentInsetAdjustmentBehavior="automatic"
+        testID="insights-scroll"
+      >
+        {inStack ? null : (
+          <Text variant="title" accessibilityRole="header">
+            {t('insights.title')}
+          </Text>
+        )}
         {locked ? <LockedCard access={access} /> : null}
         {locked ? null : (
           <SegmentedControl

@@ -24,8 +24,9 @@ export const reminderKey = (r: { userId: string; productId: string; chargeAt: st
   `${r.userId}|${r.productId}|${new Date(r.chargeAt).toISOString()}`;
 
 /**
- * Trials that convert within the next 24 hours, still set to renew, not reminded yet. A Plus
- * purchase grants `training` and `plus` with the same product: that is one trial, one reminder.
+ * Trials that convert within the next 24 hours, still set to renew, not reminded yet. The bundle
+ * (`plus`) grants `training`, `plus` and `body_nutrition` with the same product: that is one
+ * trial, one reminder, named after the bundle.
  */
 export function dueReminders(
   rows: readonly EntitlementRow[],
@@ -57,8 +58,9 @@ export function dueReminders(
 
 const PRODUCT_NAMES: Record<Reminder['entitlement'], string> = {
   training: 'Peakr Training',
-  plus: 'Peakr Training + Nutrition',
+  plus: 'Peakr + Body',
   gym: 'Peakr Gym',
+  body_nutrition: 'Peakr Body',
 };
 
 const STORE_NAMES: Record<Reminder['store'], string> = {

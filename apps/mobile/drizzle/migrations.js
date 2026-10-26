@@ -11,6 +11,11 @@ import m0006 from './0006_routes.sql';
 import m0007 from './0007_baseline.sql';
 import m0008 from './0008_gym.sql';
 import m0009 from './0009_health.sql';
+import m0010 from './0010_body.sql';
+import m0011 from './0011_body_energy.sql';
+import m0012 from './0012_body_goals.sql';
+import m0013 from './0013_body_foods.sql';
+import m0014 from './0014_body_checkin.sql';
 
   export default {
     journal,
@@ -24,7 +29,12 @@ m0005,
 m0006,
 m0007,
 m0008,
-m0009
+m0009,
+m0010,
+m0011,
+m0012,
+m0013,
+m0014
     }
   }
   

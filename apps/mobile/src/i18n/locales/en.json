@@ -18,7 +18,8 @@
     "plan": "Plan",
     "gym": "Gym",
     "insights": "Insights",
-    "profile": "Profile"
+    "profile": "Profile",
+    "body": "Body"
   },
   "plan": {
     "title": "Your plan",
@@ -293,6 +294,7 @@
     "swim400NotSlowerThan200": "Your 400 m pace must be slower than your 200 m pace. Please check both times.",
     "swimTimesInconsistent": "These times are very far apart. Were both swims all-out efforts?",
     "invalidDate": "Enter a valid date.",
+    "invalidFormat": "This file is not in a format Peakr can read.",
     "targetNotAfterStart": "The target date must be after the start date.",
     "planTooLong": "Plans can be at most {{max}} weeks long. Choose an earlier target date.",
     "sportsRequired": "Choose at least one sport.",
@@ -306,7 +308,10 @@
     "tooLong": "Use at most {{max}} characters.",
     "mustConfirm": "Please confirm to continue.",
     "invalidOption": "Please choose one of the options.",
-    "dateOutOfRange": "Choose a date between {{min}} and {{max}} weeks from today."
+    "dateOutOfRange": "Choose a date between {{min}} and {{max}} weeks from today.",
+    "bmiTooLow": "A weight-loss goal is not offered here: the weight would be below a healthy range for your height.",
+    "targetNotBelowCurrent": "For a weight-loss goal, the target needs to be below your current trend weight.",
+    "targetNotAboveCurrent": "For a gain goal, the target needs to be above your current trend weight."
   },
   "profile": {
     "title": "Profile",
@@ -528,8 +533,8 @@
         "description": "Full plan, calendar editing, routes, integrations and exports."
       },
       "plus": {
-        "name": "Training + Nutrition",
-        "description": "Everything in Training plus nutrition tracking, energy balance and body tracking."
+        "name": "Peakr + Body",
+        "description": "Training plus the Body add-on at a bundle price: food diary, energy balance from food and workouts, check-ins and progress."
       }
     },
     "included": {
@@ -564,7 +569,17 @@
     "terms": "Terms",
     "privacy": "Privacy",
     "back": "Back to my forecast",
-    "personal": "Personal build – everything is unlocked, no subscription needed."
+    "personal": "Personal build – everything is unlocked, no subscription needed.",
+    "bundleSaving": "Save {{pct}} %",
+    "addon": {
+      "title": "Add Peakr Body",
+      "price": "Add-on: {{price}}",
+      "trial": "{{days}} days free, once per account.",
+      "noTrial": "Renews automatically; cancel anytime.",
+      "later": "You can add it later in the Body tab or under Profile → Subscription.",
+      "bundle": "Choose Peakr + Body instead",
+      "bundleSaving": "Choose Peakr + Body and save {{pct}} %"
+    }
   },
   "gymAddon": {
     "title": "Peakr Gym",
@@ -617,13 +632,13 @@
   },
   "subscription": {
     "title": "Subscription",
-    "intro": "Your training tier and the Gym add-on are separate subscriptions. Change or cancel one without touching the other.",
+    "intro": "Your training tier and each add-on are separate subscriptions. Change or cancel one without touching the others.",
     "tierTitle": "Training tier",
     "addonTitle": "Peakr Gym add-on",
     "none": "No active subscription.",
     "tierNames": {
       "training": "Training",
-      "plus": "Training + Nutrition"
+      "plus": "Peakr + Body"
     },
     "period": {
       "monthly": "Monthly",
@@ -655,9 +670,9 @@
     "switchTo": {
       "monthly": "Switch to monthly ({{price}} / month)",
       "yearly": "Switch to yearly ({{price}} / year)",
-      "plus": "Upgrade to Training + Nutrition ({{price}})"
+      "plus": "Upgrade to Peakr + Body ({{price}})"
     },
-    "plusSoon": "Training + Nutrition",
+    "plusSoon": "Peakr + Body",
     "changed": "Your plan change was sent to the store.",
     "changeFailed": "The change did not go through. Nothing was charged.",
     "noneNote": "Start with the 7-day free trial to unlock your full plan.",
@@ -665,7 +680,12 @@
     "seePlans": "See plans",
     "restore": "Restore purchases",
     "restored": "Purchases restored.",
-    "restoreFailed": "Could not restore purchases."
+    "restoreFailed": "Could not restore purchases.",
+    "bodyTitle": "Peakr Body add-on",
+    "bodyInBundle": "Included in your Peakr + Body bundle.",
+    "bodyTwice": "You have Peakr + Body and the Body add-on. The bundle already includes Body – you can cancel the add-on in the store.",
+    "getBodyAddon": "Get the Body add-on",
+    "cancelledBodyNote": "Cancelled. Peakr Body stays active until {{date}}. Afterwards your diary and check-ins stay readable and exportable; new entries need the add-on again."
   },
   "stravaPost": {
     "title": "Strava",
@@ -956,7 +976,8 @@
     "markDone": "Mark as done",
     "openSession": "Open session",
     "seeWeek": "See this week",
-    "seeWeekOne": "See week 1"
+    "seeWeekOne": "See week 1",
+    "openInsights": "Insights"
   },
   "calendar": {
     "add": "Add",
@@ -2167,6 +2188,11 @@
         "value": "{{value}} kcal",
         "about": "Energy burned through activity on this day, as reported by the device."
       },
+      "resting_kcal": {
+        "label": "Resting energy",
+        "value": "{{value}} kcal",
+        "about": "Energy your body uses at rest on this day, as estimated by the device."
+      },
       "spo2_avg": {
         "label": "Blood oxygen (SpO2)",
         "value": "{{value}} %",
@@ -2451,6 +2477,648 @@
       "policy": "Privacy policy",
       "delete": "Delete account",
       "deleteHint": "Removes your account and all its data for good."
+    }
+  },
+  "bodyAddon": {
+    "title": "Body",
+    "tagline": "Food, check-ins and progress next to your training – so you see what your workouts add to your goal.",
+    "exampleBadge": "Example",
+    "unlock": "Unlock the Body add-on",
+    "trialActive": "Free trial – nothing is charged until it ends.",
+    "kcal": "{{kcal}} kcal",
+    "locked": {
+      "title": "What Body looks like"
+    },
+    "benefits": {
+      "diary": "Food diary: everything you eat, by meal.",
+      "energy": "Energy today: what is left, with the energy of today’s workouts added.",
+      "checkIn": "Check-ins: weight and waist, read as a smoothed trend.",
+      "progress": "Progress and coach: your trend over weeks, read against your training."
+    },
+    "sections": {
+      "today": "Today",
+      "checkIn": "Check-in",
+      "progress": "Progress"
+    },
+    "meals": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Snack"
+    },
+    "energy": {
+      "title": "Energy today",
+      "remaining": "{{kcal}} kcal left",
+      "over": "{{kcal}} kcal above today’s target",
+      "fromWorkouts": "+{{kcal}} kcal added back from today’s workouts",
+      "breakdown": "Target {{target}} · eaten {{eaten}} · workouts {{workouts}} kcal",
+      "estimate": "Estimate from your profile and today’s planned sessions.",
+      "floor": "Today’s target is held at a safe minimum.",
+      "setUp": "Add your height, birth date and weight in Body to see this.",
+      "open": "Open Body",
+      "intakeFrom": "Intake from {{source}} (nothing logged in Peakr today)."
+    },
+    "diary": {
+      "add": "Add food",
+      "meal": "Meal",
+      "name": "What",
+      "kcal": "Energy",
+      "save": "Add",
+      "delete": "Delete",
+      "empty": "Nothing logged today yet.",
+      "incomplete": "Mark today as incomplete",
+      "incompleteUndo": "Today is marked incomplete – undo",
+      "incompleteHint": "Incomplete days are left out of your maintenance estimate and the \"calculation vs. scale\" comparison.",
+      "addFood": "Add food",
+      "copyMeal": "Copy from yesterday",
+      "copyDay": "Copy yesterday’s diary",
+      "copied_one": "Copied {{count}} entry.",
+      "copied_other": "Copied {{count}} entries.",
+      "nothingToCopy": "Nothing to copy from yesterday.",
+      "quickAdd": "Quick add",
+      "quickName": "Quick add",
+      "addedBack": "Today’s workouts: +{{kcal}} kcal",
+      "addedBackSport": "Your {{sport}} today: +{{kcal}} kcal",
+      "sport": {
+        "run": "run",
+        "bike": "ride",
+        "swim": "swim",
+        "walk": "walk",
+        "strength": "strength session",
+        "xcski": "ski session",
+        "skitour": "ski tour",
+        "snowshoe": "snowshoe hike",
+        "other": "workout"
+      },
+      "rings": {
+        "kcal": "Energy",
+        "protein": "Protein",
+        "carbs": "Carbs",
+        "fat": "Fat"
+      },
+      "of": "of {{target}} {{unit}}",
+      "macros": "P {{p}} g · C {{c}} g · F {{f}} g"
+    },
+    "checkIn": {
+      "title": "Check-in",
+      "weight": "Weight",
+      "weighIns": "Weigh-ins today",
+      "weighHintDaily": "Weigh in whenever it suits you – several times a day is fine. The trend uses the day's value; day-to-day changes are mostly water.",
+      "weighHintWeekly": "You weigh in on your measuring day. Extra weigh-ins are welcome, never expected.",
+      "addWeight": "Save weight",
+      "noWeighIns": "No weigh-in today.",
+      "weighInAt": "{{time}} · {{kg}} kg",
+      "weighInImported": "{{kg}} kg (imported)",
+      "line": "{{kg}} kg",
+      "warning": {
+        "outOfRange": "This value is outside the usual range. Please check it.",
+        "jump": "That is a big change since last time. Please check the value – you can still save it."
+      },
+      "quick": {
+        "title": "Daily kcal",
+        "hint": "Not logging food? Enter today's total here. Active kcal from your watch is optional.",
+        "intake": "Eaten today",
+        "active": "Active kcal (optional)",
+        "save": "Save",
+        "saved": "Saved for today."
+      },
+      "next": {
+        "today": "Today is your measuring day.",
+        "later": "Next measuring day: {{date}}."
+      },
+      "new": "New check-in",
+      "compare": "Compare photos",
+      "rhythm": "Rhythm & reminder",
+      "import": "Import Körper-Tracker backup",
+      "imported": "Imported {{imported}} entries, skipped {{skipped}} (already there or without a date).",
+      "photosNotImported_one": "{{count}} photo could not come along – photos are not part of the backup file. Add them again in the check-in if you like.",
+      "photosNotImported_other": "{{count}} photos could not come along – photos are not part of the backup file. Add them again in the check-in if you like.",
+      "importInvalid": "This file is not a Körper-Tracker backup.",
+      "history": "History",
+      "empty": "No check-ins yet.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteTitle": "Delete this check-in?",
+      "deleteBody": "The weigh-ins, measurements, photos and note of this day are removed. This cannot be undone.",
+      "deleteWeighInTitle": "Delete this weigh-in?",
+      "deleteConfirm": "Delete",
+      "cancel": "Cancel",
+      "change": "{{value}}",
+      "bodyFatLine": "Body fat {{pct}} %",
+      "bodyFatEstimate": "Body fat {{pct}} % (estimate)",
+      "form": {
+        "date": "Date",
+        "dateHint": "YYYY-MM-DD",
+        "weightOptional": "Weight (optional)",
+        "bodyFat": "Body fat",
+        "bodyFatHint": "From a scale or a measurement – used for fat vs. lean mass.",
+        "bodyFatSource": {
+          "manual": "Enter",
+          "navy": "Navy estimate",
+          "scale": "From scale"
+        },
+        "navyHint": "US Navy formula from height, neck and waist (and hip for women). It is an estimate, often a few percent off.",
+        "navyResult": "Estimated body fat: {{pct}} %",
+        "navyMissing": "Enter neck and waist (women also hip) and your height in the profile to get the estimate.",
+        "scaleResult": "From your scale ({{source}}): {{pct}} %",
+        "scaleMissing": "No body fat value from a scale on this day.",
+        "measurements": "Measurements",
+        "measurementsHint": "Same time of day, same conditions – ideally in the morning before eating.",
+        "more": "More measurements",
+        "less": "Fewer measurements",
+        "photos": "Progress photos",
+        "photosHint": "Private: only you can see them. Same place, light and pose each time.",
+        "take": "Camera",
+        "pick": "Library",
+        "removePhoto": "Remove",
+        "photoPermission": "Peakr needs access to the camera or your photos to add a progress photo.",
+        "note": "Note",
+        "save": "Save check-in",
+        "invalidDate": "Enter a date as YYYY-MM-DD, today or earlier.",
+        "nothing": "Enter at least one value."
+      },
+      "slots": {
+        "front": "Front",
+        "side": "Side",
+        "back": "Back"
+      },
+      "fields": {
+        "neck": {
+          "label": "Neck",
+          "how": "Just below the larynx, tape level and snug but not pressing. Look straight ahead, shoulders relaxed."
+        },
+        "waist": {
+          "label": "Waist (narrowest)",
+          "how": "At the narrowest point between the lowest rib and the hip bone, relaxed, after breathing out normally."
+        },
+        "belly": {
+          "label": "Belly (navel)",
+          "how": "Horizontally at the level of the navel, standing upright and relaxed, after breathing out normally. Do not pull in."
+        },
+        "hip": {
+          "label": "Hip (widest)",
+          "how": "Around the widest point of the buttocks, feet together, tape horizontal."
+        },
+        "chest": {
+          "label": "Chest",
+          "how": "At nipple height under the armpits, arms hanging loosely, after breathing out normally."
+        },
+        "shoulder": {
+          "label": "Shoulders",
+          "how": "Around the widest point of both shoulders, arms relaxed at your sides."
+        },
+        "armL": {
+          "label": "Upper arm left",
+          "how": "At the thickest point of the upper arm, arm hanging relaxed (not flexed)."
+        },
+        "armR": {
+          "label": "Upper arm right",
+          "how": "At the thickest point of the upper arm, arm hanging relaxed (not flexed)."
+        },
+        "forearm": {
+          "label": "Forearm",
+          "how": "At the thickest point just below the elbow, hand relaxed."
+        },
+        "thighL": {
+          "label": "Thigh left",
+          "how": "At the thickest point, about a hand's width below the crotch, weight on both legs."
+        },
+        "thighR": {
+          "label": "Thigh right",
+          "how": "At the thickest point, about a hand's width below the crotch, weight on both legs."
+        },
+        "calfL": {
+          "label": "Calf left",
+          "how": "At the thickest point of the calf, standing with weight on both legs."
+        },
+        "calfR": {
+          "label": "Calf right",
+          "how": "At the thickest point of the calf, standing with weight on both legs."
+        }
+      },
+      "settings": {
+        "title": "Rhythm & reminder",
+        "weigh": "Weighing",
+        "weighDaily": "Daily",
+        "weighWeekly": "On the measuring day",
+        "measureDay": "Measuring day",
+        "reminder": "Reminder on the measuring day",
+        "on": "On",
+        "off": "Off",
+        "reminderHint": "Sent at your daily reminder time. On days with a workout it is added to the workout reminder – never a second push.",
+        "saved": "Saved."
+      },
+      "compareTitle": "Compare photos",
+      "compareFrom": "Earlier",
+      "compareTo": "Later",
+      "compareSlot": "View",
+      "compareEmpty": "Add photos to at least two check-ins to compare them.",
+      "noPhoto": "No photo",
+      "reminderLine": "Measuring day: take a minute for your check-in.",
+      "reminderTitle": "Measuring day",
+      "reminderBody": "Take a minute for your check-in – weight, measurements, photos."
+    },
+    "progress": {
+      "title": "Progress",
+      "kg": "{{kg}} kg",
+      "kgSigned": "{{kg}} kg",
+      "trend": "Trend weight",
+      "week": "Last 7 days",
+      "empty": "Your trend starts with the first check-in.",
+      "trendHint": "A smoothed trend of your check-ins – single weigh-ins are mostly water and glycogen.",
+      "tooFast": "Your trend has fallen by more than 1.5 % of your weight in each of the last two weeks. That is faster than is easy to keep – consider eating a bit more."
+    },
+    "coach": {
+      "title": "Weekly coach",
+      "week": "Looking back on the week of {{date}}",
+      "progress": "{{pct}} % of the way to your goal",
+      "numbers": {
+        "trend": "Trend: {{kg}} kg",
+        "intake": "Eaten: {{kcal}} kcal per logged day",
+        "balance": "Balance: {{kcal}} kcal per day (≈ {{kg}} kg fat)",
+        "logged": "Logged {{days}} of 7 days · weighed in on {{weighIns}} days",
+        "training": "Training: {{done}} of {{planned}} sessions"
+      },
+      "wentWell": "What went well",
+      "well": {
+        "logging": "You logged {{days}} of 7 days – that makes every number here more reliable.",
+        "onPace": "Your trend moves at {{rate}} kg per week – right where you planned.",
+        "stable": "Your weight is steady – exactly what maintaining means.",
+        "protein": "Protein: {{grams}} g a day against a target of {{target}} g.",
+        "training": "You did {{done}} of {{planned}} planned sessions.",
+        "strength": "{{sessions}} strength sessions – good for keeping muscle."
+      },
+      "toWatch": "What to watch",
+      "watchItem": {
+        "fewLogs": "Only {{days}} days were logged, so the energy numbers are rough.",
+        "proteinLow": "Protein averaged {{grams}} g against {{target}} g.",
+        "fastPace": "Your trend is falling faster than planned ({{rate}} kg per week).",
+        "fastPaceNoRate": "Your trend is falling faster than planned.",
+        "slowPace": "Your trend moves slower than planned ({{rate}} kg per week).",
+        "missedSessions": "{{done}} of {{planned}} sessions done – a busy week happens.",
+        "hardWeekAhead": "This week's training is heavier than usual ({{share}} % of a typical week)."
+      },
+      "nextWeek": "For this week",
+      "noChanges": "Keep going as you are – no change needed.",
+      "adjust": {
+        "kcal": {
+          "checkIn": "Adjust your daily target by {{kcal}} kcal to match your planned pace.",
+          "tooFast": "Eat {{kcal}} kcal more per day – a slower loss is easier to keep and protects muscle.",
+          "hardWeek": "Eat {{kcal}} kcal more per day while training is heavier."
+        },
+        "protein": "Aim for {{grams}} g protein a day – spread over your meals.",
+        "strength_one": "Keep at least {{count}} strength session in the week.",
+        "strength_other": "Keep at least {{count}} strength sessions in the week – they protect muscle while your weight changes.",
+        "logging": "Try to log at least {{days}} days, including the weekend."
+      },
+      "openPlan": "Open plan",
+      "hint": {
+        "plateau": "Your trend has been flat for three weeks despite a logged deficit. Check portions and drinks, or take a short break at maintenance.",
+        "tooFastLoss": "You have lost more than 1.5 % of your weight per week twice in a row. Eating a bit more is the kinder choice.",
+        "incompleteData": "Some days are missing or marked incomplete – the coach works with what is there and says less."
+      },
+      "footer": "Suggestions only – nothing changes until you accept it. Every number is an estimate.",
+      "teaser": {
+        "title": "Your weekly coach",
+        "body": "See how your training affects your weight, energy and body – with clear suggestions each week.",
+        "action": "Unlock Peakr Body"
+      }
+    },
+    "profile": {
+      "title": "A few details first",
+      "hint": "Body needs these to estimate your energy. They are saved in your Peakr profile, so you enter them only once.",
+      "sex": "Sex (for the energy formula)",
+      "female": "Female",
+      "male": "Male",
+      "birthDate": "Birth date",
+      "pickDate": "Choose date",
+      "height": "Height",
+      "weight": "Weight",
+      "save": "Save",
+      "invalid": "Please check the values – one is outside the possible range.",
+      "shared": "Shared with your training profile."
+    },
+    "readOnly": {
+      "title": "Body is read-only",
+      "body": "Your Body add-on has ended. Your diary, check-ins and progress stay here and can be exported; new entries need the add-on again.",
+      "reactivate": "Reactivate Body"
+    },
+    "export": {
+      "action": "Export as CSV",
+      "actionJson": "Export as JSON",
+      "failed": "The export could not be shared. Please try again."
+    },
+    "paywall": {
+      "title": "Unlock Body",
+      "onTop": "An add-on to your Peakr subscription. Your training plan never depends on it.",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "perMonth": "{{price}} / month",
+      "perYear": "{{price}} / year",
+      "trial": "{{days}} days free. You enter your payment details now; the first charge comes only after the trial. Cancel anytime before it ends.",
+      "noTrial": "Renews automatically. The free trial is once per account.",
+      "start": "Start {{days}}-day free trial",
+      "startPlain": "Subscribe",
+      "reactivate": "Welcome back – everything you logged is still here.",
+      "bundleTitle": "Peakr + Body bundle",
+      "bundleBody": "Training and Body in one subscription, cheaper than both separately.",
+      "bundleAction": "See the bundle ({{price}})",
+      "restore": "Restore purchases",
+      "restored": "Purchases restored.",
+      "restoreFailed": "Could not restore purchases.",
+      "unavailable": "Purchases are not available in this build.",
+      "loading": "Loading prices…",
+      "failed": "The purchase did not go through. You have not been charged.",
+      "active": "Peakr Body is active.",
+      "manage": "Manage subscriptions",
+      "devUnlock": "Unlock without purchase (development)"
+    },
+    "sources": {
+      "manual": "your entries",
+      "garmin": "Garmin",
+      "healthConnect": "Health Connect",
+      "healthKit": "Apple Health",
+      "estimate": "an estimate"
+    },
+    "balance": {
+      "title": "Energy balance (estimate)",
+      "thisWeek": "This week",
+      "lastWeek": "Last week",
+      "line": "{{kcal}} kcal ≈ {{kg}} kg fat · {{days}} days",
+      "noDays": "No complete days yet",
+      "hint": "Intake minus resting and active energy, on complete days only; 7,700 kcal ≈ 1 kg of fat."
+    },
+    "tdee": {
+      "title": "Your maintenance (adaptive)",
+      "basis": "From {{days}} logged days and your weight trend; the formula says {{formula}} kcal.",
+      "notYet": "Needs 14 days with logged food and weigh-ins – {{days}} so far. Until then the formula estimate is used."
+    },
+    "scale": {
+      "title": "Calculation vs. scale",
+      "line": "Expected {{expected}} kg, trend {{actual}} kg over {{weeks}} complete weeks.",
+      "deviation": "Difference: {{kg}} kg",
+      "confidence": {
+        "low": "Low confidence – only a little data so far.",
+        "medium": "Medium confidence.",
+        "high": "High confidence."
+      },
+      "notEnough": "Needs at least one complete week: all seven days logged and three weigh-ins. Days marked incomplete are skipped.",
+      "reason": {
+        "matches": "Calculation and scale agree – your log and the activity estimate fit well.",
+        "underLogged": "Some food may be missing from the log (snacks, drinks, oils, weekends).",
+        "overLogged": "Portions may be logged higher than eaten.",
+        "activeOverestimated": "The activity energy may be too high – a lower correction factor would fit better.",
+        "activeUnderestimated": "The activity energy may be too low – you may move more than the watch counts.",
+        "water": "Water and glycogen shift the scale by 1–2 kg without any fat change (salt, carbs, hormones, hard training).",
+        "fewWeeks": "Only a few complete weeks so far – the comparison gets more reliable over time."
+      }
+    },
+    "composition": {
+      "title": "Fat and lean mass (estimate)",
+      "current": "Now: {{fat}} kg fat · {{lean}} kg lean mass",
+      "change": "Since your first measurement: fat {{fat}} kg · lean {{lean}} kg",
+      "estimate": "Body fat scales and measurements are approximate – read the direction, not the decimal.",
+      "notEnough": "Not enough data: add a body fat % in a check-in or connect a smart scale."
+    },
+    "health": {
+      "title": "{{store}}",
+      "intro": "Body can read {{list}} from your phone. You choose in the next step; nothing else is read.",
+      "connected": "Reading from {{store}}: {{list}}.",
+      "connect": "Connect {{store}}",
+      "more": "Allow more in {{store}}",
+      "privacy": "The values stay on this phone and are never shared. Withdraw access any time in the system settings.",
+      "metrics": {
+        "weight": "weight",
+        "body_fat": "body fat",
+        "steps": "steps",
+        "active_kcal": "active energy",
+        "resting_kcal": "resting energy",
+        "intake_kcal": "nutrition",
+        "workout_kcal": "workouts"
+      },
+      "write": "Also save my diary to {{store}}",
+      "writing": "Your diary is saved to {{store}} too – without counting it twice."
+    },
+    "goal": {
+      "title": "Weight goal",
+      "locked": "Setting a goal needs the Body add-on.",
+      "none": "No goal yet. Your targets stay at maintenance until you set one.",
+      "set": "Set a weight goal",
+      "step": {
+        "current": "Step 1 of 4",
+        "target": "Step 2 of 4",
+        "rate": "Step 3 of 4",
+        "summary": "Step 4 of 4"
+      },
+      "currentTitle": "Your current weight",
+      "fromTrend": "From your weight trend – not a single weigh-in.",
+      "targetTitle": "Your target",
+      "change": "Change my weight",
+      "targetWeight": "Target weight",
+      "kinds": {
+        "lose": "Lose weight",
+        "maintain": "Keep my weight",
+        "gain": "Gain weight"
+      },
+      "rateTitle": "How fast?",
+      "presets": {
+        "gentle": "Gentle",
+        "recommended": "Recommended",
+        "ambitious": "Ambitious",
+        "aggressive": "Aggressive",
+        "lean": "Lean",
+        "steady": "Steady",
+        "fast": "Faster"
+      },
+      "preset": "{{name}} · {{rate}} kg/week",
+      "aboveMax": "Not available: above 1 % of your weight per week (max {{max}} kg/week).",
+      "custom": "Custom pace",
+      "rate": "{{rate}} kg/week",
+      "dailyKcal": "About {{kcal}} kcal per day",
+      "todayKcal": "Today: {{kcal}} kcal",
+      "protein": "Protein: {{grams}} g ({{perKg}} g/kg)",
+      "goalDate": "Goal date at this pace: {{date}}",
+      "floor": "Held at your minimum of {{kcal}} kcal per day – that gives a realistic pace of {{rate}} kg/week.",
+      "basisAdaptive": "Based on your adaptive maintenance of {{kcal}} kcal.",
+      "basisFormula": "Based on the formula estimate of {{kcal}} kcal until there is enough data for your own.",
+      "summaryTitle": "Summary",
+      "summaryMaintain": "Keep your weight around {{kg}} kg.",
+      "summaryChange": "From {{from}} kg to {{to}} kg at {{rate}} kg/week.",
+      "eatBack": "Eat back workout energy",
+      "eatBackHint": "Share of your completed workouts’ energy added to the day’s target.",
+      "less": "Less",
+      "more": "More",
+      "daily": "Day by day",
+      "weekly": "Weekly",
+      "dailyHint": "Each day has the same base; completed workouts add energy back.",
+      "weeklyHint": "Same weekly total, more on planned training days and less on rest days.",
+      "save": "Save goal",
+      "next": "Next",
+      "back": "Back",
+      "changeGoal": "Change goal",
+      "pause": "Pause goal",
+      "resume": "Resume goal",
+      "paused": "Your goal is paused – your targets are at maintenance.",
+      "planned": "Goal date at your chosen pace: {{date}}",
+      "real": "At your real pace ({{rate}} kg/week): {{date}}",
+      "realUnknown": "Your real pace shows after two weeks of weigh-ins.",
+      "checkIn": {
+        "onTrack": "This week: on track ({{rate}} kg/week).",
+        "tooFast": "This week: faster than planned ({{rate}} kg/week). A little more food keeps it sustainable.",
+        "tooSlow": "This week: slower than planned ({{rate}} kg/week). A small change can help – or give it another week."
+      },
+      "apply": "Adjust target {{kcal}} kcal/day",
+      "plateau": "Your trend has not moved for three weeks although your log shows a deficit. Check how accurately you log (portions, drinks, oils) – or take a 1–2 week break at maintenance.",
+      "dietBreak": "Take a break at maintenance",
+      "reached": "You have reached your target. Switching to maintain is a good next step.",
+      "reverse": "A reverse diet brings you back to maintenance in {{weeks}} weeks, +{{step}} kcal per week.",
+      "toMaintain": "Switch to maintain",
+      "reverseStep": "Reverse diet: {{kcal}} kcal below maintenance.",
+      "reverseApply": "Next week: +{{step}} kcal",
+      "training": {
+        "highLoad": "A heavy training week – a smaller deficit (about {{kcal}} kcal) supports your sessions.",
+        "raceWeek": "Race week – eat closer to maintenance (about {{kcal}} kcal deficit at most).",
+        "taper": "Taper week – a smaller deficit (about {{kcal}} kcal) helps you arrive fresh."
+      },
+      "keyDays_one": "Your deficit is large for this week’s key session – consider eating more on that day.",
+      "keyDays_other": "Your deficit is large for this week’s {{count}} key sessions – consider eating more on those days.",
+      "estimate": "All targets are estimates and adapt as your data grows."
+    },
+    "fuelling": {
+      "today": "Long session today ({{minutes}} min)",
+      "tomorrow": "Long session tomorrow ({{minutes}} min)",
+      "before": "Before: a carbohydrate-rich meal a few hours before can help you start well fuelled.",
+      "during": "During: many athletes take about {{min}}–{{max}} g of carbohydrates per hour in sessions over 2 hours.",
+      "after": "After: carbohydrates with some protein help you recover.",
+      "note": "General guidance, not a prescription – go by what works for you."
+    },
+    "food": {
+      "addTitle": "Add food",
+      "addTo": "Add to {{meal}}",
+      "scan": "Scan barcode",
+      "search": "Search",
+      "searchHint": "Food, brand or barcode",
+      "noResults": "Nothing found. Create the food yourself – it is then always there.",
+      "offline": "Offline – showing your own foods and products scanned before.",
+      "attribution": "Product data from Open Food Facts (openfoodfacts.org), ODbL. You can correct any entry.",
+      "lists": {
+        "recent": "Recent",
+        "favourites": "Favourites",
+        "custom": "My foods",
+        "recipes": "Recipes"
+      },
+      "empty": {
+        "recent": "Foods you log show up here.",
+        "favourites": "Mark foods as favourites to find them here.",
+        "custom": "Foods you create show up here.",
+        "recipes": "Recipes you create show up here."
+      },
+      "createFood": "Create food",
+      "createRecipe": "Create recipe",
+      "per100": "{{kcal}} kcal / 100 {{basis}}",
+      "per100Full": "Per 100 {{basis}}: {{kcal}} kcal · P {{p}} g · C {{c}} g · F {{f}} g",
+      "notFound": "This food is not available any more.",
+      "portionTitle": "Portion",
+      "unit": "Unit",
+      "piece": "pieces",
+      "amount": "Amount ({{basis}})",
+      "count": "How many",
+      "portionCount": "{{count}} × {{label}}",
+      "pieces_one": "{{count}} piece",
+      "pieces_other": "{{count}} pieces",
+      "add": "Add to diary",
+      "favourite": "Add to favourites",
+      "unfavourite": "Remove from favourites",
+      "correct": "Correct this entry",
+      "edit": "Edit",
+      "correctHint": "Your corrected version is saved as your own food and is used whenever you scan this barcode.",
+      "cameraWhy": "To scan barcodes, Peakr needs the camera. It is only used on this screen.",
+      "cameraAllow": "Allow camera",
+      "scanHint": "Hold the barcode inside the frame. EAN and UPC codes are read.",
+      "scanNotFound": "Barcode {{code}} is not in Open Food Facts yet.",
+      "scanOffline": "You are offline and barcode {{code}} has not been scanned before.",
+      "createWithBarcode": "Create this food",
+      "scanAgain": "Scan again",
+      "lookingUp": "Looking up {{code}}…",
+      "name": "Name",
+      "brand": "Brand (optional)",
+      "barcode": "Barcode (optional)",
+      "per100g": "Per 100 g",
+      "per100ml": "Per 100 ml",
+      "pieceWeight": "Weight of one piece ({{basis}}, optional)",
+      "portionName": "Portion name (optional)",
+      "portionAmount": "Portion size ({{basis}})",
+      "saveFood": "Save food",
+      "recipeName": "Recipe name",
+      "ingredients": "Ingredients",
+      "grams": "Amount",
+      "addIngredient": "Add an ingredient (search your foods)",
+      "totalWeight": "Weight of the finished dish (optional)",
+      "totalWeightHint": "Weigh the cooked dish – cooking changes the weight. Without it the raw weight is used.",
+      "servings": "Servings (optional)",
+      "recipeTotal": "Whole recipe: {{kcal}} kcal, {{weight}} g",
+      "perServing": "One serving: {{grams}} g, {{kcal}} kcal",
+      "serving": "1 serving",
+      "saveRecipe": "Save recipe"
+    },
+    "dashboard": {
+      "pct": "{{pct}} %",
+      "cm": "{{cm}} cm",
+      "kpi": {
+        "sinceStart": "Since start",
+        "bodyFat": "Body fat",
+        "waist": "Waist",
+        "goal": "Goal progress"
+      },
+      "chart": {
+        "title": "Weight trend",
+        "weighIns": "Weigh-ins",
+        "trend": "Trend",
+        "goal": "Goal",
+        "planned": "At your chosen rate",
+        "real": "At your real pace",
+        "a11y": "Weight trend chart. Trend weight {{kg}} kg, {{change}} kg since start."
+      },
+      "energy": {
+        "resting": "Resting",
+        "active": "Active",
+        "intake": "Eaten",
+        "weekOf": "Week of {{date}}",
+        "deficit": "{{kcal}} kcal deficit · ≈ {{kg}} kg fat ({{days}} days)",
+        "surplus": "{{kcal}} kcal surplus · ≈ {{kg}} kg fat ({{days}} days)",
+        "a11y": "Energy per week: resting and active energy as stacked bars, eaten energy as a line. The weekly numbers follow below."
+      },
+      "indices": {
+        "title": "Body indices",
+        "bmi": "BMI",
+        "waistToHeight": "Waist-to-height",
+        "waistToHip": "Waist-to-hip",
+        "hint": "Common reference values: BMI 18.5–25, waist-to-height below 0.5, waist-to-hip below 0.9 (men) / 0.85 (women). They describe proportions, not health – your trend matters more than a single number."
+      },
+      "measurements": {
+        "title": "Measurements since start",
+        "empty": "Your measurement trends start with the first check-in.",
+        "change": "{{cm}} cm ({{change}} since {{date}})"
+      },
+      "training": {
+        "title": "Training this week",
+        "run": "Runs",
+        "bike": "Rides",
+        "swim": "Swims",
+        "strength": "Strength",
+        "other": "Other",
+        "count": "{{done}} of {{planned}}",
+        "minutes": "{{minutes}} min done so far",
+        "none": "No sessions planned this week."
+      }
+    },
+    "features": {
+      "diary": "Food diary with barcode scan, recipes and your own foods",
+      "energy": "Real energy balance from what you eat and the workouts you do",
+      "goal": "Weight goal with a safe weekly rate and protein target",
+      "checkIn": "Weigh-ins, body measurements and private progress photos",
+      "dashboard": "Trend, fat vs. lean mass and “calculation vs. scale”",
+      "coach": "A weekly coach that combines your training with your body data"
     }
   }
 }

@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { useRemoteFlagsStore } from '@/config/remote-flags';
 import { useDatabaseMigrations } from '@/data/db/use-database-migrations';
 import { queryClient } from '@/data/query-client';
 import { useActivityRealtime } from '@/data/sync/use-activity-realtime';
@@ -26,6 +27,7 @@ import { TrialReminderTap } from '@/features/billing/trial-reminder-tap';
 import { LiveSessionRestore } from '@/features/gym/live-session-restore';
 import { captureInstallReferrer } from '@/features/deep-links/install-referrer';
 import { DailyReminder } from '@/features/notifications/daily-reminder';
+import { BodyCheckInReminder } from '@/features/body/check-in-reminder';
 import { registerPushToken } from '@/features/notifications/push';
 import { useSettingsStore } from '@/features/settings/settings-store';
 import { useWatchAutoSync } from '@/features/watch/auto-sync';
@@ -51,6 +53,11 @@ export default function RootLayout() {
     if (success) void useSettingsStore.getState().hydrate();
   }, [success]);
 
+  // Remote feature flags (e.g. the Body add-on): the copy on this device, then the server's.
+  useEffect(() => {
+    if (success) void useRemoteFlagsStore.getState().load();
+  }, [success]);
+
   // Android: where this install came from (attribution only, read once).
   useEffect(() => {
     void captureInstallReferrer();
@@ -69,6 +76,7 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <BackgroundSync />
         <DailyReminder />
+        <BodyCheckInReminder />
         <TrialReminderTap />
         {success ? <LiveSessionRestore /> : null}
         <ThemeProvider value={toNavigationTheme(theme)}>

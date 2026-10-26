@@ -8,6 +8,7 @@ import Purchases, {
 } from 'react-native-purchases';
 
 import {
+  BODY_OFFERING,
   GYM_OFFERING,
   periodOf,
   TIER_OFFERING,
@@ -32,9 +33,11 @@ export interface PackageSummary {
   id: string;
   productId: string;
   period: BillingPeriod | null;
-  /** Tier of a package in the tier offering; null for the add-on. */
+  /** Tier of a package in the tier offering; null for the add-ons. */
   tier: TierKey | null;
   priceString: string;
+  /** Price as a number in the store currency (for the bundle saving). */
+  price?: number;
   /** Free-trial length in days, when the store product has an introductory trial. */
   trialDays: number | null;
 }
@@ -103,13 +106,17 @@ async function ineligibleForTrial(productIds: string[]): Promise<Set<string>> {
 const byPeriod = (a: PackageSummary, b: PackageSummary) =>
   (a.period === 'monthly' ? -1 : 0) - (b.period === 'monthly' ? -1 : 0);
 
+const OFFERINGS: readonly string[] = [TIER_OFFERING, GYM_OFFERING, BODY_OFFERING];
+
 /**
- * Packages of the tier offering (`default`) and the add-on offering (`gym`), with store prices
- * and trial length, plus the price of every product for the subscription screen.
+ * Packages of the tier offering (`default`, with the bundle "Peakr + Body" as `plus`) and the
+ * add-on offerings (`gym`, `body`), with store prices and trial length, plus the price of every
+ * product for the subscription screen.
  */
 export async function loadOfferings(): Promise<{
   tiers: PackageSummary[];
   gym: PackageSummary[];
+  body: PackageSummary[];
   prices: Record<string, string>;
 }> {
   const offerings = await Purchases.getOfferings();
@@ -119,7 +126,7 @@ export async function loadOfferings(): Promise<{
   for (const offering of Object.values(offerings.all)) {
     for (const pkg of offering.availablePackages) {
       prices[pkg.product.identifier] = pkg.product.priceString;
-      if (offering.identifier !== GYM_OFFERING && offering.identifier !== TIER_OFFERING) continue;
+      if (!OFFERINGS.includes(offering.identifier)) continue;
       const key = `${offering.identifier}:${pkg.identifier}`;
       packages.set(key, pkg);
       offeringOf.set(key, offering.identifier);
@@ -136,6 +143,7 @@ export async function loadOfferings(): Promise<{
       period: periodOf(pkg.product.identifier) ?? periodOf(pkg.identifier),
       tier: offeringOf.get(key) === TIER_OFFERING ? tierOf(pkg.product.identifier) : null,
       priceString: pkg.product.priceString,
+      price: pkg.product.price,
       trialDays: ineligible.has(pkg.product.identifier) ? null : trialDaysOf(pkg),
     } satisfies PackageSummary,
   }));
@@ -144,7 +152,7 @@ export async function loadOfferings(): Promise<{
       .filter((s) => s.offering === offering)
       .map((s) => s.summary)
       .sort(byPeriod);
-  return { tiers: of(TIER_OFFERING), gym: of(GYM_OFFERING), prices };
+  return { tiers: of(TIER_OFFERING), gym: of(GYM_OFFERING), body: of(BODY_OFFERING), prices };
 }
 
 export type PurchaseResult = 'purchased' | 'cancelled' | 'error';
@@ -156,6 +164,11 @@ export interface PurchaseOptions {
    * change inside the subscription group by itself.
    */
   replace?: { productId: string; downgrade: boolean } | null;
+  /**
+   * The account already used this add-on's trial (once per account, `addon_trials`). Google Play
+   * then buys the base plan without the free phase; the App Store decides per Apple ID itself.
+   */
+  withoutTrial?: boolean;
 }
 
 export async function purchase(
@@ -172,6 +185,14 @@ export async function purchase(
       peakr_product: pkg.product.identifier,
     }).catch(() => undefined);
     const replace = Platform.OS === 'android' ? options.replace : null;
+    const basePlan =
+      Platform.OS === 'android' && options.withoutTrial
+        ? pkg.product.subscriptionOptions?.find((o) => o.isBasePlan)
+        : undefined;
+    if (basePlan) {
+      await Purchases.purchaseSubscriptionOption(basePlan);
+      return 'purchased';
+    }
     await Purchases.purchasePackage(
       pkg,
       null,

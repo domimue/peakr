@@ -10,4 +10,11 @@ export const health: HealthProvider = {
   readableMetrics: async () => [],
   requestReadPermission: async () => [],
   readDaily: async () => [],
+  bodyReadable: async () => [],
+  requestBodyPermission: async () => [],
+  readBody: async () => [],
+  nutritionWritable: async () => false,
+  requestNutritionWrite: async () => false,
+  writeNutrition: async () => false,
+  deleteNutrition: async () => undefined,
 };

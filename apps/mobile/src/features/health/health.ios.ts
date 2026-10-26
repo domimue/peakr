@@ -24,4 +24,16 @@ export const health: HealthProvider = {
   readableMetrics: async () => [],
   requestReadPermission: async () => [],
   readDaily: async () => [],
+  // Body add-on, same plan: HKQuantityTypeIdentifier bodyMass, bodyFatPercentage, stepCount,
+  // activeEnergyBurned, basalEnergyBurned, dietaryEnergyConsumed and HKWorkout (with its
+  // totalEnergyBurned), daily sums via HKStatisticsCollectionQuery, read authorisation only.
+  bodyReadable: async () => [],
+  requestBodyPermission: async () => [],
+  readBody: async () => [],
+  // HKCorrelationType food with dietaryEnergyConsumed, dietaryProtein, dietaryCarbohydrates,
+  // dietaryFatTotal; HKMetadataKeySyncIdentifier = nutritionRecordId(entryId).
+  nutritionWritable: async () => false,
+  requestNutritionWrite: async () => false,
+  writeNutrition: async () => false,
+  deleteNutrition: async () => undefined,
 };

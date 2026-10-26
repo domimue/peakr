@@ -9,7 +9,10 @@ import { GestureHandlerRootView } from 'react-native-gesture-handler';
  */
 export function renderWithQuery(ui: ReactElement) {
   const client = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity }, mutations: { retry: false } },
+    defaultOptions: {
+      queries: { retry: false, gcTime: Infinity },
+      mutations: { retry: false, gcTime: Infinity },
+    },
   });
   return render(
     <GestureHandlerRootView>

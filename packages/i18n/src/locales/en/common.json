@@ -70,6 +70,7 @@
     "swim400NotSlowerThan200": "Your 400 m pace must be slower than your 200 m pace. Please check both times.",
     "swimTimesInconsistent": "These times are very far apart. Were both swims all-out efforts?",
     "invalidDate": "Enter a valid date.",
+    "invalidFormat": "This file is not in a format Peakr can read.",
     "targetNotAfterStart": "The target date must be after the start date.",
     "planTooLong": "Plans can be at most {{max}} weeks long. Choose an earlier target date.",
     "sportsRequired": "Choose at least one sport.",
@@ -83,6 +84,9 @@
     "dateOutOfRange": "Choose a date between {{min}} and {{max}} weeks from today.",
     "mustConfirm": "Please confirm to continue.",
     "invalidOption": "Please choose one of the options.",
-    "tooFewSelected": "Choose at least {{min}}."
+    "tooFewSelected": "Choose at least {{min}}.",
+    "bmiTooLow": "A weight-loss goal is not offered here: the weight would be below a healthy range for your height.",
+    "targetNotBelowCurrent": "For a weight-loss goal, the target needs to be below your current trend weight.",
+    "targetNotAboveCurrent": "For a gain goal, the target needs to be above your current trend weight."
   }
 }

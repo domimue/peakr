@@ -11,6 +11,8 @@ import type { Href } from 'expo-router';
  *   /open/plan                 → Plan
  *   /open/workout/<id>         → that workout
  *   /open/gym · insights · profile
+ *   /open/body · body-check-in · body-progress → the Body add-on (its guard opens the paywall
+ *                              when locked, Today when the add-on is switched off)
  *   /open/account              → Profile → Account
  *   /open/subscription         → Profile → Subscription
  */
@@ -19,10 +21,17 @@ const TABS = {
   today: '/today',
   plan: '/plan',
   gym: '/gym',
-  insights: '/insights',
   profile: '/profile',
 } as const;
-const SCREENS = { account: '/auth/account', subscription: '/subscription' } as const;
+const SCREENS = {
+  account: '/auth/account',
+  subscription: '/subscription',
+  // Insights is a tab only while Body is switched off; this screen works either way.
+  insights: '/training/insights',
+  body: '/body/today',
+  'body-check-in': '/body/check-in',
+  'body-progress': '/body/progress',
+} as const;
 
 const WORKOUT_ID = /^[\w.:-]{1,120}$/;
 

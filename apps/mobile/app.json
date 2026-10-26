@@ -54,7 +54,12 @@
         "android.permission.health.READ_RESPIRATORY_RATE",
         "android.permission.health.READ_WEIGHT",
         "android.permission.health.READ_BODY_FAT",
-        "android.permission.health.READ_VO2_MAX"
+        "android.permission.health.READ_VO2_MAX",
+        "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+        "android.permission.health.READ_BASAL_METABOLIC_RATE",
+        "android.permission.health.READ_NUTRITION",
+        "android.permission.health.READ_EXERCISE",
+        "android.permission.health.WRITE_NUTRITION"
       ],
       "intentFilters": [
         {
@@ -81,7 +86,8 @@
             }
           ]
         }
-      ]
+      ],
+      "blockedPermissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {
       "output": "single",
@@ -138,6 +144,23 @@
           "isIosBackgroundLocationEnabled": false,
           "isAndroidBackgroundLocationEnabled": false,
           "isAndroidForegroundServiceEnabled": false
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Peakr uses the camera to scan food barcodes for your diary.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "barcodeScannerEnabled": true
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Peakr lets you choose progress photos from your library. They are stored privately.",
+          "cameraPermission": "Peakr uses the camera for barcode scans and your private progress photos.",
+          "microphonePermission": false
         }
       ]
     ],

@@ -135,6 +135,7 @@ export function mapDailySummaries(body: unknown, fetchedAt: string): GarminHealt
       });
     }
     sink.add('active_kcal', day, num(e.activeKilocalories), id, at);
+    sink.add('resting_kcal', day, num(e.bmrKilocalories), id, at);
     sink.add('resting_hr', day, num(e.restingHeartRate), id, at);
     sink.add('stress_avg', day, num(e.averageStressLevel), id, at);
     sink.add('body_battery_high', day, num(e.bodyBatteryHighestValue), id, at);

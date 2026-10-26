@@ -9,6 +9,7 @@ setUpTests();
 jest.mock('victory-native', () => ({
   CartesianChart: () => null,
   Bar: () => null,
+  StackedBar: () => null,
   Area: () => null,
   AreaRange: () => null,
   Line: () => null,
@@ -81,4 +82,36 @@ jest.mock('expo-location', () => ({
   getCurrentPositionAsync: jest.fn(() =>
     Promise.resolve({ coords: { latitude: 47.3769, longitude: 8.5417 }, timestamp: 0 }),
   ),
+}));
+
+// The Body add-on (its data, the remote flags, and the quiz answers its profile falls back to) is
+// read by Today and the tab bar: in-memory in every test (`__mocks__`), so screens of Teil A never
+// open SQLite for it.
+jest.mock('@/data/repositories/body-repository');
+jest.mock('@/data/repositories/flags-repository');
+jest.mock('@/data/repositories/onboarding-repository');
+jest.mock('@/data/repositories/health-repository');
+jest.mock('@/data/repositories/activity-repository');
+
+// expo-blur is native; under Jest the sample renders unblurred inside plain views.
+jest.mock('expo-blur', () => {
+  const { View } = jest.requireActual('react-native');
+  return { BlurView: View, BlurTargetView: View };
+});
+
+// expo-camera is native: the scanner renders a plain view; tests fire `onBarcodeScanned` on it.
+jest.mock('expo-camera', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    CameraView: View,
+    useCameraPermissions: jest.fn(() => [{ granted: true }, jest.fn()]),
+  };
+});
+
+// expo-image-picker is native: tests set what the camera or library returns per case.
+jest.mock('expo-image-picker', () => ({
+  requestCameraPermissionsAsync: jest.fn(() => Promise.resolve({ granted: true })),
+  requestMediaLibraryPermissionsAsync: jest.fn(() => Promise.resolve({ granted: true })),
+  launchCameraAsync: jest.fn(() => Promise.resolve({ canceled: true, assets: null })),
+  launchImageLibraryAsync: jest.fn(() => Promise.resolve({ canceled: true, assets: null })),
 }));

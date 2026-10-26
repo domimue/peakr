@@ -390,3 +390,204 @@ export const healthDaily = sqliteTable(
     index('health_daily_day').on(t.day),
   ],
 );
+
+// Body add-on (CLAUDE.md "Add-on rules"): food diary and check-ins, kept on the device first and
+// pushed to Supabase (`body_food_entries`, `body_checkins`, RLS: writes need the add-on). `dirty`
+// marks rows not pushed yet; `deleted` keeps a removed row until its delete reached the server.
+// The rows stay after a cancelled add-on (read-only history and export).
+export const bodyFoodEntries = sqliteTable(
+  'body_food_entries',
+  {
+    id: text('id').primaryKey(),
+    day: text('day').notNull(),
+    meal: text('meal').$type<'breakfast' | 'lunch' | 'dinner' | 'snack'>().notNull(),
+    name: text('name').notNull(),
+    kcal: integer('kcal').notNull(),
+    proteinG: real('protein_g'),
+    carbsG: real('carbs_g'),
+    fatG: real('fat_g'),
+    /** The food it came from (null for a quick add). */
+    foodId: text('food_id'),
+    /** Amount and how it was entered ("150 g", "2 pieces", "1 bar"). */
+    amount: real('amount'),
+    unit: text('unit').$type<'g' | 'ml' | 'piece' | 'portion'>(),
+    portionLabel: text('portion_label'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+    dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+    deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
+  },
+  (t) => [index('body_food_entries_day').on(t.day)],
+);
+
+export const bodyCheckins = sqliteTable(
+  'body_checkins',
+  {
+    id: text('id').primaryKey(),
+    day: text('day').notNull(),
+    weightKg: real('weight_kg').notNull(),
+    waistCm: real('waist_cm'),
+    /** Body fat % from a manual reading (scale display, caliper …). */
+    bodyFatPct: real('body_fat_pct'),
+    note: text('note'),
+    /** `manual` or `import` (Körper-Tracker backup). */
+    source: text('source').$type<'manual' | 'import'>().notNull().default('manual'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+    dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+    deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
+  },
+  (t) => [index('body_checkins_day').on(t.day)],
+);
+
+// Body add-on, Phase 12. Days the user marked as incomplete (left out of the adaptive TDEE and
+// "calculation vs. scale"); synced like the diary.
+export const bodyDays = sqliteTable('body_days', {
+  day: text('day').primaryKey(),
+  incomplete: integer('incomplete', { mode: 'boolean' }).notNull(),
+  /** Daily kcal quick entry (Phase 15) for people who do not log food. */
+  intakeKcal: integer('intake_kcal'),
+  /** Active energy the user read off a watch (counted with the correction factor). */
+  activeKcal: integer('active_kcal'),
+  updatedAt: text('updated_at').notNull(),
+  dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+});
+
+// Every adaptive TDEE estimate with the data it was computed from (CLAUDE.md "Energy & body").
+export const bodyTdeeEstimates = sqliteTable('body_tdee_estimates', {
+  date: text('date').primaryKey(),
+  tdeeKcal: integer('tdee_kcal').notNull(),
+  rawKcal: integer('raw_kcal').notNull(),
+  formulaKcal: integer('formula_kcal').notNull(),
+  correctionKcal: integer('correction_kcal').notNull(),
+  clamped: integer('clamped', { mode: 'boolean' }).notNull(),
+  basis: text('basis', { mode: 'json' }).$type<Record<string, unknown>>().notNull(),
+  dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+});
+
+// Every change of the daily intake target with its reason (user, adaptive, safety_clamp).
+export const bodyTargetChanges = sqliteTable('body_target_changes', {
+  date: text('date').primaryKey(),
+  intakeKcal: integer('intake_kcal').notNull(),
+  reason: text('reason').$type<'user' | 'adaptive' | 'safety_clamp'>().notNull(),
+  dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+});
+
+// Body values from the phone's health store (Health Connect / HealthKit), read only while the
+// add-on is active and kept on this device. Separate from `health_daily` (Insights → Health has
+// its own consent per data group).
+export const bodyDeviceDaily = sqliteTable(
+  'body_device_daily',
+  {
+    metric: text('metric')
+      .$type<
+        | 'weight'
+        | 'body_fat'
+        | 'steps'
+        | 'active_kcal'
+        | 'resting_kcal'
+        | 'intake_kcal'
+        | 'workout_kcal'
+      >()
+      .notNull(),
+    day: text('day').notNull(),
+    source: text('source').$type<'healthConnect' | 'healthKit'>().notNull(),
+    value: real('value').notNull(),
+    recordedAt: text('recorded_at').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.metric, t.day, t.source] })],
+);
+
+// Weight goal (Phase 13): every version is kept – a change, a pause, an accepted suggestion –
+// with its reason (CLAUDE.md "Weight goal rules"). The latest row is the current goal.
+export const bodyGoals = sqliteTable('body_goals', {
+  id: text('id').primaryKey(),
+  createdAt: text('created_at').notNull(),
+  kind: text('kind').$type<'lose' | 'maintain' | 'gain'>().notNull(),
+  startWeightKg: real('start_weight_kg').notNull(),
+  targetWeightKg: real('target_weight_kg'),
+  ratePerWeekKg: real('rate_per_week_kg').notNull(),
+  /** Share of completed workout energy eaten back, 0–100. */
+  eatBackPct: integer('eat_back_pct').notNull(),
+  /** Same weekly total, more on training days. */
+  weeklyMode: integer('weekly_mode', { mode: 'boolean' }).notNull(),
+  /** Accepted check-in suggestions, added to the daily target (kcal). */
+  adjustmentKcal: integer('adjustment_kcal').notNull().default(0),
+  paused: integer('paused', { mode: 'boolean' }).notNull().default(false),
+  reason: text('reason').$type<'user' | 'adaptive' | 'safety_clamp'>().notNull(),
+  dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+});
+
+// Foods of the diary (Phase 14): Open Food Facts products (the local cache, `off`), the user's own
+// foods (`custom`, also corrected OFF entries – same barcode, they win) and recipes. Nutrients per
+// 100 g / ml of `basis`.
+export const bodyFoods = sqliteTable(
+  'body_foods',
+  {
+    id: text('id').primaryKey(),
+    kind: text('kind').$type<'off' | 'custom' | 'recipe'>().notNull(),
+    name: text('name').notNull(),
+    brand: text('brand'),
+    barcode: text('barcode'),
+    basis: text('basis').$type<'g' | 'ml'>().notNull(),
+    kcal: real('kcal').notNull(),
+    proteinG: real('protein_g').notNull(),
+    carbsG: real('carbs_g').notNull(),
+    fatG: real('fat_g').notNull(),
+    pieceAmount: real('piece_amount'),
+    portions: text('portions', { mode: 'json' })
+      .$type<{ label: string; amount: number }[]>()
+      .notNull(),
+    /** Recipes: ingredients (food id, name, amount, nutrients per 100), finished weight, servings. */
+    recipe: text('recipe', { mode: 'json' }).$type<{
+      ingredients: {
+        foodId: string;
+        name: string;
+        amount: number;
+        per100: { kcal: number; proteinG: number; carbsG: number; fatG: number };
+      }[];
+      totalWeightG: number | null;
+      servings: number | null;
+    }>(),
+    favourite: integer('favourite', { mode: 'boolean' }).notNull().default(false),
+    lastUsedAt: text('last_used_at'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+    dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+    deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
+  },
+  (t) => [index('body_foods_barcode').on(t.barcode), index('body_foods_name').on(t.name)],
+);
+
+/** A progress photo: on this device until uploaded, then in the private bucket (path). */
+export interface BodyPhoto {
+  localUri: string | null;
+  remotePath: string | null;
+  /** Removed on this device; the sync deletes the upload and then drops the slot. */
+  removed?: boolean;
+  /** An earlier upload this photo replaced; removed by the sync once the new one is up. */
+  stalePath?: string;
+}
+
+// Body check-in (Phase 15): measurements, body fat, photos and a note for a day. Weigh-ins are
+// `body_checkins` (several per day allowed); the history joins both by day.
+export const bodyMeasurements = sqliteTable(
+  'body_measurements',
+  {
+    id: text('id').primaryKey(),
+    day: text('day').notNull(),
+    values: text('values', { mode: 'json' }).$type<Record<string, number>>().notNull(),
+    bodyFatPct: real('body_fat_pct'),
+    /** `manual`, `navy` (estimate) or `scale` (from Health data). */
+    bodyFatSource: text('body_fat_source').$type<'manual' | 'navy' | 'scale'>(),
+    note: text('note'),
+    photos: text('photos', { mode: 'json' })
+      .$type<Partial<Record<'front' | 'side' | 'back', BodyPhoto>>>()
+      .notNull(),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+    dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+    deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
+  },
+  (t) => [index('body_measurements_day').on(t.day)],
+);
