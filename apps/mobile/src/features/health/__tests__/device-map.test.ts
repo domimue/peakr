@@ -1,4 +1,10 @@
-import { localDay, mapDailyTotals, mapInstant, mapSleepSessions } from '../device-map';
+import {
+  mapNutrition,
+  localDay,
+  mapDailyTotals,
+  mapInstant,
+  mapSleepSessions,
+} from '../device-map';
 
 const OWN = 'com.peakr.app';
 /** Local wall-clock time on a day, as ISO – so the tests do not depend on the machine's zone. */
@@ -143,5 +149,38 @@ describe('mapDailyTotals', () => {
         sourceIds: ['steps-2026-10-23'],
       },
     ]);
+  });
+});
+
+describe('nutrition from Health Connect', () => {
+  it('sums intake per day and leaves out Peakr’s own diary entries', () => {
+    expect(
+      mapNutrition(
+        [
+          {
+            startTime: '2026-10-25T07:30:00',
+            kcal: 400,
+            metadata: { dataOrigin: 'com.other.app' },
+          },
+          {
+            startTime: '2026-10-25T12:00:00',
+            kcal: 650.4,
+            metadata: { dataOrigin: 'com.other.app' },
+          },
+          {
+            startTime: '2026-10-25T12:00:00',
+            kcal: 500,
+            metadata: { dataOrigin: 'com.peakr.app' },
+          },
+          {
+            startTime: '2026-10-25T18:00:00',
+            kcal: 300,
+            metadata: { clientRecordId: 'peakr-food-abc' },
+          },
+          { startTime: '2026-10-26T08:00:00', kcal: 0 },
+        ],
+        'com.peakr.app',
+      ),
+    ).toEqual([{ day: '2026-10-25', value: 1050 }]);
   });
 });

@@ -7,13 +7,13 @@ Hourly check-in (scheduled task): `trig_01CLCwz6RBurU45vsaGJYsmn` (this branch, 
 
 ## Open
 
-- Phase 14 – Food logging with barcode scan (diary with meals and macros, rings vs. goal targets,
-  workout energy added back, expo-camera + Open Food Facts, portions, search/recent/favourites,
-  custom foods and recipes, copy meal/day, quick add, fuelling hints, incomplete days, Health
-  Connect nutrition read/write without duplicates, offline-first)
+_(none)_
 
 ## Done
 
+- Phase 14 – Food logging with barcode scan; waits on the user for the Supabase migration,
+  a new dev build (expo-camera), the Play health declaration for WRITE_NUTRITION and the OFF
+  User-Agent contact (docs/body-addon-setup.md §10)
 - Phase 13 – Weight goal & weekly rate; waits on the user for the Supabase migration
   `20261105000000_body_goals.sql` (docs/body-addon-setup.md §9)
 - Phase 12 – Energy engine & health data; waits on the user for the Play health-permission

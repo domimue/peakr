@@ -144,3 +144,19 @@ already stored with its reason.
   presets and slider → summary). Every change, pause or accepted suggestion is a new goal version.
 - Reverse diet is suggested, not automatic: after "Switch to maintain" the target starts at the
   old deficit and the card offers "+100 kcal" once a week.
+
+## 10. Phase 14 – food logging
+
+- Apply `20261106000000_body_foods.sql` (macros and portions on diary entries; `body_foods` for
+  the Open Food Facts cache, own foods and recipes; same RLS as the other Body tables).
+- New native module: `expo-camera` (barcode scan; camera permission text in `app.json`, audio
+  recording blocked). A new development build is needed.
+- Health Connect: new permission `WRITE_NUTRITION` (diary written as one `Nutrition` record per
+  entry, client record id `peakr-food-<id>`). Intake is now read from the records instead of the
+  daily aggregate so Peakr's own entries are left out – no double counting. Declare the write
+  permission in Play Console → App content → Health apps.
+- Open Food Facts: read-only, no key; the app sends `User-Agent: Peakr/1.0 (…)` as OFF asks –
+  put the real contact URL/email there before release. Attribution (ODbL) is shown on search,
+  scan and product screens; users can correct any entry (saved as their own food, which wins).
+- Offline: diary, own foods, recipes and every product scanned before work without network; OFF
+  only adds results. Everything syncs later through the normal Body sync.
