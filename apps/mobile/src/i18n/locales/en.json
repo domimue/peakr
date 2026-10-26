@@ -2542,7 +2542,7 @@
       "week": "Last 7 days",
       "empty": "Your trend starts with the first check-in.",
       "trendHint": "A smoothed trend of your check-ins – single weigh-ins are mostly water and glycogen.",
-      "tooFast": "Your trend has been falling faster than 1 % of your weight per week. Going a little slower is easier to keep – consider eating a bit more."
+      "tooFast": "Your trend has fallen by more than 1.5 % of your weight in each of the last two weeks. That is faster than is easy to keep – consider eating a bit more."
     },
     "coach": {
       "title": "Coach",

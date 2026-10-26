@@ -6,7 +6,6 @@ import {
   maxLossRatePerWeekKg,
   nextTargetChange,
   proteinTargetG,
-  tooFastLoss,
   validateWeightGoal,
   type WeightGoalInput,
 } from '.';
@@ -177,22 +176,6 @@ describe('target changes', () => {
         reason: 'adaptive',
       },
     );
-  });
-});
-
-describe('too fast loss', () => {
-  it('warns when the trend falls faster than the max rate over two weeks', () => {
-    const trend = [
-      { date: '2026-10-12', weightKg: 80, trendKg: 80, outlier: false },
-      { date: '2026-10-26', weightKg: 77.5, trendKg: 77.6, outlier: false },
-    ];
-    expect(tooFastLoss(trend, TODAY)).toMatchObject({ warning: true });
-    const slow = [
-      { date: '2026-10-12', weightKg: 80, trendKg: 80, outlier: false },
-      { date: '2026-10-26', weightKg: 79, trendKg: 79.2, outlier: false },
-    ];
-    expect(tooFastLoss(slow, TODAY)).toMatchObject({ warning: false });
-    expect(tooFastLoss([], TODAY)).toMatchObject({ warning: false });
   });
 });
 

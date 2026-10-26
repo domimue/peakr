@@ -2,8 +2,7 @@ import type { Result, ValidationIssue } from '../result';
 
 import { energyConfig as C } from './config';
 import { ageOn, intakeFloorKcal, type BodySex } from './energy';
-import { daysBetween } from './energy';
-import type { TrendPoint } from './trend';
+import { trendOn, type TrendPoint } from './trend';
 
 /**
  * CLAUDE.md "Weight goal rules", enforced here and nowhere else. No function takes an option to
@@ -153,25 +152,36 @@ export function nextTargetChange(
 }
 
 /**
- * The trend fell faster than the max rate over the last two weeks: a gentle warning (eat a bit
- * more), never praise.
+ * Rapid loss: the trend fell by more than 1.5 % of body weight in each of the last two weeks.
+ * A gentle warning with the suggestion to eat more – never praise.
  */
-export function tooFastLoss(
+export function rapidLossWarning(
   trend: readonly TrendPoint[],
   today: string,
-): { warning: boolean; ratePerWeekKg: number | null } {
-  const days = C.goal.fastLossWeeks * 7;
-  const recent = trend.filter((p) => p.date <= today && daysBetween(p.date, today) <= days);
-  const first = recent[0];
-  const last = recent.at(-1);
-  if (!first || !last || daysBetween(first.date, last.date) < 7) {
-    return { warning: false, ratePerWeekKg: null };
+): { warning: boolean; suggestion: 'eatMore' | null; weeklyLossPct: number[] } {
+  const g = C.goal;
+  const at = (days: number) => trendOn(trend, shiftDays(today, -days), 3);
+  const points = Array.from({ length: g.rapidLossWeeks + 1 }, (_, i) => at(i * 7));
+  if (points.some((p) => p === null))
+    return { warning: false, suggestion: null, weeklyLossPct: [] };
+  const losses: number[] = [];
+  for (let w = 0; w < g.rapidLossWeeks; w++) {
+    const start = points[w + 1] as TrendPoint;
+    const end = points[w] as TrendPoint;
+    losses.push(((start.trendKg - end.trendKg) / start.trendKg) * 100);
   }
-  const lossPerWeek = ((first.trendKg - last.trendKg) * 7) / daysBetween(first.date, last.date);
+  const warning = losses.every((l) => l > g.rapidLossShare * 100);
   return {
-    warning: lossPerWeek > maxLossRatePerWeekKg(first.trendKg),
-    ratePerWeekKg: round2(lossPerWeek),
+    warning,
+    suggestion: warning ? 'eatMore' : null,
+    weeklyLossPct: losses.map((l) => Math.round(l * 10) / 10),
   };
+}
+
+function shiftDays(iso: string, days: number): string {
+  const d = new Date(`${iso}T00:00:00Z`);
+  d.setUTCDate(d.getUTCDate() + days);
+  return d.toISOString().slice(0, 10);
 }
 
 /** Protein during weight loss: 1.6–2.2 g per kg; no target for other goals. */

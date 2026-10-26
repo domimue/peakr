@@ -7,7 +7,7 @@ import {
   intakeTarget,
   nextTargetChange,
   statusOf,
-  tooFastLoss,
+  rapidLossWarning,
   trendOn,
   weekBalance,
   type AdaptiveResult,
@@ -228,7 +228,7 @@ export function useBodyModel(): BodyModel | null {
         start: fatPoints[0] ?? null,
         current: latestFat && daysBetween(latestFat.day, today) <= 30 ? latestFat : null,
       }),
-      tooFastLoss: tooFastLoss(trend, today).warning,
+      tooFastLoss: rapidLossWarning(trend, today).warning,
     };
   }, [inputs.data, profile.data, plan.data, from, today]);
 

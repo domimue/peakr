@@ -88,8 +88,56 @@ export const energyConfig = {
     proteinGPerKg: { min: 1.6, max: 2.2 },
     /** Gain is capped like loss, gently (lean gain is slow). */
     maxGainKgPerWeek: 0.5,
-    /** Weeks of trend the "too fast" check looks at. */
-    fastLossWeeks: 2,
+    /** Trend loss above this share of body weight per week, two weeks in a row → warning. */
+    rapidLossShare: 0.015,
+    rapidLossWeeks: 2,
+    /** Rate presets (kg per week). */
+    presets: {
+      lose: { gentle: 0.25, recommended: 0.5, ambitious: 0.75, aggressive: 1.0 },
+      gain: { lean: 0.1, steady: 0.25, fast: 0.5 },
+    },
+    /** Custom rates in steps of this size. */
+    rateStep: 0.05,
+    /** Share of completed workout energy eaten back by default (0–100). */
+    eatBackPct: 50,
+    /** Protein rises from min to max g/kg as the deficit grows to this share of TDEE. */
+    proteinFullDeficitShare: 0.25,
+    /** Protein outside weight loss (g/kg). */
+    proteinBaseGPerKg: 1.6,
+    forecast: {
+      /** Real pace from the trend of the last 2–4 weeks. */
+      minDays: 14,
+      maxDays: 28,
+    },
+    checkIn: {
+      /** Trend days the weekly check-in reads (at least `minDays`). */
+      days: 14,
+      minDays: 7,
+      /** On track within max(abs, share × planned rate). */
+      toleranceKg: 0.05,
+      toleranceShare: 0.15,
+      /** One suggestion moves the daily target by at most this much. */
+      maxAdjustmentKcal: 150,
+    },
+    plateau: {
+      days: 21,
+      /** Trend change below this over the plateau window counts as flat. */
+      maxChangeKg: 0.3,
+      /** Average logged balance at least this far below zero counts as a deficit. */
+      minDeficitKcal: 200,
+      /** Logged complete days in the window needed to say "despite a deficit". */
+      minLoggedDays: 14,
+      dietBreakWeeks: [1, 2],
+    },
+    reverseDietStepKcal: 100,
+    training: {
+      /** A week this much above the typical load is "heavy". */
+      highLoadFactor: 1.2,
+      /** Deficits up to this size need no change in heavy weeks. */
+      smallDeficitKcal: 250,
+      /** Larger deficits than this on key workout days get a warning. */
+      keyDayMaxDeficitKcal: 500,
+    },
   },
   limits: {
     weightKg: { min: 30, max: 300 },
