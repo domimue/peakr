@@ -5,7 +5,7 @@ import { StyleSheet, View } from 'react-native';
 import { useEntitlement } from '@/features/billing/billing-store';
 import { Button, Card, Icon, numeric, spacing, Text, useTheme } from '@/ui';
 
-import { useEnergyToday } from '../queries';
+import { useBodyModel } from '../model';
 import { BlurredSample } from './locked-preview';
 import { SampleEnergy } from './sample';
 
@@ -18,7 +18,7 @@ export function EnergyTodayCard() {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const guard = useEntitlement('body_nutrition');
-  const energy = useEnergyToday();
+  const energy = useBodyModel();
   if (!guard.visible || guard.state === 'pending') return null;
 
   if (!guard.canRead) {
@@ -54,7 +54,7 @@ export function EnergyTodayCard() {
               : t('bodyAddon.energy.over', { kcal: -energy.remainingKcal })}
           </Text>
           <Text tone="secondary" style={numeric}>
-            {t('bodyAddon.energy.fromWorkouts', { kcal: energy.workoutKcal })}
+            {t('bodyAddon.energy.fromWorkouts', { kcal: energy.today.active.workoutKcal })}
           </Text>
           <Text variant="caption" tone="secondary">
             {t('bodyAddon.energy.estimate')}

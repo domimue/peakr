@@ -24,4 +24,10 @@ export const health: HealthProvider = {
   readableMetrics: async () => [],
   requestReadPermission: async () => [],
   readDaily: async () => [],
+  // Body add-on, same plan: HKQuantityTypeIdentifier bodyMass, bodyFatPercentage, stepCount,
+  // activeEnergyBurned, basalEnergyBurned, dietaryEnergyConsumed and HKWorkout (with its
+  // totalEnergyBurned), daily sums via HKStatisticsCollectionQuery, read authorisation only.
+  bodyReadable: async () => [],
+  requestBodyPermission: async () => [],
+  readBody: async () => [],
 };

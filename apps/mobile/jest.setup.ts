@@ -89,6 +89,8 @@ jest.mock('expo-location', () => ({
 jest.mock('@/data/repositories/body-repository');
 jest.mock('@/data/repositories/flags-repository');
 jest.mock('@/data/repositories/onboarding-repository');
+jest.mock('@/data/repositories/health-repository');
+jest.mock('@/data/repositories/activity-repository');
 
 // expo-blur is native; under Jest the sample renders unblurred inside plain views.
 jest.mock('expo-blur', () => {

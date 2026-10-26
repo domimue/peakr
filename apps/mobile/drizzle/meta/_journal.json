@@ -78,6 +78,13 @@
       "when": 1792974341461,
       "tag": "0010_body",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1792977712592,
+      "tag": "0011_body_energy",
+      "breakpoints": true
     }
   ]
 }

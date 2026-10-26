@@ -2505,7 +2505,8 @@
       "estimate": "Estimate from your profile and today’s planned sessions.",
       "floor": "Today’s target is held at a safe minimum.",
       "setUp": "Add your height, birth date and weight in Body to see this.",
-      "open": "Open Body"
+      "open": "Open Body",
+      "intakeFrom": "Intake from {{source}} (nothing logged in Peakr today)."
     },
     "diary": {
       "add": "Add food",
@@ -2514,7 +2515,10 @@
       "kcal": "Energy",
       "save": "Add",
       "delete": "Delete",
-      "empty": "Nothing logged today yet."
+      "empty": "Nothing logged today yet.",
+      "incomplete": "Mark today as incomplete",
+      "incompleteUndo": "Today is marked incomplete – undo",
+      "incompleteHint": "Incomplete days are left out of your maintenance estimate and the \"calculation vs. scale\" comparison."
     },
     "checkIn": {
       "title": "Check-in",
@@ -2526,7 +2530,9 @@
       "history": "Recent check-ins",
       "empty": "No check-ins yet.",
       "line": "{{kg}} kg",
-      "lineWaist": "{{kg}} kg · {{cm}} cm"
+      "lineWaist": "{{kg}} kg · {{cm}} cm",
+      "bodyFat": "Body fat (optional)",
+      "bodyFatHint": "From your scale or a measurement – used for fat vs. lean mass."
     },
     "progress": {
       "title": "Progress",
@@ -2535,7 +2541,8 @@
       "trend": "Trend weight",
       "week": "Last 7 days",
       "empty": "Your trend starts with the first check-in.",
-      "trendHint": "A smoothed trend of your check-ins – single weigh-ins are mostly water and glycogen."
+      "trendHint": "A smoothed trend of your check-ins – single weigh-ins are mostly water and glycogen.",
+      "tooFast": "Your trend has been falling faster than 1 % of your weight per week. Going a little slower is easier to keep – consider eating a bit more."
     },
     "coach": {
       "title": "Coach",
@@ -2590,6 +2597,61 @@
       "active": "Peakr Body is active.",
       "manage": "Manage subscriptions",
       "devUnlock": "Unlock without purchase (development)"
+    },
+    "sources": {
+      "manual": "your entries",
+      "garmin": "Garmin",
+      "healthConnect": "Health Connect",
+      "healthKit": "Apple Health",
+      "estimate": "an estimate"
+    },
+    "balance": {
+      "title": "Energy balance (estimate)",
+      "thisWeek": "This week",
+      "lastWeek": "Last week",
+      "line": "{{kcal}} kcal ≈ {{kg}} kg fat · {{days}} days",
+      "noDays": "No complete days yet",
+      "hint": "Intake minus resting and active energy, on complete days only; 7,700 kcal ≈ 1 kg of fat."
+    },
+    "tdee": {
+      "title": "Your maintenance (adaptive)",
+      "basis": "From {{days}} logged days and your weight trend; the formula says {{formula}} kcal.",
+      "notYet": "Needs 14 days with logged food and weigh-ins – {{days}} so far. Until then the formula estimate is used."
+    },
+    "scale": {
+      "title": "Calculation vs. scale",
+      "line": "Expected {{expected}} kg, trend {{actual}} kg over {{weeks}} complete weeks.",
+      "deviation": "Difference: {{kg}} kg",
+      "confidence": {
+        "low": "Low confidence – only a little data so far.",
+        "medium": "Medium confidence.",
+        "high": "High confidence."
+      },
+      "notEnough": "Needs at least one complete week: all seven days logged and three weigh-ins. Days marked incomplete are skipped."
+    },
+    "composition": {
+      "title": "Fat and lean mass (estimate)",
+      "current": "Now: {{fat}} kg fat · {{lean}} kg lean mass",
+      "change": "Since your first measurement: fat {{fat}} kg · lean {{lean}} kg",
+      "estimate": "Body fat scales and measurements are approximate – read the direction, not the decimal.",
+      "notEnough": "Not enough data: add a body fat % in a check-in or connect a smart scale."
+    },
+    "health": {
+      "title": "{{store}}",
+      "intro": "Body can read {{list}} from your phone. You choose in the next step; nothing else is read.",
+      "connected": "Reading from {{store}}: {{list}}.",
+      "connect": "Connect {{store}}",
+      "more": "Allow more in {{store}}",
+      "privacy": "The values stay on this phone and are never shared. Withdraw access any time in the system settings.",
+      "metrics": {
+        "weight": "weight",
+        "body_fat": "body fat",
+        "steps": "steps",
+        "active_kcal": "active energy",
+        "resting_kcal": "resting energy",
+        "intake_kcal": "nutrition",
+        "workout_kcal": "workouts"
+      }
     }
   }
 }

@@ -419,6 +419,8 @@ export const bodyCheckins = sqliteTable(
     day: text('day').notNull(),
     weightKg: real('weight_kg').notNull(),
     waistCm: real('waist_cm'),
+    /** Body fat % from a manual reading (scale display, caliper …). */
+    bodyFatPct: real('body_fat_pct'),
     note: text('note'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull(),
@@ -426,4 +428,58 @@ export const bodyCheckins = sqliteTable(
     deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
   },
   (t) => [index('body_checkins_day').on(t.day)],
+);
+
+// Body add-on, Phase 12. Days the user marked as incomplete (left out of the adaptive TDEE and
+// "calculation vs. scale"); synced like the diary.
+export const bodyDays = sqliteTable('body_days', {
+  day: text('day').primaryKey(),
+  incomplete: integer('incomplete', { mode: 'boolean' }).notNull(),
+  updatedAt: text('updated_at').notNull(),
+  dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+});
+
+// Every adaptive TDEE estimate with the data it was computed from (CLAUDE.md "Energy & body").
+export const bodyTdeeEstimates = sqliteTable('body_tdee_estimates', {
+  date: text('date').primaryKey(),
+  tdeeKcal: integer('tdee_kcal').notNull(),
+  rawKcal: integer('raw_kcal').notNull(),
+  formulaKcal: integer('formula_kcal').notNull(),
+  correctionKcal: integer('correction_kcal').notNull(),
+  clamped: integer('clamped', { mode: 'boolean' }).notNull(),
+  basis: text('basis', { mode: 'json' }).$type<Record<string, unknown>>().notNull(),
+  dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+});
+
+// Every change of the daily intake target with its reason (user, adaptive, safety_clamp).
+export const bodyTargetChanges = sqliteTable('body_target_changes', {
+  date: text('date').primaryKey(),
+  intakeKcal: integer('intake_kcal').notNull(),
+  reason: text('reason').$type<'user' | 'adaptive' | 'safety_clamp'>().notNull(),
+  dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+});
+
+// Body values from the phone's health store (Health Connect / HealthKit), read only while the
+// add-on is active and kept on this device. Separate from `health_daily` (Insights → Health has
+// its own consent per data group).
+export const bodyDeviceDaily = sqliteTable(
+  'body_device_daily',
+  {
+    metric: text('metric')
+      .$type<
+        | 'weight'
+        | 'body_fat'
+        | 'steps'
+        | 'active_kcal'
+        | 'resting_kcal'
+        | 'intake_kcal'
+        | 'workout_kcal'
+      >()
+      .notNull(),
+    day: text('day').notNull(),
+    source: text('source').$type<'healthConnect' | 'healthKit'>().notNull(),
+    value: real('value').notNull(),
+    recordedAt: text('recorded_at').notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.metric, t.day, t.source] })],
 );

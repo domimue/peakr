@@ -151,7 +151,7 @@ describe('Body tab', () => {
     billing('active');
     fullProfile();
     await renderWithQuery(<BodyScreen />);
-    // Base 1324 × 1.2 = 1589 kcal plus today's planned sessions (none without a plan).
+    // Resting 1324 + everyday movement 265 (no steps, no wearable) plus today's planned sessions (none without a plan).
     expect(await screen.findByText('1589 kcal left')).toBeOnTheScreen();
     await fireEvent.changeText(screen.getByLabelText('What'), 'Oats');
     await fireEvent.changeText(screen.getByLabelText('Energy'), '400');
@@ -217,12 +217,77 @@ describe('Body tab', () => {
     billing('active');
     fullProfile();
     body.store.checkIns = [
-      { id: 'c1', day: '2026-10-10', weightKg: 62, waistCm: null, note: null, createdAt: 'x' },
-      { id: 'c2', day: '2026-10-19', weightKg: 61, waistCm: null, note: null, createdAt: 'y' },
+      {
+        id: 'c1',
+        day: '2026-10-10',
+        weightKg: 62,
+        waistCm: null,
+        bodyFatPct: null,
+        note: null,
+        createdAt: 'x',
+      },
+      {
+        id: 'c2',
+        day: '2026-10-19',
+        weightKg: 61,
+        waistCm: null,
+        bodyFatPct: null,
+        note: null,
+        createdAt: 'y',
+      },
     ];
     await renderWithQuery(<BodyScreen initial="progress" />);
-    expect(await screen.findByText('61.9 kg')).toBeOnTheScreen();
+    // A 9-day gap counts as nine trend steps: 62 − (1 − 0.9^9) × 1 ≈ 61.4.
+    expect(await screen.findByText('61.4 kg')).toBeOnTheScreen();
+    expect(screen.getByTestId('body-tdee')).toHaveTextContent(/Needs 14 days/);
+    expect(screen.getByTestId('body-composition')).toHaveTextContent(/Not enough data/);
+    expect(screen.getByTestId('body-scale')).toHaveTextContent(/at least one complete week/);
     expect(screen.getByTestId('body-coach')).toBeOnTheScreen();
+  });
+});
+
+describe('Phase 12: energy model in the app', () => {
+  it('device intake counts when nothing was logged, and a day can be marked incomplete', async () => {
+    billing('active');
+    fullProfile();
+    body.store.device = [
+      { metric: 'intake_kcal', day: TODAY, source: 'healthConnect', value: 900, recordedAt: 'x' },
+      { metric: 'resting_kcal', day: TODAY, source: 'healthConnect', value: 1400, recordedAt: 'x' },
+      { metric: 'steps', day: TODAY, source: 'healthConnect', value: 10000, recordedAt: 'x' },
+    ];
+    await renderWithQuery(<BodyScreen />);
+    // 1400 + 10,000 × 0.00057 × 61 (348) − 900 eaten
+    expect(await screen.findByText('848 kcal left')).toBeOnTheScreen();
+    expect(screen.getByText(/Intake from Health Connect/)).toBeOnTheScreen();
+    await fireEvent.press(screen.getByTestId('body-day-incomplete'));
+    await waitFor(() => expect(body.store.incompleteDays).toEqual([TODAY]));
+    expect(await screen.findByText(/left out of your maintenance estimate/)).toBeOnTheScreen();
+  });
+
+  it('a body fat % from a check-in gives fat and lean mass', async () => {
+    billing('active');
+    fullProfile();
+    body.store.checkIns = [
+      {
+        id: 'c1',
+        day: '2026-10-18',
+        weightKg: 61,
+        waistCm: null,
+        bodyFatPct: 25,
+        note: null,
+        createdAt: 'x',
+      },
+    ];
+    await renderWithQuery(<BodyScreen initial="progress" />);
+    expect(await screen.findByText('Now: 15.3 kg fat · 45.8 kg lean mass')).toBeOnTheScreen();
+  });
+
+  it('asks for Health Connect only while the add-on is active', async () => {
+    billing('expired');
+    fullProfile();
+    await renderWithQuery(<BodyScreen />);
+    expect(await screen.findByTestId('body-read-only')).toBeOnTheScreen();
+    expect(screen.queryByTestId('body-health-link')).toBeNull();
   });
 });
 
@@ -331,7 +396,17 @@ describe('export', () => {
           createdAt: '',
         },
       ],
-      [{ id: 'c', day: '2026-10-19', weightKg: 61.2, waistCm: null, note: null, createdAt: '' }],
+      [
+        {
+          id: 'c',
+          day: '2026-10-19',
+          weightKg: 61.2,
+          waistCm: null,
+          bodyFatPct: null,
+          note: null,
+          createdAt: '',
+        },
+      ],
     );
     expect(csv.split('\n')).toEqual([
       'type,date,meal,name,kcal,protein_g,weight_kg,waist_cm,note',

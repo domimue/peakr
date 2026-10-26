@@ -57,3 +57,10 @@ export {
   type WeightGoalField,
   type WeightGoalInput,
 } from './safety';
+export {
+  energyDays,
+  weighInsOf,
+  type EnergyInputs,
+  type ModelDay,
+  type SourcedValue,
+} from './days';

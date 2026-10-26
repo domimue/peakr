@@ -7,7 +7,14 @@ import { MEALS, type Meal } from '../meals';
 import type { AddonGuard } from '@/features/billing/model';
 import { Button, Card, ChipGroup, ListState, numeric, spacing, Text, TextField } from '@/ui';
 
-import { useAddFood, useDeleteFood, useEnergyToday, useFoodDay } from '../queries';
+import { useBodyModel } from '../model';
+import {
+  useAddFood,
+  useDeleteFood,
+  useFoodDay,
+  useIncompleteDays,
+  useSetDayIncomplete,
+} from '../queries';
 
 /**
  * Body → Today: the day's food diary under "Energy today". Read-only after the add-on ended: the
@@ -17,7 +24,10 @@ export function DiarySection({ guard }: { guard: AddonGuard }) {
   const { t } = useTranslation();
   const today = todayIso();
   const food = useFoodDay(today);
-  const energy = useEnergyToday();
+  const energy = useBodyModel();
+  const incomplete = useIncompleteDays();
+  const setIncomplete = useSetDayIncomplete();
+  const markedIncomplete = (incomplete.data ?? []).includes(today);
   const add = useAddFood();
   const remove = useDeleteFood();
   const [meal, setMeal] = useState<Meal>('breakfast');
@@ -44,13 +54,20 @@ export function DiarySection({ guard }: { guard: AddonGuard }) {
             <Text tone="secondary" style={numeric}>
               {t('bodyAddon.energy.breakdown', {
                 target: energy.targetKcal,
-                eaten: energy.intakeKcal,
-                workouts: energy.workoutKcal,
+                eaten: energy.today.intakeKcal ?? 0,
+                workouts: energy.today.active.workoutKcal,
               })}
             </Text>
             {energy.floorApplied ? (
               <Text variant="caption" tone="secondary">
                 {t('bodyAddon.energy.floor')}
+              </Text>
+            ) : null}
+            {energy.today.intakeSource && energy.today.intakeSource !== 'manual' ? (
+              <Text variant="caption" tone="secondary">
+                {t('bodyAddon.energy.intakeFrom', {
+                  source: t(`bodyAddon.sources.${energy.today.intakeSource}`),
+                })}
               </Text>
             ) : null}
             <Text variant="caption" tone="secondary">
@@ -85,6 +102,22 @@ export function DiarySection({ guard }: { guard: AddonGuard }) {
         );
       })}
       {entries.length === 0 ? <Text tone="secondary">{t('bodyAddon.diary.empty')}</Text> : null}
+      {guard.canWrite ? (
+        <Button
+          small
+          variant="secondary"
+          testID="body-day-incomplete"
+          label={t(
+            markedIncomplete ? 'bodyAddon.diary.incompleteUndo' : 'bodyAddon.diary.incomplete',
+          )}
+          onPress={() => setIncomplete.mutate({ day: today, incomplete: !markedIncomplete })}
+        />
+      ) : null}
+      {markedIncomplete ? (
+        <Text variant="caption" tone="secondary">
+          {t('bodyAddon.diary.incompleteHint')}
+        </Text>
+      ) : null}
 
       {guard.canWrite ? (
         <Card style={styles.stack} testID="body-diary-add">

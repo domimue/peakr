@@ -1,18 +1,9 @@
-import {
-  allWorkouts,
-  energyToday,
-  estimateWorkoutKcal,
-  statusOf,
-  weightTrend,
-} from '@peakr/engine';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-import { todayIso } from '@/data/ids';
 import * as repo from '@/data/repositories/body-repository';
 import { addonGuardNow, useEntitlement } from '@/features/billing/billing-store';
-import { usePlan } from '@/features/plan/queries';
 
-import { bodyProfileKey, useBodyProfile } from './profile';
+import { bodyProfileKey } from './profile';
 
 /**
  * Body add-on data. Every read of real data and every write goes through the guard
@@ -76,37 +67,15 @@ export const useDeleteFood = () => useWrite(repo.deleteFood);
 export const useAddCheckIn = () => useWrite(repo.addCheckIn);
 export const useDeleteCheckIn = () => useWrite(repo.deleteCheckIn);
 
-/**
- * "Energy today": the engine's numbers for today, or null when the add-on may not show real data
- * or the profile is incomplete. Workout energy comes from today's planned sessions that were not
- * skipped (estimated; device values join with the Health integration of the add-on).
- */
-export function useEnergyToday() {
-  const guard = useEntitlement('body_nutrition');
-  const today = todayIso();
-  const profile = useBodyProfile();
-  const food = useFoodDay(today);
-  const plan = usePlan();
-  if (!guard.canRead || !profile.data?.profile || !food.data) return null;
-  const stored = plan.data;
-  const p = profile.data.profile;
-  const workouts = stored
-    ? allWorkouts(stored.state.plan)
-        .filter((w) => w.date === today && statusOf(stored.state, w.id) !== 'skipped')
-        .map((w) => ({ kcal: estimateWorkoutKcal(w, p.weightKg), source: 'estimate' as const }))
-    : [];
-  return energyToday({
-    profile: p,
-    today,
-    workouts,
-    intakeKcal: food.data.reduce((sum, f) => sum + f.kcal, 0),
-  });
-}
+/** Marks a day incomplete (left out of the adaptive TDEE and "calculation vs. scale"). */
+export const useSetDayIncomplete = () =>
+  useWrite((v: { day: string; incomplete: boolean }) => repo.setDayIncomplete(v.day, v.incomplete));
 
-/** Weigh-ins with the smoothed trend for the Progress section. */
-export function useWeightTrend() {
-  const checkIns = useCheckIns();
-  return checkIns.data
-    ? weightTrend(checkIns.data.map((c) => ({ date: c.day, weightKg: c.weightKg })))
-    : null;
+export function useIncompleteDays() {
+  const guard = useEntitlement('body_nutrition');
+  return useQuery({
+    queryKey: [...bodyKeys.all, 'incomplete'],
+    queryFn: repo.listIncompleteDays,
+    enabled: guard.canRead,
+  });
 }

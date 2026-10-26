@@ -100,3 +100,33 @@ Switching it off again hides all of it; nobody's data is touched. The personal b
 - `pnpm --filter @peakr/engine test` – energy model.
 - RLS was checked against a local Postgres with the migrations applied: no flag / no entitlement
   → insert refused; bundle active → allowed; expired → read allowed, insert and update refused.
+
+## 8. Phase 12 – energy engine and health data
+
+What the add-on reads and from where (the priority is in CLAUDE.md "Energy & body rules"):
+
+- **Health Connect** (Android): weight, body fat, steps, active energy, basal metabolic rate,
+  nutrition, exercise sessions with their active calories. Asked for from Body → "Connect Health
+  Connect", only while the add-on is active (trial, active or cancelled-but-paid). New manifest
+  permissions in `app.json`: `READ_ACTIVE_CALORIES_BURNED`, `READ_BASAL_METABOLIC_RATE`,
+  `READ_NUTRITION`, `READ_EXERCISE` – **Play Console → App content → Health apps** needs the
+  declaration and a reason for each before the release goes out. Values are kept on the phone
+  (`body_device_daily`), never uploaded.
+- **HealthKit** (iOS): same interface, still a stub like the rest of HealthKit until the iOS
+  release (Android first); the identifiers are listed in `health.ios.ts`.
+- **Garmin**: body composition (`bodyComps`: weight, body fat, muscle mass) and daily energy
+  (`dailies`: `activeKilocalories`, now also `bmrKilocalories` → `resting_kcal`) through the
+  existing health sync – as long as the user switched on the matching groups in Insights →
+  Health. Check `bmrKilocalories` against the current Garmin Health API docs together with the
+  other fields in `docs/health-garmin.md`. Garmin has no nutrition; intake comes from the diary
+  or Health Connect only.
+
+Server: apply `20261104000000_body_energy.sql` (day markers, TDEE estimates, target changes, body
+fat in check-ins; same RLS as the other Body tables).
+
+Engine (`packages/engine/src/energy`): resting energy, active energy with the correction factor
+(0.8), daily and weekly balance with the fat estimate, the robust weight trend, adaptive TDEE (≥ 14
+days, ±100 kcal per week, every estimate stored with its basis), "calculation vs. scale" (complete
+weeks only, confidence), fat and lean mass, and the weight goal safety rules. There is no goal
+screen yet: targets are "maintain" until the goal setting is built; every target change is
+already stored with its reason.

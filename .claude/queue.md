@@ -7,12 +7,13 @@ Hourly check-in (scheduled task): `trig_01CLCwz6RBurU45vsaGJYsmn` (this branch, 
 
 ## Open
 
-- Phase 12 – Energy engine & health data (resting/active energy, balance, trend, adaptive TDEE,
-  calculation vs. scale, fat/lean mass, safety rules; Health Connect / HealthKit reads after the
-  add-on is active; Garmin body composition and daily energy; source priority in CLAUDE.md)
+_(none)_
 
 ## Done
 
+- Phase 12 – Energy engine & health data; waits on the user for the Play health-permission
+  declaration, the Supabase migration and a check of Garmin `bmrKilocalories`
+  (docs/body-addon-setup.md §8); HealthKit stays a stub until the iOS release
 - Phase 11b – Body add-on integration & entitlement (`body_nutrition`, bundle "Peakr + Body",
   guard, Body tab in place of Insights – user decision 2026-10-26, remote flag
   `addon_body_nutrition`); waits on the user for store/RevenueCat products, prices and the

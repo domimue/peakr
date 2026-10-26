@@ -24,13 +24,16 @@ export function CheckInSection({ guard }: { guard: AddonGuard }) {
   const remove = useDeleteCheckIn();
   const [weight, setWeight] = useState('');
   const [waist, setWaist] = useState('');
+  const [fat, setFat] = useState('');
   const weightKg = parse(weight);
   const waistCm = parse(waist);
+  const fatPct = parse(fat);
   const valid =
     weightKg !== null &&
     weightKg >= 25 &&
     weightKg <= 350 &&
-    (waist.trim() === '' || (waistCm !== null && waistCm >= 30 && waistCm <= 250));
+    (waist.trim() === '' || (waistCm !== null && waistCm >= 30 && waistCm <= 250)) &&
+    (fat.trim() === '' || (fatPct !== null && fatPct >= 3 && fatPct <= 70));
 
   if (checkIns.isPending) return <ListState kind="loading" label={t('common.loading')} />;
   const recent = [...(checkIns.data ?? [])].reverse().slice(0, 14);
@@ -56,17 +59,32 @@ export function CheckInSection({ guard }: { guard: AddonGuard }) {
             value={waist}
             onChangeText={setWaist}
           />
+          <TextField
+            label={t('bodyAddon.checkIn.bodyFat')}
+            hint={t('bodyAddon.checkIn.bodyFatHint')}
+            suffix="%"
+            keyboardType="decimal-pad"
+            value={fat}
+            onChangeText={setFat}
+          />
           <Button
             label={t('bodyAddon.checkIn.save')}
             disabled={!valid || add.isPending}
             onPress={() =>
               weightKg !== null &&
               add.mutate(
-                { day: todayIso(), weightKg, waistCm: waist.trim() ? waistCm : null, note: null },
+                {
+                  day: todayIso(),
+                  weightKg,
+                  waistCm: waist.trim() ? waistCm : null,
+                  bodyFatPct: fat.trim() ? fatPct : null,
+                  note: null,
+                },
                 {
                   onSuccess: () => {
                     setWeight('');
                     setWaist('');
+                    setFat('');
                   },
                 },
               )

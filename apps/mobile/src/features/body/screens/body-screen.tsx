@@ -9,6 +9,7 @@ import { Button, Card, ListState, Screen, SegmentedControl, spacing, Text } from
 
 import { CheckInSection } from '../components/check-in-section';
 import { DiarySection } from '../components/diary-section';
+import { HealthLinkCard } from '../components/health-link-card';
 import { BodyLockedPreview } from '../components/locked-preview';
 import { ProfileSetupCard } from '../components/profile-setup-card';
 import { ProgressSection } from '../components/progress-section';
@@ -77,6 +78,8 @@ export function BodyScreen({
       ) : profile.data && profile.data.missing.length > 0 && guard.canWrite ? (
         <ProfileSetupCard state={profile.data} />
       ) : null}
+
+      {guard.canWrite ? <HealthLinkCard /> : null}
 
       <SegmentedControl
         options={[

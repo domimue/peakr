@@ -1,6 +1,10 @@
 import type { BodyProfile } from '@peakr/engine';
 
 import type {
+  DeviceBodyMetric,
+  DeviceBodyValue,
+  StoredTargetChange,
+  StoredTdeeEstimate,
   CheckIn,
   CheckInDraft,
   FoodDraft,
@@ -14,6 +18,10 @@ export const store = {
   remoteProfile: {} as Partial<BodyProfile>,
   food: [] as FoodEntry[],
   checkIns: [] as CheckIn[],
+  incompleteDays: [] as string[],
+  tdee: [] as StoredTdeeEstimate[],
+  targets: [] as StoredTargetChange[],
+  device: [] as DeviceBodyValue[],
 };
 
 let seq = 0;
@@ -23,6 +31,10 @@ export function resetStore() {
   store.remoteProfile = {};
   store.food = [];
   store.checkIns = [];
+  store.incompleteDays = [];
+  store.tdee = [];
+  store.targets = [];
+  store.device = [];
   seq = 0;
 }
 
@@ -56,3 +68,33 @@ export const deleteCheckIn = jest.fn(async (id: string) => {
 });
 
 export const syncBody = jest.fn(async () => false);
+
+export const listIncompleteDays = jest.fn(async () => [...store.incompleteDays]);
+export const setDayIncomplete = jest.fn(async (day: string, incomplete: boolean) => {
+  store.incompleteDays = store.incompleteDays.filter((d) => d !== day);
+  if (incomplete) store.incompleteDays.push(day);
+});
+export const listTdeeEstimates = jest.fn(async () => [...store.tdee]);
+export const saveTdeeEstimate = jest.fn(async (e: StoredTdeeEstimate) => {
+  store.tdee = [...store.tdee.filter((x) => x.date !== e.date), e];
+});
+export const listTargetChanges = jest.fn(async () => [...store.targets]);
+export const saveTargetChange = jest.fn(async (c: StoredTargetChange) => {
+  store.targets = [...store.targets.filter((x) => x.date !== c.date), c];
+});
+export const saveDeviceValues = jest.fn(async (rows: readonly DeviceBodyValue[]) => {
+  for (const r of rows) {
+    store.device = [
+      ...store.device.filter(
+        (d) => !(d.metric === r.metric && d.day === r.day && d.source === r.source),
+      ),
+      r,
+    ];
+  }
+});
+export const listDeviceValues = jest.fn(async (from: string) =>
+  store.device.filter((d) => d.day >= from),
+);
+export const deleteDeviceValues = jest.fn(async (metrics?: readonly DeviceBodyMetric[]) => {
+  store.device = metrics ? store.device.filter((d) => !metrics.includes(d.metric)) : [];
+});

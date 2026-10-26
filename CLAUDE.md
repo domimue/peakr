@@ -141,7 +141,7 @@ Optional step during plan creation: the user connects Strava and lets Peakr read
 
 ## Energy & body rules (nutrition add-on)
 - **Resting energy**: Mifflin-St Jeor by default; Katch-McArdle if body fat % is known. Overridable by Health Connect/HealthKit resting energy.
-- **Active energy**: from completed workouts (Strava/Health data) or, if missing, estimated from planned workouts (duration, zone, body weight). Use only ~75 % of device-reported active energy by default (configurable) because wearables tend to overestimate.
+- **Active energy**: from completed workouts (Strava/Health data) or, if missing, estimated from planned workouts (duration, zone, body weight). Count device-reported active energy with a correction factor (default 0.8, configurable) because wearables tend to overestimate. Steps are the everyday-movement estimate when no wearable day total exists.
 - **Energy balance**: intake − (resting + active). Fat estimate 7,700 kcal per kg, shown as an estimate.
 - **Weight trend**: exponentially smoothed trend line; day-to-day scale changes are labelled as water/glycogen noise.
 - **Body composition** (optional): body fat %, body measurements (waist, hips, chest, arms, thighs …) with measurement instructions, progress photos (stored privately).
@@ -176,7 +176,7 @@ Optional step during plan creation: the user connects Strava and lets Peakr read
 - **Garmin Health API**: the data behind the Health tab (see "Health"). Available on the Personal tier for one's own data and on the Starter tier for all users of the app.
 - **Migrating from another gym app**: the path that ships is the **CSV/file export** those apps give their own users, imported with the mapping UI in the Gym area – no paid subscription on the user's side to get their own history out. An optional API connection (e.g. a personal API key behind a paid tier) stays behind a feature flag and is never the only way in. See WORKOUTS.md §8.7.
 - **Food database**: **Open Food Facts** for barcode lookup (free, ODbL – show attribution, cache results, let users correct entries). Users can create custom foods and recipes.
-- **Health Connect / HealthKit**: read weight, steps, resting and active energy, workouts; write nutrition and workouts where allowed. Request only the permissions actually needed.
+- **Health Connect / HealthKit**: read weight, body fat, steps, resting and active energy, nutrition and workouts; write nutrition and workouts where allowed. Request only the permissions actually needed. The Body add-on asks for its record types separately and only while the add-on is active; those values stay on the device.
 
 ## Monetisation
 - **Free without subscription**: on the **website** the calculators ("Tools"), the full quiz and the forecast with the week-1 preview; in the **app** only the quiz, the forecast and that same week-1 preview. There is **no free tier and no free tools inside the app** – after the forecast the paywall is the only way forward.
@@ -301,7 +301,12 @@ The user hands over tasks one after another and expects them to be worked off wh
 - All energy and body math lives in /packages/engine, never in UI code
 - Calculations use the smoothed trend weight, never single weigh-ins
 - Every estimate (body fat via Navy, fat/lean mass, adaptive TDEE, workout energy) is labelled as an estimate in the UI
-- Data priority when sources overlap: manual entry > device/Health data > estimate
+- Data priority when sources overlap: manual entry > device/Health data > estimate. Per value and day (engine `pickBySource`):
+  - **Weight, body fat**: check-in > Garmin (scale via Garmin Connect) > Health Connect / HealthKit.
+  - **Intake**: Peakr diary (any entry that day) > Health Connect / HealthKit nutrition. Nutrition never comes from Garmin.
+  - **Resting energy**: Garmin (`bmrKilocalories`) > Health Connect / HealthKit > formula (Katch-McArdle with a body fat % of the last 30 days, else Mifflin-St Jeor).
+  - **Active energy**: a wearable's whole-day total (Garmin > Health Connect / HealthKit) × correction; otherwise workouts (health-store workout energy × correction > completed activities estimated from heart rate or MET > planned sessions) plus everyday movement (steps > default share of BMR).
+  - **Steps**: Garmin > Health Connect / HealthKit.
 - Days marked "incomplete" are excluded from adaptive TDEE and "calculation vs. scale"
 - Progress photos: private storage only, signed URLs, RLS per user
 
