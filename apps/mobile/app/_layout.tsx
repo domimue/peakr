@@ -27,6 +27,7 @@ import { TrialReminderTap } from '@/features/billing/trial-reminder-tap';
 import { LiveSessionRestore } from '@/features/gym/live-session-restore';
 import { captureInstallReferrer } from '@/features/deep-links/install-referrer';
 import { DailyReminder } from '@/features/notifications/daily-reminder';
+import { BodyCheckInReminder } from '@/features/body/check-in-reminder';
 import { registerPushToken } from '@/features/notifications/push';
 import { useSettingsStore } from '@/features/settings/settings-store';
 import { useWatchAutoSync } from '@/features/watch/auto-sync';
@@ -75,6 +76,7 @@ export default function RootLayout() {
       <QueryClientProvider client={queryClient}>
         <BackgroundSync />
         <DailyReminder />
+        <BodyCheckInReminder />
         <TrialReminderTap />
         {success ? <LiveSessionRestore /> : null}
         <ThemeProvider value={toNavigationTheme(theme)}>

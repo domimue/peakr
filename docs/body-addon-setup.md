@@ -160,3 +160,35 @@ already stored with its reason.
   scan and product screens; users can correct any entry (saved as their own food, which wins).
 - Offline: diary, own foods, recipes and every product scanned before work without network; OFF
   only adds results. Everything syncs later through the normal Body sync.
+
+## 11. Phase 15 – body check-in
+
+- Apply `20261107000000_body_checkin.sql`. It adds:
+  - `body_measurements`: measurements in cm, body fat with its source (`manual`, `navy` = US
+    Navy estimate, `scale` = Health data), a note, and photo **paths**. Same RLS as the other Body
+    tables.
+  - `intake_kcal` / `active_kcal` on `body_days` (the daily kcal quick entry) and `source` on
+    `body_checkins` (`import` for Körper-Tracker data).
+  - The **private** bucket `body-photos` (JPEG/PNG/HEIC/WebP, 5 MB each). Paths are
+    `<user id>/<check-in id>/<slot>.<ext>`. Only the owner reads them, only an active add-on
+    uploads, and deleting your own photos always works. The app only ever shows them through
+    signed URLs that last one hour, never a public URL. `delete-account` already empties every
+    bucket of the user.
+  - Checked against a local Postgres: locked → insert and upload refused; active → allowed;
+    another user's folder → refused; expired → read allowed, upload refused; the bucket is not
+    public.
+- New native module: `expo-image-picker`, for the camera and the photo library. The permission
+  texts are in `app.json` and microphone access is off. A new development build is needed.
+- Photos are stored on the phone first (`Documents/body-photos`), so a check-in works offline.
+  The Body sync uploads them later. A replaced or removed photo is deleted from the bucket by the
+  next sync.
+- Reminder on the measuring day (Body → Check-in → Rhythm & reminder; default Monday):
+  - On days with a workout reminder it adds one line to that push. It never sends a second one.
+  - Other days get one local notification at the daily reminder time.
+  - It is off when the add-on ends or the user turns it off.
+- Import: Body → Check-in → "Import Körper-Tracker backup" (the prototype's JSON).
+  - Weigh-ins, measurements, body fat, notes, daily kcal, height, sex and the rhythm come along.
+  - Photos cannot, because they are not in the file. The app says how many were left out.
+  - Importing the same file twice adds nothing.
+- Export: CSV (every record type in one sheet) or the complete Peakr JSON. Both only list which
+  photo slots exist; neither contains a link.

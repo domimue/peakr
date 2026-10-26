@@ -1,7 +1,7 @@
 -- Phase 15: body check-in. Measurements, body fat, a note and progress photos per check-in; the
 -- daily kcal quick entry on `body_days`; weigh-ins remember where they came from. Same rules as
 -- the other Body tables. Photos live in the private bucket `body-photos` under
--- `<user id>/<check-in id>/<slot>.jpg`: only the owner reads them (signed URLs, never public),
+-- `<user id>/<check-in id>/<slot>.<ext>`: only the owner reads them (signed URLs, never public),
 -- only an active add-on writes them.
 
 alter table public.body_checkins
@@ -50,10 +50,13 @@ revoke all on public.body_measurements from anon, authenticated;
 grant select, insert, update, delete on public.body_measurements to authenticated;
 
 -- ---------------------------------------------------------------------------------------------
--- Private bucket for progress photos (JPEG, at most 5 MB each).
+-- Private bucket for progress photos (JPEG, PNG, HEIC or WebP, at most 5 MB each).
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-values ('body-photos', 'body-photos', false, 5242880, array['image/jpeg'])
+values (
+  'body-photos', 'body-photos', false, 5242880,
+  array['image/jpeg', 'image/png', 'image/heic', 'image/webp']
+)
 on conflict (id) do update set public = false;
 
 create policy "Users read their own progress photos"

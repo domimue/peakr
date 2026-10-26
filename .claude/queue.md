@@ -7,11 +7,13 @@ Hourly check-in (scheduled task): `trig_01CLCwz6RBurU45vsaGJYsmn` (this branch, 
 
 ## Open
 
-- Phase 15 – Body check-in (rhythm + reminder, weigh-ins, daily kcal quick entry, body fat incl.
-  Navy estimate, measurements with instructions and plausibility, private progress photos with
-  comparison, notes, history with edit/delete, JSON/CSV export, Körper-Tracker import)
+(empty)
 
 ## Done
+
+- Phase 15 – Body check-in; waits on the user for the Supabase migration
+  `20261107000000_body_checkin.sql` (private `body-photos` bucket) and a new dev build
+  (expo-image-picker) (docs/body-addon-setup.md §11)
 
 - Phase 14 – Food logging with barcode scan; waits on the user for the Supabase migration,
   a new dev build (expo-camera), the Play health declaration for WRITE_NUTRITION and the OFF

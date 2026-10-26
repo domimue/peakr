@@ -106,3 +106,11 @@ jest.mock('expo-camera', () => {
     useCameraPermissions: jest.fn(() => [{ granted: true }, jest.fn()]),
   };
 });
+
+// expo-image-picker is native: tests set what the camera or library returns per case.
+jest.mock('expo-image-picker', () => ({
+  requestCameraPermissionsAsync: jest.fn(() => Promise.resolve({ granted: true })),
+  requestMediaLibraryPermissionsAsync: jest.fn(() => Promise.resolve({ granted: true })),
+  launchCameraAsync: jest.fn(() => Promise.resolve({ canceled: true, assets: null })),
+  launchImageLibraryAsync: jest.fn(() => Promise.resolve({ canceled: true, assets: null })),
+}));

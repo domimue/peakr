@@ -468,12 +468,17 @@ export async function saveMeasurement(draft: MeasurementDraft): Promise<Measurem
     if (picked === null) {
       removeLocalCopy(old?.localUri ?? null);
       // Keep the path with no local file so the sync removes the upload, then drops the slot.
-      if (old?.remotePath)
-        photos[slot] = { localUri: null, remotePath: old.remotePath, removed: true };
+      const path = old?.remotePath ?? old?.stalePath;
+      if (path) photos[slot] = { localUri: null, remotePath: path, removed: true };
       else delete photos[slot];
     } else if (picked !== old?.localUri) {
       removeLocalCopy(old?.localUri ?? null);
-      photos[slot] = { localUri: keepLocalCopy(picked, id, slot), remotePath: null };
+      const stale = old?.remotePath ?? old?.stalePath;
+      photos[slot] = {
+        localUri: keepLocalCopy(picked, id, slot),
+        remotePath: null,
+        ...(stale ? { stalePath: stale } : {}),
+      };
     }
   }
   const row = {
@@ -1015,7 +1020,9 @@ SPECS.push({
 type Photos = Measurement['photos'];
 
 const pendingPhotos = (photos: Photos) =>
-  Object.values(photos).some((p) => p && (p.removed || (p.localUri && !p.remotePath)));
+  Object.values(photos).some(
+    (p) => p && (p.removed || p.stalePath || (p.localUri && !p.remotePath)),
+  );
 
 const serverPhotos = (photos: Photos) =>
   Object.fromEntries(
@@ -1093,9 +1100,10 @@ async function syncPhotos(client: SupabaseClient, userId: string): Promise<void>
   const rows = await db.select().from(bodyMeasurements).where(eq(bodyMeasurements.dirty, true));
   for (const row of rows) {
     if (row.deleted) {
-      const paths = PHOTO_SLOTS.map((s) => row.photos[s]?.remotePath).filter((p): p is string =>
-        Boolean(p),
-      );
+      const paths = PHOTO_SLOTS.flatMap((s) => [
+        row.photos[s]?.remotePath,
+        row.photos[s]?.stalePath,
+      ]).filter((p): p is string => Boolean(p));
       await removeRemotePhotos(client, paths);
       continue;
     }
@@ -1105,12 +1113,23 @@ async function syncPhotos(client: SupabaseClient, userId: string): Promise<void>
       const p = photos[slot];
       if (!p) continue;
       if (p.removed) {
-        if (p.remotePath) await removeRemotePhotos(client, [p.remotePath]);
-        delete photos[slot];
-      } else if (p.localUri && !p.remotePath) {
-        const path = await uploadPhoto(client, p.localUri, remotePath(userId, row.id, slot));
-        if (path) photos[slot] = { ...p, remotePath: path };
+        if (!p.remotePath || (await removeRemotePhotos(client, [p.remotePath])))
+          delete photos[slot];
+        continue;
       }
+      let next = p;
+      if (next.localUri && !next.remotePath) {
+        const target = remotePath(userId, row.id, slot, next.localUri);
+        const path = await uploadPhoto(client, next.localUri, target);
+        if (path) next = { ...next, remotePath: path };
+      }
+      // The replaced upload goes once the new one is up (same path: already overwritten).
+      if (next.remotePath && next.stalePath) {
+        const { stalePath, ...rest } = next;
+        if (stalePath === next.remotePath || (await removeRemotePhotos(client, [stalePath])))
+          next = rest;
+      }
+      photos[slot] = next;
     }
     await db.update(bodyMeasurements).set({ photos }).where(eq(bodyMeasurements.id, row.id));
   }

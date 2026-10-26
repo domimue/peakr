@@ -12,6 +12,7 @@ import { useForecast, useWeatherSettings } from '../weather/queries';
 import { askNotificationPermission, ensureReminderChannel } from './permission';
 import { useReminderSettings } from './queries';
 import { reminderDays } from './reminder-days';
+import { useReminderExtras } from './reminder-extras';
 import { deviceTimeZone, uploadReminderDays, uploadReminderSettings } from './reminder-remote';
 
 const TYPE = 'reminder';
@@ -31,6 +32,7 @@ export function DailyReminder() {
   const { data: stored } = usePlan();
   const { data: weather } = useWeatherSettings();
   const { data: forecast } = useForecast();
+  const extras = useReminderExtras((s) => s.lines);
   const sentSettings = useRef<string | null>(null);
   const sentDays = useRef<string | null>(null);
 
@@ -76,13 +78,13 @@ export function DailyReminder() {
       forecast?.status === 'ok' ? forecast.forecast : null,
       weather,
       today,
-    );
+    ).map((d) => (extras[d.date] ? { ...d, body: `${d.body} ${extras[d.date]}` } : d));
     const key = JSON.stringify([userId, today, days]);
     if (sentDays.current === key) return;
     void uploadReminderDays(userId, days, today).then((ok) => {
       if (ok) sentDays.current = key;
     });
-  }, [t, i18n.language, userId, stored, weather, forecast]);
+  }, [t, i18n.language, userId, stored, weather, forecast, extras]);
 
   useEffect(() => {
     if (Platform.OS === 'web') return;

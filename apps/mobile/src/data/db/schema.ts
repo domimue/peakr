@@ -565,6 +565,8 @@ export interface BodyPhoto {
   remotePath: string | null;
   /** Removed on this device; the sync deletes the upload and then drops the slot. */
   removed?: boolean;
+  /** An earlier upload this photo replaced; removed by the sync once the new one is up. */
+  stalePath?: string;
 }
 
 // Body check-in (Phase 15): measurements, body fat, photos and a note for a day. Weigh-ins are
