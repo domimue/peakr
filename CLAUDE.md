@@ -316,5 +316,8 @@ The user hands over tasks one after another and expects them to be worked off wh
 - Intake floor: max(BMR, 1,200 kcal women / 1,500 kcal men)
 - No loss goal if current BMI < 18.5 or the target weight results in BMI < 18.5
 - Under-18: only "maintain" allowed
+- Too-fast-loss warning: trend loss above 1.5 % of body weight per week, two weeks in a row → gentle warning and the suggestion to eat more
+- Rate presets: losing 0.25 / 0.5 / 0.75 / 1.0 kg/week, gaining 0.1 / 0.25 / 0.5 kg/week (custom in 0.05 steps); presets above the max rate are shown disabled with the reason
+- Weekly check-in suggestions change the daily target by at most ±150 kcal per week; the user accepts them, nothing changes automatically
 - Every target change stores its reason (user, adaptive recalculation, safety clamp)
 - Wording: gentle, non-judgmental, no shame language, no streak pressure for weighing, never praise extreme deficits or very fast loss

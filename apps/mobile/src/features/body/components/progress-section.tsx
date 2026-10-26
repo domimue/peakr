@@ -3,7 +3,10 @@ import { StyleSheet, View } from 'react-native';
 
 import { Card, Icon, ListState, numeric, spacing, StatTile, Text, useTheme } from '@/ui';
 
+import type { AddonGuard } from '@/features/billing/model';
+
 import { useBodyModel } from '../model';
+import { GoalCard } from './goal-card';
 
 const signed = (n: number, decimals = 1) => {
   const f = 10 ** decimals;
@@ -17,7 +20,7 @@ const signed = (n: number, decimals = 1) => {
  * mass, and the coach. Every number here is an estimate and says so; the wording never praises a
  * fast loss and never shames a gain.
  */
-export function ProgressSection() {
+export function ProgressSection({ guard }: { guard: AddonGuard }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const model = useBodyModel();
@@ -32,6 +35,7 @@ export function ProgressSection() {
   return (
     <View style={styles.stack} testID="body-progress">
       <Text variant="heading">{t('bodyAddon.progress.title')}</Text>
+      <GoalCard guard={guard} />
       {model.tooFastLoss ? (
         <Card testID="body-too-fast">
           <Text>{t('bodyAddon.progress.tooFast')}</Text>

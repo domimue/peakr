@@ -79,3 +79,6 @@ export function useIncompleteDays() {
     enabled: guard.canRead,
   });
 }
+
+/** Stores a new goal version (set, change, pause, accepted suggestion) with its reason. */
+export const useSaveGoal = () => useWrite(repo.saveGoal);

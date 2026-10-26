@@ -11,6 +11,7 @@ export * from './components/progress-bar';
 export * from './components/reveal';
 export * from './components/screen';
 export * from './components/segmented-control';
+export * from './components/slider';
 export * from './components/stepper';
 export * from './components/text';
 export * from './components/zone-table';

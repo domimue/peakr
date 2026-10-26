@@ -130,3 +130,17 @@ days, ±100 kcal per week, every estimate stored with its basis), "calculation v
 weeks only, confidence), fat and lean mass, and the weight goal safety rules. There is no goal
 screen yet: targets are "maintain" until the goal setting is built; every target change is
 already stored with its reason.
+
+## 9. Phase 13 – weight goal
+
+- Apply `20261105000000_body_goals.sql` (goal versions with their reason; same RLS as the other
+  Body tables).
+- Engine `packages/engine/src/energy/goal.ts`: presets, targets (adaptive TDEE once available,
+  else formula), eat-back (default 50 %), weekly mode, protein by deficit, forecast vs. real pace,
+  weekly check-in (±150 kcal), plateau (≥ 21 days flat despite a logged deficit), target reached
+  + reverse diet (+100 kcal per week), training interaction (heavy, race and taper weeks; key
+  days), rapid-loss warning (> 1.5 %/week two weeks in a row).
+- App: Body → Progress → goal card; setup at `/body/goal` (current weight → target → rate with
+  presets and slider → summary). Every change, pause or accepted suggestion is a new goal version.
+- Reverse diet is suggested, not automatic: after "Switch to maintain" the target starts at the
+  old deficit and the card offers "+100 kcal" once a week.

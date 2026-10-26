@@ -30,6 +30,7 @@ export default function BodyLayout() {
       <Stack.Screen name="today" options={{ title: t('bodyAddon.sections.today') }} />
       <Stack.Screen name="check-in" options={{ title: t('bodyAddon.sections.checkIn') }} />
       <Stack.Screen name="progress" options={{ title: t('bodyAddon.sections.progress') }} />
+      <Stack.Screen name="goal" options={{ title: t('bodyAddon.goal.title') }} />
     </Stack>
   );
 }

@@ -7,12 +7,12 @@ Hourly check-in (scheduled task): `trig_01CLCwz6RBurU45vsaGJYsmn` (this branch, 
 
 ## Open
 
-- Phase 13 – Weight goal & weekly rate (engine goal module with presets, targets, eat-back,
-  weekly mode, protein, forecast, weekly check-in, plateau, target reached, training load;
-  safety tests first; Body goal setup flow, change/pause with reason)
+_(none)_
 
 ## Done
 
+- Phase 13 – Weight goal & weekly rate; waits on the user for the Supabase migration
+  `20261105000000_body_goals.sql` (docs/body-addon-setup.md §9)
 - Phase 12 – Energy engine & health data; waits on the user for the Play health-permission
   declaration, the Supabase migration and a check of Garmin `bmrKilocalories`
   (docs/body-addon-setup.md §8); HealthKit stays a stub until the iOS release

@@ -2652,6 +2652,91 @@
         "intake_kcal": "nutrition",
         "workout_kcal": "workouts"
       }
+    },
+    "goal": {
+      "title": "Weight goal",
+      "locked": "Setting a goal needs the Body add-on.",
+      "none": "No goal yet. Your targets stay at maintenance until you set one.",
+      "set": "Set a weight goal",
+      "step": {
+        "current": "Step 1 of 4",
+        "target": "Step 2 of 4",
+        "rate": "Step 3 of 4",
+        "summary": "Step 4 of 4"
+      },
+      "currentTitle": "Your current weight",
+      "fromTrend": "From your weight trend – not a single weigh-in.",
+      "targetTitle": "Your target",
+      "change": "Change my weight",
+      "targetWeight": "Target weight",
+      "kinds": {
+        "lose": "Lose weight",
+        "maintain": "Keep my weight",
+        "gain": "Gain weight"
+      },
+      "rateTitle": "How fast?",
+      "presets": {
+        "gentle": "Gentle",
+        "recommended": "Recommended",
+        "ambitious": "Ambitious",
+        "aggressive": "Aggressive",
+        "lean": "Lean",
+        "steady": "Steady",
+        "fast": "Faster"
+      },
+      "preset": "{{name}} · {{rate}} kg/week",
+      "aboveMax": "Not available: above 1 % of your weight per week (max {{max}} kg/week).",
+      "custom": "Custom pace",
+      "rate": "{{rate}} kg/week",
+      "dailyKcal": "About {{kcal}} kcal per day",
+      "todayKcal": "Today: {{kcal}} kcal",
+      "protein": "Protein: {{grams}} g ({{perKg}} g/kg)",
+      "goalDate": "Goal date at this pace: {{date}}",
+      "floor": "Held at your minimum of {{kcal}} kcal per day – that gives a realistic pace of {{rate}} kg/week.",
+      "basisAdaptive": "Based on your adaptive maintenance of {{kcal}} kcal.",
+      "basisFormula": "Based on the formula estimate of {{kcal}} kcal until there is enough data for your own.",
+      "summaryTitle": "Summary",
+      "summaryMaintain": "Keep your weight around {{kg}} kg.",
+      "summaryChange": "From {{from}} kg to {{to}} kg at {{rate}} kg/week.",
+      "eatBack": "Eat back workout energy",
+      "eatBackHint": "Share of your completed workouts’ energy added to the day’s target.",
+      "less": "Less",
+      "more": "More",
+      "daily": "Day by day",
+      "weekly": "Weekly",
+      "dailyHint": "Each day has the same base; completed workouts add energy back.",
+      "weeklyHint": "Same weekly total, more on planned training days and less on rest days.",
+      "save": "Save goal",
+      "next": "Next",
+      "back": "Back",
+      "changeGoal": "Change goal",
+      "pause": "Pause goal",
+      "resume": "Resume goal",
+      "paused": "Your goal is paused – your targets are at maintenance.",
+      "planned": "Goal date at your chosen pace: {{date}}",
+      "real": "At your real pace ({{rate}} kg/week): {{date}}",
+      "realUnknown": "Your real pace shows after two weeks of weigh-ins.",
+      "checkIn": {
+        "onTrack": "This week: on track ({{rate}} kg/week).",
+        "tooFast": "This week: faster than planned ({{rate}} kg/week). A little more food keeps it sustainable.",
+        "tooSlow": "This week: slower than planned ({{rate}} kg/week). A small change can help – or give it another week."
+      },
+      "apply": "Adjust target {{kcal}} kcal/day",
+      "plateau": "Your trend has not moved for three weeks although your log shows a deficit. Check how accurately you log (portions, drinks, oils) – or take a 1–2 week break at maintenance.",
+      "dietBreak": "Take a break at maintenance",
+      "reached": "You have reached your target. Switching to maintain is a good next step.",
+      "reverse": "A reverse diet brings you back to maintenance in {{weeks}} weeks, +{{step}} kcal per week.",
+      "toMaintain": "Switch to maintain",
+      "reverseStep": "Reverse diet: {{kcal}} kcal below maintenance.",
+      "reverseApply": "Next week: +{{step}} kcal",
+      "training": {
+        "highLoad": "A heavy training week – a smaller deficit (about {{kcal}} kcal) supports your sessions.",
+        "raceWeek": "Race week – eat closer to maintenance (about {{kcal}} kcal deficit at most).",
+        "taper": "Taper week – a smaller deficit (about {{kcal}} kcal) helps you arrive fresh."
+      },
+      "keyDays_one": "Your deficit is large for this week’s key session – consider eating more on that day.",
+      "keyDays_other": "Your deficit is large for this week’s {{count}} key sessions – consider eating more on those days.",
+      "estimate": "All targets are estimates and adapt as your data grows."
     }
   }
 }

@@ -1,3 +1,4 @@
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
@@ -44,6 +45,15 @@ export function DiarySection({ guard }: { guard: AddonGuard }) {
     <View style={styles.stack} testID="body-diary">
       <Card style={styles.stack}>
         <Text variant="heading">{t('bodyAddon.energy.title')}</Text>
+        {energy && !energy.goal && guard.canWrite ? (
+          <Button
+            small
+            variant="secondary"
+            testID="body-set-goal"
+            label={t('bodyAddon.goal.set')}
+            onPress={() => router.push('/body/goal')}
+          />
+        ) : null}
         {energy ? (
           <>
             <Text variant="title" style={numeric}>

@@ -1,6 +1,14 @@
 import {
   adaptiveTdee,
   allWorkouts,
+  completedWorkoutKcal,
+  energyBasis,
+  estimateWorkoutKcal,
+  goalSnapshot,
+  weekLoadContext,
+  weekTags,
+  type EnergyBasis,
+  type GoalSnapshot,
   bodyComposition,
   calculationVsScale,
   energyDays,
@@ -65,6 +73,13 @@ export interface BodyModel {
   scale: ScaleComparison;
   composition: BodyComposition;
   tooFastLoss: boolean;
+  /** Maintenance used for targets (adaptive once available, else formula). */
+  basis: EnergyBasis | null;
+  /** The latest trend weight (else the profile weight). */
+  trendKg: number;
+  /** Current goal version (null = none yet). Paused goals count as "maintain". */
+  goal: repo.StoredGoal | null;
+  goalSnapshot: GoalSnapshot | null;
 }
 
 interface RawInputs {
@@ -76,10 +91,11 @@ interface RawInputs {
   incompleteDays: string[];
   estimates: repo.StoredTdeeEstimate[];
   targets: repo.StoredTargetChange[];
+  goals: repo.StoredGoal[];
 }
 
 async function loadInputs(from: string): Promise<RawInputs> {
-  const [food, checkIns, device, health, activities, incompleteDays, estimates, targets] =
+  const [food, checkIns, device, health, activities, incompleteDays, estimates, targets, goals] =
     await Promise.all([
       repo.listFood(),
       repo.listCheckIns(),
@@ -92,6 +108,7 @@ async function loadInputs(from: string): Promise<RawInputs> {
       repo.listIncompleteDays(),
       repo.listTdeeEstimates(),
       repo.listTargetChanges(),
+      repo.listGoals(),
     ]);
   return {
     food: food.filter((f) => f.day >= from),
@@ -102,6 +119,7 @@ async function loadInputs(from: string): Promise<RawInputs> {
     incompleteDays,
     estimates,
     targets,
+    goals,
   };
 }
 
@@ -189,13 +207,51 @@ export function useBodyModel(): BodyModel | null {
         ? adaptive.estimate.correctionKcal
         : (raw.estimates.at(-1)?.correctionKcal ?? 0);
     const todayDay = days.at(-1) as ModelDay;
-    const target = intakeTarget({
+    const maintenance = intakeTarget({
       tdeeKcal: todayDay.restingKcal + todayDay.activeKcal + correctionKcal,
       bmrKcal: todayDay.restingKcal,
       sex: p.sex,
       kind: 'maintain',
     });
     const monday = mondayOf(today);
+    const trendKg = trend.at(-1)?.trendKg ?? p.weightKg;
+    const basis = energyBasis({ days, today, adaptive });
+    const goal = raw.goals.at(-1) ?? null;
+    let snapshot: GoalSnapshot | null = null;
+    if (goal && !goal.paused && basis) {
+      const week = stored?.state.plan.weeks.find((w) => w.startDate === monday);
+      const weekWorkouts =
+        week && stored
+          ? week.workouts.filter((w) => statusOf(stored.state, w.id) !== 'skipped')
+          : [];
+      const plannedWeekKcal = [0, 1, 2, 3, 4, 5, 6].map((i) =>
+        weekWorkouts
+          .filter((w) => w.date === shift(monday, i))
+          .reduce((sum, w) => sum + estimateWorkoutKcal(w, trendKg), 0),
+      );
+      const tags = week && stored ? weekTags(week, stored.input, stored.state.plan.targetDate) : [];
+      snapshot = goalSnapshot({
+        goal,
+        basis,
+        sex: p.sex,
+        trendKg,
+        todayWorkoutKcal: completedWorkoutKcal(todayDay.active, todayDay.restingKcal),
+        plannedWeekKcal,
+        weekdayIndex: daysBetween(monday, today),
+        trend,
+        days,
+        today,
+        week: {
+          ...weekLoadContext(stored?.state.plan.weeks ?? [], monday),
+          raceWeek: tags.includes('race'),
+          taper: tags.includes('taper'),
+          keyDays: [...new Set(weekWorkouts.filter((w) => w.hard).map((w) => w.date))],
+        },
+      });
+    }
+    const target = snapshot
+      ? { intakeKcal: snapshot.todayKcal, floorApplied: snapshot.targets.floorApplied }
+      : maintenance;
     const fatPoints = [
       ...raw.checkIns
         .filter((c) => c.bodyFatPct !== null)
@@ -229,6 +285,10 @@ export function useBodyModel(): BodyModel | null {
         current: latestFat && daysBetween(latestFat.day, today) <= 30 ? latestFat : null,
       }),
       tooFastLoss: rapidLossWarning(trend, today).warning,
+      basis,
+      trendKg,
+      goal,
+      goalSnapshot: snapshot,
     };
   }, [inputs.data, profile.data, plan.data, from, today]);
 
@@ -239,20 +299,26 @@ export function useBodyModel(): BodyModel | null {
     if (adaptive.status === 'ok' && !raw.estimates.some((e) => e.date === adaptive.estimate.date)) {
       void repo.saveTdeeEstimate({ ...adaptive.estimate, basis: { ...adaptive.estimate.basis } });
     }
-    const base = adaptive.status === 'ok' ? adaptive.estimate.tdeeKcal : null;
-    if (base !== null) {
-      const t = intakeTarget({
-        tdeeKcal: base,
-        bmrKcal: model.today.restingKcal,
-        sex: profile.data?.profile?.sex ?? 'female',
-        kind: 'maintain',
-        reason: 'adaptive',
-      });
-      const change = nextTargetChange(raw.targets.at(-1) ?? null, t, todayIso());
-      if (change && !raw.targets.some((x) => x.date === change.date))
+    // The goal's daily target (or maintenance) – stored whenever it moves, with its reason.
+    const snap = model.goalSnapshot;
+    const daily = snap ? snap.targets.dailyKcal : (model.basis?.tdeeKcal ?? null);
+    if (daily !== null) {
+      const reason =
+        snap?.targets.reason === 'safety_clamp'
+          ? 'safety_clamp'
+          : model.basis?.source === 'adaptive'
+            ? 'adaptive'
+            : (model.goal?.reason ?? 'user');
+      const change = nextTargetChange(
+        raw.targets.at(-1) ?? null,
+        { intakeKcal: daily, reason },
+        todayIso(),
+      );
+      if (change && !raw.targets.some((x) => x.date === change.date)) {
         void repo.saveTargetChange(change);
+      }
     }
-  }, [model, guard.canWrite, profile.data]);
+  }, [model, guard.canWrite]);
 
   if (!model) return null;
   const { raw: _raw, ...rest } = model;

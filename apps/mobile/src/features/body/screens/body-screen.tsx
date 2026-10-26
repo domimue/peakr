@@ -95,7 +95,7 @@ export function BodyScreen({
       ) : section === 'checkIn' ? (
         <CheckInSection guard={guard} />
       ) : (
-        <ProgressSection />
+        <ProgressSection guard={guard} />
       )}
 
       <Button
