@@ -40,6 +40,9 @@ refuses it for the `production` profile even if the variable leaks into that bui
    (`ORG_GRADLE_PROJECT_reactNativeArchitectures` in `eas.json`) – every current Android phone.
    With all four processor types the native C++ steps ran out of memory on the free EAS worker
    ("Gradle build daemon disappeared unexpectedly"). Store builds keep all four.
+   They also set `PEAKR_LOW_MEMORY_BUILD=1`: the config plugin `plugins/with-build-limits.js`
+   then runs Gradle with at most two workers, without parallel modules, and a 3 GB heap, so the
+   native steps do not stall on the free worker. Slower per step, but it finishes.
 
 ## Optional: account, sync and maps
 

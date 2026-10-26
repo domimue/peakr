@@ -135,6 +135,7 @@
         }
       ],
       "./plugins/with-share-gpx",
+      "./plugins/with-build-limits",
       [
         "expo-location",
         {
