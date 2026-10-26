@@ -181,7 +181,7 @@ export function weightTrend(
     if (!Number.isFinite(w.weightKg) || w.weightKg <= 0) continue;
     byDay.set(w.date, [...(byDay.get(w.date) ?? []), w.weightKg]);
   }
-  const days = [...byDay.entries()].sort(([a], [b]) => (a < b ? -1 : 1));
+  const days = [...byDay.entries()].sort(([a], [b]) => a.localeCompare(b));
   const points: TrendPoint[] = [];
   let trend: number | null = null;
   for (const [date, values] of days) {
