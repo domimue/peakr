@@ -288,3 +288,27 @@ The user hands over tasks one after another and expects them to be worked off wh
 - **GitHub is the main path.** `@claude` in an issue or PR runs `.github/workflows/claude.yml` and labels the item `claude-queue`. If a run stops early (usage limit), `.github/workflows/claude-resume.yml` takes the oldest labelled item every hour and continues it. Remove the label when the task is complete or needs the user's decision; leave it while work remains.
 - **In a chat session**: every new prompt goes into `.claude/queue.md` under "Open"; while anything is open the hourly check-in (scheduled task, ID in that file) is enabled, and disabled when the queue is empty. Recreate it if it is missing.
 - Always: commit and push in small steps so nothing is lost when the limit stops a run, and only report back when a task is done, blocked, or needs a decision.
+
+  ## Add-on rules
+- Nutrition & body is an add-on inside Peakr, never a separate app or module with its own navigation, onboarding or design
+- Gating only via the entitlement "body_nutrition" and the central guard; checked client-side for UI and server-side for data
+- Teil A features must never depend on the add-on; the add-on may read training data from Teil A
+- Locked states show previews and a paywall entry point, never empty or broken screens
+- Cancelled add-on: keep the data, allow export, lock new entries
+
+## Energy & body rules
+- All energy and body math lives in /packages/engine, never in UI code
+- Calculations use the smoothed trend weight, never single weigh-ins
+- Every estimate (body fat via Navy, fat/lean mass, adaptive TDEE, workout energy) is labelled as an estimate in the UI
+- Data priority when sources overlap: manual entry > device/Health data > estimate
+- Days marked "incomplete" are excluded from adaptive TDEE and "calculation vs. scale"
+- Progress photos: private storage only, signed URLs, RLS per user
+
+## Weight goal rules
+- Safety rules (max rate, intake floor, BMI limits, under-18 block, too-fast-loss warning) are enforced in the engine and cannot be overridden by settings
+- Max loss rate: 1 % of body weight per week, absolute cap 1.0 kg/week
+- Intake floor: max(BMR, 1,200 kcal women / 1,500 kcal men)
+- No loss goal if current BMI < 18.5 or the target weight results in BMI < 18.5
+- Under-18: only "maintain" allowed
+- Every target change stores its reason (user, adaptive recalculation, safety clamp)
+- Wording: gentle, non-judgmental, no shame language, no streak pressure for weighing, never praise extreme deficits or very fast loss
