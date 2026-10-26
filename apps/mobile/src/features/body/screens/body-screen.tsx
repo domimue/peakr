@@ -50,8 +50,8 @@ export function BodyScreen({
     );
   }
 
-  const doExport = async () => {
-    const result = await exportBodyData(todayIso());
+  const doExport = async (format: 'csv' | 'json') => {
+    const result = await exportBodyData(todayIso(), format);
     setExportMessage(result === 'shared' ? null : t('bodyAddon.export.failed'));
   };
 
@@ -102,7 +102,13 @@ export function BodyScreen({
         variant="secondary"
         icon="upload"
         label={t('bodyAddon.export.action')}
-        onPress={() => void doExport()}
+        onPress={() => void doExport('csv')}
+      />
+      <Button
+        variant="secondary"
+        icon="upload"
+        label={t('bodyAddon.export.actionJson')}
+        onPress={() => void doExport('json')}
       />
       {exportMessage ? <Text tone="secondary">{exportMessage}</Text> : null}
     </Screen>

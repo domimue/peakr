@@ -563,6 +563,8 @@ export const bodyFoods = sqliteTable(
 export interface BodyPhoto {
   localUri: string | null;
   remotePath: string | null;
+  /** Removed on this device; the sync deletes the upload and then drops the slot. */
+  removed?: boolean;
 }
 
 // Body check-in (Phase 15): measurements, body fat, photos and a note for a day. Weigh-ins are

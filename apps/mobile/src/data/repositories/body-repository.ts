@@ -11,11 +11,23 @@ import {
   bodyFoodEntries,
   bodyFoods,
   bodyGoals,
+  bodyMeasurements,
   bodyTargetChanges,
   bodyTdeeEstimates,
 } from '../db/schema';
+import {
+  keepLocalCopy,
+  PHOTO_SLOTS,
+  removeLocalCopy,
+  removeRemotePhotos,
+  remotePath,
+  uploadPhoto,
+  type PhotoSlot,
+} from '../body-photos';
+import type { BodyPhoto } from '../db/schema';
 import { newId } from '../ids';
 import { supabase } from '../supabase';
+import { parseCheckInSettings, type CheckInSettings } from '../../features/body/check-in-settings';
 import type { Meal } from '../../features/body/meals';
 
 /**
@@ -54,7 +66,35 @@ export interface CheckIn {
   waistCm: number | null;
   bodyFatPct: number | null;
   note: string | null;
+  /** `import`: came from a Körper-Tracker backup. */
+  source?: 'manual' | 'import';
   createdAt: string;
+}
+
+/** A body check-in: measurements, body fat, photos and a note for one day (Phase 15). */
+export interface Measurement {
+  id: string;
+  day: string;
+  /** Circumferences in cm, keyed like the engine's `MEASUREMENTS`. */
+  values: Record<string, number>;
+  bodyFatPct: number | null;
+  bodyFatSource: 'manual' | 'navy' | 'scale' | null;
+  note: string | null;
+  photos: Partial<Record<PhotoSlot, BodyPhoto>>;
+  createdAt: string;
+}
+
+/** `photos` holds picked image uris for new or replaced slots, null to remove a slot. */
+export type MeasurementDraft = Omit<Measurement, 'id' | 'createdAt' | 'photos'> & {
+  id?: string;
+  photos?: Partial<Record<PhotoSlot, string | null>>;
+};
+
+/** Daily kcal quick entry for people who do not log food (Phase 15). */
+export interface DayKcal {
+  day: string;
+  intakeKcal: number | null;
+  activeKcal: number | null;
 }
 
 type EntryDetails = 'carbsG' | 'fatG' | 'foodId' | 'amount' | 'unit' | 'portionLabel';
@@ -126,6 +166,27 @@ export async function fetchRemoteProfile(userId: string | null): Promise<Partial
   };
 }
 
+const CHECKIN_SETTINGS_KEY = 'body.checkin';
+
+export async function getCheckInSettings(): Promise<CheckInSettings> {
+  const row = await db.query.appSettings.findFirst({
+    where: eq(appSettings.key, CHECKIN_SETTINGS_KEY),
+  });
+  try {
+    return parseCheckInSettings(row ? JSON.parse(row.value) : null);
+  } catch {
+    return parseCheckInSettings(null);
+  }
+}
+
+export async function saveCheckInSettings(settings: CheckInSettings): Promise<void> {
+  const value = JSON.stringify(settings);
+  await db
+    .insert(appSettings)
+    .values({ key: CHECKIN_SETTINGS_KEY, value })
+    .onConflictDoUpdate({ target: appSettings.key, set: { value } });
+}
+
 // ---------------------------------------------------------------------------------------------
 // Diary and check-ins
 
@@ -154,6 +215,7 @@ const toCheckIn = (r: typeof bodyCheckins.$inferSelect): CheckIn => ({
   waistCm: r.waistCm,
   bodyFatPct: r.bodyFatPct,
   note: r.note,
+  source: r.source,
   createdAt: r.createdAt,
 });
 
@@ -334,9 +396,114 @@ export async function listCheckIns(): Promise<CheckIn[]> {
 
 export async function addCheckIn(draft: CheckInDraft): Promise<CheckIn> {
   const at = now();
-  const row = { ...draft, id: newId(), createdAt: at, updatedAt: at, dirty: true, deleted: false };
+  const row = {
+    source: 'manual' as const,
+    ...draft,
+    id: newId(),
+    createdAt: at,
+    updatedAt: at,
+    dirty: true,
+    deleted: false,
+  };
   await db.insert(bodyCheckins).values(row);
   return toCheckIn(row);
+}
+
+export async function updateCheckIn(
+  id: string,
+  patch: Partial<Pick<CheckIn, 'day' | 'weightKg' | 'bodyFatPct' | 'note'>>,
+): Promise<void> {
+  await db
+    .update(bodyCheckins)
+    .set({ ...patch, updatedAt: now(), dirty: true })
+    .where(eq(bodyCheckins.id, id));
+}
+
+// ---------------------------------------------------------------------------------------------
+// Body check-ins: measurements, body fat, photos, note
+
+const toMeasurement = (r: typeof bodyMeasurements.$inferSelect): Measurement => ({
+  id: r.id,
+  day: r.day,
+  values: r.values,
+  bodyFatPct: r.bodyFatPct,
+  bodyFatSource: r.bodyFatSource,
+  note: r.note,
+  photos: r.photos,
+  createdAt: r.createdAt,
+});
+
+/** All check-ins, oldest first. */
+export async function listMeasurements(): Promise<Measurement[]> {
+  const rows = await db
+    .select()
+    .from(bodyMeasurements)
+    .where(eq(bodyMeasurements.deleted, false))
+    .orderBy(asc(bodyMeasurements.day), asc(bodyMeasurements.createdAt));
+  return rows.map(toMeasurement);
+}
+
+export async function getMeasurement(id: string): Promise<Measurement | null> {
+  const [row] = await db
+    .select()
+    .from(bodyMeasurements)
+    .where(and(eq(bodyMeasurements.id, id), eq(bodyMeasurements.deleted, false)));
+  return row ? toMeasurement(row) : null;
+}
+
+/**
+ * Creates or replaces a check-in. New photos are copied into Peakr's folder right away (offline
+ * first) and uploaded by the next sync; a replaced or removed photo's local copy is deleted, its
+ * upload is replaced (same path) or removed by the sync.
+ */
+export async function saveMeasurement(draft: MeasurementDraft): Promise<Measurement> {
+  const at = now();
+  const existing = draft.id ? await getMeasurement(draft.id) : null;
+  const id = draft.id ?? newId();
+  const photos: Partial<Record<PhotoSlot, BodyPhoto>> = { ...(existing?.photos ?? {}) };
+  for (const slot of PHOTO_SLOTS) {
+    const picked = draft.photos?.[slot];
+    if (picked === undefined) continue;
+    const old = photos[slot];
+    if (picked === null) {
+      removeLocalCopy(old?.localUri ?? null);
+      // Keep the path with no local file so the sync removes the upload, then drops the slot.
+      if (old?.remotePath)
+        photos[slot] = { localUri: null, remotePath: old.remotePath, removed: true };
+      else delete photos[slot];
+    } else if (picked !== old?.localUri) {
+      removeLocalCopy(old?.localUri ?? null);
+      photos[slot] = { localUri: keepLocalCopy(picked, id, slot), remotePath: null };
+    }
+  }
+  const row = {
+    id,
+    day: draft.day,
+    values: draft.values,
+    bodyFatPct: draft.bodyFatPct,
+    bodyFatSource: draft.bodyFatPct === null ? null : draft.bodyFatSource,
+    note: draft.note,
+    photos,
+    createdAt: existing?.createdAt ?? at,
+    updatedAt: at,
+    dirty: true,
+    deleted: false,
+  };
+  await db
+    .insert(bodyMeasurements)
+    .values(row)
+    .onConflictDoUpdate({ target: bodyMeasurements.id, set: row });
+  return toMeasurement(row);
+}
+
+/** Deletes a check-in; its photos go from this device now and from the bucket with the sync. */
+export async function deleteMeasurement(id: string): Promise<void> {
+  const existing = await getMeasurement(id);
+  for (const p of Object.values(existing?.photos ?? {})) removeLocalCopy(p?.localUri ?? null);
+  await db
+    .update(bodyMeasurements)
+    .set({ deleted: true, dirty: true, updatedAt: now() })
+    .where(eq(bodyMeasurements.id, id));
 }
 
 export async function deleteCheckIn(id: string): Promise<void> {
@@ -358,6 +525,29 @@ export async function listIncompleteDays(): Promise<string[]> {
 export async function setDayIncomplete(day: string, incomplete: boolean): Promise<void> {
   const row = { day, incomplete, updatedAt: now(), dirty: true };
   await db.insert(bodyDays).values(row).onConflictDoUpdate({ target: bodyDays.day, set: row });
+}
+
+/** Days with a quick kcal entry, oldest first. */
+export async function listDayKcal(): Promise<DayKcal[]> {
+  const rows = await db
+    .select()
+    .from(bodyDays)
+    .where(or(isNotNull(bodyDays.intakeKcal), isNotNull(bodyDays.activeKcal)))
+    .orderBy(asc(bodyDays.day));
+  return rows.map((r) => ({ day: r.day, intakeKcal: r.intakeKcal, activeKcal: r.activeKcal }));
+}
+
+export async function setDayKcal(entry: DayKcal): Promise<void> {
+  const set = {
+    intakeKcal: entry.intakeKcal,
+    activeKcal: entry.activeKcal,
+    updatedAt: now(),
+    dirty: true,
+  };
+  await db
+    .insert(bodyDays)
+    .values({ day: entry.day, incomplete: false, ...set })
+    .onConflictDoUpdate({ target: bodyDays.day, set });
 }
 
 export interface StoredTdeeEstimate {
@@ -571,6 +761,7 @@ const SPECS: SyncSpec[] = [
             waist_cm: r.waistCm,
             body_fat_pct: r.bodyFatPct,
             note: r.note,
+            source: r.source,
             created_at: r.createdAt,
             updated_at: r.updatedAt,
           },
@@ -593,6 +784,7 @@ const SPECS: SyncSpec[] = [
         waistCm: numOrNull(r.waist_cm),
         bodyFatPct: numOrNull(r.body_fat_pct),
         note: str(r.note),
+        source: r.source === 'import' ? ('import' as const) : ('manual' as const),
         createdAt: String(r.created_at),
         updatedAt: String(r.updated_at),
         dirty: false,
@@ -609,7 +801,13 @@ const SPECS: SyncSpec[] = [
     server: 'body_days',
     onConflict: 'user_id,day',
     dirty: () => db.select().from(bodyDays).where(eq(bodyDays.dirty, true)),
-    toServer: (r) => ({ day: r.day, incomplete: r.incomplete, updated_at: r.updatedAt }),
+    toServer: (r) => ({
+      day: r.day,
+      incomplete: r.incomplete,
+      intake_kcal: r.intakeKcal,
+      active_kcal: r.activeKcal,
+      updated_at: r.updatedAt,
+    }),
     key: (r) => ({ day: String(r.day) }),
     markPushed: async (r) => {
       await db
@@ -624,6 +822,8 @@ const SPECS: SyncSpec[] = [
       const row = {
         day,
         incomplete: Boolean(r.incomplete),
+        intakeKcal: numOrNull(r.intake_kcal),
+        activeKcal: numOrNull(r.active_kcal),
         updatedAt: String(r.updated_at),
         dirty: false,
       };
@@ -812,6 +1012,110 @@ SPECS.push({
   },
 });
 
+type Photos = Measurement['photos'];
+
+const pendingPhotos = (photos: Photos) =>
+  Object.values(photos).some((p) => p && (p.removed || (p.localUri && !p.remotePath)));
+
+const serverPhotos = (photos: Photos) =>
+  Object.fromEntries(
+    PHOTO_SLOTS.flatMap((slot) => {
+      const p = photos[slot];
+      return p?.remotePath && !p.removed ? [[slot, p.remotePath]] : [];
+    }),
+  );
+
+SPECS.push({
+  server: 'body_measurements',
+  onConflict: 'user_id,id',
+  dirty: () => db.select().from(bodyMeasurements).where(eq(bodyMeasurements.dirty, true)),
+  toServer: (r) =>
+    r.deleted
+      ? null
+      : {
+          id: r.id,
+          day: r.day,
+          values: r.values,
+          body_fat_pct: r.bodyFatPct,
+          body_fat_source: r.bodyFatSource,
+          note: r.note,
+          photos: serverPhotos(r.photos as Photos),
+          created_at: r.createdAt,
+          updated_at: r.updatedAt,
+        },
+  key: (r) => ({ id: String(r.id) }),
+  markPushed: async (r) => {
+    const id = String(r.id);
+    if (r.deleted) await db.delete(bodyMeasurements).where(eq(bodyMeasurements.id, id));
+    // A photo that did not upload keeps the row dirty, so the next sync tries again.
+    else if (!pendingPhotos(r.photos as Photos))
+      await db.update(bodyMeasurements).set({ dirty: false }).where(eq(bodyMeasurements.id, id));
+  },
+  apply: async (r) => {
+    const id = String(r.id);
+    const [existing] = await db.select().from(bodyMeasurements).where(eq(bodyMeasurements.id, id));
+    if (existing?.dirty) return false;
+    const photos: Photos = {};
+    for (const [slot, path] of Object.entries((r.photos ?? {}) as Record<string, unknown>)) {
+      if (!PHOTO_SLOTS.includes(slot as PhotoSlot) || typeof path !== 'string') continue;
+      const local = existing?.photos[slot as PhotoSlot];
+      photos[slot as PhotoSlot] = {
+        localUri: local?.remotePath === path ? local.localUri : null,
+        remotePath: path,
+      };
+    }
+    const row = {
+      id,
+      day: String(r.day),
+      values: (r.values ?? {}) as Record<string, number>,
+      bodyFatPct: numOrNull(r.body_fat_pct),
+      bodyFatSource: str(r.body_fat_source) as Measurement['bodyFatSource'],
+      note: str(r.note),
+      photos,
+      createdAt: String(r.created_at),
+      updatedAt: String(r.updated_at),
+      dirty: false,
+      deleted: false,
+    };
+    await db
+      .insert(bodyMeasurements)
+      .values(row)
+      .onConflictDoUpdate({ target: bodyMeasurements.id, set: row });
+    return true;
+  },
+});
+
+/**
+ * Before the check-ins go up: uploads new photos (private bucket, own folder), removes the ones
+ * the user replaced, removed or deleted with their check-in. Failures stay pending for later.
+ */
+async function syncPhotos(client: SupabaseClient, userId: string): Promise<void> {
+  const rows = await db.select().from(bodyMeasurements).where(eq(bodyMeasurements.dirty, true));
+  for (const row of rows) {
+    if (row.deleted) {
+      const paths = PHOTO_SLOTS.map((s) => row.photos[s]?.remotePath).filter((p): p is string =>
+        Boolean(p),
+      );
+      await removeRemotePhotos(client, paths);
+      continue;
+    }
+    if (!pendingPhotos(row.photos)) continue;
+    const photos: Photos = { ...row.photos };
+    for (const slot of PHOTO_SLOTS) {
+      const p = photos[slot];
+      if (!p) continue;
+      if (p.removed) {
+        if (p.remotePath) await removeRemotePhotos(client, [p.remotePath]);
+        delete photos[slot];
+      } else if (p.localUri && !p.remotePath) {
+        const path = await uploadPhoto(client, p.localUri, remotePath(userId, row.id, slot));
+        if (path) photos[slot] = { ...p, remotePath: path };
+      }
+    }
+    await db.update(bodyMeasurements).set({ photos }).where(eq(bodyMeasurements.id, row.id));
+  }
+}
+
 const cursorKey = (server: string) => `body.cursor.${server}`;
 
 /**
@@ -821,6 +1125,7 @@ const cursorKey = (server: string) => `body.cursor.${server}`;
  */
 export async function syncBody(client: SupabaseClient, userId: string): Promise<boolean> {
   let changed = false;
+  await syncPhotos(client, userId);
   for (const spec of SPECS) {
     for (const row of await spec.dirty()) {
       const values = spec.toServer(row);

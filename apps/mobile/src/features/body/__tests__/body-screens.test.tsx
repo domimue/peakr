@@ -209,7 +209,7 @@ describe('Body tab', () => {
     expect(await screen.findByTestId('body-check-in')).toBeOnTheScreen();
     expect(screen.queryByText('Save check-in')).toBeNull();
 
-    await fireEvent.press(screen.getByText('Export my Body data (CSV)'));
+    await fireEvent.press(screen.getByText('Export as CSV'));
     await waitFor(() =>
       expect(shareFile).toHaveBeenCalledWith(
         expect.objectContaining({ name: 'peakr-body-2026-10-19.csv', mime: 'text/csv' }),
@@ -390,9 +390,9 @@ describe('Teil A without the add-on', () => {
 });
 
 describe('export', () => {
-  it('writes one CSV with both record types, quoting where needed', () => {
-    const csv = bodyCsv(
-      [
+  it('writes one CSV with every record type, quoting where needed', () => {
+    const csv = bodyCsv({
+      food: [
         {
           id: 'f',
           day: '2026-10-19',
@@ -409,7 +409,7 @@ describe('export', () => {
           createdAt: '',
         },
       ],
-      [
+      weighIns: [
         {
           id: 'c',
           day: '2026-10-19',
@@ -420,11 +420,31 @@ describe('export', () => {
           createdAt: '',
         },
       ],
+      checkIns: [
+        {
+          id: 'm',
+          day: '2026-10-19',
+          values: { waist: 72, hip: 95 },
+          bodyFatPct: 24.1,
+          bodyFatSource: 'navy',
+          note: 'After holidays',
+          photos: { front: { localUri: 'file://f.jpg', remotePath: null } },
+          createdAt: '',
+        },
+      ],
+      dayKcal: [{ day: '2026-10-18', intakeKcal: 2100, activeKcal: 350 }],
+    });
+    const [header, ...rows] = csv.split('\n');
+    expect(header).toBe(
+      'type,date,meal,name,amount,unit,kcal,protein_g,carbs_g,fat_g,active_kcal,weight_kg,' +
+        'body_fat_pct,body_fat_source,neck_cm,waist_cm,belly_cm,hip_cm,chest_cm,shoulder_cm,' +
+        'armL_cm,armR_cm,forearm_cm,thighL_cm,thighR_cm,calfL_cm,calfR_cm,photos,note',
     );
-    expect(csv.split('\n')).toEqual([
-      'type,date,meal,name,amount,unit,kcal,protein_g,carbs_g,fat_g,weight_kg,waist_cm,body_fat_pct,note',
-      'food,2026-10-19,lunch,"Rice, ""large""",,,650,30,,,,,,',
-      'check-in,2026-10-19,,,,,,,,,61.2,,,',
+    expect(rows).toEqual([
+      'food,2026-10-19,lunch,"Rice, ""large""",,,650,30,,,,,,,,,,,,,,,,,,,,,',
+      'day,2026-10-18,,,,,2100,,,,350,,,,,,,,,,,,,,,,,,',
+      'weigh-in,2026-10-19,,,,,,,,,,61.2,,,,,,,,,,,,,,,,,',
+      'check-in,2026-10-19,,,,,,,,,,,24.1,navy,,72,,95,,,,,,,,,,front,After holidays',
       '',
     ]);
   });

@@ -107,24 +107,42 @@ interface RawInputs {
   estimates: repo.StoredTdeeEstimate[];
   targets: repo.StoredTargetChange[];
   goals: repo.StoredGoal[];
+  dayKcal: repo.DayKcal[];
+  measurements: repo.Measurement[];
 }
 
+/** Body fat of a check-in as a sourced value: a Navy result is an estimate, a scale is a device. */
+const FAT_SOURCE = { manual: 'manual', navy: 'estimate', scale: 'healthConnect' } as const;
+
 async function loadInputs(from: string): Promise<RawInputs> {
-  const [food, checkIns, device, health, activities, incompleteDays, estimates, targets, goals] =
-    await Promise.all([
-      repo.listFood(),
-      repo.listCheckIns(),
-      repo.listDeviceValues(from),
-      getDailyValues({
-        metrics: ['weight', 'body_fat', 'active_kcal', 'resting_kcal', 'steps'],
-        from,
-      }).catch(() => []),
-      listActivities().catch(() => []),
-      repo.listIncompleteDays(),
-      repo.listTdeeEstimates(),
-      repo.listTargetChanges(),
-      repo.listGoals(),
-    ]);
+  const [
+    food,
+    checkIns,
+    device,
+    health,
+    activities,
+    incompleteDays,
+    estimates,
+    targets,
+    goals,
+    dayKcal,
+    measurements,
+  ] = await Promise.all([
+    repo.listFood(),
+    repo.listCheckIns(),
+    repo.listDeviceValues(from),
+    getDailyValues({
+      metrics: ['weight', 'body_fat', 'active_kcal', 'resting_kcal', 'steps'],
+      from,
+    }).catch(() => []),
+    listActivities().catch(() => []),
+    repo.listIncompleteDays(),
+    repo.listTdeeEstimates(),
+    repo.listTargetChanges(),
+    repo.listGoals(),
+    repo.listDayKcal(),
+    repo.listMeasurements(),
+  ]);
   return {
     food: food.filter((f) => f.day >= from),
     checkIns,
@@ -135,7 +153,25 @@ async function loadInputs(from: string): Promise<RawInputs> {
     estimates,
     targets,
     goals,
+    dayKcal: dayKcal.filter((d) => d.day >= from),
+    measurements,
   };
+}
+
+/** Body fat values from weigh-ins and check-ins. */
+function bodyFatValues(raw: RawInputs): SourcedValue[] {
+  return [
+    ...raw.checkIns
+      .filter((c) => c.bodyFatPct !== null)
+      .map((c) => ({ day: c.day, source: 'manual' as const, value: c.bodyFatPct as number })),
+    ...raw.measurements
+      .filter((m) => m.bodyFatPct !== null)
+      .map((m) => ({
+        day: m.day,
+        source: FAT_SOURCE[m.bodyFatSource ?? 'manual'],
+        value: m.bodyFatPct as number,
+      })),
+  ];
 }
 
 function sourced(raw: RawInputs, metric: string): SourcedValue[] {
@@ -167,6 +203,9 @@ export function useBodyModel(): BodyModel | null {
     if (!raw || !p) return null;
     const intakeByDay = new Map<string, number>();
     for (const f of raw.food) intakeByDay.set(f.day, (intakeByDay.get(f.day) ?? 0) + f.kcal);
+    // The quick kcal entry counts on days without diary entries (the diary is more precise).
+    for (const d of raw.dayKcal)
+      if (d.intakeKcal !== null && !intakeByDay.has(d.day)) intakeByDay.set(d.day, d.intakeKcal);
     const stored = plan.data;
     const planned = stored
       ? allWorkouts(stored.state.plan)
@@ -195,19 +234,19 @@ export function useBodyModel(): BodyModel | null {
         ...sourced(raw, 'intake_kcal'),
       ],
       restingKcal: sourced(raw, 'resting_kcal'),
-      activeKcal: sourced(raw, 'active_kcal'),
+      activeKcal: [
+        ...raw.dayKcal
+          .filter((d) => d.activeKcal !== null)
+          .map((d) => ({ day: d.day, source: 'manual' as const, value: d.activeKcal as number })),
+        ...sourced(raw, 'active_kcal'),
+      ],
       workoutKcal: sourced(raw, 'workout_kcal'),
       steps: sourced(raw, 'steps'),
       weight: [
         ...raw.checkIns.map((c) => ({ day: c.day, source: 'manual' as const, value: c.weightKg })),
         ...sourced(raw, 'weight'),
       ],
-      bodyFat: [
-        ...raw.checkIns
-          .filter((c) => c.bodyFatPct !== null)
-          .map((c) => ({ day: c.day, source: 'manual' as const, value: c.bodyFatPct as number })),
-        ...sourced(raw, 'body_fat'),
-      ],
+      bodyFat: [...bodyFatValues(raw), ...sourced(raw, 'body_fat')],
       completed: raw.activities.map((a) => ({
         day: a.date,
         workout: { sport: a.sport, durationMin: a.durationSec / 60, avgHr: a.avgHr },
@@ -280,12 +319,7 @@ export function useBodyModel(): BodyModel | null {
       [...raw.activities.filter((a) => a.date === today)].sort(
         (a, b) => b.durationSec - a.durationSec,
       )[0]?.sport ?? null;
-    const fatPoints = [
-      ...raw.checkIns
-        .filter((c) => c.bodyFatPct !== null)
-        .map((c) => ({ day: c.day, value: c.bodyFatPct as number })),
-      ...sourced(raw, 'body_fat'),
-    ]
+    const fatPoints = [...bodyFatValues(raw), ...sourced(raw, 'body_fat')]
       .map((b) => ({
         day: b.day,
         bodyFatPct: b.value,

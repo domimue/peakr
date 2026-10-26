@@ -14,7 +14,11 @@ import type {
   CheckInDraft,
   FoodDraft,
   FoodEntry,
+  DayKcal,
+  Measurement,
+  MeasurementDraft,
 } from '@/data/repositories/body-repository';
+import { DEFAULT_CHECKIN_SETTINGS, type CheckInSettings } from '@/features/body/check-in-settings';
 
 /** In-memory Body data for Jest (`jest.mock('@/data/repositories/body-repository')`). */
 
@@ -29,6 +33,9 @@ export const store = {
   device: [] as DeviceBodyValue[],
   goals: [] as StoredGoal[],
   foods: [] as FoodItem[],
+  measurements: [] as Measurement[],
+  dayKcal: [] as DayKcal[],
+  checkInSettings: DEFAULT_CHECKIN_SETTINGS as CheckInSettings,
 };
 
 let seq = 0;
@@ -44,6 +51,9 @@ export function resetStore() {
   store.device = [];
   store.goals = [];
   store.foods = [];
+  store.measurements = [];
+  store.dayKcal = [];
+  store.checkInSettings = DEFAULT_CHECKIN_SETTINGS;
   seq = 0;
 }
 
@@ -145,8 +155,46 @@ export const addCheckIn = jest.fn(async (draft: CheckInDraft) => {
   store.checkIns.push(checkIn);
   return checkIn;
 });
+export const updateCheckIn = jest.fn(
+  async (id: string, patch: Partial<Pick<CheckIn, 'day' | 'weightKg' | 'bodyFatPct' | 'note'>>) => {
+    store.checkIns = store.checkIns.map((c) => (c.id === id ? { ...c, ...patch } : c));
+  },
+);
 export const deleteCheckIn = jest.fn(async (id: string) => {
   store.checkIns = store.checkIns.filter((c) => c.id !== id);
+});
+
+export const listMeasurements = jest.fn(async () =>
+  [...store.measurements].sort((a, b) => a.day.localeCompare(b.day)),
+);
+export const getMeasurement = jest.fn(
+  async (id: string) => store.measurements.find((m) => m.id === id) ?? null,
+);
+/** Photos keep the picked uri as their "local copy". */
+export const saveMeasurement = jest.fn(async (draft: MeasurementDraft) => {
+  const id = draft.id ?? `m-${++seq}`;
+  const existing = store.measurements.find((m) => m.id === id);
+  const photos = { ...(existing?.photos ?? {}) };
+  for (const [slot, uri] of Object.entries(draft.photos ?? {})) {
+    const key = slot as keyof Measurement['photos'];
+    if (uri === null) delete photos[key];
+    else if (uri !== undefined) photos[key] = { localUri: uri, remotePath: null };
+  }
+  const m: Measurement = {
+    ...draft,
+    id,
+    photos,
+    createdAt: existing?.createdAt ?? '2026-10-26T08:00:00Z',
+  };
+  store.measurements = [...store.measurements.filter((x) => x.id !== id), m];
+  return m;
+});
+export const deleteMeasurement = jest.fn(async (id: string) => {
+  store.measurements = store.measurements.filter((m) => m.id !== id);
+});
+export const listDayKcal = jest.fn(async () => [...store.dayKcal]);
+export const setDayKcal = jest.fn(async (entry: DayKcal) => {
+  store.dayKcal = [...store.dayKcal.filter((d) => d.day !== entry.day), entry];
 });
 
 export const syncBody = jest.fn(async () => false);
@@ -189,4 +237,9 @@ export const saveGoal = jest.fn(async (draft: GoalDraft) => {
   };
   store.goals.push(goal);
   return goal;
+});
+
+export const getCheckInSettings = jest.fn(async () => ({ ...store.checkInSettings }));
+export const saveCheckInSettings = jest.fn(async (settings: CheckInSettings) => {
+  store.checkInSettings = { ...settings };
 });

@@ -294,6 +294,7 @@
     "swim400NotSlowerThan200": "Your 400 m pace must be slower than your 200 m pace. Please check both times.",
     "swimTimesInconsistent": "These times are very far apart. Were both swims all-out efforts?",
     "invalidDate": "Enter a valid date.",
+    "invalidFormat": "This file is not in a format Peakr can read.",
     "targetNotAfterStart": "The target date must be after the start date.",
     "planTooLong": "Plans can be at most {{max}} weeks long. Choose an earlier target date.",
     "sportsRequired": "Choose at least one sport.",
@@ -2551,17 +2552,162 @@
     },
     "checkIn": {
       "title": "Check-in",
-      "hint": "Weigh in whenever it suits you. Day-to-day changes are mostly water – the trend is what counts.",
       "weight": "Weight",
-      "waist": "Waist (optional)",
-      "waistHint": "Measure at the navel, relaxed, after breathing out.",
-      "save": "Save check-in",
-      "history": "Recent check-ins",
-      "empty": "No check-ins yet.",
+      "weighIns": "Weigh-ins today",
+      "weighHintDaily": "Weigh in whenever it suits you – several times a day is fine. The trend uses the day's value; day-to-day changes are mostly water.",
+      "weighHintWeekly": "You weigh in on your measuring day. Extra weigh-ins are welcome, never expected.",
+      "addWeight": "Save weight",
+      "noWeighIns": "No weigh-in today.",
+      "weighInAt": "{{time}} · {{kg}} kg",
+      "weighInImported": "{{kg}} kg (imported)",
       "line": "{{kg}} kg",
-      "lineWaist": "{{kg}} kg · {{cm}} cm",
-      "bodyFat": "Body fat (optional)",
-      "bodyFatHint": "From your scale or a measurement – used for fat vs. lean mass."
+      "warning": {
+        "outOfRange": "This value is outside the usual range. Please check it.",
+        "jump": "That is a big change since last time. Please check the value – you can still save it."
+      },
+      "quick": {
+        "title": "Daily kcal",
+        "hint": "Not logging food? Enter today's total here. Active kcal from your watch is optional.",
+        "intake": "Eaten today",
+        "active": "Active kcal (optional)",
+        "save": "Save",
+        "saved": "Saved for today."
+      },
+      "next": {
+        "today": "Today is your measuring day.",
+        "later": "Next measuring day: {{date}}."
+      },
+      "new": "New check-in",
+      "compare": "Compare photos",
+      "rhythm": "Rhythm & reminder",
+      "import": "Import Körper-Tracker backup",
+      "imported": "Imported {{imported}} entries, skipped {{skipped}} (already there or without a date).",
+      "photosNotImported_one": "{{count}} photo could not come along – photos are not part of the backup file. Add them again in the check-in if you like.",
+      "photosNotImported_other": "{{count}} photos could not come along – photos are not part of the backup file. Add them again in the check-in if you like.",
+      "importInvalid": "This file is not a Körper-Tracker backup.",
+      "history": "History",
+      "empty": "No check-ins yet.",
+      "edit": "Edit",
+      "delete": "Delete",
+      "deleteTitle": "Delete this check-in?",
+      "deleteBody": "The weigh-ins, measurements, photos and note of this day are removed. This cannot be undone.",
+      "deleteWeighInTitle": "Delete this weigh-in?",
+      "deleteConfirm": "Delete",
+      "cancel": "Cancel",
+      "change": "{{value}}",
+      "bodyFatLine": "Body fat {{pct}} %",
+      "bodyFatEstimate": "Body fat {{pct}} % (estimate)",
+      "form": {
+        "date": "Date",
+        "dateHint": "YYYY-MM-DD",
+        "weightOptional": "Weight (optional)",
+        "bodyFat": "Body fat",
+        "bodyFatHint": "From a scale or a measurement – used for fat vs. lean mass.",
+        "bodyFatSource": {
+          "manual": "Enter",
+          "navy": "Navy estimate",
+          "scale": "From scale"
+        },
+        "navyHint": "US Navy formula from height, neck and waist (and hip for women). It is an estimate, often a few percent off.",
+        "navyResult": "Estimated body fat: {{pct}} %",
+        "navyMissing": "Enter neck and waist (women also hip) and your height in the profile to get the estimate.",
+        "scaleResult": "From your scale ({{source}}): {{pct}} %",
+        "scaleMissing": "No body fat value from a scale on this day.",
+        "measurements": "Measurements",
+        "measurementsHint": "Same time of day, same conditions – ideally in the morning before eating.",
+        "more": "More measurements",
+        "less": "Fewer measurements",
+        "photos": "Progress photos",
+        "photosHint": "Private: only you can see them. Same place, light and pose each time.",
+        "take": "Camera",
+        "pick": "Library",
+        "removePhoto": "Remove",
+        "photoPermission": "Peakr needs access to the camera or your photos to add a progress photo.",
+        "note": "Note",
+        "save": "Save check-in",
+        "invalidDate": "Enter a date as YYYY-MM-DD, today or earlier.",
+        "nothing": "Enter at least one value."
+      },
+      "slots": {
+        "front": "Front",
+        "side": "Side",
+        "back": "Back"
+      },
+      "fields": {
+        "neck": {
+          "label": "Neck",
+          "how": "Just below the larynx, tape level and snug but not pressing. Look straight ahead, shoulders relaxed."
+        },
+        "waist": {
+          "label": "Waist (narrowest)",
+          "how": "At the narrowest point between the lowest rib and the hip bone, relaxed, after breathing out normally."
+        },
+        "belly": {
+          "label": "Belly (navel)",
+          "how": "Horizontally at the level of the navel, standing upright and relaxed, after breathing out normally. Do not pull in."
+        },
+        "hip": {
+          "label": "Hip (widest)",
+          "how": "Around the widest point of the buttocks, feet together, tape horizontal."
+        },
+        "chest": {
+          "label": "Chest",
+          "how": "At nipple height under the armpits, arms hanging loosely, after breathing out normally."
+        },
+        "shoulder": {
+          "label": "Shoulders",
+          "how": "Around the widest point of both shoulders, arms relaxed at your sides."
+        },
+        "armL": {
+          "label": "Upper arm left",
+          "how": "At the thickest point of the upper arm, arm hanging relaxed (not flexed)."
+        },
+        "armR": {
+          "label": "Upper arm right",
+          "how": "At the thickest point of the upper arm, arm hanging relaxed (not flexed)."
+        },
+        "forearm": {
+          "label": "Forearm",
+          "how": "At the thickest point just below the elbow, hand relaxed."
+        },
+        "thighL": {
+          "label": "Thigh left",
+          "how": "At the thickest point, about a hand's width below the crotch, weight on both legs."
+        },
+        "thighR": {
+          "label": "Thigh right",
+          "how": "At the thickest point, about a hand's width below the crotch, weight on both legs."
+        },
+        "calfL": {
+          "label": "Calf left",
+          "how": "At the thickest point of the calf, standing with weight on both legs."
+        },
+        "calfR": {
+          "label": "Calf right",
+          "how": "At the thickest point of the calf, standing with weight on both legs."
+        }
+      },
+      "settings": {
+        "title": "Rhythm & reminder",
+        "weigh": "Weighing",
+        "weighDaily": "Daily",
+        "weighWeekly": "On the measuring day",
+        "measureDay": "Measuring day",
+        "reminder": "Reminder on the measuring day",
+        "on": "On",
+        "off": "Off",
+        "reminderHint": "Sent at your daily reminder time. On days with a workout it is added to the workout reminder – never a second push.",
+        "saved": "Saved."
+      },
+      "compareTitle": "Compare photos",
+      "compareFrom": "Earlier",
+      "compareTo": "Later",
+      "compareSlot": "View",
+      "compareEmpty": "Add photos to at least two check-ins to compare them.",
+      "noPhoto": "No photo",
+      "reminderLine": "Measuring day: take a minute for your check-in.",
+      "reminderTitle": "Measuring day",
+      "reminderBody": "Take a minute for your check-in – weight, measurements, photos."
     },
     "progress": {
       "title": "Progress",
@@ -2599,7 +2745,8 @@
       "reactivate": "Reactivate Body"
     },
     "export": {
-      "action": "Export my Body data (CSV)",
+      "action": "Export as CSV",
+      "actionJson": "Export as JSON",
       "failed": "The export could not be shared. Please try again."
     },
     "paywall": {

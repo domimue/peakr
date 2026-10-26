@@ -92,3 +92,66 @@ export function useIncompleteDays() {
 
 /** Stores a new goal version (set, change, pause, accepted suggestion) with its reason. */
 export const useSaveGoal = () => useWrite(repo.saveGoal);
+
+export function useMeasurements() {
+  const guard = useEntitlement('body_nutrition');
+  return useQuery({
+    queryKey: [...bodyKeys.all, 'measurements'],
+    queryFn: repo.listMeasurements,
+    enabled: guard.canRead,
+  });
+}
+
+export const useSaveMeasurement = () => useWrite(repo.saveMeasurement);
+export const useDeleteMeasurement = () => useWrite(repo.deleteMeasurement);
+export const useUpdateCheckIn = () =>
+  useWrite((v: { id: string; patch: Parameters<typeof repo.updateCheckIn>[1] }) =>
+    repo.updateCheckIn(v.id, v.patch),
+  );
+
+/** Daily kcal quick entries (for people who do not log food). */
+export function useDayKcal() {
+  const guard = useEntitlement('body_nutrition');
+  return useQuery({
+    queryKey: [...bodyKeys.all, 'dayKcal'],
+    queryFn: repo.listDayKcal,
+    enabled: guard.canRead,
+  });
+}
+
+export const useSetDayKcal = () => useWrite(repo.setDayKcal);
+
+const checkInSettingsKey = ['body', 'checkInSettings'] as const;
+
+/** The check-in rhythm (a device setting, so it is readable without the add-on). */
+export function useCheckInSettings() {
+  return useQuery({ queryKey: checkInSettingsKey, queryFn: repo.getCheckInSettings });
+}
+
+export function useSaveCheckInSettings() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: repo.saveCheckInSettings,
+    onSuccess: () => client.invalidateQueries({ queryKey: checkInSettingsKey }),
+  });
+}
+
+/** Saves the whole check-in form: the day's weigh-in (added or corrected) and the check-in. */
+export const useSaveCheckInForm = () =>
+  useWrite(
+    async (v: {
+      weighIn: { id: string | null; day: string; weightKg: number } | null;
+      checkIn: repo.MeasurementDraft | null;
+    }) => {
+      if (v.weighIn?.id) await repo.updateCheckIn(v.weighIn.id, v.weighIn);
+      else if (v.weighIn)
+        await repo.addCheckIn({
+          day: v.weighIn.day,
+          weightKg: v.weighIn.weightKg,
+          waistCm: null,
+          bodyFatPct: null,
+          note: null,
+        });
+      if (v.checkIn) await repo.saveMeasurement(v.checkIn);
+    },
+  );

@@ -28,7 +28,16 @@ export default function BodyLayout() {
     <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
       <Stack.Screen name="addon" options={{ title: t('bodyAddon.paywall.title') }} />
       <Stack.Screen name="today" options={{ title: t('bodyAddon.sections.today') }} />
-      <Stack.Screen name="check-in" options={{ title: t('bodyAddon.sections.checkIn') }} />
+      <Stack.Screen name="check-in/index" options={{ title: t('bodyAddon.sections.checkIn') }} />
+      <Stack.Screen name="check-in/new" options={{ title: t('bodyAddon.checkIn.new') }} />
+      <Stack.Screen
+        name="check-in/compare"
+        options={{ title: t('bodyAddon.checkIn.compareTitle') }}
+      />
+      <Stack.Screen
+        name="check-in/rhythm"
+        options={{ title: t('bodyAddon.checkIn.settings.title') }}
+      />
       <Stack.Screen name="progress" options={{ title: t('bodyAddon.sections.progress') }} />
       <Stack.Screen name="goal" options={{ title: t('bodyAddon.goal.title') }} />
       <Stack.Screen name="food/add" options={{ title: t('bodyAddon.food.addTitle') }} />
