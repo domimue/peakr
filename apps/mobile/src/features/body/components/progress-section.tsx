@@ -1,11 +1,15 @@
+import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
-import { Card, Icon, ListState, numeric, spacing, StatTile, Text, useTheme } from '@/ui';
+import { Card, ListState, numeric, spacing, StatTile, Text } from '@/ui';
 
 import type { AddonGuard } from '@/features/billing/model';
 
-import { useBodyModel } from '../model';
+import { useBodyDashboard } from '../dashboard';
+import { EnergyBarsChart } from './charts/energy-bars-chart';
+import { TrendChart } from './charts/trend-chart';
+import { CoachCard } from './coach-card';
 import { GoalCard } from './goal-card';
 
 const signed = (n: number, decimals = 1) => {
@@ -14,71 +18,122 @@ const signed = (n: number, decimals = 1) => {
   return `${v > 0 ? '+' : ''}${v}`;
 };
 
+const short = (iso: string, language: string) =>
+  new Date(`${iso}T12:00:00`).toLocaleDateString(language, { day: 'numeric', month: 'short' });
+
+const kgOrDash = (t: TFunction, kg: number | null, withSign = false) =>
+  kg === null ? '–' : t('bodyAddon.progress.kg', { kg: withSign ? signed(kg) : kg });
+
 /**
- * Body → Progress: trend, this and last week's energy balance with the fat estimate, the
- * adaptive maintenance estimate with what it is based on, "calculation vs. scale", fat and lean
- * mass, and the coach. Every number here is an estimate and says so; the wording never praises a
- * fast loss and never shames a gain.
+ * Body → Progress: the dashboard and the weekly coach. KPIs, the trend chart with goal and
+ * forecast, weekly energy and fat balance, the adaptive maintenance, "calculation vs. scale",
+ * fat vs. lean mass, body indices, measurement trends and this week's training from Teil A.
+ * Every figure here is an estimate and says so; the wording never praises a fast loss and never
+ * shames a gain.
  */
 export function ProgressSection({ guard }: { guard: AddonGuard }) {
-  const { t } = useTranslation();
-  const { colors } = useTheme();
-  const model = useBodyModel();
-  if (!model) return <ListState kind="loading" label={t('common.loading')} />;
-  const { trend, adaptive, scale, composition } = model;
-  const last = trend.at(-1);
-  const weekAgo = last
-    ? [...trend].reverse().find((p) => p.date <= shiftDays(last.date, -7))
-    : undefined;
-  const change = last && weekAgo ? last.trendKg - weekAgo.trendKg : null;
+  const { t, i18n } = useTranslation();
+  const dash = useBodyDashboard();
+  if (!dash) return <ListState kind="loading" label={t('common.loading')} />;
+  const { model, kpis, chart, bars, indices, measurements, training, coach } = dash;
+  const { adaptive, scale, composition } = model;
+  const recentBars = bars.slice(-4).reverse();
 
   return (
     <View style={styles.stack} testID="body-progress">
       <Text variant="heading">{t('bodyAddon.progress.title')}</Text>
+
+      <View style={styles.tiles} testID="body-kpis">
+        <StatTile
+          testID="kpi-trend"
+          value={kgOrDash(t, kpis.trendKg)}
+          label={t('bodyAddon.progress.trend')}
+        />
+        <StatTile
+          testID="kpi-start"
+          value={kgOrDash(t, kpis.sinceStartKg, true)}
+          label={t('bodyAddon.dashboard.kpi.sinceStart')}
+        />
+        <StatTile
+          testID="kpi-week"
+          value={kgOrDash(t, kpis.lastWeekKg, true)}
+          label={t('bodyAddon.progress.week')}
+        />
+      </View>
+      <View style={styles.tiles}>
+        <StatTile
+          testID="kpi-fat"
+          value={
+            kpis.bodyFatPct === null ? '–' : t('bodyAddon.dashboard.pct', { pct: kpis.bodyFatPct })
+          }
+          label={t('bodyAddon.dashboard.kpi.bodyFat')}
+        />
+        <StatTile
+          testID="kpi-waist"
+          value={kpis.waistCm === null ? '–' : t('bodyAddon.dashboard.cm', { cm: kpis.waistCm })}
+          label={t('bodyAddon.dashboard.kpi.waist')}
+        />
+        <StatTile
+          testID="kpi-goal"
+          value={kpis.goalPct === null ? '–' : t('bodyAddon.dashboard.pct', { pct: kpis.goalPct })}
+          label={t('bodyAddon.dashboard.kpi.goal')}
+        />
+      </View>
+
+      <CoachCard coach={coach} model={model} guard={guard} />
       <GoalCard guard={guard} />
       {model.tooFastLoss ? (
         <Card testID="body-too-fast">
           <Text>{t('bodyAddon.progress.tooFast')}</Text>
         </Card>
       ) : null}
-      {last ? (
-        <View style={styles.tiles}>
-          <StatTile
-            value={t('bodyAddon.progress.kg', { kg: last.trendKg })}
-            label={t('bodyAddon.progress.trend')}
+
+      <Card style={styles.stack} testID="body-trend">
+        <Text variant="label">{t('bodyAddon.dashboard.chart.title')}</Text>
+        {chart.trend.length > 0 ? (
+          <TrendChart
+            trend={chart.trend}
+            targetKg={chart.targetKg}
+            planned={chart.planned}
+            real={chart.real}
+            accessibilityLabel={t('bodyAddon.dashboard.chart.a11y', {
+              kg: kpis.trendKg,
+              change: kpis.sinceStartKg === null ? '–' : signed(kpis.sinceStartKg),
+            })}
           />
-          <StatTile
-            value={change === null ? '–' : t('bodyAddon.progress.kgSigned', { kg: signed(change) })}
-            label={t('bodyAddon.progress.week')}
-          />
-        </View>
-      ) : (
-        <Text tone="secondary">{t('bodyAddon.progress.empty')}</Text>
-      )}
-      <Text variant="caption" tone="secondary">
-        {t('bodyAddon.progress.trendHint')}
-      </Text>
+        ) : (
+          <Text tone="secondary">{t('bodyAddon.progress.empty')}</Text>
+        )}
+        <Text variant="caption" tone="secondary">
+          {t('bodyAddon.progress.trendHint')}
+        </Text>
+      </Card>
 
       <Card style={styles.stack} testID="body-balance">
         <Text variant="label">{t('bodyAddon.balance.title')}</Text>
-        {(
-          [
-            ['thisWeek', model.thisWeek],
-            ['lastWeek', model.lastWeek],
-          ] as const
-        ).map(([key, w]) => (
-          <View key={key} style={styles.row}>
+        <EnergyBarsChart
+          bars={bars}
+          labels={bars.map((b) => short(b.week, i18n.language))}
+          accessibilityLabel={t('bodyAddon.dashboard.energy.a11y')}
+        />
+        {recentBars.map((b) => (
+          <View key={b.week} style={styles.row} testID={`balance-${b.week}`}>
             <Text tone="secondary" style={styles.flex}>
-              {t(`bodyAddon.balance.${key}`)}
+              {t('bodyAddon.dashboard.energy.weekOf', { date: short(b.week, i18n.language) })}
             </Text>
             <Text style={numeric}>
-              {w.completeDays === 0
+              {b.balanceKcal === null || b.fatKg === null
                 ? t('bodyAddon.balance.noDays')
-                : t('bodyAddon.balance.line', {
-                    kcal: signed(w.balanceKcal, 0),
-                    kg: signed(w.fatKg, 2),
-                    days: w.completeDays,
-                  })}
+                : t(
+                    b.balanceKcal <= 0
+                      ? 'bodyAddon.dashboard.energy.deficit'
+                      : 'bodyAddon.dashboard.energy.surplus',
+                    {
+                      kcal: Math.abs(b.balanceKcal),
+                      kg: signed(b.fatKg, 2),
+                      days: b.loggedDays,
+                    },
+                  )}
             </Text>
           </View>
         ))}
@@ -125,6 +180,13 @@ export function ProgressSection({ guard }: { guard: AddonGuard }) {
             <Text variant="caption" tone="secondary">
               {t(`bodyAddon.scale.confidence.${scale.confidence}`)}
             </Text>
+            <View style={styles.tight} testID="scale-reasons">
+              {dash.scaleReasons.map((r) => (
+                <Text key={r} tone="secondary">
+                  {`• ${t(`bodyAddon.scale.reason.${r}`)}`}
+                </Text>
+              ))}
+            </View>
           </>
         ) : (
           <Text tone="secondary">{t('bodyAddon.scale.notEnough')}</Text>
@@ -158,30 +220,87 @@ export function ProgressSection({ guard }: { guard: AddonGuard }) {
         )}
       </Card>
 
-      <Card style={styles.stack} testID="body-coach">
-        <View style={styles.row}>
-          <Icon name="sparkles" size={20} color={colors.textMuted} />
-          <Text variant="heading" style={styles.flex}>
-            {t('bodyAddon.coach.title')}
+      {indices ? (
+        <Card style={styles.stack} testID="body-indices">
+          <Text variant="label">{t('bodyAddon.dashboard.indices.title')}</Text>
+          {(
+            [
+              ['bmi', indices.bmi],
+              ['waistToHeight', indices.waistToHeight],
+              ['waistToHip', indices.waistToHip],
+            ] as const
+          ).map(([key, value]) => (
+            <View key={key} style={styles.row}>
+              <Text tone="secondary" style={styles.flex}>
+                {t(`bodyAddon.dashboard.indices.${key}`)}
+              </Text>
+              <Text style={numeric}>{value === null ? '–' : String(value)}</Text>
+            </View>
+          ))}
+          <Text variant="caption" tone="secondary">
+            {t('bodyAddon.dashboard.indices.hint')}
           </Text>
-        </View>
-        <Text tone="secondary">{t('bodyAddon.coach.body')}</Text>
-        {last ? (
-          <Text style={numeric}>{t('bodyAddon.coach.weighIns', { count: trend.length })}</Text>
-        ) : null}
+        </Card>
+      ) : null}
+
+      <Card style={styles.stack} testID="body-measurements">
+        <Text variant="label">{t('bodyAddon.dashboard.measurements.title')}</Text>
+        {measurements.length === 0 ? (
+          <Text tone="secondary">{t('bodyAddon.dashboard.measurements.empty')}</Text>
+        ) : (
+          measurements.map((m) => (
+            <View key={m.key} style={styles.row}>
+              <Text tone="secondary" style={styles.flex}>
+                {t(`bodyAddon.checkIn.fields.${m.key}.label`)}
+              </Text>
+              <Text style={numeric}>
+                {m.changeCm === null
+                  ? t('bodyAddon.dashboard.cm', { cm: m.currentCm })
+                  : t('bodyAddon.dashboard.measurements.change', {
+                      cm: m.currentCm,
+                      change: signed(m.changeCm),
+                      date: short(m.startDay, i18n.language),
+                    })}
+              </Text>
+            </View>
+          ))
+        )}
       </Card>
+
+      {training ? (
+        <Card style={styles.stack} testID="body-training">
+          <Text variant="label">{t('bodyAddon.dashboard.training.title')}</Text>
+          {(['run', 'bike', 'swim', 'strength', 'other'] as const)
+            .filter((g) => training.groups[g].planned > 0)
+            .map((g) => (
+              <View key={g} style={styles.row}>
+                <Text tone="secondary" style={styles.flex}>
+                  {t(`bodyAddon.dashboard.training.${g}`)}
+                </Text>
+                <Text style={numeric}>
+                  {t('bodyAddon.dashboard.training.count', {
+                    done: training.groups[g].done,
+                    planned: training.groups[g].planned,
+                  })}
+                </Text>
+              </View>
+            ))}
+          {training.planned === 0 ? (
+            <Text tone="secondary">{t('bodyAddon.dashboard.training.none')}</Text>
+          ) : (
+            <Text variant="caption" tone="secondary" style={numeric}>
+              {t('bodyAddon.dashboard.training.minutes', { minutes: training.minutesDone })}
+            </Text>
+          )}
+        </Card>
+      ) : null}
     </View>
   );
 }
 
-function shiftDays(iso: string, days: number): string {
-  const d = new Date(`${iso}T00:00:00Z`);
-  d.setUTCDate(d.getUTCDate() + days);
-  return d.toISOString().slice(0, 10);
-}
-
 const styles = StyleSheet.create({
   stack: { gap: spacing.sm },
+  tight: { gap: spacing.xs },
   tiles: { flexDirection: 'row', gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   flex: { flex: 1 },

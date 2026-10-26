@@ -2720,10 +2720,60 @@
       "tooFast": "Your trend has fallen by more than 1.5 % of your weight in each of the last two weeks. That is faster than is easy to keep – consider eating a bit more."
     },
     "coach": {
-      "title": "Coach",
-      "body": "Each week the coach will compare your trend with your food and training and suggest small, sustainable adjustments. It never pushes for faster loss.",
-      "weighIns_one": "Based on {{count}} day with a check-in so far.",
-      "weighIns_other": "Based on {{count}} days with a check-in so far."
+      "title": "Weekly coach",
+      "week": "Looking back on the week of {{date}}",
+      "progress": "{{pct}} % of the way to your goal",
+      "numbers": {
+        "trend": "Trend: {{kg}} kg",
+        "intake": "Eaten: {{kcal}} kcal per logged day",
+        "balance": "Balance: {{kcal}} kcal per day (≈ {{kg}} kg fat)",
+        "logged": "Logged {{days}} of 7 days · weighed in on {{weighIns}} days",
+        "training": "Training: {{done}} of {{planned}} sessions"
+      },
+      "wentWell": "What went well",
+      "well": {
+        "logging": "You logged {{days}} of 7 days – that makes every number here more reliable.",
+        "onPace": "Your trend moves at {{rate}} kg per week – right where you planned.",
+        "stable": "Your weight is steady – exactly what maintaining means.",
+        "protein": "Protein: {{grams}} g a day against a target of {{target}} g.",
+        "training": "You did {{done}} of {{planned}} planned sessions.",
+        "strength": "{{sessions}} strength sessions – good for keeping muscle."
+      },
+      "toWatch": "What to watch",
+      "watchItem": {
+        "fewLogs": "Only {{days}} days were logged, so the energy numbers are rough.",
+        "proteinLow": "Protein averaged {{grams}} g against {{target}} g.",
+        "fastPace": "Your trend is falling faster than planned ({{rate}} kg per week).",
+        "fastPaceNoRate": "Your trend is falling faster than planned.",
+        "slowPace": "Your trend moves slower than planned ({{rate}} kg per week).",
+        "missedSessions": "{{done}} of {{planned}} sessions done – a busy week happens.",
+        "hardWeekAhead": "This week's training is heavier than usual ({{share}} % of a typical week)."
+      },
+      "nextWeek": "For this week",
+      "noChanges": "Keep going as you are – no change needed.",
+      "adjust": {
+        "kcal": {
+          "checkIn": "Adjust your daily target by {{kcal}} kcal to match your planned pace.",
+          "tooFast": "Eat {{kcal}} kcal more per day – a slower loss is easier to keep and protects muscle.",
+          "hardWeek": "Eat {{kcal}} kcal more per day while training is heavier."
+        },
+        "protein": "Aim for {{grams}} g protein a day – spread over your meals.",
+        "strength_one": "Keep at least {{count}} strength session in the week.",
+        "strength_other": "Keep at least {{count}} strength sessions in the week – they protect muscle while your weight changes.",
+        "logging": "Try to log at least {{days}} days, including the weekend."
+      },
+      "openPlan": "Open plan",
+      "hint": {
+        "plateau": "Your trend has been flat for three weeks despite a logged deficit. Check portions and drinks, or take a short break at maintenance.",
+        "tooFastLoss": "You have lost more than 1.5 % of your weight per week twice in a row. Eating a bit more is the kinder choice.",
+        "incompleteData": "Some days are missing or marked incomplete – the coach works with what is there and says less."
+      },
+      "footer": "Suggestions only – nothing changes until you accept it. Every number is an estimate.",
+      "teaser": {
+        "title": "Your weekly coach",
+        "body": "See how your training affects your weight, energy and body – with clear suggestions each week.",
+        "action": "Unlock Peakr Body"
+      }
     },
     "profile": {
       "title": "A few details first",
@@ -2803,7 +2853,16 @@
         "medium": "Medium confidence.",
         "high": "High confidence."
       },
-      "notEnough": "Needs at least one complete week: all seven days logged and three weigh-ins. Days marked incomplete are skipped."
+      "notEnough": "Needs at least one complete week: all seven days logged and three weigh-ins. Days marked incomplete are skipped.",
+      "reason": {
+        "matches": "Calculation and scale agree – your log and the activity estimate fit well.",
+        "underLogged": "Some food may be missing from the log (snacks, drinks, oils, weekends).",
+        "overLogged": "Portions may be logged higher than eaten.",
+        "activeOverestimated": "The activity energy may be too high – a lower correction factor would fit better.",
+        "activeUnderestimated": "The activity energy may be too low – you may move more than the watch counts.",
+        "water": "Water and glycogen shift the scale by 1–2 kg without any fat change (salt, carbs, hormones, hard training).",
+        "fewWeeks": "Only a few complete weeks so far – the comparison gets more reliable over time."
+      }
     },
     "composition": {
       "title": "Fat and lean mass (estimate)",
@@ -2992,6 +3051,57 @@
       "perServing": "One serving: {{grams}} g, {{kcal}} kcal",
       "serving": "1 serving",
       "saveRecipe": "Save recipe"
+    },
+    "dashboard": {
+      "pct": "{{pct}} %",
+      "cm": "{{cm}} cm",
+      "kpi": {
+        "sinceStart": "Since start",
+        "bodyFat": "Body fat",
+        "waist": "Waist",
+        "goal": "Goal progress"
+      },
+      "chart": {
+        "title": "Weight trend",
+        "weighIns": "Weigh-ins",
+        "trend": "Trend",
+        "goal": "Goal",
+        "planned": "At your chosen rate",
+        "real": "At your real pace",
+        "a11y": "Weight trend chart. Trend weight {{kg}} kg, {{change}} kg since start."
+      },
+      "energy": {
+        "resting": "Resting",
+        "active": "Active",
+        "intake": "Eaten",
+        "weekOf": "Week of {{date}}",
+        "deficit": "{{kcal}} kcal deficit · ≈ {{kg}} kg fat ({{days}} days)",
+        "surplus": "{{kcal}} kcal surplus · ≈ {{kg}} kg fat ({{days}} days)",
+        "a11y": "Energy per week: resting and active energy as stacked bars, eaten energy as a line. The weekly numbers follow below."
+      },
+      "indices": {
+        "title": "Body indices",
+        "bmi": "BMI",
+        "waistToHeight": "Waist-to-height",
+        "waistToHip": "Waist-to-hip",
+        "hint": "Common reference values: BMI 18.5–25, waist-to-height below 0.5, waist-to-hip below 0.9 (men) / 0.85 (women). They describe proportions, not health – your trend matters more than a single number."
+      },
+      "measurements": {
+        "title": "Measurements since start",
+        "empty": "Your measurement trends start with the first check-in.",
+        "change": "{{cm}} cm ({{change}} since {{date}})"
+      },
+      "training": {
+        "title": "Training this week",
+        "run": "Runs",
+        "bike": "Rides",
+        "swim": "Swims",
+        "strength": "Strength",
+        "other": "Other",
+        "count": "{{done}} of {{planned}}",
+        "minutes": "{{minutes}} min done so far",
+        "none": "No sessions planned this week."
+      }
     }
   }
 }

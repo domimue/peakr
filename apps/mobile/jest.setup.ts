@@ -9,6 +9,7 @@ setUpTests();
 jest.mock('victory-native', () => ({
   CartesianChart: () => null,
   Bar: () => null,
+  StackedBar: () => null,
   Area: () => null,
   AreaRange: () => null,
   Line: () => null,

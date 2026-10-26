@@ -95,6 +95,13 @@ export interface BodyModel {
   macros: MacroTargets;
   /** Optional fuelling hints for long planned sessions today and tomorrow. */
   fuelling: FuellingHint[];
+  /** The model's days (window up to today), for the dashboard and the coach. */
+  days: ModelDay[];
+  incompleteDays: string[];
+  /** Logged protein per day (days with at least one entry that has protein). */
+  proteinByDay: { day: string; proteinG: number }[];
+  /** Body fat values with their day (all sources), oldest first. */
+  bodyFatPoints: { day: string; bodyFatPct: number }[];
 }
 
 interface RawInputs {
@@ -330,8 +337,15 @@ export function useBodyModel(): BodyModel | null {
       )
       .sort((a, b) => a.day.localeCompare(b.day));
     const latestFat = fatPoints.at(-1);
+    const proteinByDay = new Map<string, number>();
+    for (const f of raw.food)
+      if (f.proteinG !== null) proteinByDay.set(f.day, (proteinByDay.get(f.day) ?? 0) + f.proteinG);
     return {
       raw,
+      days,
+      incompleteDays: raw.incompleteDays,
+      proteinByDay: [...proteinByDay.entries()].map(([day, proteinG]) => ({ day, proteinG })),
+      bodyFatPoints: fatPoints.map((p) => ({ day: p.day, bodyFatPct: p.bodyFatPct })),
       today: todayDay,
       targetKcal: target.intakeKcal,
       remainingKcal: target.intakeKcal - (todayDay.intakeKcal ?? 0),
