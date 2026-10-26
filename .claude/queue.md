@@ -7,7 +7,9 @@ Hourly check-in (scheduled task): `trig_01JGRKJomHcy59JEsWHvfDNY`
 
 ## Open
 
-_(none)_
+- Phase 11b – Add-on integration & entitlement (`body_nutrition`, guard, Body tab in place of
+  the Insights tab – user decision 2026-10-26, locked states, shared profile, 14-day trial,
+  cancel = read-only, remote flag `addon_body_nutrition`)
 
 ## Done
 
