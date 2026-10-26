@@ -36,6 +36,10 @@ refuses it for the `production` profile even if the variable leaks into that bui
    phone, download the APK and install it. Android asks once to allow installs from the browser
    ("Install unknown apps") – allow it for that browser.
 4. Updates: build again and install over the old one; your data stays.
+5. The `personal` and `development` profiles build for `arm64-v8a` only
+   (`ORG_GRADLE_PROJECT_reactNativeArchitectures` in `eas.json`) – every current Android phone.
+   With all four processor types the native C++ steps ran out of memory on the free EAS worker
+   ("Gradle build daemon disappeared unexpectedly"). Store builds keep all four.
 
 ## Optional: account, sync and maps
 
