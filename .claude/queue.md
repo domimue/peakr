@@ -7,7 +7,9 @@ Hourly check-in (scheduled task): `trig_01CLCwz6RBurU45vsaGJYsmn` (this branch, 
 
 ## Open
 
-_(none)_
+- Phase 12 – Energy engine & health data (resting/active energy, balance, trend, adaptive TDEE,
+  calculation vs. scale, fat/lean mass, safety rules; Health Connect / HealthKit reads after the
+  add-on is active; Garmin body composition and daily energy; source priority in CLAUDE.md)
 
 ## Done
 
