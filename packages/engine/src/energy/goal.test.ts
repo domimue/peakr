@@ -5,7 +5,9 @@ import {
   customRate,
   dayTarget,
   detectPlateau,
+  energyBasis,
   goalForecast,
+  goalSnapshot,
   goalTargets,
   proteinForGoal,
   reverseDiet,
@@ -403,5 +405,171 @@ describe('helpers for the app', () => {
       500,
     );
     expect(completedWorkoutKcal(active({ workoutSource: 'wearable', kcal: 100 }), 1500)).toBe(0);
+  });
+});
+
+describe('energy basis and snapshot', () => {
+  const day = (
+    d: string,
+    over: Partial<{ restingKcal: number; activeKcal: number; neat: number }> = {},
+  ) => ({
+    day: d,
+    restingKcal: over.restingKcal ?? 1700,
+    activeKcal: over.activeKcal ?? 900,
+    active: {
+      kcal: over.activeKcal ?? 900,
+      workoutKcal: (over.activeKcal ?? 900) - (over.neat ?? 400),
+      neatKcal: over.neat ?? 400,
+      workoutSource: 'completed' as const,
+      neatSource: 'steps' as const,
+    },
+  });
+
+  it('formula from the last 14 days, adaptive once there is an estimate', () => {
+    const days = [
+      day('2026-10-24'),
+      day('2026-10-25', { activeKcal: 500, neat: 500 }),
+      day(TODAY, { activeKcal: 3000 }),
+    ];
+    const formula = energyBasis({
+      days,
+      today: TODAY,
+      adaptive: { status: 'notEnoughData', usedDays: 2, neededDays: 14 },
+    });
+    expect(formula).toEqual({
+      tdeeKcal: 2400,
+      nonExerciseKcal: 2150,
+      bmrKcal: 1700,
+      source: 'formula',
+    });
+    const adaptive = energyBasis({
+      days,
+      today: TODAY,
+      adaptive: {
+        status: 'ok',
+        estimate: {
+          date: TODAY,
+          tdeeKcal: 2600,
+          rawKcal: 2600,
+          formulaKcal: 2400,
+          correctionKcal: 200,
+          clamped: false,
+          basis: {
+            from: '',
+            to: '',
+            intakeDays: 14,
+            excludedDays: 0,
+            avgIntakeKcal: 0,
+            trendStartKg: 0,
+            trendEndKg: 0,
+            spanDays: 14,
+          },
+        },
+      },
+    });
+    expect(adaptive).toEqual({
+      tdeeKcal: 2600,
+      nonExerciseKcal: 2350,
+      bmrKcal: 1700,
+      source: 'adaptive',
+    });
+    expect(
+      energyBasis({
+        days: [day(TODAY)],
+        today: TODAY,
+        adaptive: { status: 'notEnoughData', usedDays: 0, neededDays: 14 },
+      })?.source,
+    ).toBe('formula');
+    expect(
+      energyBasis({
+        days: [],
+        today: TODAY,
+        adaptive: { status: 'notEnoughData', usedDays: 0, neededDays: 14 },
+      }),
+    ).toBeNull();
+  });
+
+  const basis = {
+    tdeeKcal: 2800,
+    nonExerciseKcal: 2400,
+    bmrKcal: 1750,
+    source: 'formula' as const,
+  };
+  const week = { weekLoad: 600, typicalWeekLoad: 600, raceWeek: false, taper: false, keyDays: [] };
+  const goal = {
+    kind: 'lose' as const,
+    targetWeightKg: 75,
+    ratePerWeekKg: 0.5,
+    eatBackPct: 50,
+    weeklyMode: false,
+    adjustmentKcal: 0,
+  };
+
+  it('daily mode eats back today’s workouts; an accepted suggestion moves the targets', () => {
+    const s = goalSnapshot({
+      goal: { ...goal, adjustmentKcal: 100 },
+      basis,
+      sex: 'male',
+      trendKg: 80,
+      todayWorkoutKcal: 600,
+      plannedWeekKcal: [0, 0, 0, 0, 0, 0, 0],
+      weekdayIndex: 0,
+      trend: trend(21, 0.5),
+      days: [],
+      today: TODAY,
+      week,
+    });
+    expect(s.targets.baseKcal).toBe(1950);
+    expect(s.todayKcal).toBe(2250);
+    expect(s.forecast.plannedDate).toBe(addDays(TODAY, 70));
+    expect(s.checkIn?.status).toBe('onTrack');
+    expect(s.reached).toBe(false);
+  });
+
+  it('weekly mode uses today’s share; target reached gives the reverse diet; maintain has no check-in', () => {
+    const weekly = goalSnapshot({
+      goal: { ...goal, weeklyMode: true },
+      basis,
+      sex: 'male',
+      trendKg: 80,
+      todayWorkoutKcal: 0,
+      plannedWeekKcal: [600, 0, 0, 0, 0, 900, 0],
+      weekdayIndex: 5,
+      trend: [],
+      days: [],
+      today: TODAY,
+      week,
+    });
+    expect(weekly.todayKcal).toBe(weekly.weekly?.days[5]);
+    const reached = goalSnapshot({
+      goal: { ...goal, targetWeightKg: 81 },
+      basis,
+      sex: 'male',
+      trendKg: 80,
+      todayWorkoutKcal: 0,
+      plannedWeekKcal: [0, 0, 0, 0, 0, 0, 0],
+      weekdayIndex: 0,
+      trend: [],
+      days: [],
+      today: TODAY,
+      week,
+    });
+    expect(reached.reached).toBe(true);
+    expect(reached.reverseDiet.at(-1)?.intakeKcal).toBe(2800);
+    const maintain = goalSnapshot({
+      goal: { ...goal, kind: 'maintain', targetWeightKg: null },
+      basis,
+      sex: 'male',
+      trendKg: 80,
+      todayWorkoutKcal: 0,
+      plannedWeekKcal: [0, 0, 0, 0, 0, 0, 0],
+      weekdayIndex: 0,
+      trend: [],
+      days: [],
+      today: TODAY,
+      week,
+    });
+    expect(maintain.checkIn).toBeNull();
+    expect(maintain.plateau.plateau).toBe(false);
   });
 });

@@ -9,6 +9,7 @@ import {
   bodyDays,
   bodyDeviceDaily,
   bodyFoodEntries,
+  bodyGoals,
   bodyTargetChanges,
   bodyTdeeEstimates,
 } from '../db/schema';
@@ -246,6 +247,37 @@ export async function saveTargetChange(c: StoredTargetChange): Promise<void> {
     .insert(bodyTargetChanges)
     .values(row)
     .onConflictDoUpdate({ target: bodyTargetChanges.date, set: row });
+}
+
+// ---------------------------------------------------------------------------------------------
+// Weight goal (every version kept)
+
+export interface StoredGoal {
+  id: string;
+  createdAt: string;
+  kind: 'lose' | 'maintain' | 'gain';
+  startWeightKg: number;
+  targetWeightKg: number | null;
+  ratePerWeekKg: number;
+  eatBackPct: number;
+  weeklyMode: boolean;
+  adjustmentKcal: number;
+  paused: boolean;
+  reason: 'user' | 'adaptive' | 'safety_clamp';
+}
+
+export type GoalDraft = Omit<StoredGoal, 'id' | 'createdAt'>;
+
+/** All versions, oldest first; the last one is the current goal. */
+export async function listGoals(): Promise<StoredGoal[]> {
+  const rows = await db.select().from(bodyGoals).orderBy(asc(bodyGoals.createdAt));
+  return rows.map(({ dirty: _dirty, ...r }) => r);
+}
+
+export async function saveGoal(draft: GoalDraft): Promise<StoredGoal> {
+  const goal = { ...draft, id: newId(), createdAt: now() };
+  await db.insert(bodyGoals).values({ ...goal, dirty: true });
+  return goal;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -503,6 +535,52 @@ const SPECS: SyncSpec[] = [
     },
   },
 ];
+
+SPECS.push({
+  server: 'body_goals',
+  onConflict: 'user_id,id',
+  dirty: () => db.select().from(bodyGoals).where(eq(bodyGoals.dirty, true)),
+  toServer: (r) => ({
+    id: r.id,
+    created_at: r.createdAt,
+    kind: r.kind,
+    start_weight_kg: r.startWeightKg,
+    target_weight_kg: r.targetWeightKg,
+    rate_per_week_kg: r.ratePerWeekKg,
+    eat_back_pct: r.eatBackPct,
+    weekly_mode: r.weeklyMode,
+    adjustment_kcal: r.adjustmentKcal,
+    paused: r.paused,
+    reason: r.reason,
+  }),
+  key: (r) => ({ id: String(r.id) }),
+  markPushed: async (r) => {
+    await db
+      .update(bodyGoals)
+      .set({ dirty: false })
+      .where(eq(bodyGoals.id, String(r.id)));
+  },
+  apply: async (r) => {
+    const id = String(r.id);
+    const [existing] = await db.select().from(bodyGoals).where(eq(bodyGoals.id, id));
+    if (existing) return false;
+    await db.insert(bodyGoals).values({
+      id,
+      createdAt: String(r.created_at),
+      kind: r.kind as StoredGoal['kind'],
+      startWeightKg: Number(r.start_weight_kg),
+      targetWeightKg: numOrNull(r.target_weight_kg),
+      ratePerWeekKg: Number(r.rate_per_week_kg),
+      eatBackPct: Number(r.eat_back_pct),
+      weeklyMode: Boolean(r.weekly_mode),
+      adjustmentKcal: Number(r.adjustment_kcal),
+      paused: Boolean(r.paused),
+      reason: r.reason as StoredGoal['reason'],
+      dirty: false,
+    });
+    return true;
+  },
+});
 
 const cursorKey = (server: string) => `body.cursor.${server}`;
 

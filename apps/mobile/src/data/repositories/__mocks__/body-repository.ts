@@ -1,6 +1,8 @@
 import type { BodyProfile } from '@peakr/engine';
 
 import type {
+  GoalDraft,
+  StoredGoal,
   DeviceBodyMetric,
   DeviceBodyValue,
   StoredTargetChange,
@@ -22,6 +24,7 @@ export const store = {
   tdee: [] as StoredTdeeEstimate[],
   targets: [] as StoredTargetChange[],
   device: [] as DeviceBodyValue[],
+  goals: [] as StoredGoal[],
 };
 
 let seq = 0;
@@ -35,6 +38,7 @@ export function resetStore() {
   store.tdee = [];
   store.targets = [];
   store.device = [];
+  store.goals = [];
   seq = 0;
 }
 
@@ -97,4 +101,14 @@ export const listDeviceValues = jest.fn(async (from: string) =>
 );
 export const deleteDeviceValues = jest.fn(async (metrics?: readonly DeviceBodyMetric[]) => {
   store.device = metrics ? store.device.filter((d) => !metrics.includes(d.metric)) : [];
+});
+export const listGoals = jest.fn(async () => [...store.goals]);
+export const saveGoal = jest.fn(async (draft: GoalDraft) => {
+  const goal = {
+    ...draft,
+    id: `goal-${++seq}`,
+    createdAt: `2026-10-26T08:00:${String(seq).padStart(2, '0')}Z`,
+  };
+  store.goals.push(goal);
+  return goal;
 });

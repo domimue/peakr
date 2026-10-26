@@ -85,6 +85,13 @@
       "when": 1792977712592,
       "tag": "0011_body_energy",
       "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1793039580660,
+      "tag": "0012_body_goals",
+      "breakpoints": true
     }
   ]
 }

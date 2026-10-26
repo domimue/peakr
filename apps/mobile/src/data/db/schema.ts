@@ -483,3 +483,23 @@ export const bodyDeviceDaily = sqliteTable(
   },
   (t) => [primaryKey({ columns: [t.metric, t.day, t.source] })],
 );
+
+// Weight goal (Phase 13): every version is kept – a change, a pause, an accepted suggestion –
+// with its reason (CLAUDE.md "Weight goal rules"). The latest row is the current goal.
+export const bodyGoals = sqliteTable('body_goals', {
+  id: text('id').primaryKey(),
+  createdAt: text('created_at').notNull(),
+  kind: text('kind').$type<'lose' | 'maintain' | 'gain'>().notNull(),
+  startWeightKg: real('start_weight_kg').notNull(),
+  targetWeightKg: real('target_weight_kg'),
+  ratePerWeekKg: real('rate_per_week_kg').notNull(),
+  /** Share of completed workout energy eaten back, 0–100. */
+  eatBackPct: integer('eat_back_pct').notNull(),
+  /** Same weekly total, more on training days. */
+  weeklyMode: integer('weekly_mode', { mode: 'boolean' }).notNull(),
+  /** Accepted check-in suggestions, added to the daily target (kcal). */
+  adjustmentKcal: integer('adjustment_kcal').notNull().default(0),
+  paused: integer('paused', { mode: 'boolean' }).notNull().default(false),
+  reason: text('reason').$type<'user' | 'adaptive' | 'safety_clamp'>().notNull(),
+  dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+});

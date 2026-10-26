@@ -1,9 +1,11 @@
 import { theilSen } from '../stats';
 
+import type { AdaptiveResult } from './adaptive';
 import { dayBalance, isLogged, type EnergyDay } from './balance';
 import { energyConfig as C } from './config';
 import { daysBetween, intakeFloorKcal, type BodySex } from './energy';
 import { maxLossRatePerWeekKg, type TargetReason, type WeightGoalKind } from './safety';
+import type { ModelDay } from './days';
 import { trendOn, type TrendPoint } from './trend';
 
 /**
@@ -399,5 +401,167 @@ export function weekLoadContext(
   return {
     weekLoad: weeks.find((w) => w.startDate === monday)?.load ?? 0,
     typicalWeekLoad: typical,
+  };
+}
+
+/** Maintenance for the goal: the adaptive TDEE once there is one, else the formula estimate. */
+export interface EnergyBasis {
+  tdeeKcal: number;
+  /** Without workouts: resting + everyday movement (+ the adaptive correction). */
+  nonExerciseKcal: number;
+  bmrKcal: number;
+  source: 'adaptive' | 'formula';
+}
+
+/** Averages of the last 14 days before today (formula), corrected by the adaptive estimate. */
+export function energyBasis(input: {
+  days: readonly ModelDayLike[];
+  today: string;
+  adaptive: AdaptiveResult;
+}): EnergyBasis | null {
+  const recent = input.days.filter(
+    (d) => d.day < input.today && daysBetween(d.day, input.today) <= 14,
+  );
+  const pool = recent.length > 0 ? recent : input.days.filter((d) => d.day === input.today);
+  if (pool.length === 0) return null;
+  const avg = (f: (d: ModelDayLike) => number) => pool.reduce((s, d) => s + f(d), 0) / pool.length;
+  const bmr = avg((d) => d.restingKcal);
+  const nonExercise = avg((d) => d.restingKcal + d.active.neatKcal);
+  const formula = avg((d) => d.restingKcal + d.activeKcal);
+  if (input.adaptive.status === 'ok') {
+    const correction = input.adaptive.estimate.correctionKcal;
+    return {
+      tdeeKcal: input.adaptive.estimate.tdeeKcal,
+      nonExerciseKcal: Math.round(nonExercise + correction),
+      bmrKcal: Math.round(bmr),
+      source: 'adaptive',
+    };
+  }
+  return {
+    tdeeKcal: Math.round(formula),
+    nonExerciseKcal: Math.round(nonExercise),
+    bmrKcal: Math.round(bmr),
+    source: 'formula',
+  };
+}
+
+type ModelDayLike = Pick<ModelDay, 'day' | 'restingKcal' | 'activeKcal' | 'active'>;
+
+export interface GoalSettings {
+  kind: WeightGoalKind;
+  targetWeightKg: number | null;
+  ratePerWeekKg: number;
+  eatBackPct: number;
+  weeklyMode: boolean;
+  /** Accepted check-in suggestions (kcal/day). */
+  adjustmentKcal: number;
+}
+
+export interface GoalSnapshot {
+  targets: GoalTargets;
+  /** Today's target: base + eaten-back workouts (daily mode) or today's share (weekly mode). */
+  todayKcal: number;
+  weekly: { totalKcal: number; days: number[] } | null;
+  forecast: GoalForecast;
+  checkIn: ReturnType<typeof weeklyCheckIn> | null;
+  plateau: ReturnType<typeof detectPlateau>;
+  reached: boolean;
+  reverseDiet: { from: string; intakeKcal: number }[];
+  training: ReturnType<typeof trainingInteraction>;
+}
+
+/** Everything the goal shows for today, from the goal, the energy basis and the plan. */
+export function goalSnapshot(input: {
+  goal: GoalSettings;
+  basis: EnergyBasis;
+  sex: BodySex;
+  trendKg: number;
+  todayWorkoutKcal: number;
+  /** Planned workout energy Monday … Sunday of this week. */
+  plannedWeekKcal: readonly number[];
+  /** 0 = Monday. */
+  weekdayIndex: number;
+  trend: readonly TrendPoint[];
+  days: readonly EnergyDay[];
+  today: string;
+  week: {
+    weekLoad: number;
+    typicalWeekLoad: number;
+    raceWeek: boolean;
+    taper: boolean;
+    keyDays: string[];
+  };
+}): GoalSnapshot {
+  const { goal, basis } = input;
+  const raw = goalTargets({
+    kind: goal.kind,
+    ratePerWeekKg: goal.ratePerWeekKg,
+    tdeeKcal: basis.tdeeKcal,
+    nonExerciseTdeeKcal: basis.nonExerciseKcal,
+    bmrKcal: basis.bmrKcal,
+    sex: input.sex,
+    weightKg: input.trendKg,
+  });
+  // An accepted suggestion moves the targets; the floor still holds.
+  const adjust = (kcal: number) => Math.max(raw.floorKcal, kcal + goal.adjustmentKcal);
+  const targets = { ...raw, baseKcal: adjust(raw.baseKcal), dailyKcal: adjust(raw.dailyKcal) };
+  const weekly = goal.weeklyMode
+    ? weeklyPlan({
+        baseKcal: targets.baseKcal,
+        nonExerciseKcal: basis.nonExerciseKcal,
+        plannedWorkoutKcal: input.plannedWeekKcal,
+        eatBackPct: goal.eatBackPct,
+        floorKcal: targets.floorKcal,
+      })
+    : null;
+  const todayKcal = weekly
+    ? (weekly.days[input.weekdayIndex] as number)
+    : dayTarget({
+        baseKcal: targets.baseKcal,
+        workoutKcal: input.todayWorkoutKcal,
+        eatBackPct: goal.eatBackPct,
+      });
+  const target = goal.targetWeightKg ?? input.trendKg;
+  const reached = targetReached({ kind: goal.kind, targetKg: target, trendKg: input.trendKg });
+  return {
+    targets,
+    todayKcal,
+    weekly,
+    forecast: goalForecast({
+      kind: goal.kind,
+      startKg: input.trendKg,
+      targetKg: target,
+      ratePerWeekKg: targets.ratePerWeekKg,
+      trend: input.trend,
+      today: input.today,
+    }),
+    checkIn:
+      goal.kind === 'maintain'
+        ? null
+        : weeklyCheckIn({
+            kind: goal.kind,
+            plannedRatePerWeekKg: targets.effectiveRatePerWeekKg,
+            trend: input.trend,
+            today: input.today,
+          }),
+    plateau:
+      goal.kind === 'lose'
+        ? detectPlateau({ trend: input.trend, days: input.days, today: input.today })
+        : {
+            plateau: false,
+            avgBalanceKcal: null,
+            suggestions: [],
+            dietBreakWeeks: G.plateau.dietBreakWeeks,
+          },
+    reached,
+    reverseDiet:
+      reached && goal.kind === 'lose'
+        ? reverseDiet({
+            currentKcal: targets.dailyKcal,
+            maintenanceKcal: basis.tdeeKcal,
+            today: input.today,
+          })
+        : [],
+    training: trainingInteraction({ deficitKcal: Math.max(0, targets.deficitKcal), ...input.week }),
   };
 }
