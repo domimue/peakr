@@ -7,7 +7,9 @@ Hourly check-in (scheduled task): `trig_01CLCwz6RBurU45vsaGJYsmn` (this branch, 
 
 ## Open
 
-_(none)_
+- Phase 13 – Weight goal & weekly rate (engine goal module with presets, targets, eat-back,
+  weekly mode, protein, forecast, weekly check-in, plateau, target reached, training load;
+  safety tests first; Body goal setup flow, change/pause with reason)
 
 ## Done
 
