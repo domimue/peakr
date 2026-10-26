@@ -10,6 +10,10 @@
       "channel": "development",
       "android": {
         "buildType": "apk"
+      },
+      "env": {
+        "ORG_GRADLE_PROJECT_reactNativeArchitectures": "arm64-v8a",
+        "PEAKR_LOW_MEMORY_BUILD": "1"
       }
     },
     "preview": {
@@ -27,7 +31,9 @@
         "buildType": "apk"
       },
       "env": {
-        "PEAKR_PERSONAL_BUILD": "1"
+        "PEAKR_PERSONAL_BUILD": "1",
+        "ORG_GRADLE_PROJECT_reactNativeArchitectures": "arm64-v8a",
+        "PEAKR_LOW_MEMORY_BUILD": "1"
       }
     },
     "production": {

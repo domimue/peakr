@@ -135,6 +135,7 @@
         }
       ],
       "./plugins/with-share-gpx",
+      "./plugins/with-build-limits",
       [
         "expo-location",
         {
@@ -175,7 +176,5 @@
         "projectId": "536755e4-300f-4c8c-ac5b-8835f79fbb3d"
       }
     }
-  }
-}
   }
 }
