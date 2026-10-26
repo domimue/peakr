@@ -16,3 +16,32 @@ export {
   type PlausibilityWarning,
   type PrototypeImport,
 } from './body';
+export {
+  BODY_INDEX_REFERENCES,
+  bodyIndices,
+  forecastLines,
+  goalProgress,
+  measurementTrends,
+  scaleReasons,
+  trainingWeek,
+  trendChange,
+  weeklyEnergyBars,
+  type BodyIndices,
+  type ForecastPoint,
+  type MeasurementTrend,
+  type ScaleReason,
+  type TrainingGroup,
+  type TrainingWeek,
+  type WeekEnergyBar,
+} from './dashboard';
+export {
+  coachConfig,
+  weeklyCoach,
+  type CoachAdjustment,
+  type CoachHint,
+  type CoachInput,
+  type CoachPoint,
+  type CoachSummary,
+  type CoachTraining,
+  type CoachWatch,
+} from './coach';
