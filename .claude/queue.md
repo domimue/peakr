@@ -3,7 +3,7 @@
 Prompts the user has given that are not finished yet. Newest at the bottom;
 work top to bottom. See "Working mode (Claude sessions)" in CLAUDE.md.
 
-Hourly check-in (scheduled task): `trig_01JGRKJomHcy59JEsWHvfDNY`
+Hourly check-in (scheduled task): `trig_01CLCwz6RBurU45vsaGJYsmn` (this branch, claude/focused-bell-520msa)
 
 ## Open
 
