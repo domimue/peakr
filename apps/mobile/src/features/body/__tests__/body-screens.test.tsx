@@ -359,6 +359,7 @@ describe('Teil A without the add-on', () => {
     expect(await screen.findByTestId('insights')).toBeOnTheScreen();
     expect(screen.queryByTestId('energy-today')).toBeNull();
     expect(screen.queryByTestId('energy-today-locked')).toBeNull();
+    expect(screen.queryByTestId('coach-teaser')).toBeNull();
     expect(screen.getByText('Mark as done')).toBeOnTheScreen();
     expect(body.getProfile).not.toHaveBeenCalled();
   });
@@ -370,6 +371,10 @@ describe('Teil A without the add-on', () => {
     expect(await screen.findByTestId('energy-today-locked')).toBeOnTheScreen();
     expect(screen.getByText('Mark as done')).toBeOnTheScreen();
     expect(body.listFood).not.toHaveBeenCalled();
+    // The coach teaser below the weekly summary leads to the add-on paywall.
+    expect(screen.getByTestId('coach-teaser')).toHaveTextContent(/weekly coach/i);
+    await fireEvent.press(screen.getByText('Unlock Peakr Body'));
+    expect(router.push).toHaveBeenCalledWith('/body/addon');
   });
 
   it('Today with the add-on: remaining energy and the energy of today’s session', async () => {
@@ -379,6 +384,7 @@ describe('Teil A without the add-on', () => {
     await renderWithQuery(<TodayScreen />);
     expect(await screen.findByTestId('energy-today')).toBeOnTheScreen();
     expect(await screen.findByText(/added back from today’s workouts/)).toBeOnTheScreen();
+    expect(screen.queryByTestId('coach-teaser')).toBeNull();
   });
 
   it('Plan works the same with the add-on locked', async () => {

@@ -18,6 +18,7 @@ import {
   purchasableTiers,
   type TierKey,
 } from '@/features/billing/model';
+import { BodyFeatureList } from '@/features/body/components/feature-list';
 import { useQuizStore } from '@/features/onboarding/quiz-store';
 import { useCreatePlan, usePlan } from '@/features/plan/queries';
 import {
@@ -88,6 +89,8 @@ export function PaywallScreen() {
   const priceOf = (tier: TierKey): PackageSummary | undefined =>
     packages.find((p) => p.tier === tier && p.period === period);
   const selected = priceOf(tier);
+  const addon = bodyPackages.find((p) => p.period === period);
+  const bodyTrialUsed = useBillingStore((s) => s.bodyTrialUsed);
   const trialDays = selected?.trialDays ?? null;
   const store = t(
     Platform.OS === 'ios' ? 'subscription.store.app_store' : 'subscription.store.play_store',
@@ -219,6 +222,38 @@ export function PaywallScreen() {
           </Pressable>
         );
       })}
+
+      {body.visible && tier === 'training' && addon ? (
+        <Card style={styles.tier} testID="paywall-addon">
+          <Text variant="heading">{t('paywall.addon.title')}</Text>
+          <Text variant="title" style={numeric}>
+            {t('paywall.addon.price', { price: perPeriod(addon) })}
+          </Text>
+          <Text tone="secondary">
+            {/* The add-on trial is once per account (unknown counts as used). */}
+            {addon.trialDays && bodyTrialUsed === false
+              ? t('paywall.addon.trial', { days: addon.trialDays })
+              : t('paywall.addon.noTrial')}
+          </Text>
+          <BodyFeatureList />
+          <Text variant="caption" tone="secondary">
+            {t('paywall.addon.later')}
+          </Text>
+          {tiers.includes('plus') ? (
+            <Button
+              small
+              variant="secondary"
+              testID="paywall-choose-bundle"
+              label={
+                saving
+                  ? t('paywall.addon.bundleSaving', { pct: saving })
+                  : t('paywall.addon.bundle')
+              }
+              onPress={() => setChosen('plus')}
+            />
+          ) : null}
+        </Card>
+      ) : null}
 
       {status === 'unavailable' || status === 'error' ? (
         <Card>

@@ -570,7 +570,16 @@
     "privacy": "Privacy",
     "back": "Back to my forecast",
     "personal": "Personal build – everything is unlocked, no subscription needed.",
-    "bundleSaving": "Save {{pct}} %"
+    "bundleSaving": "Save {{pct}} %",
+    "addon": {
+      "title": "Add Peakr Body",
+      "price": "Add-on: {{price}}",
+      "trial": "{{days}} days free, once per account.",
+      "noTrial": "Renews automatically; cancel anytime.",
+      "later": "You can add it later in the Body tab or under Profile → Subscription.",
+      "bundle": "Choose Peakr + Body instead",
+      "bundleSaving": "Choose Peakr + Body and save {{pct}} %"
+    }
   },
   "gymAddon": {
     "title": "Peakr Gym",
@@ -3102,6 +3111,14 @@
         "minutes": "{{minutes}} min done so far",
         "none": "No sessions planned this week."
       }
+    },
+    "features": {
+      "diary": "Food diary with barcode scan, recipes and your own foods",
+      "energy": "Real energy balance from what you eat and the workouts you do",
+      "goal": "Weight goal with a safe weekly rate and protein target",
+      "checkIn": "Weigh-ins, body measurements and private progress photos",
+      "dashboard": "Trend, fat vs. lean mass and “calculation vs. scale”",
+      "coach": "A weekly coach that combines your training with your body data"
     }
   }
 }

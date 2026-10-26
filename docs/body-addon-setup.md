@@ -192,3 +192,28 @@ already stored with its reason.
   - Importing the same file twice adds nothing.
 - Export: CSV (every record type in one sheet) or the complete Peakr JSON. Both only list which
   photo slots exist; neither contains a link.
+
+## 12. Phase 16 – dashboard, coach and paywall
+
+There is nothing new to set up: no migration and no new native module.
+
+- **Dashboard** (Body → Progress), shown in this order:
+  - KPIs: trend weight, change since the start and over the last 7 days, body fat, waist, and progress towards the goal.
+  - The weekly coach, then the goal card.
+  - A trend chart with the weigh-ins as dots, the trend line, the goal line, and the forecast at the chosen rate and at the real pace.
+  - Weekly energy bars (resting and active stacked, eaten as a line) with the deficit or surplus and the fat estimate for each week.
+  - Adaptive maintenance, then "calculation vs. scale" with the likely reasons for a gap.
+  - Fat vs. lean mass, then BMI, waist-to-height and waist-to-hip next to the common reference values. These are not a diagnosis.
+  - Measurements since the start, then this week's training from the plan.
+- All of these figures come from the engine (`packages/engine/src/body/dashboard.ts`).
+- **Weekly coach** (`packages/engine/src/body/coach.ts`): fixed rules on the data, with no AI and no fixed texts. It looks back on last week and covers:
+  - progress towards the goal and last week in numbers;
+  - what went well and what to watch;
+  - up to three adjustments for this week: kcal target, protein, strength sessions, logging;
+  - hints about a plateau, too-fast loss and missing data.
+- **Nothing changes automatically.** A kcal suggestion changes the target only when the user taps it, and it is stored as an `adaptive` goal version. The check-in suggestion keeps its button on the goal card.
+- **Coach teaser** below the week card on Today, for users without the add-on. It leads to `/body/addon`.
+- **Main paywall:** a "Add Peakr Body" section when Training is selected. It shows the features, the add-on price and the 14-day trial, or no trial if the account already used one, plus a button to choose the bundle instead.
+- **Add-on paywall:** shows the same feature list.
+- **Entry points to the add-on paywall:** the locked Body tab, the "Energy today" card, the coach teaser, and Profile → Subscription.
+- **Trend fix (engine):** one far weigh-in still moves the trend by at most 2 %, but a second one in a row on the same side now counts in full. Before, a steady loss faster than about 1.4 % a week was hidden behind the cap, so the too-fast-loss warning could never fire.

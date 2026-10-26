@@ -7,6 +7,8 @@ import { useBillingStore, useEntitlement } from '@/features/billing/billing-stor
 import { BODY_TRIAL_DAYS, bundleSavingPct } from '@/features/billing/model';
 import { Badge, Button, Card, numeric, Screen, SegmentedControl, spacing, Text } from '@/ui';
 
+import { BodyFeatureList } from '../components/feature-list';
+
 /**
  * Paywall of the Body add-on (entitlement `body_nutrition`): on top of the Peakr subscription,
  * monthly or yearly, a 14-day free trial once per account – and the bundle "Peakr + Body" at a
@@ -62,6 +64,7 @@ export function BodyAddonScreen() {
   return (
     <Screen>
       <Text tone="secondary">{t('bodyAddon.tagline')}</Text>
+      <BodyFeatureList />
       <Text variant="caption" tone="secondary">
         {t('bodyAddon.paywall.onTop')}
       </Text>

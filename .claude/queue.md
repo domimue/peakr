@@ -7,14 +7,11 @@ Hourly check-in (scheduled task): `trig_01CLCwz6RBurU45vsaGJYsmn` (this branch, 
 
 ## Open
 
-- Phase 16 – Body dashboard, coach & paywall (KPIs, trend chart with goal + forecast, weekly
-  energy/fat balance, calculation vs. scale, fat/lean mass, BMI/WHtR/WHR, measurement trends,
-  training this week; engine-generated weekly coach with 1–3 adjustments and hints; coach teaser
-  in Teil A's weekly summary; paywall add-on section + bundle, entry points, restore and
-  cancelled state tested end to end)
+(empty)
 
 ## Done
 
+- Phase 16 – Body dashboard, coach & paywall; nothing to set up (docs/body-addon-setup.md §12)
 - Phase 15 – Body check-in; waits on the user for the Supabase migration
   `20261107000000_body_checkin.sql` (private `body-photos` bucket) and a new dev build
   (expo-image-picker) (docs/body-addon-setup.md §11)

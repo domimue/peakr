@@ -16,6 +16,7 @@ import { WeekStrip } from '../plan/components/week-strip';
 import { WorkoutCard } from '../plan/components/workout-card';
 import { usePlanUiStore } from '../plan/plan-ui-store';
 import { usePlan, usePlanActions } from '../plan/queries';
+import { CoachTeaser } from '../body/components/coach-teaser';
 import { EnergyTodayCard } from '../body/components/energy-today-card';
 import { RecoveryLine } from '../insights/health/recovery-line';
 import { useRemoteFlag } from '@/config/remote-flags';
@@ -196,6 +197,8 @@ export function TodayScreen() {
             tags={weekTags(week, input, plan.targetDate)}
             header={false}
           />
+          {/* Body add-on teaser for users without it: only adds, Today works the same. */}
+          <CoachTeaser />
         </>
       ) : null}
 
