@@ -7,7 +7,11 @@ Hourly check-in (scheduled task): `trig_01CLCwz6RBurU45vsaGJYsmn` (this branch, 
 
 ## Open
 
-(empty)
+- Phase 16 – Body dashboard, coach & paywall (KPIs, trend chart with goal + forecast, weekly
+  energy/fat balance, calculation vs. scale, fat/lean mass, BMI/WHtR/WHR, measurement trends,
+  training this week; engine-generated weekly coach with 1–3 adjustments and hints; coach teaser
+  in Teil A's weekly summary; paywall add-on section + bundle, entry points, restore and
+  cancelled state tested end to end)
 
 ## Done
 
