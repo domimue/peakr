@@ -18,7 +18,8 @@
     "plan": "Plan",
     "gym": "Gym",
     "insights": "Insights",
-    "profile": "Profile"
+    "profile": "Profile",
+    "body": "Body"
   },
   "plan": {
     "title": "Your plan",
@@ -528,8 +529,8 @@
         "description": "Full plan, calendar editing, routes, integrations and exports."
       },
       "plus": {
-        "name": "Training + Nutrition",
-        "description": "Everything in Training plus nutrition tracking, energy balance and body tracking."
+        "name": "Peakr + Body",
+        "description": "Training plus the Body add-on at a bundle price: food diary, energy balance from food and workouts, check-ins and progress."
       }
     },
     "included": {
@@ -564,7 +565,8 @@
     "terms": "Terms",
     "privacy": "Privacy",
     "back": "Back to my forecast",
-    "personal": "Personal build – everything is unlocked, no subscription needed."
+    "personal": "Personal build – everything is unlocked, no subscription needed.",
+    "bundleSaving": "Save {{pct}} %"
   },
   "gymAddon": {
     "title": "Peakr Gym",
@@ -617,13 +619,13 @@
   },
   "subscription": {
     "title": "Subscription",
-    "intro": "Your training tier and the Gym add-on are separate subscriptions. Change or cancel one without touching the other.",
+    "intro": "Your training tier and each add-on are separate subscriptions. Change or cancel one without touching the others.",
     "tierTitle": "Training tier",
     "addonTitle": "Peakr Gym add-on",
     "none": "No active subscription.",
     "tierNames": {
       "training": "Training",
-      "plus": "Training + Nutrition"
+      "plus": "Peakr + Body"
     },
     "period": {
       "monthly": "Monthly",
@@ -655,9 +657,9 @@
     "switchTo": {
       "monthly": "Switch to monthly ({{price}} / month)",
       "yearly": "Switch to yearly ({{price}} / year)",
-      "plus": "Upgrade to Training + Nutrition ({{price}})"
+      "plus": "Upgrade to Peakr + Body ({{price}})"
     },
-    "plusSoon": "Training + Nutrition",
+    "plusSoon": "Peakr + Body",
     "changed": "Your plan change was sent to the store.",
     "changeFailed": "The change did not go through. Nothing was charged.",
     "noneNote": "Start with the 7-day free trial to unlock your full plan.",
@@ -665,7 +667,12 @@
     "seePlans": "See plans",
     "restore": "Restore purchases",
     "restored": "Purchases restored.",
-    "restoreFailed": "Could not restore purchases."
+    "restoreFailed": "Could not restore purchases.",
+    "bodyTitle": "Peakr Body add-on",
+    "bodyInBundle": "Included in your Peakr + Body bundle.",
+    "bodyTwice": "You have Peakr + Body and the Body add-on. The bundle already includes Body – you can cancel the add-on in the store.",
+    "getBodyAddon": "Get the Body add-on",
+    "cancelledBodyNote": "Cancelled. Peakr Body stays active until {{date}}. Afterwards your diary and check-ins stay readable and exportable; new entries need the add-on again."
   },
   "stravaPost": {
     "title": "Strava",
@@ -956,7 +963,8 @@
     "markDone": "Mark as done",
     "openSession": "Open session",
     "seeWeek": "See this week",
-    "seeWeekOne": "See week 1"
+    "seeWeekOne": "See week 1",
+    "openInsights": "Insights"
   },
   "calendar": {
     "add": "Add",
@@ -2451,6 +2459,129 @@
       "policy": "Privacy policy",
       "delete": "Delete account",
       "deleteHint": "Removes your account and all its data for good."
+    }
+  },
+  "bodyAddon": {
+    "title": "Body",
+    "tagline": "Food, check-ins and progress next to your training – so you see what your workouts add to your goal.",
+    "exampleBadge": "Example",
+    "unlock": "Unlock the Body add-on",
+    "trialActive": "Free trial – nothing is charged until it ends.",
+    "kcal": "{{kcal}} kcal",
+    "locked": {
+      "title": "What Body looks like"
+    },
+    "benefits": {
+      "diary": "Food diary: everything you eat, by meal.",
+      "energy": "Energy today: what is left, with the energy of today’s workouts added.",
+      "checkIn": "Check-ins: weight and waist, read as a smoothed trend.",
+      "progress": "Progress and coach: your trend over weeks, read against your training."
+    },
+    "sections": {
+      "today": "Today",
+      "checkIn": "Check-in",
+      "progress": "Progress"
+    },
+    "meals": {
+      "breakfast": "Breakfast",
+      "lunch": "Lunch",
+      "dinner": "Dinner",
+      "snack": "Snack"
+    },
+    "energy": {
+      "title": "Energy today",
+      "remaining": "{{kcal}} kcal left",
+      "over": "{{kcal}} kcal above today’s target",
+      "fromWorkouts": "{{kcal}} kcal from today’s workouts",
+      "breakdown": "Target {{target}} · eaten {{eaten}} · workouts {{workouts}} kcal",
+      "estimate": "Estimate from your profile and today’s planned sessions.",
+      "floor": "Today’s target is held at a safe minimum.",
+      "setUp": "Add your height, birth date and weight in Body to see this.",
+      "open": "Open Body"
+    },
+    "diary": {
+      "add": "Add food",
+      "meal": "Meal",
+      "name": "What",
+      "kcal": "Energy",
+      "save": "Add",
+      "delete": "Delete",
+      "empty": "Nothing logged today yet."
+    },
+    "checkIn": {
+      "title": "Check-in",
+      "hint": "Weigh in whenever it suits you. Day-to-day changes are mostly water – the trend is what counts.",
+      "weight": "Weight",
+      "waist": "Waist (optional)",
+      "waistHint": "Measure at the navel, relaxed, after breathing out.",
+      "save": "Save check-in",
+      "history": "Recent check-ins",
+      "empty": "No check-ins yet.",
+      "line": "{{kg}} kg",
+      "lineWaist": "{{kg}} kg · {{cm}} cm"
+    },
+    "progress": {
+      "title": "Progress",
+      "kg": "{{kg}} kg",
+      "kgSigned": "{{kg}} kg",
+      "trend": "Trend weight",
+      "week": "Last 7 days",
+      "empty": "Your trend starts with the first check-in.",
+      "trendHint": "A smoothed trend of your check-ins – single weigh-ins are mostly water and glycogen."
+    },
+    "coach": {
+      "title": "Coach",
+      "body": "Each week the coach will compare your trend with your food and training and suggest small, sustainable adjustments. It never pushes for faster loss.",
+      "weighIns_one": "Based on {{count}} day with a check-in so far.",
+      "weighIns_other": "Based on {{count}} days with a check-in so far."
+    },
+    "profile": {
+      "title": "A few details first",
+      "hint": "Body needs these to estimate your energy. They are saved in your Peakr profile, so you enter them only once.",
+      "sex": "Sex (for the energy formula)",
+      "female": "Female",
+      "male": "Male",
+      "birthDate": "Birth date",
+      "pickDate": "Choose date",
+      "height": "Height",
+      "weight": "Weight",
+      "save": "Save",
+      "invalid": "Please check the values – one is outside the possible range.",
+      "shared": "Shared with your training profile."
+    },
+    "readOnly": {
+      "title": "Body is read-only",
+      "body": "Your Body add-on has ended. Your diary, check-ins and progress stay here and can be exported; new entries need the add-on again.",
+      "reactivate": "Reactivate Body"
+    },
+    "export": {
+      "action": "Export my Body data (CSV)",
+      "failed": "The export could not be shared. Please try again."
+    },
+    "paywall": {
+      "title": "Unlock Body",
+      "onTop": "An add-on to your Peakr subscription. Your training plan never depends on it.",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "perMonth": "{{price}} / month",
+      "perYear": "{{price}} / year",
+      "trial": "{{days}} days free. You enter your payment details now; the first charge comes only after the trial. Cancel anytime before it ends.",
+      "noTrial": "Renews automatically. The free trial is once per account.",
+      "start": "Start {{days}}-day free trial",
+      "startPlain": "Subscribe",
+      "reactivate": "Welcome back – everything you logged is still here.",
+      "bundleTitle": "Peakr + Body bundle",
+      "bundleBody": "Training and Body in one subscription, cheaper than both separately.",
+      "bundleAction": "See the bundle ({{price}})",
+      "restore": "Restore purchases",
+      "restored": "Purchases restored.",
+      "restoreFailed": "Could not restore purchases.",
+      "unavailable": "Purchases are not available in this build.",
+      "loading": "Loading prices…",
+      "failed": "The purchase did not go through. You have not been charged.",
+      "active": "Peakr Body is active.",
+      "manage": "Manage subscriptions",
+      "devUnlock": "Unlock without purchase (development)"
     }
   }
 }

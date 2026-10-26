@@ -4,16 +4,22 @@ import { personalBuild } from '@/config/build';
 
 import {
   accessOf,
+  addonGuardOf,
+  addonStateOf,
+  bodySubscriptionOf,
   changeFrom,
   entitlementsOf,
   NO_ENTITLEMENTS,
   subscriptionsOf,
   type Access,
   type ActiveSubscription,
+  type AddonGuard,
   type BillingStatus,
+  type CachedAddon,
   type CustomerInfoLike,
   type Entitlements,
 } from './model';
+import { remoteFlagOn, useRemoteFlagsStore, type RemoteFlags } from '@/config/remote-flags';
 import type { PackageSummary, PurchaseResult } from './billing-client';
 
 /**
@@ -31,19 +37,30 @@ interface BillingState {
   tierPackages: PackageSummary[];
   /** Packages of the Gym add-on offering, with store prices. */
   gymPackages: PackageSummary[];
+  /** Packages of the Body add-on offering (the bundle is a tier package, `plus`). */
+  bodyPackages: PackageSummary[];
+  /**
+   * The account already used the Body trial (server table `addon_trials`, or Body was active
+   * before). Null until known; the paywall then offers no trial rather than a wrong one.
+   */
+  bodyTrialUsed: boolean | null;
   prices: Record<string, string>;
   /** Last access level on this device (offline start-up fallback). */
   cachedAccess: Access | null;
-  /** Development builds only: unlocks the add-on / the training tier without a purchase. */
+  cachedAddon: CachedAddon | null;
+  /** Development builds only: unlocks the add-ons / the training tier without a purchase. */
   devGym: boolean;
+  devBody: boolean;
   devTraining: boolean;
   init: (userId: string | null) => Promise<void>;
   refresh: () => Promise<void>;
   /** Starts a tier, or switches tier / period through the store's change flow. */
   buyTier: (packageId: string) => Promise<PurchaseResult>;
   buyGym: (packageId: string) => Promise<PurchaseResult>;
+  buyBody: (packageId: string) => Promise<PurchaseResult>;
   restore: () => Promise<boolean>;
   setDevGym: (on: boolean) => void;
+  setDevBody: (on: boolean) => void;
   setDevTraining: (on: boolean) => void;
 }
 
@@ -62,9 +79,18 @@ export const useBillingStore = create<BillingState>()((set, get) => {
     const entitlements = entitlementsOf(info);
     set({ entitlements, subscriptions: subscriptionsOf(info, get().prices) });
     const access = accessOf({ status: 'ready', entitlements, devBuild: false, cached: null });
-    set({ cachedAccess: access });
+    const addon: CachedAddon = entitlements.body
+      ? 'active'
+      : entitlements.hadBody
+        ? 'expired'
+        : 'locked';
+    set({ cachedAccess: access, cachedAddon: addon });
+    if (entitlements.body || entitlements.hadBody) set({ bodyTrialUsed: true });
     void repository()
-      .then((r) => r.saveCachedAccess(access))
+      .then(async (r) => {
+        await r.saveCachedAccess(access);
+        await r.saveCachedAddon(addon);
+      })
       .catch(() => undefined);
   };
 
@@ -74,9 +100,13 @@ export const useBillingStore = create<BillingState>()((set, get) => {
     subscriptions: [],
     tierPackages: [],
     gymPackages: [],
+    bodyPackages: [],
+    bodyTrialUsed: null,
     prices: {},
     cachedAccess: null,
+    cachedAddon: null,
     devGym: false,
+    devBody: false,
     devTraining: false,
 
     async init(userId) {
@@ -87,6 +117,19 @@ export const useBillingStore = create<BillingState>()((set, get) => {
           .catch(() => null);
         set({ cachedAccess: cached });
       }
+      if (get().cachedAddon === null) {
+        const cached = await repository()
+          .then((r) => r.getCachedAddon())
+          .catch(() => null);
+        set({ cachedAddon: cached });
+      }
+      // Once per account: the server remembers every Body trial, whichever device or store.
+      void repository()
+        .then((r) => r.bodyTrialUsed(userId))
+        .then((used) => {
+          if (used !== null) set((s) => ({ bodyTrialUsed: s.bodyTrialUsed === true || used }));
+        })
+        .catch(() => undefined);
       try {
         const billing = await client();
         if (!(await billing.configureBilling(userId))) {
@@ -97,11 +140,12 @@ export const useBillingStore = create<BillingState>()((set, get) => {
         unsubscribe = billing.onCustomerInfo(apply);
         const [info, offerings] = await Promise.all([
           billing.getCustomerInfo(),
-          billing.loadOfferings().catch(() => ({ tiers: [], gym: [], prices: {} })),
+          billing.loadOfferings().catch(() => ({ tiers: [], gym: [], body: [], prices: {} })),
         ]);
         set({
           tierPackages: offerings.tiers,
           gymPackages: offerings.gym,
+          bodyPackages: offerings.body,
           prices: offerings.prices,
         });
         apply(info);
@@ -143,6 +187,16 @@ export const useBillingStore = create<BillingState>()((set, get) => {
       return result;
     },
 
+    async buyBody(packageId) {
+      const billing = await client();
+      // Unknown counts as used: a second free trial is worse than a paid start the user confirms.
+      const result = await billing.purchase(packageId, {
+        withoutTrial: get().bodyTrialUsed !== false,
+      });
+      if (result === 'purchased') await get().refresh();
+      return result;
+    },
+
     async restore() {
       const billing = await client();
       const ok = await billing.restore();
@@ -151,6 +205,7 @@ export const useBillingStore = create<BillingState>()((set, get) => {
     },
 
     setDevGym: (devGym) => set({ devGym: __DEV__ && devGym }),
+    setDevBody: (devBody) => set({ devBody: __DEV__ && devBody }),
     setDevTraining: (devTraining) => set({ devTraining: __DEV__ && devTraining }),
   };
 });
@@ -184,4 +239,36 @@ export function useAccess(): Access {
 /** Editing, regenerating, pausing, routes, integrations and exports need `full`. */
 export function useCanEditPlan(): boolean {
   return useAccess() === 'full';
+}
+
+export type AddonEntitlement = 'body_nutrition';
+
+function bodyGuard(s: BillingState, flags: Partial<RemoteFlags>): AddonGuard {
+  return addonGuardOf(
+    addonStateOf({
+      flag: remoteFlagOn(flags, 'addon_body_nutrition'),
+      status: s.status,
+      entitlements: s.entitlements,
+      subscription: bodySubscriptionOf(s.subscriptions),
+      granted: personalBuild || s.devBody,
+      cached: s.cachedAddon,
+    }),
+  );
+}
+
+/**
+ * The central guard of the Body add-on (CLAUDE.md "Add-on rules"): every add-on screen, card and
+ * every engine call that needs add-on data asks this hook – never the entitlement directly. The
+ * remote flag `addon_body_nutrition` comes first (off = hidden), then RevenueCat; a personal or
+ * development grant counts as active. The server checks the same rules again (RLS).
+ */
+export function useEntitlement(_entitlement: AddonEntitlement): AddonGuard {
+  const flags = useRemoteFlagsStore((s) => s.flags);
+  const state = useBillingStore((s) => bodyGuard(s, flags).state);
+  return addonGuardOf(state);
+}
+
+/** Outside React (queries, mutations): the same guard from the current store state. */
+export function addonGuardNow(_entitlement: AddonEntitlement): AddonGuard {
+  return bodyGuard(useBillingStore.getState(), useRemoteFlagsStore.getState().flags);
 }

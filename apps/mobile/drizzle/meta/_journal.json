@@ -71,6 +71,13 @@
       "when": 1792785471285,
       "tag": "0009_health",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1792974341461,
+      "tag": "0010_body",
+      "breakpoints": true
     }
   ]
 }

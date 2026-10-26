@@ -82,3 +82,9 @@ jest.mock('expo-location', () => ({
     Promise.resolve({ coords: { latitude: 47.3769, longitude: 8.5417 }, timestamp: 0 }),
   ),
 }));
+
+// expo-blur is native; under Jest the sample renders unblurred inside plain views.
+jest.mock('expo-blur', () => {
+  const { View } = jest.requireActual('react-native');
+  return { BlurView: View, BlurTargetView: View };
+});

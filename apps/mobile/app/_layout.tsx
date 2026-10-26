@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
+import { useRemoteFlagsStore } from '@/config/remote-flags';
 import { useDatabaseMigrations } from '@/data/db/use-database-migrations';
 import { queryClient } from '@/data/query-client';
 import { useActivityRealtime } from '@/data/sync/use-activity-realtime';
@@ -49,6 +50,11 @@ export default function RootLayout() {
   // Theme, units, haptics and language from SQLite, once the tables exist.
   useEffect(() => {
     if (success) void useSettingsStore.getState().hydrate();
+  }, [success]);
+
+  // Remote feature flags (e.g. the Body add-on): the copy on this device, then the server's.
+  useEffect(() => {
+    if (success) void useRemoteFlagsStore.getState().load();
   }, [success]);
 
   // Android: where this install came from (attribution only, read once).

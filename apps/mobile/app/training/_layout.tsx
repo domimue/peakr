@@ -19,6 +19,7 @@ export default function TrainingLayout() {
       <Stack.Screen name="baseline" options={{ title: t('baseline.recalibrate.title') }} />
       <Stack.Screen name="baseline-summary" options={{ title: t('baseline.recalibrate.title') }} />
       <Stack.Screen name="route/[workoutId]" options={{ title: t('routes.choose.title') }} />
+      <Stack.Screen name="insights" options={{ title: t('insights.title') }} />
     </Stack>
   );
 }

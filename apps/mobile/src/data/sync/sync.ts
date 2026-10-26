@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import * as activities from '../repositories/activity-repository';
+import { syncBody } from '../repositories/body-repository';
 import * as routeRepo from '../repositories/route-repository';
 import { pullActivities } from './activities-remote';
 import { resolvePlan, resolveWorkouts } from './merge';
@@ -100,6 +101,12 @@ export async function syncOnce(
     changed = (await pullStravaRouteChanges(client)) || changed;
   } catch (error) {
     console.warn('Strava route pull failed', error);
+  }
+  // Body add-on (Phase 11b): the server accepts writes only with the add-on (RLS).
+  try {
+    changed = (await syncBody(client, userId)) || changed;
+  } catch (error) {
+    console.warn('Body sync failed', error);
   }
   return { changed };
 }

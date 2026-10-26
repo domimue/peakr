@@ -390,3 +390,40 @@ export const healthDaily = sqliteTable(
     index('health_daily_day').on(t.day),
   ],
 );
+
+// Body add-on (CLAUDE.md "Add-on rules"): food diary and check-ins, kept on the device first and
+// pushed to Supabase (`body_food_entries`, `body_checkins`, RLS: writes need the add-on). `dirty`
+// marks rows not pushed yet; `deleted` keeps a removed row until its delete reached the server.
+// The rows stay after a cancelled add-on (read-only history and export).
+export const bodyFoodEntries = sqliteTable(
+  'body_food_entries',
+  {
+    id: text('id').primaryKey(),
+    day: text('day').notNull(),
+    meal: text('meal').$type<'breakfast' | 'lunch' | 'dinner' | 'snack'>().notNull(),
+    name: text('name').notNull(),
+    kcal: integer('kcal').notNull(),
+    proteinG: real('protein_g'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+    dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+    deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
+  },
+  (t) => [index('body_food_entries_day').on(t.day)],
+);
+
+export const bodyCheckins = sqliteTable(
+  'body_checkins',
+  {
+    id: text('id').primaryKey(),
+    day: text('day').notNull(),
+    weightKg: real('weight_kg').notNull(),
+    waistCm: real('waist_cm'),
+    note: text('note'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+    dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+    deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
+  },
+  (t) => [index('body_checkins_day').on(t.day)],
+);

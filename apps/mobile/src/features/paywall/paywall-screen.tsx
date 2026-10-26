@@ -2,7 +2,7 @@ import { toPlanInput } from '@peakr/quiz';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Linking, Platform, StyleSheet, View } from 'react-native';
+import { Linking, Platform, Pressable, StyleSheet, View } from 'react-native';
 
 import { personalBuild } from '@/config/build';
 import { todayIso } from '@/data/ids';
@@ -10,9 +10,14 @@ import { authAvailable, selectAccountUserId, useSessionStore } from '@/features/
 import { useBaselineStore } from '@/features/baseline/baseline-store';
 import { calibrateOnboarding } from '@/features/baseline/calibration';
 import type { PackageSummary } from '@/features/billing/billing-client';
-import { useAccess, useBillingStore } from '@/features/billing/billing-store';
+import { useAccess, useBillingStore, useEntitlement } from '@/features/billing/billing-store';
 import { legalLinks } from '@/features/billing/links';
-import { firstChargeDate, PURCHASABLE_TIERS, type TierKey } from '@/features/billing/model';
+import {
+  bundleSavingPct,
+  firstChargeDate,
+  purchasableTiers,
+  type TierKey,
+} from '@/features/billing/model';
 import { useQuizStore } from '@/features/onboarding/quiz-store';
 import { useCreatePlan, usePlan } from '@/features/plan/queries';
 import {
@@ -34,8 +39,20 @@ const INCLUDED: Record<TierKey, readonly string[]> = {
   plus: ['everything', 'nutrition', 'energy', 'body'],
 };
 
+/** "Peakr + Body" against the two bought separately, for the selected period. */
+function savingOf(
+  packages: readonly PackageSummary[],
+  body: readonly PackageSummary[],
+  period: Period,
+) {
+  const price = (list: readonly PackageSummary[], tier: TierKey | null) =>
+    list.find((p) => p.tier === tier && p.period === period)?.price ?? 0;
+  return bundleSavingPct(price(packages, 'training'), price(body, null), price(packages, 'plus'));
+}
+
 /**
- * Paywall after the forecast (CLAUDE.md "Monetisation"): the two tiers, monthly or yearly, prices
+ * Paywall after the forecast (CLAUDE.md "Monetisation"): Training, or the bundle "Peakr + Body"
+ * once the Body add-on is switched on (otherwise "coming soon"), monthly or yearly, prices
  * and trial length from the store via RevenueCat, the exact first charge date and the reminder
  * one day before, restore purchases. In-app purchase only – no link to the web checkout. After a
  * purchase the plan is created and an anonymous quiz user signs in (the purchase moves with them).
@@ -49,6 +66,12 @@ export function PaywallScreen() {
   const signedIn = useSessionStore((s) => selectAccountUserId(s) !== null);
   const status = useBillingStore((s) => s.status);
   const packages = useBillingStore((s) => s.tierPackages);
+  const bodyPackages = useBillingStore((s) => s.bodyPackages);
+  const body = useEntitlement('body_nutrition');
+  const tiers = purchasableTiers(body.visible);
+  const [chosen, setChosen] = useState<TierKey>('training');
+  const tier = tiers.includes(chosen) ? chosen : 'training';
+  const saving = body.visible ? savingOf(packages, bodyPackages, 'yearly') : null;
   const buyTier = useBillingStore((s) => s.buyTier);
   const restore = useBillingStore((s) => s.restore);
   const setDevTraining = useBillingStore((s) => s.setDevTraining);
@@ -64,7 +87,7 @@ export function PaywallScreen() {
 
   const priceOf = (tier: TierKey): PackageSummary | undefined =>
     packages.find((p) => p.tier === tier && p.period === period);
-  const selected = priceOf('training');
+  const selected = priceOf(tier);
   const trialDays = selected?.trialDays ?? null;
   const store = t(
     Platform.OS === 'ios' ? 'subscription.store.app_store' : 'subscription.store.play_store',
@@ -152,37 +175,48 @@ export function PaywallScreen() {
         onChange={setPeriod}
       />
 
-      {(['training', 'plus'] as const).map((tier) => {
-        const purchasable = PURCHASABLE_TIERS.includes(tier);
-        const price = priceOf(tier);
+      {(['training', 'plus'] as const).map((key) => {
+        const purchasable = tiers.includes(key);
+        const price = priceOf(key);
+        const isSelected = purchasable && key === tier;
         return (
-          <View key={tier} testID={`paywall-tier-${tier}`}>
+          <Pressable
+            key={key}
+            testID={`paywall-tier-${key}`}
+            disabled={!purchasable || tiers.length < 2}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: isSelected, disabled: !purchasable }}
+            onPress={() => setChosen(key)}
+          >
             <Card
               style={[
                 styles.tier,
-                purchasable ? { borderColor: colors.accentLine, borderWidth: 1.5 } : null,
+                isSelected ? { borderColor: colors.accentLine, borderWidth: 1.5 } : null,
               ]}
             >
               <View style={styles.row}>
                 <Text variant="heading" style={styles.flex}>
-                  {t(`paywall.tiers.${tier}.name`)}
+                  {t(`paywall.tiers.${key}.name`)}
                 </Text>
                 {purchasable ? null : <Badge label={t('paywall.comingSoon')} />}
+                {purchasable && key === 'plus' && saving ? (
+                  <Badge label={t('paywall.bundleSaving', { pct: saving })} />
+                ) : null}
               </View>
               {purchasable && price ? (
                 <Text variant="title" style={numeric}>
                   {perPeriod(price)}
                 </Text>
               ) : null}
-              <Text tone="secondary">{t(`paywall.tiers.${tier}.description`)}</Text>
-              {INCLUDED[tier].map((key) => (
+              <Text tone="secondary">{t(`paywall.tiers.${key}.description`)}</Text>
+              {INCLUDED[key].map((item) => (
                 <Text
-                  key={key}
+                  key={item}
                   variant="caption"
-                >{`✓  ${t(`paywall.included.${key}` as never) as string}`}</Text>
+                >{`✓  ${t(`paywall.included.${item}` as never) as string}`}</Text>
               ))}
             </Card>
-          </View>
+          </Pressable>
         );
       })}
 

@@ -6,8 +6,8 @@ import { Linking, StyleSheet, View } from 'react-native';
 import { Badge, Button, Card, Screen, spacing, Text } from '@/ui';
 
 import type { PackageSummary } from '../billing-client';
-import { useAccess, useBillingStore } from '../billing-store';
-import { cancelUrlOf, PURCHASABLE_TIERS, type ActiveSubscription } from '../model';
+import { useAccess, useBillingStore, useEntitlement } from '../billing-store';
+import { cancelUrlOf, purchasableTiers, type ActiveSubscription } from '../model';
 
 function formatDate(iso: string | null, locale: string, fallback: string): string {
   if (!iso) return fallback;
@@ -18,8 +18,8 @@ function formatDate(iso: string | null, locale: string, fallback: string): strin
 }
 
 /**
- * Profile → Subscription (CLAUDE.md "Monetisation"): the training tier and the Gym add-on side by
- * side – period, price, next billing date or trial end – each with its own change and cancel
+ * Profile → Subscription (CLAUDE.md "Monetisation"): the training tier and the add-ons (Gym, and
+ * Body once it is switched on) side by side – period, price, next billing date or trial end – each with its own change and cancel
  * links, so one can be cancelled without touching the other. Store purchases switch period or
  * tier through the store's change flow and cancel on the store's page for that exact
  * subscription; web (Stripe) subscriptions are managed on the website, never linked from here
@@ -38,6 +38,9 @@ export function SubscriptionScreen() {
   const [message, setMessage] = useState<string | null>(null);
   const tier = subscriptions.find((s) => s.kind === 'tier');
   const addon = subscriptions.find((s) => s.kind === 'gym');
+  const bodyAddon = subscriptions.find((s) => s.kind === 'body');
+  const body = useEntitlement('body_nutrition');
+  const tiers = purchasableTiers(body.visible);
 
   const change = async (pkg: PackageSummary) => {
     setBusy(true);
@@ -63,7 +66,7 @@ export function SubscriptionScreen() {
           (p) =>
             p.tier !== null &&
             !(p.tier === tier.entitlement && p.period === tier.period) &&
-            (p.tier === tier.entitlement || PURCHASABLE_TIERS.includes(p.tier)),
+            (p.tier === tier.entitlement || tiers.includes(p.tier)),
         )
       : [];
 
@@ -93,7 +96,7 @@ export function SubscriptionScreen() {
                   onPress={() => void change(pkg)}
                 />
               ))}
-              {tier.entitlement === 'training' && !PURCHASABLE_TIERS.includes('plus') ? (
+              {tier.entitlement === 'training' && !tiers.includes('plus') ? (
                 <View style={styles.row}>
                   <Text tone="secondary" style={styles.flex}>
                     {t('subscription.plusSoon')}
@@ -123,6 +126,30 @@ export function SubscriptionScreen() {
           )
         }
       />
+
+      {body.visible ? (
+        <Section
+          title={t('subscription.bodyTitle')}
+          subscription={bodyAddon}
+          name={t('bodyAddon.title')}
+          locale={i18n.language}
+          action={
+            bodyAddon ? null : tier?.entitlement === 'plus' ? (
+              <Text tone="secondary">{t('subscription.bodyInBundle')}</Text>
+            ) : body.canWrite ? null : (
+              <Button
+                label={t('subscription.getBodyAddon')}
+                onPress={() => router.push('/body/addon')}
+              />
+            )
+          }
+        />
+      ) : null}
+      {bodyAddon && tier?.entitlement === 'plus' ? (
+        <Text variant="caption" tone="secondary" testID="subscription-body-twice">
+          {t('subscription.bodyTwice')}
+        </Text>
+      ) : null}
 
       {message ? <Text tone="secondary">{message}</Text> : null}
       <Button
@@ -205,7 +232,9 @@ function Section({
           {t(
             subscription.kind === 'tier'
               ? 'subscription.cancelledNote'
-              : 'subscription.cancelledAddonNote',
+              : subscription.kind === 'body'
+                ? 'subscription.cancelledBodyNote'
+                : 'subscription.cancelledAddonNote',
             { date },
           )}
         </Text>
