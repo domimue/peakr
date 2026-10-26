@@ -19,9 +19,10 @@ const round1 = (n: number) => Math.round(n * 10) / 10;
 
 /**
  * Smoothed weight trend: exponentially weighted moving average (alpha ≈ 0.1 per day). Robust in
- * two ways: a weigh-in can pull the trend by at most 2 % of the trend weight (one heavy morning
- * after a salty dinner barely moves it), and days without a weigh-in count as days, so a gap is
- * caught up in proportion instead of jumping. Calculations always use this, never a weigh-in.
+ * two ways: a single weigh-in can pull the trend by at most 2 % of the trend weight (one heavy
+ * morning after a salty dinner barely moves it, while two in a row on the same side count in full),
+ * and days without a weigh-in count as days, so a gap is caught up in proportion instead of
+ * jumping. Calculations always use this, never a weigh-in.
  */
 export function weightTrend(
   weighIns: readonly WeighIn[],
@@ -36,6 +37,8 @@ export function weightTrend(
   const points: TrendPoint[] = [];
   let trend: number | null = null;
   let last: string | null = null;
+  // Direction of the last weigh-in that hit the cap (0 = it did not).
+  let cappedSide = 0;
   for (const [date, values] of days) {
     const weight = values.reduce((a, b) => a + b, 0) / values.length;
     let outlier = false;
@@ -45,7 +48,13 @@ export function weightTrend(
       const residual = weight - trend;
       outlier = Math.abs(residual) > trend * C.trend.outlierShare;
       const cap = trend * C.trend.maxResidualShare;
-      const limited = Math.max(-cap, Math.min(cap, residual));
+      const side = Math.abs(residual) > cap ? Math.sign(residual) : 0;
+      // A single far weigh-in is a spike (water, a salty dinner) and is capped; a second one on
+      // the same side in a row is a real change, which the trend follows in full – otherwise a
+      // fast steady loss would hide behind the cap (and the too-fast-loss warning never fire).
+      const limited =
+        side !== 0 && side === cappedSide ? residual : Math.max(-cap, Math.min(cap, residual));
+      cappedSide = side;
       const step = 1 - (1 - alpha) ** Math.max(1, daysBetween(last, date));
       trend += step * limited;
     }

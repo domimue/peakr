@@ -8,6 +8,7 @@ import {
   dayBalance,
   energyConfig,
   pickBySource,
+  rapidLossWarning,
   recentBodyFat,
   restingEnergy,
   weekBalance,
@@ -139,6 +140,39 @@ describe('weight trend', () => {
     expect(t[3]?.outlier).toBe(true);
     expect(t[3]?.trendKg).toBeLessThanOrEqual(70.2);
     expect(t.at(-1)?.trendKg).toBeLessThan(70.2);
+  });
+
+  it('follows a fast steady loss instead of hiding it behind the cap', () => {
+    // ~2.2 % a week: two far weigh-ins in a row on the same side count in full.
+    const w = Array.from({ length: 43 }, (_, i) => ({
+      date: addDays('2026-09-15', i),
+      weightKg: Math.round((92 - (i * 2) / 7) * 10) / 10,
+    }));
+    const t = weightTrend(w);
+    // An EWMA lags by about slope / alpha (≈ 2.6 kg here), but it keeps the slope.
+    expect(t.at(-1)?.trendKg).toBeLessThan(83);
+    expect(rapidLossWarning(t, addDays('2026-09-15', 42)).warning).toBe(true);
+  });
+
+  it('keeps capping single spikes that are not repeated', () => {
+    const w = [70, 70, 70, 73.5, 70, 73.5, 70].map((kg, i) => ({
+      date: addDays('2026-10-01', i),
+      weightKg: kg,
+    }));
+    const t = weightTrend(w);
+    expect((t[3]?.trendKg ?? 0) - (t[2]?.trendKg ?? 0)).toBeLessThan(0.25);
+    expect((t[5]?.trendKg ?? 0) - (t[4]?.trendKg ?? 0)).toBeLessThan(0.25);
+    expect(t[5]?.outlier).toBe(true);
+  });
+
+  it('counts the second far weigh-in on the same side in full', () => {
+    const w = [70, 70, 73.5, 73.5].map((kg, i) => ({
+      date: addDays('2026-10-01', i),
+      weightKg: kg,
+    }));
+    const t = weightTrend(w);
+    expect((t[2]?.trendKg ?? 0) - (t[1]?.trendKg ?? 0)).toBeLessThan(0.25);
+    expect((t[3]?.trendKg ?? 0) - (t[2]?.trendKg ?? 0)).toBeGreaterThan(0.25);
   });
 
   it('follows a real change, and a gap of several days counts as several steps', () => {
