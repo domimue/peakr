@@ -48,6 +48,7 @@ export const METRIC_META: Record<HealthMetric, MetricMeta> = {
   floors: meta('floors', 0, true),
   intensity_min: meta('intensity_min', 0, true),
   active_kcal: meta('active_kcal', 0, true),
+  resting_kcal: meta('resting_kcal', 0, true),
   spo2_avg: meta('spo2_avg'),
   respiration_avg: meta('respiration_avg', 1),
   weight: meta('weight', 1),

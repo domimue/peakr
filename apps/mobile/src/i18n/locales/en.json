@@ -2178,6 +2178,11 @@
         "value": "{{value}} kcal",
         "about": "Energy burned through activity on this day, as reported by the device."
       },
+      "resting_kcal": {
+        "label": "Resting energy",
+        "value": "{{value}} kcal",
+        "about": "Energy your body uses at rest on this day, as estimated by the device."
+      },
       "spo2_avg": {
         "label": "Blood oxygen (SpO2)",
         "value": "{{value}} %",

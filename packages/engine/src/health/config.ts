@@ -38,6 +38,7 @@ export const healthConfig = {
     floors: 2,
     intensity_min: 8,
     active_kcal: 80,
+    resting_kcal: 40,
     spo2_avg: 0.7,
     respiration_avg: 0.4,
     weight: 0.3,
