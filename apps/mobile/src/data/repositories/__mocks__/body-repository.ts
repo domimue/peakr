@@ -1,6 +1,9 @@
 import type { BodyProfile } from '@peakr/engine';
 
 import type {
+  FoodItem,
+  FoodItemDraft,
+  Meal,
   GoalDraft,
   StoredGoal,
   DeviceBodyMetric,
@@ -25,6 +28,7 @@ export const store = {
   targets: [] as StoredTargetChange[],
   device: [] as DeviceBodyValue[],
   goals: [] as StoredGoal[],
+  foods: [] as FoodItem[],
 };
 
 let seq = 0;
@@ -39,6 +43,7 @@ export function resetStore() {
   store.targets = [];
   store.device = [];
   store.goals = [];
+  store.foods = [];
   seq = 0;
 }
 
@@ -52,10 +57,83 @@ export const fetchRemoteProfile = jest.fn(async () => ({ ...store.remoteProfile 
 export const listFood = jest.fn(async (day?: string) =>
   store.food.filter((f) => day === undefined || f.day === day),
 );
+const ENTRY_DEFAULTS = {
+  carbsG: null,
+  fatG: null,
+  foodId: null,
+  amount: null,
+  unit: null,
+  portionLabel: null,
+} as const;
+
 export const addFood = jest.fn(async (draft: FoodDraft) => {
-  const entry = { ...draft, id: `food-${++seq}`, createdAt: '2026-10-26T08:00:00Z' };
+  const entry: FoodEntry = {
+    ...ENTRY_DEFAULTS,
+    ...draft,
+    id: `food-${++seq}`,
+    createdAt: '2026-10-26T08:00:00Z',
+  };
   store.food.push(entry);
+  const item = draft.foodId ? store.foods.find((f) => f.id === draft.foodId) : undefined;
+  if (item) item.lastUsedAt = `2026-10-26T08:00:${String(seq).padStart(2, '0')}Z`;
   return entry;
+});
+
+export const copyEntries = jest.fn(
+  async (input: { fromDay: string; toDay: string; meal?: Meal; toMeal?: Meal }) => {
+    const source = store.food.filter(
+      (e) => e.day === input.fromDay && (!input.meal || e.meal === input.meal),
+    );
+    const copies = [];
+    for (const { id: _id, createdAt: _at, day: _day, ...e } of source) {
+      copies.push(await addFood({ ...e, day: input.toDay, meal: input.toMeal ?? e.meal }));
+    }
+    return copies;
+  },
+);
+
+export const getFoodItem = jest.fn(
+  async (id: string) => store.foods.find((f) => f.id === id) ?? null,
+);
+export const foodByBarcode = jest.fn(async (barcode: string) => {
+  const rows = store.foods.filter((f) => f.barcode === barcode);
+  return rows.find((f) => f.kind !== 'off') ?? rows[0] ?? null;
+});
+export const searchFoodItems = jest.fn(async (query: string) => {
+  const q = query.trim().toLowerCase();
+  return store.foods.filter(
+    (f) => f.name.toLowerCase().includes(q) || (f.brand ?? '').toLowerCase().includes(q),
+  );
+});
+export const recentFoodItems = jest.fn(async () =>
+  store.foods
+    .filter((f) => f.lastUsedAt)
+    .sort((a, b) => (b.lastUsedAt ?? '').localeCompare(a.lastUsedAt ?? '')),
+);
+export const listFoodItems = jest.fn(async (filter: 'favourites' | 'custom' | 'recipes') =>
+  store.foods.filter((f) =>
+    filter === 'favourites' ? f.favourite : f.kind === (filter === 'custom' ? 'custom' : 'recipe'),
+  ),
+);
+export const saveFoodItem = jest.fn(async (draft: FoodItemDraft) => {
+  const id = draft.id ?? `item-${++seq}`;
+  const existing = store.foods.find((f) => f.id === id);
+  const item: FoodItem = {
+    ...draft,
+    id,
+    favourite: draft.favourite ?? existing?.favourite ?? false,
+    lastUsedAt: existing?.lastUsedAt ?? null,
+    createdAt: existing?.createdAt ?? '2026-10-26T08:00:00Z',
+  };
+  store.foods = [...store.foods.filter((f) => f.id !== id), item];
+  return item;
+});
+export const setFavourite = jest.fn(async (id: string, favourite: boolean) => {
+  const f = store.foods.find((x) => x.id === id);
+  if (f) f.favourite = favourite;
+});
+export const deleteFoodItem = jest.fn(async (id: string) => {
+  store.foods = store.foods.filter((f) => f.id !== id);
 });
 export const deleteFood = jest.fn(async (id: string) => {
   store.food = store.food.filter((f) => f.id !== id);

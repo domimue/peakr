@@ -48,6 +48,21 @@ export interface BodyDeviceValue {
   recordedAt: string;
 }
 
+/** A diary entry written to the health store (one record per entry, keyed on its id). */
+export interface NutritionWrite {
+  entryId: string;
+  day: string;
+  meal: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  name: string;
+  kcal: number;
+  proteinG: number | null;
+  carbsG: number | null;
+  fatG: number | null;
+}
+
+/** Client record id of a Peakr diary entry in Health Connect (never read back as intake). */
+export const nutritionRecordId = (entryId: string) => `peakr-food-${entryId}`;
+
 export interface HealthProvider {
   /** Which store this is, for texts ("Health Connect" / "Apple Health"). */
   store: HealthStore;
@@ -70,4 +85,10 @@ export interface HealthProvider {
   requestBodyPermission(): Promise<BodyHealthMetric[]>;
   /** Body add-on: one value per metric and local day (daily totals, latest measurement). */
   readBody(from: Date, to: Date): Promise<BodyDeviceValue[]>;
+  /** Body add-on: writing the diary to the health store is allowed. */
+  nutritionWritable(): Promise<boolean>;
+  requestNutritionWrite(): Promise<boolean>;
+  /** Writes (or replaces) one diary entry; false when not allowed or failed. */
+  writeNutrition(entry: NutritionWrite): Promise<boolean>;
+  deleteNutrition(entryId: string): Promise<void>;
 }

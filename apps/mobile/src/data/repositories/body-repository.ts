@@ -1,6 +1,6 @@
 import type { BodyProfile } from '@peakr/engine';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { and, asc, eq, gte } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, isNotNull, like, or } from 'drizzle-orm';
 
 import { db } from '../db/client';
 import {
@@ -9,6 +9,7 @@ import {
   bodyDays,
   bodyDeviceDaily,
   bodyFoodEntries,
+  bodyFoods,
   bodyGoals,
   bodyTargetChanges,
   bodyTdeeEstimates,
@@ -36,6 +37,13 @@ export interface FoodEntry {
   name: string;
   kcal: number;
   proteinG: number | null;
+  carbsG: number | null;
+  fatG: number | null;
+  /** The food it came from; null for a quick add. */
+  foodId: string | null;
+  amount: number | null;
+  unit: 'g' | 'ml' | 'piece' | 'portion' | null;
+  portionLabel: string | null;
   createdAt: string;
 }
 
@@ -49,7 +57,9 @@ export interface CheckIn {
   createdAt: string;
 }
 
-export type FoodDraft = Omit<FoodEntry, 'id' | 'createdAt'>;
+type EntryDetails = 'carbsG' | 'fatG' | 'foodId' | 'amount' | 'unit' | 'portionLabel';
+export type FoodDraft = Omit<FoodEntry, 'id' | 'createdAt' | EntryDetails> &
+  Partial<Pick<FoodEntry, EntryDetails>>;
 export type CheckInDraft = Omit<CheckIn, 'id' | 'createdAt'>;
 
 // ---------------------------------------------------------------------------------------------
@@ -128,6 +138,12 @@ const toEntry = (r: typeof bodyFoodEntries.$inferSelect): FoodEntry => ({
   name: r.name,
   kcal: r.kcal,
   proteinG: r.proteinG,
+  carbsG: r.carbsG,
+  fatG: r.fatG,
+  foodId: r.foodId,
+  amount: r.amount,
+  unit: r.unit,
+  portionLabel: r.portionLabel,
   createdAt: r.createdAt,
 });
 
@@ -157,9 +173,146 @@ export async function listFood(day?: string): Promise<FoodEntry[]> {
 
 export async function addFood(draft: FoodDraft): Promise<FoodEntry> {
   const at = now();
-  const row = { ...draft, id: newId(), createdAt: at, updatedAt: at, dirty: true, deleted: false };
+  const row = {
+    carbsG: null,
+    fatG: null,
+    foodId: null,
+    amount: null,
+    unit: null,
+    portionLabel: null,
+    ...draft,
+    id: newId(),
+    createdAt: at,
+    updatedAt: at,
+    dirty: true,
+    deleted: false,
+  };
   await db.insert(bodyFoodEntries).values(row);
+  if (row.foodId) await touchFoodItem(row.foodId);
   return toEntry(row);
+}
+
+/** Copies a day's entries (or one meal of it) to another day, optionally into another meal. */
+export async function copyEntries(input: {
+  fromDay: string;
+  toDay: string;
+  meal?: Meal;
+  toMeal?: Meal;
+}): Promise<FoodEntry[]> {
+  const source = (await listFood(input.fromDay)).filter(
+    (e) => !input.meal || e.meal === input.meal,
+  );
+  const copies: FoodEntry[] = [];
+  for (const { id: _id, createdAt: _at, day: _day, ...entry } of source) {
+    copies.push(await addFood({ ...entry, day: input.toDay, meal: input.toMeal ?? entry.meal }));
+  }
+  return copies;
+}
+
+// ---------------------------------------------------------------------------------------------
+// Foods: Open Food Facts cache, own foods, recipes
+
+type FoodRow = typeof bodyFoods.$inferSelect;
+export type FoodItem = Omit<FoodRow, 'dirty' | 'deleted' | 'updatedAt'>;
+export type FoodItemDraft = Omit<FoodItem, 'id' | 'createdAt' | 'lastUsedAt' | 'favourite'> &
+  Partial<Pick<FoodItem, 'id' | 'favourite'>>;
+
+const toItem = ({ dirty: _d, deleted: _x, updatedAt: _u, ...r }: FoodRow): FoodItem => r;
+const live = eq(bodyFoods.deleted, false);
+
+export async function getFoodItem(id: string): Promise<FoodItem | null> {
+  const [row] = await db
+    .select()
+    .from(bodyFoods)
+    .where(and(eq(bodyFoods.id, id), live));
+  return row ? toItem(row) : null;
+}
+
+/** The food for a barcode: the user's own (corrected) entry first, then the OFF cache. */
+export async function foodByBarcode(barcode: string): Promise<FoodItem | null> {
+  const rows = await db
+    .select()
+    .from(bodyFoods)
+    .where(and(eq(bodyFoods.barcode, barcode), live));
+  const row = rows.find((r) => r.kind !== 'off') ?? rows[0];
+  return row ? toItem(row) : null;
+}
+
+/** Local search by name or brand (works offline); OFF results join when online. */
+export async function searchFoodItems(query: string, limit = 30): Promise<FoodItem[]> {
+  const q = `%${query.trim()}%`;
+  const rows = await db
+    .select()
+    .from(bodyFoods)
+    .where(and(live, or(like(bodyFoods.name, q), like(bodyFoods.brand, q))))
+    .orderBy(desc(bodyFoods.lastUsedAt))
+    .limit(limit);
+  return rows.map(toItem);
+}
+
+export async function recentFoodItems(limit = 20): Promise<FoodItem[]> {
+  const rows = await db
+    .select()
+    .from(bodyFoods)
+    .where(and(live, isNotNull(bodyFoods.lastUsedAt)))
+    .orderBy(desc(bodyFoods.lastUsedAt))
+    .limit(limit);
+  return rows.map(toItem);
+}
+
+export async function listFoodItems(
+  filter: 'favourites' | 'custom' | 'recipes',
+): Promise<FoodItem[]> {
+  const where =
+    filter === 'favourites'
+      ? eq(bodyFoods.favourite, true)
+      : eq(bodyFoods.kind, filter === 'custom' ? 'custom' : 'recipe');
+  const rows = await db
+    .select()
+    .from(bodyFoods)
+    .where(and(live, where))
+    .orderBy(asc(bodyFoods.name));
+  return rows.map(toItem);
+}
+
+/** Creates or replaces a food (an OFF product cached, an own food, a recipe, a correction). */
+export async function saveFoodItem(draft: FoodItemDraft): Promise<FoodItem> {
+  const at = now();
+  const existing = draft.id ? await getFoodItem(draft.id) : null;
+  const row = {
+    ...draft,
+    id: draft.id ?? newId(),
+    favourite: draft.favourite ?? existing?.favourite ?? false,
+    lastUsedAt: existing?.lastUsedAt ?? null,
+    createdAt: existing?.createdAt ?? at,
+    updatedAt: at,
+    dirty: true,
+    deleted: false,
+  };
+  await db.insert(bodyFoods).values(row).onConflictDoUpdate({ target: bodyFoods.id, set: row });
+  return toItem(row);
+}
+
+export async function setFavourite(id: string, favourite: boolean): Promise<void> {
+  await db
+    .update(bodyFoods)
+    .set({ favourite, updatedAt: now(), dirty: true })
+    .where(eq(bodyFoods.id, id));
+}
+
+async function touchFoodItem(id: string): Promise<void> {
+  const at = now();
+  await db
+    .update(bodyFoods)
+    .set({ lastUsedAt: at, updatedAt: at, dirty: true })
+    .where(eq(bodyFoods.id, id));
+}
+
+export async function deleteFoodItem(id: string): Promise<void> {
+  await db
+    .update(bodyFoods)
+    .set({ deleted: true, updatedAt: now(), dirty: true })
+    .where(eq(bodyFoods.id, id));
 }
 
 export async function deleteFood(id: string): Promise<void> {
@@ -358,6 +511,12 @@ const SPECS: SyncSpec[] = [
             name: r.name,
             kcal: r.kcal,
             protein_g: r.proteinG,
+            carbs_g: r.carbsG,
+            fat_g: r.fatG,
+            food_id: r.foodId,
+            amount: r.amount,
+            unit: r.unit,
+            portion_label: r.portionLabel,
             created_at: r.createdAt,
             updated_at: r.updatedAt,
           },
@@ -380,6 +539,12 @@ const SPECS: SyncSpec[] = [
         name: String(r.name),
         kcal: Number(r.kcal),
         proteinG: numOrNull(r.protein_g),
+        carbsG: numOrNull(r.carbs_g),
+        fatG: numOrNull(r.fat_g),
+        foodId: str(r.food_id),
+        amount: numOrNull(r.amount),
+        unit: str(r.unit) as FoodEntry['unit'],
+        portionLabel: str(r.portion_label),
         createdAt: String(r.created_at),
         updatedAt: String(r.updated_at),
         dirty: false,
@@ -578,6 +743,71 @@ SPECS.push({
       reason: r.reason as StoredGoal['reason'],
       dirty: false,
     });
+    return true;
+  },
+});
+
+SPECS.push({
+  server: 'body_foods',
+  onConflict: 'user_id,id',
+  dirty: () => db.select().from(bodyFoods).where(eq(bodyFoods.dirty, true)),
+  toServer: (r) =>
+    r.deleted
+      ? null
+      : {
+          id: r.id,
+          kind: r.kind,
+          name: r.name,
+          brand: r.brand,
+          barcode: r.barcode,
+          basis: r.basis,
+          kcal: r.kcal,
+          protein_g: r.proteinG,
+          carbs_g: r.carbsG,
+          fat_g: r.fatG,
+          piece_amount: r.pieceAmount,
+          portions: r.portions,
+          recipe: r.recipe,
+          favourite: r.favourite,
+          last_used_at: r.lastUsedAt,
+          created_at: r.createdAt,
+          updated_at: r.updatedAt,
+        },
+  key: (r) => ({ id: String(r.id) }),
+  markPushed: async (r) => {
+    if (r.deleted) await db.delete(bodyFoods).where(eq(bodyFoods.id, String(r.id)));
+    else
+      await db
+        .update(bodyFoods)
+        .set({ dirty: false })
+        .where(eq(bodyFoods.id, String(r.id)));
+  },
+  apply: async (r) => {
+    const id = String(r.id);
+    const [existing] = await db.select().from(bodyFoods).where(eq(bodyFoods.id, id));
+    if (existing?.dirty) return false;
+    const row = {
+      id,
+      kind: r.kind as FoodItem['kind'],
+      name: String(r.name),
+      brand: str(r.brand),
+      barcode: str(r.barcode),
+      basis: r.basis as FoodItem['basis'],
+      kcal: Number(r.kcal),
+      proteinG: Number(r.protein_g),
+      carbsG: Number(r.carbs_g),
+      fatG: Number(r.fat_g),
+      pieceAmount: numOrNull(r.piece_amount),
+      portions: (r.portions ?? []) as FoodItem['portions'],
+      recipe: (r.recipe ?? null) as FoodItem['recipe'],
+      favourite: Boolean(r.favourite),
+      lastUsedAt: str(r.last_used_at),
+      createdAt: String(r.created_at),
+      updatedAt: String(r.updated_at),
+      dirty: false,
+      deleted: false,
+    };
+    await db.insert(bodyFoods).values(row).onConflictDoUpdate({ target: bodyFoods.id, set: row });
     return true;
   },
 });

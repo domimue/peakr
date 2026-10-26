@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import * as repo from '@/data/repositories/body-repository';
 import { addonGuardNow, useEntitlement } from '@/features/billing/billing-store';
 
+import { removeEntryFromHealth, syncEntryToHealth } from './food/health-nutrition';
 import { bodyProfileKey } from './profile';
 
 /**
@@ -62,8 +63,17 @@ function useWrite<T, R>(fn: (input: T) => Promise<R>) {
   });
 }
 
-export const useAddFood = () => useWrite(repo.addFood);
-export const useDeleteFood = () => useWrite(repo.deleteFood);
+export const useAddFood = () =>
+  useWrite(async (draft: repo.FoodDraft) => {
+    const entry = await repo.addFood(draft);
+    await syncEntryToHealth(entry);
+    return entry;
+  });
+export const useDeleteFood = () =>
+  useWrite(async (id: string) => {
+    await repo.deleteFood(id);
+    await removeEntryFromHealth(id);
+  });
 export const useAddCheckIn = () => useWrite(repo.addCheckIn);
 export const useDeleteCheckIn = () => useWrite(repo.deleteCheckIn);
 

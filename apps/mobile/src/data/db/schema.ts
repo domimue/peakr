@@ -404,6 +404,14 @@ export const bodyFoodEntries = sqliteTable(
     name: text('name').notNull(),
     kcal: integer('kcal').notNull(),
     proteinG: real('protein_g'),
+    carbsG: real('carbs_g'),
+    fatG: real('fat_g'),
+    /** The food it came from (null for a quick add). */
+    foodId: text('food_id'),
+    /** Amount and how it was entered ("150 g", "2 pieces", "1 bar"). */
+    amount: real('amount'),
+    unit: text('unit').$type<'g' | 'ml' | 'piece' | 'portion'>(),
+    portionLabel: text('portion_label'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull(),
     dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
@@ -503,3 +511,44 @@ export const bodyGoals = sqliteTable('body_goals', {
   reason: text('reason').$type<'user' | 'adaptive' | 'safety_clamp'>().notNull(),
   dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
 });
+
+// Foods of the diary (Phase 14): Open Food Facts products (the local cache, `off`), the user's own
+// foods (`custom`, also corrected OFF entries – same barcode, they win) and recipes. Nutrients per
+// 100 g / ml of `basis`.
+export const bodyFoods = sqliteTable(
+  'body_foods',
+  {
+    id: text('id').primaryKey(),
+    kind: text('kind').$type<'off' | 'custom' | 'recipe'>().notNull(),
+    name: text('name').notNull(),
+    brand: text('brand'),
+    barcode: text('barcode'),
+    basis: text('basis').$type<'g' | 'ml'>().notNull(),
+    kcal: real('kcal').notNull(),
+    proteinG: real('protein_g').notNull(),
+    carbsG: real('carbs_g').notNull(),
+    fatG: real('fat_g').notNull(),
+    pieceAmount: real('piece_amount'),
+    portions: text('portions', { mode: 'json' })
+      .$type<{ label: string; amount: number }[]>()
+      .notNull(),
+    /** Recipes: ingredients (food id, name, amount, nutrients per 100), finished weight, servings. */
+    recipe: text('recipe', { mode: 'json' }).$type<{
+      ingredients: {
+        foodId: string;
+        name: string;
+        amount: number;
+        per100: { kcal: number; proteinG: number; carbsG: number; fatG: number };
+      }[];
+      totalWeightG: number | null;
+      servings: number | null;
+    }>(),
+    favourite: integer('favourite', { mode: 'boolean' }).notNull().default(false),
+    lastUsedAt: text('last_used_at'),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+    dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+    deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
+  },
+  (t) => [index('body_foods_barcode').on(t.barcode), index('body_foods_name').on(t.name)],
+);

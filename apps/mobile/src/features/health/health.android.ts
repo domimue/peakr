@@ -2,6 +2,8 @@ import { gymRecordId, type HealthMetric } from '@peakr/engine';
 import {
   aggregateGroupByPeriod,
   aggregateRecord,
+  deleteRecordsByUuids,
+  MealType,
   ExerciseType,
   getGrantedPermissions,
   getSdkStatus,
@@ -19,6 +21,7 @@ import {
   isDeviceMetric,
   mapDailyTotals,
   mapInstant,
+  mapNutrition,
   mapSleepSessions,
   mapWorkoutEnergy,
   type DeviceDailyValue,
@@ -28,10 +31,11 @@ import type {
   BodyDeviceValue,
   BodyHealthMetric,
   HealthProvider,
+  NutritionWrite,
   StrengthWorkoutWrite,
   WriteResult,
 } from './types';
-import { BODY_HEALTH_METRICS } from './types';
+import { BODY_HEALTH_METRICS, nutritionRecordId } from './types';
 
 /**
  * Health Connect (Android): finished gym sessions as `ExerciseSession` (strength training) plus
@@ -282,6 +286,19 @@ async function readBodyMetric(
     case 'weight':
     case 'body_fat':
       return asBody(await readMetric(metric, from, to));
+    case 'intake_kcal': {
+      // Records, not the aggregate: Peakr's own diary entries must be left out.
+      const records = await readAll('Nutrition', from, to);
+      const at = new Date().toISOString();
+      return mapNutrition(
+        records.map((r) => ({
+          startTime: r.startTime,
+          kcal: r.energy?.inKilocalories ?? 0,
+          metadata: r.metadata,
+        })),
+        OWN_PACKAGE,
+      ).map((v) => ({ metric, ...v, recordedAt: at }));
+    }
     case 'workout_kcal': {
       const sessions = await readAll('ExerciseSession', from, to);
       const withEnergy = [];
@@ -306,6 +323,39 @@ async function readBodyMetric(
     default:
       return dailyTotals(metric, from, to);
   }
+}
+
+const NUTRITION_WRITE = [{ accessType: 'write', recordType: 'Nutrition' }] as const;
+const MEALS = {
+  breakfast: MealType.BREAKFAST,
+  lunch: MealType.LUNCH,
+  dinner: MealType.DINNER,
+  snack: MealType.SNACK,
+} as const;
+
+async function nutritionWritable(): Promise<boolean> {
+  if (!(await ready())) return false;
+  const permissions = await getGrantedPermissions();
+  return permissions.some((g) => g.accessType === 'write' && g.recordType === 'Nutrition');
+}
+
+/** One record per diary entry, at noon of its day (Health Connect needs a time). */
+function nutritionRecord(e: NutritionWrite): HealthConnectRecord {
+  const start = new Date(`${e.day}T12:00:00`);
+  const grams = (v: number | null) =>
+    v === null ? undefined : { value: v, unit: 'grams' as const };
+  return {
+    recordType: 'Nutrition',
+    startTime: start.toISOString(),
+    endTime: new Date(start.getTime() + 60_000).toISOString(),
+    name: e.name.slice(0, 100),
+    mealType: MEALS[e.meal],
+    energy: { value: e.kcal, unit: 'kilocalories' },
+    ...(grams(e.proteinG) ? { protein: grams(e.proteinG) } : {}),
+    ...(grams(e.carbsG) ? { totalCarbohydrate: grams(e.carbsG) } : {}),
+    ...(grams(e.fatG) ? { totalFat: grams(e.fatG) } : {}),
+    metadata: { clientRecordId: nutritionRecordId(e.entryId), clientRecordVersion: 1 },
+  } as HealthConnectRecord;
 }
 
 export const health: HealthProvider = {
@@ -355,6 +405,28 @@ export const health: HealthProvider = {
       }
     }
     return out;
+  },
+  nutritionWritable,
+  async requestNutritionWrite() {
+    if (!(await ready())) return false;
+    await requestPermission([...NUTRITION_WRITE]);
+    return nutritionWritable();
+  },
+  async writeNutrition(entry) {
+    if (!(await nutritionWritable())) return false;
+    try {
+      await insertRecords([nutritionRecord(entry)]);
+      return true;
+    } catch (error) {
+      console.warn('Health Connect nutrition write failed', String(error));
+      return false;
+    }
+  },
+  async deleteNutrition(entryId) {
+    if (!(await nutritionWritable())) return;
+    await deleteRecordsByUuids('Nutrition', [], [nutritionRecordId(entryId)]).catch(
+      () => undefined,
+    );
   },
   async readDaily(metrics, from, to) {
     const allowed = await readable(metrics);
