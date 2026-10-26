@@ -382,3 +382,22 @@ export function trainingInteraction(input: {
     keyDayWarnings: input.deficitKcal > t.keyDayMaxDeficitKcal ? [...input.keyDays] : [],
   };
 }
+
+/** This week's planned load against the typical (median) week of the plan. */
+export function weekLoadContext(
+  weeks: readonly { startDate: string; load: number }[],
+  monday: string,
+): { weekLoad: number; typicalWeekLoad: number } {
+  const loads = weeks.map((w) => w.load).sort((a, b) => a - b);
+  const mid = Math.floor(loads.length / 2);
+  const typical =
+    loads.length === 0
+      ? 0
+      : loads.length % 2
+        ? (loads[mid] as number)
+        : ((loads[mid - 1] as number) + (loads[mid] as number)) / 2;
+  return {
+    weekLoad: weeks.find((w) => w.startDate === monday)?.load ?? 0,
+    typicalWeekLoad: typical,
+  };
+}

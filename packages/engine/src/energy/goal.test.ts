@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import {
+  completedWorkoutKcal,
   customRate,
   dayTarget,
   detectPlateau,
@@ -12,6 +13,8 @@ import {
   trainingInteraction,
   weeklyCheckIn,
   weeklyPlan,
+  weekLoadContext,
+  type ActiveEnergy,
   type EnergyDay,
   type TrendPoint,
 } from '.';
@@ -367,5 +370,38 @@ describe('goal edges', () => {
       status: 'tooFast',
       adjustmentKcal: -150,
     });
+  });
+});
+
+describe('helpers for the app', () => {
+  it('week load against the median week', () => {
+    const weeks = [
+      { startDate: '2026-10-12', load: 400 },
+      { startDate: '2026-10-19', load: 600 },
+      { startDate: '2026-10-26', load: 900 },
+    ];
+    expect(weekLoadContext(weeks, '2026-10-26')).toEqual({ weekLoad: 900, typicalWeekLoad: 600 });
+    expect(weekLoadContext(weeks.slice(0, 2), '2026-10-26')).toEqual({
+      weekLoad: 0,
+      typicalWeekLoad: 500,
+    });
+    expect(weekLoadContext([], TODAY)).toEqual({ weekLoad: 0, typicalWeekLoad: 0 });
+  });
+
+  it('workout energy to eat back', () => {
+    const active = (over: Partial<ActiveEnergy>): ActiveEnergy => ({
+      kcal: 800,
+      workoutKcal: 500,
+      neatKcal: 300,
+      workoutSource: 'completed',
+      neatSource: 'steps',
+      ...over,
+    });
+    expect(completedWorkoutKcal(active({}), 1500)).toBe(500);
+    expect(completedWorkoutKcal(active({ workoutSource: 'planned' }), 1500)).toBe(0);
+    expect(completedWorkoutKcal(active({ workoutSource: 'wearable', workoutKcal: 0 }), 1500)).toBe(
+      500,
+    );
+    expect(completedWorkoutKcal(active({ workoutSource: 'wearable', kcal: 100 }), 1500)).toBe(0);
   });
 });

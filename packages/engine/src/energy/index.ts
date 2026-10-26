@@ -21,6 +21,7 @@ export {
 export { trendOn, trendWeightKg, weightTrend, type TrendPoint, type WeighIn } from './trend';
 export {
   activeEnergyDay,
+  completedWorkoutKcal,
   type ActiveEnergy,
   type ActiveEnergyInput,
   type CompletedWorkout,
@@ -78,6 +79,7 @@ export {
   trainingInteraction,
   weeklyCheckIn,
   weeklyPlan,
+  weekLoadContext,
   type CheckInStatus,
   type GoalForecast,
   type GoalTargets,

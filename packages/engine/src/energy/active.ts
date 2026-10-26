@@ -138,3 +138,15 @@ export function activeEnergyDay(input: ActiveEnergyInput): ActiveEnergy {
   }
   return { kcal: workoutKcal + neatKcal, workoutKcal, neatKcal, workoutSource, neatSource };
 }
+
+/**
+ * Energy of the day's completed workouts, for eating back: the workout part of the active energy.
+ * With a wearable day total it is that total minus the everyday-living share of BMR; planned
+ * sessions that are not done yet count nothing.
+ */
+export function completedWorkoutKcal(active: ActiveEnergy, restingKcal: number): number {
+  if (active.workoutSource === 'wearable') {
+    return Math.max(0, Math.round(active.kcal - restingKcal * (C.dailyLivingFactor - 1)));
+  }
+  return active.workoutSource === 'planned' ? 0 : active.workoutKcal;
+}
