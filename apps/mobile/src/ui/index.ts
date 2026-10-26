@@ -8,6 +8,7 @@ export * from './components/duration-field';
 export * from './components/field';
 export * from './components/link-row';
 export * from './components/progress-bar';
+export * from './components/progress-ring';
 export * from './components/reveal';
 export * from './components/screen';
 export * from './components/segmented-control';

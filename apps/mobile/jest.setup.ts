@@ -97,3 +97,12 @@ jest.mock('expo-blur', () => {
   const { View } = jest.requireActual('react-native');
   return { BlurView: View, BlurTargetView: View };
 });
+
+// expo-camera is native: the scanner renders a plain view; tests fire `onBarcodeScanned` on it.
+jest.mock('expo-camera', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    CameraView: View,
+    useCameraPermissions: jest.fn(() => [{ granted: true }, jest.fn()]),
+  };
+});

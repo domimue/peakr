@@ -7,7 +7,15 @@ import {
   goalSnapshot,
   weekLoadContext,
   weekTags,
+  fuellingHints,
+  macroTargets,
+  type FuellingHint,
+  proteinForGoal,
+  sumNutrients,
+  type ActivitySport,
   type EnergyBasis,
+  type MacroTargets,
+  type Nutrients,
   type GoalSnapshot,
   bodyComposition,
   calculationVsScale,
@@ -80,6 +88,13 @@ export interface BodyModel {
   /** Current goal version (null = none yet). Paused goals count as "maintain". */
   goal: repo.StoredGoal | null;
   goalSnapshot: GoalSnapshot | null;
+  /** Energy today's workouts add to the target, and the sport of the main one. */
+  addedBack: { kcal: number; sport: ActivitySport | null };
+  /** What was eaten today and the macro targets for the rings. */
+  eaten: Nutrients;
+  macros: MacroTargets;
+  /** Optional fuelling hints for long planned sessions today and tomorrow. */
+  fuelling: FuellingHint[];
 }
 
 interface RawInputs {
@@ -252,6 +267,19 @@ export function useBodyModel(): BodyModel | null {
     const target = snapshot
       ? { intakeKcal: snapshot.todayKcal, floorApplied: snapshot.targets.floorApplied }
       : maintenance;
+    const todayEntries = raw.food.filter((f) => f.day === today);
+    const eaten = sumNutrients(
+      todayEntries.map((f) => ({
+        kcal: f.kcal,
+        proteinG: f.proteinG ?? 0,
+        carbsG: f.carbsG ?? 0,
+        fatG: f.fatG ?? 0,
+      })),
+    );
+    const mainSport =
+      [...raw.activities.filter((a) => a.date === today)].sort(
+        (a, b) => b.durationSec - a.durationSec,
+      )[0]?.sport ?? null;
     const fatPoints = [
       ...raw.checkIns
         .filter((c) => c.bodyFatPct !== null)
@@ -289,6 +317,37 @@ export function useBodyModel(): BodyModel | null {
       trendKg,
       goal,
       goalSnapshot: snapshot,
+      addedBack: {
+        kcal: snapshot
+          ? snapshot.addedBackKcal
+          : completedWorkoutKcal(todayDay.active, todayDay.restingKcal),
+        sport: mainSport,
+      },
+      eaten,
+      fuelling: fuellingHints(
+        stored
+          ? allWorkouts(stored.state.plan)
+              .filter(
+                (w) =>
+                  (w.date === today || w.date === shift(today, 1)) &&
+                  statusOf(stored.state, w.id) === 'planned',
+              )
+              .map((w) => ({ date: w.date, sport: w.sport, durationMin: w.durationMin }))
+          : [],
+      ),
+      macros: macroTargets({
+        kcal: target.intakeKcal,
+        proteinG: (
+          snapshot?.targets.protein ??
+          proteinForGoal({
+            weightKg: trendKg,
+            deficitKcal: 0,
+            tdeeKcal: target.intakeKcal,
+            kind: 'maintain',
+          })
+        ).grams,
+        weightKg: trendKg,
+      }),
     };
   }, [inputs.data, profile.data, plan.data, from, today]);
 

@@ -54,7 +54,7 @@ export function EnergyTodayCard() {
               : t('bodyAddon.energy.over', { kcal: -energy.remainingKcal })}
           </Text>
           <Text tone="secondary" style={numeric}>
-            {t('bodyAddon.energy.fromWorkouts', { kcal: energy.today.active.workoutKcal })}
+            {t('bodyAddon.energy.fromWorkouts', { kcal: energy.addedBack.kcal })}
           </Text>
           <Text variant="caption" tone="secondary">
             {t('bodyAddon.energy.estimate')}

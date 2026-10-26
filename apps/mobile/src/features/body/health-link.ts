@@ -23,6 +23,8 @@ export interface BodyHealthState {
   supported: boolean;
   store: typeof health.store;
   allowed: BodyHealthMetric[];
+  /** The diary is written to the health store as well. */
+  writesNutrition: boolean;
 }
 
 /** Reads the last 30 days into the Body store. Returns the number of values. */
@@ -46,6 +48,7 @@ export function useBodyHealth() {
       supported: await health.isSupported(),
       store: health.store,
       allowed: await health.bodyReadable(),
+      writesNutrition: await health.nutritionWritable(),
     }),
   });
 }
@@ -76,5 +79,17 @@ export function useRefreshBodyHealth() {
       return readBodyHealth();
     },
     onSuccess: (n) => (n > 0 ? client.invalidateQueries({ queryKey: bodyKeys.all }) : undefined),
+  });
+}
+
+/** Permission to write the diary to the health store (each entry once, keyed on its id). */
+export function useAllowNutritionWrite() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: async () => {
+      assertCanWrite();
+      return health.requestNutritionWrite();
+    },
+    onSettled: () => client.invalidateQueries({ queryKey: bodyHealthKey }),
   });
 }

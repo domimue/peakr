@@ -153,20 +153,21 @@ describe('Body tab', () => {
     await renderWithQuery(<BodyScreen />);
     // Resting 1324 + everyday movement 265 (no steps, no wearable) plus today's planned sessions (none without a plan).
     expect(await screen.findByText('1589 kcal left')).toBeOnTheScreen();
-    await fireEvent.changeText(screen.getByLabelText('What'), 'Oats');
+    // Quick add: kcal only.
     await fireEvent.changeText(screen.getByLabelText('Energy'), '400');
     await fireEvent.press(screen.getByText('Add'));
     await waitFor(() => expect(body.addFood).toHaveBeenCalled());
     expect(await screen.findByText('1189 kcal left')).toBeOnTheScreen();
-    expect(screen.getByText('Oats')).toBeOnTheScreen();
-    expect(body.store.food).toHaveLength(1);
+    expect(body.store.food).toEqual([
+      expect.objectContaining({ meal: 'snack', kcal: 400, proteinG: null, name: 'Quick add' }),
+    ]);
   });
 
   it('trial: everything, with a note that nothing is charged yet', async () => {
     billing('trial');
     fullProfile();
     await renderWithQuery(<BodyScreen />);
-    expect(await screen.findByTestId('body-diary-add')).toBeOnTheScreen();
+    expect(await screen.findByTestId('body-quick-add')).toBeOnTheScreen();
     expect(screen.getByText(/Free trial/)).toBeOnTheScreen();
   });
 
@@ -174,7 +175,7 @@ describe('Body tab', () => {
     billing('cancelled');
     fullProfile();
     await renderWithQuery(<BodyScreen />);
-    expect(await screen.findByTestId('body-diary-add')).toBeOnTheScreen();
+    expect(await screen.findByTestId('body-quick-add')).toBeOnTheScreen();
     expect(screen.queryByTestId('body-read-only')).toBeNull();
   });
 
@@ -201,7 +202,7 @@ describe('Body tab', () => {
     await renderWithQuery(<BodyScreen />);
     expect(await screen.findByText('Rice bowl')).toBeOnTheScreen();
     expect(screen.getByTestId('body-read-only')).toBeOnTheScreen();
-    expect(screen.queryByTestId('body-diary-add')).toBeNull();
+    expect(screen.queryByTestId('body-quick-add')).toBeNull();
     expect(screen.queryByText('Delete')).toBeNull();
 
     await fireEvent.press(screen.getByText('Check-in'));
@@ -377,7 +378,7 @@ describe('Teil A without the add-on', () => {
     fullProfile();
     await renderWithQuery(<TodayScreen />);
     expect(await screen.findByTestId('energy-today')).toBeOnTheScreen();
-    expect(await screen.findByText(/kcal from today’s workouts/)).toBeOnTheScreen();
+    expect(await screen.findByText(/added back from today’s workouts/)).toBeOnTheScreen();
   });
 
   it('Plan works the same with the add-on locked', async () => {
@@ -421,9 +422,9 @@ describe('export', () => {
       ],
     );
     expect(csv.split('\n')).toEqual([
-      'type,date,meal,name,kcal,protein_g,weight_kg,waist_cm,note',
-      'food,2026-10-19,lunch,"Rice, ""large""",650,30,,,',
-      'check-in,2026-10-19,,,,,61.2,,',
+      'type,date,meal,name,amount,unit,kcal,protein_g,carbs_g,fat_g,weight_kg,waist_cm,body_fat_pct,note',
+      'food,2026-10-19,lunch,"Rice, ""large""",,,650,30,,,,,,',
+      'check-in,2026-10-19,,,,,,,,,61.2,,,',
       '',
     ]);
   });

@@ -5,7 +5,12 @@ import { StyleSheet } from 'react-native';
 import { BODY_HEALTH_METRICS } from '@/features/health/types';
 import { Button, Card, spacing, Text } from '@/ui';
 
-import { useBodyHealth, useConnectBodyHealth, useRefreshBodyHealth } from '../health-link';
+import {
+  useAllowNutritionWrite,
+  useBodyHealth,
+  useConnectBodyHealth,
+  useRefreshBodyHealth,
+} from '../health-link';
 
 /**
  * Connects the phone's health store to Body (only shown while the add-on is active). Lists what
@@ -16,6 +21,7 @@ export function HealthLinkCard() {
   const state = useBodyHealth();
   const connect = useConnectBodyHealth();
   const refresh = useRefreshBodyHealth();
+  const write = useAllowNutritionWrite();
   const allowed = state.data?.allowed ?? [];
   const store = t(`bodyAddon.sources.${state.data?.store ?? 'healthConnect'}`);
   const { mutate } = refresh;
@@ -52,6 +58,20 @@ export function HealthLinkCard() {
           })}
           disabled={connect.isPending}
           onPress={() => connect.mutate()}
+        />
+      )}
+      {state.data.writesNutrition ? (
+        <Text variant="caption" tone="secondary">
+          {t('bodyAddon.health.writing', { store })}
+        </Text>
+      ) : (
+        <Button
+          small
+          variant="secondary"
+          testID="body-health-write"
+          label={t('bodyAddon.health.write', { store })}
+          disabled={write.isPending}
+          onPress={() => write.mutate()}
         />
       )}
       <Text variant="caption" tone="secondary">

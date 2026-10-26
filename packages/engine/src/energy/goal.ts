@@ -461,6 +461,8 @@ export interface GoalSnapshot {
   targets: GoalTargets;
   /** Today's target: base + eaten-back workouts (daily mode) or today's share (weekly mode). */
   todayKcal: number;
+  /** What today's workouts add on top of the base ("Your ride today: +420 kcal"). */
+  addedBackKcal: number;
   weekly: { totalKcal: number; days: number[] } | null;
   forecast: GoalForecast;
   checkIn: ReturnType<typeof weeklyCheckIn> | null;
@@ -526,6 +528,7 @@ export function goalSnapshot(input: {
   return {
     targets,
     todayKcal,
+    addedBackKcal: Math.max(0, todayKcal - targets.baseKcal),
     weekly,
     forecast: goalForecast({
       kind: goal.kind,

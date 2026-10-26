@@ -31,6 +31,11 @@ export default function BodyLayout() {
       <Stack.Screen name="check-in" options={{ title: t('bodyAddon.sections.checkIn') }} />
       <Stack.Screen name="progress" options={{ title: t('bodyAddon.sections.progress') }} />
       <Stack.Screen name="goal" options={{ title: t('bodyAddon.goal.title') }} />
+      <Stack.Screen name="food/add" options={{ title: t('bodyAddon.food.addTitle') }} />
+      <Stack.Screen name="food/scan" options={{ title: t('bodyAddon.food.scan') }} />
+      <Stack.Screen name="food/[id]" options={{ title: t('bodyAddon.food.portionTitle') }} />
+      <Stack.Screen name="food/new" options={{ title: t('bodyAddon.food.createFood') }} />
+      <Stack.Screen name="food/recipe" options={{ title: t('bodyAddon.food.createRecipe') }} />
     </Stack>
   );
 }

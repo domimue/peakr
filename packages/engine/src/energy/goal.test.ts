@@ -521,6 +521,7 @@ describe('energy basis and snapshot', () => {
     });
     expect(s.targets.baseKcal).toBe(1950);
     expect(s.todayKcal).toBe(2250);
+    expect(s.addedBackKcal).toBe(300);
     expect(s.forecast.plannedDate).toBe(addDays(TODAY, 70));
     expect(s.checkIn?.status).toBe('onTrack');
     expect(s.reached).toBe(false);
