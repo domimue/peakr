@@ -33,6 +33,7 @@ export * from './baseline';
 export * from './health';
 export * from './energy';
 export * from './nutrition';
+export * from './body';
 export { paceZonesFromBoundaries, ZONE_NUMBERS, type PaceZone, type ZoneNumber } from './zones';
 export { planConfig, type PlanConfig } from './plan/config';
 export { generatePlan, type PlanContinuation, type PlanField } from './plan/generate';

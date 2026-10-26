@@ -18,6 +18,7 @@ export type ValidationCode =
   | 'bmiTooLow'
   | 'targetNotBelowCurrent'
   | 'targetNotAboveCurrent'
+  | 'invalidFormat'
   | 'gpxEmpty'
   | 'gpxNoPoints'
   | 'gpxTooLarge';
