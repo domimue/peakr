@@ -59,7 +59,7 @@ describe('restingEnergy', () => {
 
   it('uses Katch-McArdle with body fat', () => {
     // 370 + 21.6 × 80 × 0.8 = 1752.4
-    expect(restingEnergy({ ...man, bodyFatPct: 20 }, TODAY)).toEqual({
+    expect(restingEnergy(man, TODAY, { day: '2026-10-20', value: 20 })).toEqual({
       kcal: 1752,
       method: 'katch',
     });
@@ -93,8 +93,8 @@ describe('workout energy', () => {
     ).toBe(400);
   });
 
-  it('counts only 75 % of device-reported energy', () => {
-    expect(countedWorkoutKcal({ kcal: 600, source: 'device' })).toBe(450);
+  it('counts device-reported energy at the correction factor (0.8)', () => {
+    expect(countedWorkoutKcal({ kcal: 600, source: 'device' })).toBe(480);
     expect(countedWorkoutKcal({ kcal: 600, source: 'estimate' })).toBe(600);
   });
 });
@@ -142,8 +142,8 @@ describe('weight trend', () => {
       { date: '2026-10-03', weightKg: 0 },
     ]);
     expect(points).toEqual([
-      { date: '2026-10-01', weightKg: 81, trendKg: 81 },
-      { date: '2026-10-02', weightKg: 79, trendKg: 80.8 },
+      { date: '2026-10-01', weightKg: 81, trendKg: 81, outlier: false },
+      { date: '2026-10-02', weightKg: 79, trendKg: 80.8, outlier: false },
     ]);
     expect(trendWeightKg([])).toBeNull();
     expect(trendWeightKg([{ date: '2026-10-01', weightKg: 70 }])).toBe(70);

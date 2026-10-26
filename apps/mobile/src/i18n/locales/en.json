@@ -307,7 +307,10 @@
     "tooLong": "Use at most {{max}} characters.",
     "mustConfirm": "Please confirm to continue.",
     "invalidOption": "Please choose one of the options.",
-    "dateOutOfRange": "Choose a date between {{min}} and {{max}} weeks from today."
+    "dateOutOfRange": "Choose a date between {{min}} and {{max}} weeks from today.",
+    "bmiTooLow": "A weight-loss goal is not offered here: the weight would be below a healthy range for your height.",
+    "targetNotBelowCurrent": "For a weight-loss goal, the target needs to be below your current trend weight.",
+    "targetNotAboveCurrent": "For a gain goal, the target needs to be above your current trend weight."
   },
   "profile": {
     "title": "Profile",

@@ -19,10 +19,9 @@ export interface BodyProfile {
   heightCm: number;
   /** Smoothed trend weight, never a single weigh-in. */
   weightKg: number;
-  bodyFatPct?: number;
 }
 
-export type BodyProfileField = 'sex' | 'birthDate' | 'heightCm' | 'weightKg' | 'bodyFatPct';
+export type BodyProfileField = 'sex' | 'birthDate' | 'heightCm' | 'weightKg';
 
 /** Full years between the birth date and `onDate` (both ISO dates). */
 export function ageOn(birthDate: string, onDate: string): number {
@@ -52,7 +51,6 @@ export function validateBodyProfile(
   }
   range('heightCm', input.heightCm, C.limits.heightCm);
   range('weightKg', input.weightKg, C.limits.weightKg);
-  checkRange(issues, 'bodyFatPct', input.bodyFatPct, C.limits.bodyFatPct);
   if (issues.length > 0) return { ok: false, issues };
   return { ok: true, value: input as BodyProfile };
 }
@@ -62,10 +60,41 @@ export interface RestingEnergy {
   method: 'mifflin' | 'katch';
 }
 
-/** Resting energy (BMR): Katch-McArdle when body fat % is known, else Mifflin-St Jeor. */
-export function restingEnergy(profile: BodyProfile, today: string): RestingEnergy {
-  if (profile.bodyFatPct !== undefined) {
-    const lean = profile.weightKg * (1 - profile.bodyFatPct / 100);
+/** A dated measurement (body fat %, weight …). */
+export interface Measurement {
+  day: string;
+  value: number;
+}
+
+const DAY_MS = 86_400_000;
+export const daysBetween = (a: string, b: string) =>
+  Math.round((Date.parse(`${b}T00:00:00Z`) - Date.parse(`${a}T00:00:00Z`)) / DAY_MS);
+
+/** The latest plausible body fat % of the last 30 days, or null (then Mifflin-St Jeor applies). */
+export function recentBodyFat(
+  measurements: readonly Measurement[],
+  today: string,
+): Measurement | null {
+  const { min, max } = C.limits.bodyFatPct;
+  const recent = measurements
+    .filter((m) => m.value >= min && m.value <= max && m.day <= today)
+    .filter((m) => daysBetween(m.day, today) <= C.bodyFatMaxAgeDays)
+    .sort((a, b) => a.day.localeCompare(b.day));
+  return recent.at(-1) ?? null;
+}
+
+/**
+ * Resting energy (BMR): Katch-McArdle when a body fat % from the last 30 days exists, else
+ * Mifflin-St Jeor. A device's own resting energy, when there is one, wins over both (see
+ * `pickBySource`); this is the estimate.
+ */
+export function restingEnergy(
+  profile: BodyProfile,
+  today: string,
+  bodyFat: Measurement | null = null,
+): RestingEnergy {
+  if (bodyFat) {
+    const lean = profile.weightKg * (1 - bodyFat.value / 100);
     return { kcal: Math.round(C.katch.intercept + C.katch.perLeanKg * lean), method: 'katch' };
   }
   const m = C.mifflin;
@@ -138,8 +167,9 @@ export function energyToday(input: {
   workouts: readonly WorkoutEnergy[];
   intakeKcal: number;
   deficitKcal?: number;
+  bodyFat?: Measurement | null;
 }): EnergyToday {
-  const resting = restingEnergy(input.profile, input.today).kcal;
+  const resting = restingEnergy(input.profile, input.today, input.bodyFat ?? null).kcal;
   const base = Math.round(resting * C.dailyLivingFactor);
   const workoutKcal = input.workouts.reduce((sum, w) => sum + countedWorkoutKcal(w), 0);
   const wanted = base + workoutKcal - Math.max(0, input.deficitKcal ?? 0);
@@ -155,48 +185,4 @@ export function energyToday(input: {
     remainingKcal: targetKcal - intakeKcal,
     floorApplied: wanted < floor,
   };
-}
-
-export interface WeighIn {
-  date: string;
-  weightKg: number;
-}
-
-export interface TrendPoint {
-  date: string;
-  weightKg: number;
-  trendKg: number;
-}
-
-/**
- * Exponentially smoothed weight trend (one point per day; several weigh-ins on one day are
- * averaged). The trend is what the calculations use – a single weigh-in is water and glycogen.
- */
-export function weightTrend(
-  weighIns: readonly WeighIn[],
-  alpha: number = C.trendAlpha,
-): TrendPoint[] {
-  const byDay = new Map<string, number[]>();
-  for (const w of weighIns) {
-    if (!Number.isFinite(w.weightKg) || w.weightKg <= 0) continue;
-    byDay.set(w.date, [...(byDay.get(w.date) ?? []), w.weightKg]);
-  }
-  const days = [...byDay.entries()].sort(([a], [b]) => a.localeCompare(b));
-  const points: TrendPoint[] = [];
-  let trend: number | null = null;
-  for (const [date, values] of days) {
-    const weight = values.reduce((a, b) => a + b, 0) / values.length;
-    trend = trend === null ? weight : trend + alpha * (weight - trend);
-    points.push({
-      date,
-      weightKg: Math.round(weight * 10) / 10,
-      trendKg: Math.round(trend * 10) / 10,
-    });
-  }
-  return points;
-}
-
-/** The latest trend weight, or null without weigh-ins. */
-export function trendWeightKg(weighIns: readonly WeighIn[]): number | null {
-  return weightTrend(weighIns).at(-1)?.trendKg ?? null;
 }

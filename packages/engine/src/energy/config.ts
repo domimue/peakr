@@ -12,8 +12,11 @@ export const energyConfig = {
    * workouts are counted separately, so this stays at the lowest activity level.
    */
   dailyLivingFactor: 1.2,
-  /** Share of device-reported active energy that is counted (wearables overestimate). */
-  deviceActiveShare: 0.75,
+  /**
+   * Correction factor for device-reported active energy (wearables overestimate): this share is
+   * counted. Configurable per call; the default applies when the user has not changed it.
+   */
+  deviceActiveShare: 0.8,
   /** Intake target never below max(BMR, this floor) – a safety rule, not a setting. */
   intakeFloorKcal: { female: 1200, male: 1500 },
   /**
@@ -33,8 +36,61 @@ export const energyConfig = {
   },
   /** Body weight assumed for workout estimates when none is on file. */
   defaultBodyWeightKg: 75,
-  /** Smoothing factor of the weight trend (exponential moving average, per weigh-in day). */
-  trendAlpha: 0.1,
+  /** Katch-McArdle needs a body fat % measured within this many days. */
+  bodyFatMaxAgeDays: 30,
+  /** Energy of one step per kg body weight (≈ 0.04 kcal per step at 70 kg). */
+  kcalPerStepPerKg: 0.00057,
+  /** Steps per minute counted inside run / walk workouts (not everyday movement). */
+  workoutStepsPerMin: { run: 160, walk: 110 },
+  /** Keytel et al. (2005): energy from heart rate, kcal/min = (a + b·HR + c·kg + d·age) / 4.184. */
+  keytel: {
+    male: { a: -55.0969, hr: 0.6309, kg: 0.1988, age: 0.2017 },
+    female: { a: -20.4022, hr: 0.4472, kg: -0.1263, age: 0.074 },
+    /** Heart rates outside this range are not used (sensor errors). */
+    hrRange: { min: 80, max: 210 },
+  },
+  /** Energy of one kg body fat (estimate, shown as one). */
+  kcalPerKgFat: 7700,
+  trend: {
+    /** Smoothing factor of the weight trend (exponentially weighted, per day). */
+    alpha: 0.1,
+    /** A weigh-in moves the trend by at most this share of the trend weight (water swings). */
+    maxResidualShare: 0.02,
+    /** Farther than this from the trend a weigh-in is flagged as an outlier. */
+    outlierShare: 0.03,
+  },
+  adaptive: {
+    /** Days with weight and logged intake needed before an estimate is made. */
+    minDays: 14,
+    /** Days looked back. */
+    windowDays: 28,
+    /** The estimate moves at most this much per week from the previous one. */
+    maxChangePerWeekKcal: 100,
+    /** Never further than this share from the formula estimate (data error guard). */
+    maxShareFromFormula: 0.3,
+  },
+  scale: {
+    /** Trend points (weigh-in days) a week needs to be compared. */
+    minWeighInsPerWeek: 3,
+    /** Weeks for medium / high confidence. */
+    mediumWeeks: 2,
+    highWeeks: 4,
+  },
+  goal: {
+    /** Max loss per week: this share of the body weight, and never more than `maxLossKg`. */
+    maxLossShare: 0.01,
+    maxLossKgPerWeek: 1.0,
+    /** No loss goal below this BMI (current or target). */
+    minBmi: 18.5,
+    /** Below this age only "maintain". */
+    minAgeForChange: 18,
+    /** Protein during weight loss, g per kg body weight. */
+    proteinGPerKg: { min: 1.6, max: 2.2 },
+    /** Gain is capped like loss, gently (lean gain is slow). */
+    maxGainKgPerWeek: 0.5,
+    /** Weeks of trend the "too fast" check looks at. */
+    fastLossWeeks: 2,
+  },
   limits: {
     weightKg: { min: 30, max: 300 },
     heightCm: { min: 120, max: 230 },
