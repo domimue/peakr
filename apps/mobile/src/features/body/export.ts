@@ -1,3 +1,4 @@
+import * as repo from '@/data/repositories/body-repository';
 import type { CheckIn, FoodEntry } from '@/data/repositories/body-repository';
 import { shareFile, type ShareResult } from '@/features/sharing/share-file';
 
@@ -32,7 +33,6 @@ export function bodyCsv(food: readonly FoodEntry[], checkIns: readonly CheckIn[]
 
 /** Export is always allowed for one's own data – also after the add-on ended. */
 export async function exportBodyData(today: string): Promise<ShareResult> {
-  const repo = await import('@/data/repositories/body-repository');
   const csv = bodyCsv(await repo.listFood(), await repo.listCheckIns());
   return shareFile({
     name: `peakr-body-${today}.csv`,

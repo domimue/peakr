@@ -8,6 +8,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { todayIso } from '@/data/ids';
+import * as repo from '@/data/repositories/body-repository';
 import { addonGuardNow, useEntitlement } from '@/features/billing/billing-store';
 import { usePlan } from '@/features/plan/queries';
 
@@ -19,9 +20,6 @@ import { bodyProfileKey, useBodyProfile } from './profile';
  * cancelled or expired – history stays), writes need `canWrite`. The server repeats the write
  * check (RLS), so a patched client gains nothing.
  */
-
-/** Loaded on first use, so screens that only show the card never open the database for it. */
-const repo = () => import('@/data/repositories/body-repository');
 
 export class AddonLockedError extends Error {
   constructor() {
@@ -45,7 +43,7 @@ export function useFoodDay(day: string) {
   const guard = useEntitlement('body_nutrition');
   return useQuery({
     queryKey: bodyKeys.food(day),
-    queryFn: async () => (await repo()).listFood(day),
+    queryFn: () => repo.listFood(day),
     enabled: guard.canRead,
   });
 }
@@ -54,7 +52,7 @@ export function useCheckIns() {
   const guard = useEntitlement('body_nutrition');
   return useQuery({
     queryKey: bodyKeys.checkIns,
-    queryFn: async () => (await repo()).listCheckIns(),
+    queryFn: repo.listCheckIns,
     enabled: guard.canRead,
   });
 }
@@ -73,15 +71,10 @@ function useWrite<T, R>(fn: (input: T) => Promise<R>) {
   });
 }
 
-type Repo = typeof import('@/data/repositories/body-repository');
-
-export const useAddFood = () =>
-  useWrite(async (d: Parameters<Repo['addFood']>[0]) => (await repo()).addFood(d));
-export const useDeleteFood = () => useWrite(async (id: string) => (await repo()).deleteFood(id));
-export const useAddCheckIn = () =>
-  useWrite(async (d: Parameters<Repo['addCheckIn']>[0]) => (await repo()).addCheckIn(d));
-export const useDeleteCheckIn = () =>
-  useWrite(async (id: string) => (await repo()).deleteCheckIn(id));
+export const useAddFood = () => useWrite(repo.addFood);
+export const useDeleteFood = () => useWrite(repo.deleteFood);
+export const useAddCheckIn = () => useWrite(repo.addCheckIn);
+export const useDeleteCheckIn = () => useWrite(repo.deleteCheckIn);
 
 /**
  * "Energy today": the engine's numbers for today, or null when the add-on may not show real data

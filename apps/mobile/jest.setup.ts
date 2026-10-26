@@ -83,6 +83,13 @@ jest.mock('expo-location', () => ({
   ),
 }));
 
+// The Body add-on (its data, the remote flags, and the quiz answers its profile falls back to) is
+// read by Today and the tab bar: in-memory in every test (`__mocks__`), so screens of Teil A never
+// open SQLite for it.
+jest.mock('@/data/repositories/body-repository');
+jest.mock('@/data/repositories/flags-repository');
+jest.mock('@/data/repositories/onboarding-repository');
+
 // expo-blur is native; under Jest the sample renders unblurred inside plain views.
 jest.mock('expo-blur', () => {
   const { View } = jest.requireActual('react-native');

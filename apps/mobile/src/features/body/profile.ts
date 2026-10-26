@@ -8,11 +8,10 @@ import { QUESTION_IDS, type QuizAnswers } from '@peakr/quiz';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { todayIso } from '@/data/ids';
+import * as repo from '@/data/repositories/body-repository';
+import { getQuizProgress } from '@/data/repositories/onboarding-repository';
 import { selectAccountUserId, useSessionStore } from '@/features/auth/session-store';
 import { useEntitlement } from '@/features/billing/billing-store';
-
-const body = () => import('@/data/repositories/body-repository');
-const onboarding = () => import('@/data/repositories/onboarding-repository');
 
 /**
  * The shared profile values the add-on needs (sex, birth date, height, weight). They live in the
@@ -70,10 +69,9 @@ export function useBodyProfile() {
     queryKey: [...bodyProfileKey, userId],
     enabled: guard.canRead,
     queryFn: async (): Promise<BodyProfileState> => {
-      const repo = await body();
       const stored = await repo.getProfile();
       const remote = await repo.fetchRemoteProfile(userId).catch(() => ({}));
-      const progress = await (await onboarding()).getQuizProgress().catch(() => null);
+      const progress = await getQuizProgress().catch(() => null);
       const quiz = fromQuiz(progress?.answers);
       const trend = trendWeightKg(
         (await repo.listCheckIns()).map((c) => ({ date: c.day, weightKg: c.weightKg })),
@@ -87,7 +85,7 @@ export function useSaveBodyProfile() {
   const client = useQueryClient();
   const userId = useSessionStore(selectAccountUserId);
   return useMutation({
-    mutationFn: async (values: Partial<BodyProfile>) => (await body()).saveProfile(values, userId),
+    mutationFn: (values: Partial<BodyProfile>) => repo.saveProfile(values, userId),
     onSuccess: () => client.invalidateQueries({ queryKey: bodyProfileKey }),
   });
 }

@@ -1,5 +1,7 @@
 import { create } from 'zustand';
 
+import * as repo from '@/data/repositories/flags-repository';
+
 import { personalBuild } from './build';
 
 /**
@@ -45,15 +47,10 @@ interface RemoteFlagsState {
   load: () => Promise<void>;
 }
 
-async function repository() {
-  return import('@/data/repositories/flags-repository');
-}
-
 export const useRemoteFlagsStore = create<RemoteFlagsState>()((set) => ({
   flags: {},
   loaded: false,
   async load() {
-    const repo = await repository();
     const cached = await repo.getCachedFlags().catch(() => ({}));
     set((s) => ({ flags: { ...cached, ...s.flags } }));
     const fresh = await repo.fetchFlags().catch(() => null);

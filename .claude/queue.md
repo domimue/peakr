@@ -7,12 +7,14 @@ Hourly check-in (scheduled task): `trig_01CLCwz6RBurU45vsaGJYsmn` (this branch, 
 
 ## Open
 
-- Phase 11b – Add-on integration & entitlement (`body_nutrition`, guard, Body tab in place of
-  the Insights tab – user decision 2026-10-26, locked states, shared profile, 14-day trial,
-  cancel = read-only, remote flag `addon_body_nutrition`)
+_(none)_
 
 ## Done
 
+- Phase 11b – Body add-on integration & entitlement (`body_nutrition`, bundle "Peakr + Body",
+  guard, Body tab in place of Insights – user decision 2026-10-26, remote flag
+  `addon_body_nutrition`); waits on the user for store/RevenueCat products, prices and the
+  Supabase migration (docs/body-addon-setup.md)
 - Phase 8b – Generated round trips (OpenRouteService + swisstopo); waits on the user for the
   ORS key and the feature flag (docs/generated-routes.md)
 - Phase 10d – App links, deep links & "Get the app"; waits on the user for the domain,

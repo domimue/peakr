@@ -1,0 +1,343 @@
+import { generatePlan } from '@peakr/engine';
+import { fireEvent, screen, waitFor } from '@testing-library/react-native';
+import { router } from 'expo-router';
+
+import { useRemoteFlagsStore } from '@/config/remote-flags';
+import type { StoredPlanInput } from '@/data/db/schema';
+import * as ids from '@/data/ids';
+import * as bodyRepo from '@/data/repositories/body-repository';
+import * as onboardingRepo from '@/data/repositories/onboarding-repository';
+import * as planRepo from '@/data/repositories/plan-repository';
+import { useBillingStore } from '@/features/billing/billing-store';
+import { entitlementsOf, subscriptionsOf, type CustomerInfoLike } from '@/features/billing/model';
+import { PlanScreen } from '@/features/plan/screens/plan-screen';
+import { TodayScreen } from '@/features/today/today-screen';
+import { shareFile } from '@/features/sharing/share-file';
+import { renderWithQuery } from '@/test-utils/render-with-query';
+
+import { bodyCsv } from '../export';
+import { BodyAddonScreen } from '../screens/body-addon-screen';
+import { BodyScreen } from '../screens/body-screen';
+
+jest.mock('expo-router', () => {
+  const { Text: RNText } = jest.requireActual('react-native');
+  return {
+    ...jest.requireActual('expo-router'),
+    Redirect: ({ href }: { href: string }) => <RNText>{`redirect:${href}`}</RNText>,
+  };
+});
+jest.mock('@/features/sharing/share-file', () => ({
+  shareFile: jest.fn(async () => 'shared'),
+}));
+jest.mock('@/data/repositories/plan-repository');
+jest.mock('@/data/repositories/activity-repository');
+jest.mock('@/data/repositories/route-repository');
+jest.mock('@/data/repositories/billing-repository');
+
+const body = bodyRepo as unknown as typeof import('@/data/repositories/__mocks__/body-repository');
+const plan = planRepo as unknown as typeof import('@/data/repositories/__mocks__/plan-repository');
+const quiz =
+  onboardingRepo as unknown as typeof import('@/data/repositories/__mocks__/onboarding-repository');
+
+const TODAY = '2026-10-19';
+const input: StoredPlanInput = {
+  profile: {
+    age: 35,
+    experience: 'intermediate',
+    sports: ['run'],
+    terrain: 'flat',
+    strength: { mode: 'none' },
+  },
+  goal: { kind: 'half' },
+  availability: { minutesPerDay: [60, 60, 45, 60, 0, 120, 90], doublesAllowed: false },
+  targetDate: '2027-02-14',
+  hrZones: { age: 35, restingHr: 55 },
+};
+
+function storePlan() {
+  const r = generatePlan(input.profile, input.goal, input.availability, TODAY, '2027-02-14');
+  if (!r.ok) throw new Error('plan');
+  plan.store.plan = {
+    id: 'plan-1',
+    input,
+    state: { plan: r.value, status: {}, pauses: [], revision: 0 },
+  };
+}
+
+const sub = (over: Record<string, unknown> = {}) => ({
+  productIdentifier: 'peakr_body',
+  store: 'PLAY_STORE',
+  periodType: 'NORMAL',
+  willRenew: true,
+  expirationDate: '2026-11-19T00:00:00Z',
+  ...over,
+});
+const training = sub({ productIdentifier: 'peakr_training' });
+
+type Body = 'never' | 'active' | 'trial' | 'cancelled' | 'expired';
+
+/** Release billing (no dev grants) with the training tier and the given add-on state. */
+function billing(state: Body, { flag = true }: { flag?: boolean } = {}) {
+  const active: CustomerInfoLike['entitlements']['active'] = { training };
+  const all: Record<string, unknown> = { training };
+  if (state === 'active') active.body_nutrition = sub();
+  if (state === 'trial') active.body_nutrition = sub({ periodType: 'TRIAL' });
+  if (state === 'cancelled') active.body_nutrition = sub({ willRenew: false });
+  if (state === 'expired') all.body_nutrition = sub();
+  Object.assign(all, active);
+  const info: CustomerInfoLike = { entitlements: { active, all }, managementURL: null };
+  useRemoteFlagsStore.setState({ flags: { addon_body_nutrition: flag }, loaded: true });
+  useBillingStore.setState({
+    status: 'ready',
+    entitlements: entitlementsOf(info),
+    subscriptions: subscriptionsOf(info),
+    devBody: false,
+    devTraining: false,
+    cachedAddon: null,
+  });
+}
+
+const fullProfile = () => {
+  body.store.profile = { sex: 'female', birthDate: '1991-03-14', heightCm: 168, weightKg: 61 };
+};
+
+beforeEach(() => {
+  jest.clearAllMocks();
+  body.resetStore();
+  plan.resetStore();
+  quiz.resetStore();
+  jest.spyOn(ids, 'todayIso').mockReturnValue(TODAY);
+  jest.spyOn(router, 'push').mockImplementation(() => undefined);
+});
+
+afterEach(() => jest.restoreAllMocks());
+
+describe('Body tab', () => {
+  it('locked: blurred sample, benefits and the way to the add-on paywall', async () => {
+    billing('never');
+    await renderWithQuery(<BodyScreen />);
+    expect(screen.getByTestId('body-locked')).toBeOnTheScreen();
+    expect(screen.getByTestId('body-sample', { includeHiddenElements: true })).toBeOnTheScreen();
+    expect(screen.getByText(/Food diary: everything you eat/)).toBeOnTheScreen();
+    expect(screen.queryByTestId('body-diary')).toBeNull();
+    await fireEvent.press(screen.getByText('Unlock the Body add-on'));
+    expect(router.push).toHaveBeenCalledWith('/body/addon');
+    // Nothing of the user's add-on data was read.
+    expect(body.listFood).not.toHaveBeenCalled();
+  });
+
+  it('switched off remotely: never shown, even with the add-on bought', async () => {
+    billing('active', { flag: false });
+    await renderWithQuery(<BodyScreen />);
+    expect(screen.getByText('redirect:/today')).toBeOnTheScreen();
+  });
+
+  it('asks inline only for the profile values that are missing', async () => {
+    billing('active');
+    quiz.store.progress = {
+      answers: { 'body.sex': 'female', 'body.heightCm': 168, 'body.weightKg': 61 },
+      stepId: null,
+      insight: false,
+      finished: true,
+    };
+    await renderWithQuery(<BodyScreen />);
+    expect(await screen.findByTestId('body-profile-setup')).toBeOnTheScreen();
+    expect(screen.getByText('Birth date')).toBeOnTheScreen();
+    expect(screen.queryByText('Height')).toBeNull();
+    expect(screen.queryByText('Sex (for the energy formula)')).toBeNull();
+  });
+
+  it('active: logging food updates Energy today', async () => {
+    billing('active');
+    fullProfile();
+    await renderWithQuery(<BodyScreen />);
+    // Base 1324 × 1.2 = 1589 kcal plus today's planned sessions (none without a plan).
+    expect(await screen.findByText('1589 kcal left')).toBeOnTheScreen();
+    await fireEvent.changeText(screen.getByLabelText('What'), 'Oats');
+    await fireEvent.changeText(screen.getByLabelText('Energy'), '400');
+    await fireEvent.press(screen.getByText('Add'));
+    await waitFor(() => expect(body.addFood).toHaveBeenCalled());
+    expect(await screen.findByText('1189 kcal left')).toBeOnTheScreen();
+    expect(screen.getByText('Oats')).toBeOnTheScreen();
+    expect(body.store.food).toHaveLength(1);
+  });
+
+  it('trial: everything, with a note that nothing is charged yet', async () => {
+    billing('trial');
+    fullProfile();
+    await renderWithQuery(<BodyScreen />);
+    expect(await screen.findByTestId('body-diary-add')).toBeOnTheScreen();
+    expect(screen.getByText(/Free trial/)).toBeOnTheScreen();
+  });
+
+  it('cancelled but paid up: still fully usable', async () => {
+    billing('cancelled');
+    fullProfile();
+    await renderWithQuery(<BodyScreen />);
+    expect(await screen.findByTestId('body-diary-add')).toBeOnTheScreen();
+    expect(screen.queryByTestId('body-read-only')).toBeNull();
+  });
+
+  it('expired: history stays readable and exportable, new entries are locked', async () => {
+    billing('expired');
+    fullProfile();
+    body.store.food = [
+      {
+        id: 'f1',
+        day: TODAY,
+        meal: 'lunch',
+        name: 'Rice bowl',
+        kcal: 650,
+        proteinG: null,
+        createdAt: '2026-10-19T12:00:00Z',
+      },
+    ];
+    await renderWithQuery(<BodyScreen />);
+    expect(await screen.findByText('Rice bowl')).toBeOnTheScreen();
+    expect(screen.getByTestId('body-read-only')).toBeOnTheScreen();
+    expect(screen.queryByTestId('body-diary-add')).toBeNull();
+    expect(screen.queryByText('Delete')).toBeNull();
+
+    await fireEvent.press(screen.getByText('Check-in'));
+    expect(await screen.findByTestId('body-check-in')).toBeOnTheScreen();
+    expect(screen.queryByText('Save check-in')).toBeNull();
+
+    await fireEvent.press(screen.getByText('Export my Body data (CSV)'));
+    await waitFor(() =>
+      expect(shareFile).toHaveBeenCalledWith(
+        expect.objectContaining({ name: 'peakr-body-2026-10-19.csv', mime: 'text/csv' }),
+      ),
+    );
+
+    await fireEvent.press(screen.getByText('Reactivate Body'));
+    expect(router.push).toHaveBeenCalledWith('/body/addon');
+  });
+
+  it('progress shows the smoothed trend and the coach', async () => {
+    billing('active');
+    fullProfile();
+    body.store.checkIns = [
+      { id: 'c1', day: '2026-10-10', weightKg: 62, waistCm: null, note: null, createdAt: 'x' },
+      { id: 'c2', day: '2026-10-19', weightKg: 61, waistCm: null, note: null, createdAt: 'y' },
+    ];
+    await renderWithQuery(<BodyScreen initial="progress" />);
+    expect(await screen.findByText('61.9 kg')).toBeOnTheScreen();
+    expect(screen.getByTestId('body-coach')).toBeOnTheScreen();
+  });
+});
+
+describe('add-on paywall', () => {
+  const pkg = (over: Record<string, unknown>) => ({
+    id: 'x',
+    productId: 'x',
+    period: 'yearly' as const,
+    tier: null,
+    priceString: '',
+    trialDays: 14,
+    ...over,
+  });
+
+  function offers(trialUsed: boolean | null) {
+    useBillingStore.setState({
+      bodyPackages: [
+        pkg({ id: 'body:y', productId: 'peakr_body', priceString: 'CHF 39.00', price: 39 }),
+      ],
+      tierPackages: [
+        pkg({
+          id: 'default:t',
+          tier: 'training',
+          priceString: 'CHF 59.00',
+          price: 59,
+          trialDays: 7,
+        }),
+        pkg({ id: 'default:p', tier: 'plus', priceString: 'CHF 89.00', price: 89, trialDays: 7 }),
+      ],
+      bodyTrialUsed: trialUsed,
+    });
+  }
+
+  it('offers the 14-day trial once per account, and the bundle with its saving', async () => {
+    billing('never');
+    offers(false);
+    const { unmount } = await renderWithQuery(<BodyAddonScreen />);
+    expect(screen.getByText('Start 14-day free trial')).toBeOnTheScreen();
+    expect(screen.getByTestId('body-bundle-offer')).toBeOnTheScreen();
+    expect(screen.getByText('Save 9 %')).toBeOnTheScreen();
+    await unmount();
+
+    offers(true);
+    await renderWithQuery(<BodyAddonScreen />);
+    expect(screen.queryByText(/Start 14-day free trial/)).toBeNull();
+    expect(screen.getByText('Subscribe')).toBeOnTheScreen();
+  });
+
+  it('reactivation after it ended keeps everything', async () => {
+    billing('expired');
+    offers(true);
+    await renderWithQuery(<BodyAddonScreen />);
+    expect(screen.getByText(/everything you logged is still here/)).toBeOnTheScreen();
+  });
+});
+
+describe('Teil A without the add-on', () => {
+  it('Today without the add-on switched on: no Body card, the session as always', async () => {
+    storePlan();
+    billing('never', { flag: false });
+    await renderWithQuery(<TodayScreen />);
+    expect(await screen.findByTestId('insights')).toBeOnTheScreen();
+    expect(screen.queryByTestId('energy-today')).toBeNull();
+    expect(screen.queryByTestId('energy-today-locked')).toBeNull();
+    expect(screen.getByText('Mark as done')).toBeOnTheScreen();
+    expect(body.getProfile).not.toHaveBeenCalled();
+  });
+
+  it('Today with the add-on switched on but not bought: a locked preview card, nothing else changes', async () => {
+    storePlan();
+    billing('never');
+    await renderWithQuery(<TodayScreen />);
+    expect(await screen.findByTestId('energy-today-locked')).toBeOnTheScreen();
+    expect(screen.getByText('Mark as done')).toBeOnTheScreen();
+    expect(body.listFood).not.toHaveBeenCalled();
+  });
+
+  it('Today with the add-on: remaining energy and the energy of today’s session', async () => {
+    storePlan();
+    billing('active');
+    fullProfile();
+    await renderWithQuery(<TodayScreen />);
+    expect(await screen.findByTestId('energy-today')).toBeOnTheScreen();
+    expect(await screen.findByText(/kcal from today’s workouts/)).toBeOnTheScreen();
+  });
+
+  it('Plan works the same with the add-on locked', async () => {
+    storePlan();
+    billing('never');
+    await renderWithQuery(<PlanScreen />);
+    expect(await screen.findByText(/Week 2 of 17/)).toBeOnTheScreen();
+  });
+});
+
+describe('export', () => {
+  it('writes one CSV with both record types, quoting where needed', () => {
+    const csv = bodyCsv(
+      [
+        {
+          id: 'f',
+          day: '2026-10-19',
+          meal: 'lunch',
+          name: 'Rice, "large"',
+          kcal: 650,
+          proteinG: 30,
+          createdAt: '',
+        },
+      ],
+      [{ id: 'c', day: '2026-10-19', weightKg: 61.2, waistCm: null, note: null, createdAt: '' }],
+    );
+    expect(csv.split('\n')).toEqual([
+      'type,date,meal,name,kcal,protein_g,weight_kg,waist_cm,note',
+      'food,2026-10-19,lunch,"Rice, ""large""",650,30,,,',
+      'check-in,2026-10-19,,,,,61.2,,',
+      '',
+    ]);
+  });
+});

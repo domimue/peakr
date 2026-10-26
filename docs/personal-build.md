@@ -16,6 +16,9 @@ refuses it for the `production` profile even if the variable leaks into that bui
 - `useAccess()` returns `full` and `useHasGym()` returns `true`; the paywall after the forecast
   says "everything is unlocked" and continues to the plan; the sign-in can be skipped
   ("Continue without an account").
+- The Body add-on is switched on (remote flag `addon_body_nutrition`) and unlocked
+  (`useEntitlement('body_nutrition')` is `active`). Its data stays on the device: the server
+  accepts Body writes only with a real entitlement and the flag on (docs/body-addon-setup.md).
 - Same package name (`com.peakr.app`) as the store app, so the app links work with it too.
 
 ## Build and install
