@@ -7,7 +7,9 @@ Hourly check-in (scheduled task): `trig_01CLCwz6RBurU45vsaGJYsmn` (this branch, 
 
 ## Open
 
-_(none)_
+- Phase 15 – Body check-in (rhythm + reminder, weigh-ins, daily kcal quick entry, body fat incl.
+  Navy estimate, measurements with instructions and plausibility, private progress photos with
+  comparison, notes, history with edit/delete, JSON/CSV export, Körper-Tracker import)
 
 ## Done
 
