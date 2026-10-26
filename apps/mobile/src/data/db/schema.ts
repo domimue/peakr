@@ -430,6 +430,8 @@ export const bodyCheckins = sqliteTable(
     /** Body fat % from a manual reading (scale display, caliper …). */
     bodyFatPct: real('body_fat_pct'),
     note: text('note'),
+    /** `manual` or `import` (Körper-Tracker backup). */
+    source: text('source').$type<'manual' | 'import'>().notNull().default('manual'),
     createdAt: text('created_at').notNull(),
     updatedAt: text('updated_at').notNull(),
     dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
@@ -443,6 +445,10 @@ export const bodyCheckins = sqliteTable(
 export const bodyDays = sqliteTable('body_days', {
   day: text('day').primaryKey(),
   incomplete: integer('incomplete', { mode: 'boolean' }).notNull(),
+  /** Daily kcal quick entry (Phase 15) for people who do not log food. */
+  intakeKcal: integer('intake_kcal'),
+  /** Active energy the user read off a watch (counted with the correction factor). */
+  activeKcal: integer('active_kcal'),
   updatedAt: text('updated_at').notNull(),
   dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
 });
@@ -551,4 +557,33 @@ export const bodyFoods = sqliteTable(
     deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
   },
   (t) => [index('body_foods_barcode').on(t.barcode), index('body_foods_name').on(t.name)],
+);
+
+/** A progress photo: on this device until uploaded, then in the private bucket (path). */
+export interface BodyPhoto {
+  localUri: string | null;
+  remotePath: string | null;
+}
+
+// Body check-in (Phase 15): measurements, body fat, photos and a note for a day. Weigh-ins are
+// `body_checkins` (several per day allowed); the history joins both by day.
+export const bodyMeasurements = sqliteTable(
+  'body_measurements',
+  {
+    id: text('id').primaryKey(),
+    day: text('day').notNull(),
+    values: text('values', { mode: 'json' }).$type<Record<string, number>>().notNull(),
+    bodyFatPct: real('body_fat_pct'),
+    /** `manual`, `navy` (estimate) or `scale` (from Health data). */
+    bodyFatSource: text('body_fat_source').$type<'manual' | 'navy' | 'scale'>(),
+    note: text('note'),
+    photos: text('photos', { mode: 'json' })
+      .$type<Partial<Record<'front' | 'side' | 'back', BodyPhoto>>>()
+      .notNull(),
+    createdAt: text('created_at').notNull(),
+    updatedAt: text('updated_at').notNull(),
+    dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
+    deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
+  },
+  (t) => [index('body_measurements_day').on(t.day)],
 );

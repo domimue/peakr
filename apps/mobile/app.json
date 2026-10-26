@@ -154,6 +154,14 @@
           "recordAudioAndroid": false,
           "barcodeScannerEnabled": true
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Peakr lets you choose progress photos from your library. They are stored privately.",
+          "cameraPermission": "Peakr uses the camera for barcode scans and your private progress photos.",
+          "microphonePermission": false
+        }
       ]
     ],
     "experiments": {
