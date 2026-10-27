@@ -82,7 +82,6 @@ export {
   trainingDeviation,
   trainingInteraction,
   weeklyCheckIn,
-  weeklyPlan,
   weekLoadContext,
   type CheckInStatus,
   type EnergyBasis,

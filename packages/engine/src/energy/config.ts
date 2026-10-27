@@ -106,6 +106,11 @@ export const energyConfig = {
     highWeeks: 4,
   },
   goal: {
+    /**
+     * A day without sport comes from the wearable's day totals once this many of the last 14 days
+     * had one and no workout; below that the everyday-activity factor is used.
+     */
+    wearableBaseMinDays: 3,
     /** Max loss per week: this share of the body weight, and never more than `maxLossKg`. */
     maxLossShare: 0.01,
     maxLossKgPerWeek: 1.0,

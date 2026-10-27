@@ -7,6 +7,11 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 ## Open
 
+- Fixed daily calorie target like Garmin (2026-10-27): base from the wearable's day totals on days
+  without sport (factor only without a wearable), the same target every day = (7 × (base − deficit)
+  + the week's planned training) / 7, floor from the formula BMR checked on that day (so planned
+  sport counts and 0.75 kg/week is possible); breakdown, goal setup, tests, CLAUDE.md.
+
 
 ## Done
 
