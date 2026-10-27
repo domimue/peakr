@@ -7,14 +7,15 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 ## Open
 
-- Garmin health data not arriving (user prompt 2026-10-27): v2 daily-summary mapper, per-endpoint pull,
-  SpO2 day + VO2max from activities, backfill trigger, four empty-state cases, OAuth permissions,
-  diagnostics screen. Approved plan: `.claude/plans/garmin-health-fix.md`. Progress:
-  - [ ] A mapper/pull  - [ ] B backfill  - [ ] C empty states  - [ ] D OAuth permissions
-  - [ ] E diagnostics  - [ ] F tests/docs
+(empty)
 
 ## Done
 
+- Garmin health data not arriving (2026-10-27): v2 daily-summary mapper, per-endpoint pull, SpO2
+  day + VO2max from activities, backfill button, empty-state cases, OAuth permissions,
+  diagnostics; waits on the user for the Supabase migration `20261108000000_health_diagnostics.sql`,
+  `supabase functions deploy garmin-health oauth watch-webhook` and a new personal build
+  (docs/health-garmin.md)
 - Phase 16 – Body dashboard, coach & paywall; nothing to set up (docs/body-addon-setup.md §12)
 - Phase 15 – Body check-in; waits on the user for the Supabase migration
   `20261107000000_body_checkin.sql` (private `body-photos` bucket) and a new dev build
