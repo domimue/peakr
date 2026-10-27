@@ -8,7 +8,7 @@ import { StyleSheet, View } from 'react-native';
 import { useBaselineStore } from '@/features/baseline/baseline-store';
 import { calibrateOnboarding } from '@/features/baseline/calibration';
 import { useSaveStrengthSetup } from '@/features/strength/queries';
-import { planHrZones } from '@/features/training-zones/resolve';
+import { planTargetBands } from '@/features/training-zones/resolve';
 import { setupFromAnswers } from '@/features/strength/setup-form';
 import {
   Badge,
@@ -72,7 +72,7 @@ export function ForecastScreen() {
       input: v,
       plan: plan.value,
       forecast: buildForecast(plan.value, v, prepareAnswers(given, today)),
-      hrZones: planHrZones({ ...v, ...(v.targetDate ? { targetDate: v.targetDate } : {}) }),
+      hrZones: planTargetBands({ ...v, ...(v.targetDate ? { targetDate: v.targetDate } : {}) }),
     };
   }, [given, today, activities, meta]);
 

@@ -17,7 +17,7 @@ import {
   type SourceRef,
 } from '@peakr/engine';
 
-import { planHrZones } from '@/features/training-zones/resolve';
+import { planTargetBands } from '@/features/training-zones/resolve';
 
 import type { StoredActivity } from '../repositories/activity-repository';
 import type { StoredPlan } from '../repositories/plan-repository';
@@ -51,7 +51,7 @@ export interface ImportOutcome {
 
 /** The plan's heart rate zones (manual zones included) for the load of imported activities. */
 export function hrZonesOf(stored: StoredPlan): HrZone[] {
-  return planHrZones(stored.input);
+  return planTargetBands(stored.input);
 }
 
 /**

@@ -23,7 +23,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { todayIso } from '@/data/ids';
 import { useWorkoutActivity, type LinkedActivity } from '@/features/activities/queries';
 import { WorkoutEvaluation, WorkoutRoute } from '@/features/routes/components/workout-route';
-import { planHrZones } from '@/features/training-zones/resolve';
+import { planTargetBands } from '@/features/training-zones/resolve';
 import { SendToZwift } from '@/features/zwift/send-to-zwift';
 import { WeatherHintCard } from '@/features/weather/components/weather-hint-card';
 import { useWorkoutWeather } from '@/features/weather/queries';
@@ -184,7 +184,7 @@ export function WorkoutScreen({ id, startMoving = false, initialSetting }: Worko
   const today = todayIso();
 
   // Manual zones from Profile → Training zones included.
-  const hrZones = useMemo<readonly HrZone[]>(() => planHrZones(stored?.input), [stored?.input]);
+  const hrZones = useMemo<readonly HrZone[]>(() => planTargetBands(stored?.input), [stored?.input]);
   const weather = useWorkoutWeather(stored ? findWorkout(stored.state.plan, id) : undefined);
   const setting: Setting =
     picked ?? (weather?.hint.actions.includes('indoor') ? 'indoor' : 'outdoor');

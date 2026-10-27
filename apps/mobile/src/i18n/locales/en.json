@@ -1316,7 +1316,7 @@
   },
   "trainingZones": {
     "title": "Training zones",
-    "intro": "Your plan prescribes every session from these zones. Change your values, tap a zone to set it manually, then save – your plan's targets update right away.",
+    "intro": "Your zones as a reference, in the method you pick. Tap a zone (the pencil) to set its range by hand, then save – a range you set is what your sessions use.",
     "noPlan": "Your zones are set up with your plan. Build your plan first, then fine-tune them here.",
     "hr": {
       "title": "Heart rate zones",
@@ -1334,7 +1334,8 @@
       "hrMaxUsed": "Max heart rate used",
       "hrMaxEstimateNote": "Estimated from your age (208 − 0.7 × age). A measured value makes your zones more accurate.",
       "lthrUsed": "Threshold heart rate used",
-      "empty": "Enter your age or max heart rate to see your heart rate zones."
+      "empty": "Enter your age or max heart rate to see your heart rate zones.",
+      "referenceNote": "This table is a reference. Your sessions prescribe an intensity with its own bpm range from your threshold heart rate (or your resting and maximum heart rate), so Easy means the same whichever method you pick here. A zone you set by hand wins."
     },
     "run": {
       "title": "Running pace zones",

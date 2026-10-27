@@ -1,4 +1,4 @@
-import { calculateHrZones, generatePlan, type HrZone, type Plan } from '@peakr/engine';
+import { prescriptionBands, generatePlan, type HrZone, type Plan } from '@peakr/engine';
 import {
   buildForecast,
   dayToIso,
@@ -29,12 +29,17 @@ export function funnelPlan(answers: QuizAnswers, today: string): FunnelPlan | nu
   const v = mapped.value;
   const plan = generatePlan(v.profile, v.goal, v.availability, v.startDate, v.targetDate);
   if (!plan.ok) return null;
-  const zones = calculateHrZones(v.hrZones);
+  // The bpm band the sessions prescribe – the same as in the app, whatever the zone method.
+  const { method: _method, ...anchors } = v.hrZones;
   return {
     input: v,
     plan: plan.value,
     forecast: buildForecast(plan.value, v, prepareAnswers(answers, today)),
-    hrZones: zones.ok ? zones.value.zones : [],
+    hrZones: prescriptionBands(anchors).map(({ zone, minBpm, maxBpm }) => ({
+      zone,
+      minBpm,
+      maxBpm,
+    })),
   };
 }
 

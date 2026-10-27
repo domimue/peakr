@@ -379,11 +379,11 @@ describe('insights', () => {
     // … so it comes after the body step, as an estimate (Karvonen with estimated HRmax).
     expect(insight('body', halfMarathon)).toEqual({
       key: 'quiz.insights.zone2Estimate',
-      params: { min: 131, max: 143 },
+      params: { min: 126, max: 144 },
     });
     expect(insight('heartRate', { [Q.restingHr]: 50, [Q.hrMax]: 190 })).toEqual({
       key: 'quiz.insights.zone2',
-      params: { min: 134, max: 147 },
+      params: { min: 130, max: 149 },
     });
     expect(insight('body', { ...halfMarathon, [Q.hrMax]: 190 })).toBeNull();
     expect(insight('body', weightLoss)).toEqual({

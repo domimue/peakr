@@ -14,7 +14,7 @@ import * as planRepo from '@/data/repositories/plan-repository';
 import { supabase } from '@/data/supabase';
 import { processNewActivities } from '@/data/activities/process';
 import { disconnect } from '@/features/integrations/api';
-import { planHrZones } from '@/features/training-zones/resolve';
+import { planTargetBands } from '@/features/training-zones/resolve';
 
 import { dropRevokedBaseline, importBaseline, stravaZones } from '../api';
 import { calibrateOnboarding } from '../calibration';
@@ -233,7 +233,7 @@ describe('reference only: the baseline never becomes training history', () => {
 });
 
 describe('calibration precedence', () => {
-  it('the user’s own entries win; their Strava zones are used without manual zones', async () => {
+  it('the user’s own entries win; session targets do not follow the Strava zones', async () => {
     client.functions.invoke.mockResolvedValueOnce({
       data: {
         activities: stravaRows(),
@@ -257,12 +257,14 @@ describe('calibration precedence', () => {
     const calibrated = calibrateOnboarding(own, baseline.store, TODAY);
     expect(calibrated.profile.baseline?.experience).toEqual({ run: 'advanced' });
     expect(calibrated.hrZones?.hrMax).toBe(199);
-    expect(planHrZones(calibrated)[1]).toEqual({ zone: 2, minBpm: 130, maxBpm: 150 });
+    // The Strava zones are kept (display), but the easy band comes from HRmax 199: 137–157.
+    expect(calibrated.stravaHrZones).toBeDefined();
+    expect(planTargetBands(calibrated)[1]).toEqual({ zone: 2, minBpm: 137, maxBpm: 157 });
     const manual = {
       ...calibrated,
       zones: { overrides: { hr: { 2: { minBpm: 120, maxBpm: 140 } }, runPace: {}, swimPace: {} } },
     };
-    expect(planHrZones(manual)[1]).toMatchObject({ zone: 2, minBpm: 120, maxBpm: 140 });
+    expect(planTargetBands(manual)[1]).toMatchObject({ zone: 2, minBpm: 120, maxBpm: 140 });
   });
 
   it('leaves the input untouched without a baseline', () => {

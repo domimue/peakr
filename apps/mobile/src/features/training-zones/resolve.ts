@@ -3,6 +3,7 @@ import {
   calculateCss,
   calculateHrZones,
   effectiveHrInput,
+  prescriptionBands,
   type CssField,
   type CssResult,
   type HrZone,
@@ -75,17 +76,26 @@ export function resolveTrainingZones(settings: TrainingZoneSettings): ResolvedTr
 }
 
 /**
- * Heart rate zones of the plan, manual zones included – the single source for every bpm target
- * (workout screen, activity import). Empty without heart-rate input.
+ * The bpm band every session prescribes per zone number – the single source for every bpm target
+ * (workout screen, watch export, activity import). It is the engine's `prescriptionBands`:
+ * anchored on LTHR (else HR reserve, else HRmax) and the same whichever method the zone table is
+ * shown in; ranges the user set by hand in Profile → Training zones win. Zones set on Strava are
+ * a display choice and do not move the targets. Empty without heart-rate input.
  */
-export function planHrZones(input: StoredPlanInput | undefined): HrZone[] {
+export function planTargetBands(input: StoredPlanInput | undefined): HrZone[] {
   if (!input) return [];
   const settings = withBaselineHr(input);
-  // Zones the user set on Strava count as their own, unless they set zones here.
-  if (input.stravaHrZones && Object.keys(settings.overrides.hr).length === 0)
-    return input.stravaHrZones;
-  const hr = resolveTrainingZones(settings).hr;
-  return hr?.ok ? hr.value.zones.map(({ custom: _custom, ...zone }) => zone) : [];
+  const { age, hrMax, restingHr, lthr, overrides } = settings;
+  if ([age, hrMax, restingHr, lthr].every((v) => v === undefined)) return [];
+  return prescriptionBands(
+    {
+      ...(age !== undefined ? { age } : {}),
+      ...(hrMax !== undefined ? { hrMax } : {}),
+      ...(restingHr !== undefined ? { restingHr } : {}),
+      ...(lthr !== undefined ? { lthr } : {}),
+    },
+    overrides.hr,
+  ).map(({ zone, minBpm, maxBpm }) => ({ zone, minBpm, maxBpm }));
 }
 
 /**

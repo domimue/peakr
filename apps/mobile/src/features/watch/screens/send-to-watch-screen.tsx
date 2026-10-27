@@ -8,7 +8,7 @@ import { selectAccountUserId, useSessionStore } from '@/features/auth/session-st
 import { useIntegrations } from '@/features/integrations/queries';
 import { usePlan } from '@/features/plan/queries';
 import { useRoute } from '@/features/routes/queries';
-import { planHrZones } from '@/features/training-zones/resolve';
+import { planTargetBands } from '@/features/training-zones/resolve';
 import { Button, Card, Screen, Text } from '@/ui';
 
 import { plannedWatchWorkouts } from '@peakr/watch';
@@ -36,13 +36,13 @@ export function SendToWatchScreen({ id }: { id: string }) {
   const [busy, setBusy] = useState(false);
 
   const profile = stored?.input.profile;
-  const hrZones = stored ? planHrZones(stored.input) : [];
+  const hrZones = stored ? planTargetBands(stored.input) : [];
   useEffect(() => {
     if (!workout || !profile) return;
     let cancelled = false;
     void workoutFiles(workout, {
       profile,
-      hrZones: planHrZones(stored?.input),
+      hrZones: planTargetBands(stored?.input),
       ...(route && workout.sport === 'run' ? { routeProfile: route.profile } : {}),
     }).then((result) => {
       if (!cancelled) setFiles(result);

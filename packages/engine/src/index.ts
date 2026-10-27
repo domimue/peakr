@@ -11,6 +11,15 @@ export {
   type HrZoneMethod,
   type HrZoneResult,
 } from './hr';
+export {
+  bandAnchor,
+  prescriptionBands,
+  ZONE_INTENSITY,
+  type BandAnchor,
+  type HrAnchors,
+  type Intensity5,
+  type PrescriptionBand,
+} from './intensity';
 export type { Range, Result, ValidationCode, ValidationIssue } from './result';
 export {
   analyzeRaceResult,

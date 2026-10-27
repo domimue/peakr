@@ -1,6 +1,6 @@
 import type { StoredPlanInput } from '@/data/db/schema';
 
-import { planHrZones, resolveTrainingZones, validateOverride } from '../resolve';
+import { planTargetBands, resolveTrainingZones, validateOverride } from '../resolve';
 import {
   emptyOverrides,
   withZoneSettings,
@@ -94,12 +94,29 @@ describe('stored with the plan input', () => {
     expect(next.profile.cssPacePer100mSec).toBeUndefined();
     expect(zoneSettingsOf(next)).toEqual({ ...settings, hrMax: undefined, lthr: undefined });
     // The manual zone reaches every bpm target of the plan.
-    expect(planHrZones(next)[1]).toEqual({ zone: 2, minBpm: 125, maxBpm: 140 });
+    expect(planTargetBands(next)[1]).toEqual({ zone: 2, minBpm: 125, maxBpm: 140 });
+  });
+
+  it('prescribes the same bpm band whichever method the zone table shows', () => {
+    const user = { ...input, hrZones: { age: 38, hrMax: 204, restingHr: 50, lthr: 178 } };
+    const bands = (['percentMax', 'karvonen', 'lthr'] as const).map((method) =>
+      planTargetBands({ ...user, hrZones: { ...user.hrZones, method } }),
+    );
+    expect(bands[0]?.[1]).toEqual({ zone: 2, minBpm: 139, maxBpm: 159 });
+    expect(bands[1]).toEqual(bands[0]);
+    expect(bands[2]).toEqual(bands[0]);
+    // The zone table itself still follows the method (it is the reference).
+    const tables = (['percentMax', 'lthr'] as const).map(
+      (m) => resolveTrainingZones({ ...base, hrMethod: m, age: 38, hrMax: 204, lthr: 178 }).hr,
+    );
+    expect(tables[0]?.ok && tables[0].value.zones[1]?.minBpm).not.toBe(
+      tables[1]?.ok && tables[1].value.zones[1]?.minBpm,
+    );
   });
 
   it('has no zones without heart-rate input', () => {
-    expect(planHrZones(undefined)).toEqual([]);
-    expect(planHrZones({ ...input, hrZones: undefined })).toEqual([]);
+    expect(planTargetBands(undefined)).toEqual([]);
+    expect(planTargetBands({ ...input, hrZones: undefined })).toEqual([]);
   });
 });
 

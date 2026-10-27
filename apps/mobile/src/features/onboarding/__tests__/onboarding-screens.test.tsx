@@ -143,7 +143,7 @@ describe('onboarding quiz', () => {
     await fireEvent.changeText(screen.getByLabelText('Height'), '168');
     await fireEvent.changeText(screen.getByLabelText('Weight'), '61');
     await next();
-    expect(screen.getByText(/Zone 2 is about 131–143 bpm/)).toBeOnTheScreen();
+    expect(screen.getByText(/Zone 2 is about 126–144 bpm/)).toBeOnTheScreen();
     await proceed();
 
     expect(screen.getByRole('button', { name: 'See my forecast' })).toBeDisabled();
@@ -230,8 +230,8 @@ describe('forecast', () => {
     expect(screen.getByText(/10 km time predicts 1:50:19 for the Half marathon/)).toBeOnTheScreen();
     expect(screen.getByText('Your first week')).toBeOnTheScreen();
     expect(screen.getAllByText('Long run').length).toBe(1);
-    // Zone 2 with the user's bpm (Karvonen, resting HR 52).
-    expect(screen.getAllByText(/Zone 2 · 131–143 bpm/).length).toBeGreaterThan(0);
+    // The easy band from the HR reserve (resting HR 52), independent of the method.
+    expect(screen.getAllByText(/Easy · 126–144 bpm \(Zone 2\)/).length).toBeGreaterThan(0);
     expect(screen.getByText(/Taper · 1 week/)).toBeOnTheScreen();
 
     await fireEvent.press(screen.getByText('Unlock full plan'));

@@ -699,7 +699,14 @@
   },
   "workoutText": {
     "hrZone": "Zone {{zone}}",
-    "hrZoneRange": "Zone {{zone}} · {{min}}–{{max}} bpm",
+    "hrZoneRange": "{{intensity}} · {{min}}–{{max}} bpm (Zone {{zone}})",
+    "intensity": {
+      "1": "Recovery",
+      "2": "Easy",
+      "3": "Tempo",
+      "4": "Threshold",
+      "5": "VO2max"
+    },
     "pace": {
       "E": "easy pace",
       "MP": "marathon pace",

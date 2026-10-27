@@ -410,7 +410,7 @@ describe('workout detail', () => {
       ),
     ).toBeOnTheScreen();
     expect(
-      screen.getAllByText(/^Zone 2 · \d+–\d+ bpm · no faster than \d+:\d\d \/km$/).length,
+      screen.getAllByText(/^Easy · \d+–\d+ bpm \(Zone 2\) · no faster than \d+:\d\d \/km$/).length,
     ).toBeGreaterThan(0);
     expect(screen.getByTestId('step-1')).toBeOnTheScreen();
     expect(screen.getByText('Why this session')).toBeOnTheScreen();

@@ -2,6 +2,7 @@ import {
   analyzeRaceResult,
   calculateCss,
   calculateHrZones,
+  prescriptionBands,
   COMMUTE_SPORTS,
   formatDuration,
   isRaceGoal,
@@ -539,10 +540,20 @@ export function zone2Range(
     restingHr: num(answers, Q.restingHr),
     hrMax: num(answers, Q.hrMax),
   };
+  // Validated like the zone table, but the numbers are the easy band the sessions prescribe.
   const r = calculateHrZones(input);
-  const z2 = r.ok ? r.value.zones.find((z) => z.zone === 2) : undefined;
-  if (!r.ok || z2?.minBpm == null || z2.maxBpm == null) return null;
-  return { min: z2.minBpm, max: z2.maxBpm, estimate: r.value.hrMaxIsEstimate };
+  if (!r.ok) return null;
+  const easy = prescriptionBands({
+    ...(input.age !== undefined ? { age: input.age } : {}),
+    ...(input.restingHr !== undefined ? { restingHr: input.restingHr } : {}),
+    ...(input.hrMax !== undefined ? { hrMax: input.hrMax } : {}),
+  }).find((z) => z.zone === 2);
+  if (!easy) return null;
+  return {
+    min: easy.minBpm as number,
+    max: easy.maxBpm as number,
+    estimate: r.value.hrMaxIsEstimate,
+  };
 }
 
 function zone2Insight(answers: QuizAnswers): QuizInsight | null {

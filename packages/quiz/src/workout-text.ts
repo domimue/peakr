@@ -35,7 +35,11 @@ export function zoneNumber(target: Target): number | null {
   return target.kind === 'hrZone' && m ? Number(m[1]) : null;
 }
 
-/** Primary target, with the bpm range when the user's zones are known. */
+/**
+ * Primary target. Heart rate is always given as the bpm band of the session's intensity
+ * ("Easy · 139–159 bpm (Zone 2)") when any heart-rate input is known; the zone number is only the
+ * label next to it. `hrZones` are the prescription bands (`planTargetBands` / `prescriptionBands`).
+ */
 export function targetText(t: Translate, target: Target, hrZones: readonly HrZone[] = []): string {
   switch (target.kind) {
     case 'hrZone': {
@@ -43,7 +47,12 @@ export function targetText(t: Translate, target: Target, hrZones: readonly HrZon
       const zone = hrZones.find((z) => z.zone === n);
       if (n === null) return target.value;
       if (zone?.minBpm != null && zone.maxBpm != null) {
-        return t('workoutText.hrZoneRange', { zone: n, min: zone.minBpm, max: zone.maxBpm });
+        return t('workoutText.hrZoneRange', {
+          intensity: t(`workoutText.intensity.${n}`),
+          zone: n,
+          min: zone.minBpm,
+          max: zone.maxBpm,
+        });
       }
       return t('workoutText.hrZone', { zone: n });
     }
