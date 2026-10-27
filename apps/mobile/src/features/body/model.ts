@@ -3,6 +3,7 @@ import {
   allWorkouts,
   completedWorkoutKcal,
   energyBasis,
+  energyConfig,
   estimateWorkoutKcal,
   goalSnapshot,
   weekLoadContext,
@@ -11,7 +12,6 @@ import {
   macroTargets,
   type FuellingHint,
   sumNutrients,
-  type ActivitySport,
   type EnergyBasis,
   type MacroTargets,
   type Nutrients,
@@ -85,7 +85,7 @@ export interface BodyModel {
   tooFastLoss: boolean;
   /** Maintenance used for targets (adaptive once available, else formula). */
   basis: EnergyBasis | null;
-  /** Planned training per day the goal's rate is checked on (lowest of the next four weeks). */
+  /** Planned training per day (at 50 %) the goal's rate is checked on (lowest of the next 4 weeks). */
   goalPlannedDailyKcal: number;
   /** The latest trend weight (else the profile weight). */
   trendKg: number;
@@ -418,9 +418,10 @@ export function useBodyModel(): BodyModel | null {
       }),
       tooFastLoss: rapidLossWarning(trend, today).warning,
       basis,
-      goalPlannedDailyKcal: Math.min(
-        Math.round(plannedWeekKcal.reduce((a, b) => a + b, 0) / 7),
-        ratePlannedDailyKcal ?? Infinity,
+      // Counted at the target's activity share, like in the goal snapshot.
+      goalPlannedDailyKcal: Math.round(
+        Math.min(plannedWeekKcal.reduce((a, b) => a + b, 0) / 7, ratePlannedDailyKcal ?? Infinity) *
+          energyConfig.goal.activeShare,
       ),
       trendKg,
       goal,

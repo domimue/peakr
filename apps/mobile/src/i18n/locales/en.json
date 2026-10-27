@@ -2686,7 +2686,7 @@
       "title": "Energy today",
       "remaining": "{{kcal}} kcal left",
       "over": "{{kcal}} kcal above today’s target",
-      "fromWorkouts": "Includes {{kcal}} kcal a day for this week’s planned training",
+      "fromWorkouts": "Includes {{kcal}} kcal a day for this week’s planned training (50 %)",
       "breakdown": "Target {{target}} · eaten {{eaten}} · workouts {{workouts}} kcal",
       "estimate": "Estimate from your profile, your watch and this week’s planned sessions.",
       "floor": "Today’s target is at the lowest intake Peakr suggests for you.",
@@ -2723,10 +2723,10 @@
       "breakdownTitle": "How your daily target is built",
       "resting": "Resting energy",
       "everydayLine": "Everyday activity",
-      "training": "This week's training, per day",
+      "training": "This week's training, per day (50 %)",
       "everydayWatch_one": "Everyday activity from your watch: what it measured on {{count}} day without sport.",
       "everydayWatch_other": "Everyday activity from your watch: the average of {{count}} days without sport.",
-      "sameEveryDay": "The same target every day of the week – this week's planned training is spread evenly over it.",
+      "sameEveryDay": "The same target every day of the week. This week's planned training is spread evenly over it and counted at 50 % – keep to the target and train as planned, and you lose a little more than your planned deficit.",
       "deficit": "Deficit for your goal",
       "surplus": "Surplus for your goal",
       "total": "Daily target",
@@ -2757,7 +2757,7 @@
       "nothingToCopy": "Nothing to copy from yesterday.",
       "quickAdd": "Quick add",
       "quickName": "Quick add",
-      "addedBack": "Includes {{kcal}} kcal a day for this week’s training",
+      "addedBack": "Includes {{kcal}} kcal a day for this week’s training (50 %)",
       "rings": {
         "kcal": "Energy",
         "protein": "Protein",
@@ -3209,7 +3209,7 @@
       "estimate": "All targets are estimates and adapt as your data grows.",
       "belowFloor": "{{requested}} kg per week would put your days without training below {{kcal}} kcal – the lowest intake Peakr suggests for you. A safe pace for you is {{proposed}} kg per week.",
       "useProposed": "Use {{rate}} kg per week",
-      "trainingIncluded": "Your planned training is part of your target: it is spread evenly over the week, so the target is the same every day – and it counts when Peakr checks the safe pace."
+      "trainingIncluded": "Your planned training is part of your target at 50 %: spread evenly over the week, so the target is the same every day – and it counts when Peakr checks the safe pace. The other half is a buffer."
     },
     "fuelling": {
       "today": "Long session today ({{minutes}} min)",

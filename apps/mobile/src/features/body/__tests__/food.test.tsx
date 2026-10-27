@@ -303,7 +303,7 @@ describe('diary', () => {
     expect(screen.getByTestId('ring-protein')).toBeOnTheScreen();
   });
 
-  it('shows what today’s ride adds back and a fuelling hint for a long planned session', async () => {
+  it('shows the training share in the target and a fuelling hint for a long planned session', async () => {
     activities.store.activities = [
       {
         source: 'strava',

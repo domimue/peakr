@@ -450,7 +450,7 @@ export function everydayFactor(level: string | null | undefined): number {
 
 /**
  * The goal's basis from the last 14 days before today. A day without sport is what the wearable
- * measured on such days (resting + active, the active part already corrected) once there are
+ * measured on such days (resting + active, the active part at the target's activity share) once there are
  * enough of them – like the watch's own day total; otherwise resting energy × the everyday-activity
  * factor. The intake floor uses the formula BMR, never a device's resting value.
  */
@@ -479,8 +479,11 @@ export function energyBasis(input: {
     (d) => d.active?.neatSource === 'wearable' && !training.has(d.day),
   );
   const fromWearable = wearable.length >= G.wearableBaseMinDays;
+  // The watch's active energy is stored at the device correction; the target counts it at its
+  // own activity share.
+  const activeShare = G.activeShare / C.deviceActiveShare;
   const nonExercise = fromWearable
-    ? mean(wearable, (d) => d.restingKcal + d.activeKcal)
+    ? mean(wearable, (d) => d.restingKcal + d.activeKcal * activeShare)
     : resting * factor;
   const formula = mean(pool, (d) => d.restingKcal + d.activeKcal);
   const common = {
@@ -550,8 +553,8 @@ export function goalSnapshot(input: {
   /** Planned workout energy Monday … Sunday of this week. */
   plannedWeekKcal: readonly number[];
   /**
-   * Planned training per day the goal's rate is checked on – the lowest week of the next weeks, so
-   * the rate holds in a recovery week too. Default: this week's.
+   * Planned training per day (full estimate) the goal's rate is checked on – the lowest week of the
+   * next weeks, so the rate holds in a recovery week too. Default: this week's.
    */
   ratePlannedDailyKcal?: number;
   /** Completed workout energy of this week up to today (for the deviation hint). */
@@ -572,13 +575,19 @@ export function goalSnapshot(input: {
   };
 }): GoalSnapshot {
   const { goal, basis } = input;
+  // The target counts planned training at the activity share (the rest is a buffer).
+  const share = G.activeShare;
   const weekPlanned = input.plannedWeekKcal.reduce((a, b) => a + Math.max(0, b), 0);
-  const plannedDaily = Math.round(weekPlanned / 7);
+  const plannedDaily = Math.round((weekPlanned * share) / 7);
+  const ratePlanned =
+    input.ratePlannedDailyKcal === undefined
+      ? plannedDaily
+      : Math.round(input.ratePlannedDailyKcal * share);
   const raw = goalTargets({
     kind: goal.kind,
     ratePerWeekKg: goal.ratePerWeekKg,
     nonExerciseTdeeKcal: basis.nonExerciseKcal,
-    plannedDailyKcal: Math.min(plannedDaily, input.ratePlannedDailyKcal ?? plannedDaily),
+    plannedDailyKcal: Math.min(plannedDaily, ratePlanned),
     bmrKcal: basis.bmrKcal,
     sex: input.sex,
     weightKg: input.trendKg,

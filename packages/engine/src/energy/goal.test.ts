@@ -532,10 +532,10 @@ describe('energy basis and snapshot', () => {
       trainingDays: ['2026-10-21'],
       formulaBmrKcal: 2050,
     });
-    // Mean of the three watch days without training: 2,520 + (100 + 120 + 140) / 3 = 2,640 – not
+    // Mean of the three watch days without training: 2,520 + 120 × 0.5 / 0.75 = 2,600 – not
     // 2,520 × 1.3. The floor uses the formula BMR.
     expect(basis).toMatchObject({
-      nonExerciseKcal: 2640,
+      nonExerciseKcal: 2600,
       everydaySource: 'wearable',
       wearableDays: 3,
       bmrKcal: 2050,
@@ -582,17 +582,17 @@ describe('energy basis and snapshot', () => {
       today: TODAY,
       week,
     });
-    // 2,400 + 600 / 7 − 550 + 100 = 2,036 on every day of the week.
-    expect(s.todayKcal).toBe(2036);
-    expect(s.weekly).toEqual({ totalKcal: 7 * 2036, days: Array(7).fill(2036) });
+    // 2,400 + 600 × 0.5 / 7 − 550 + 100 = 1,993 every day (training at 50 %).
+    expect(s.todayKcal).toBe(1993);
+    expect(s.weekly).toEqual({ totalKcal: 7 * 1993, days: Array(7).fill(1993) });
     expect(s.targets.baseKcal).toBe(1950);
-    expect(s.addedBackKcal).toBe(86);
+    expect(s.addedBackKcal).toBe(43);
     expect(s.breakdown).toEqual({
       restingKcal: 1750,
       everydayKcal: 650,
-      trainingKcal: 86,
+      trainingKcal: 43,
       deficitKcal: 450,
-      totalKcal: 2036,
+      totalKcal: 1993,
     });
     // Twice the planned training so far: a hint, the target stays.
     expect(s.deviation).toEqual({ hint: 'more', differenceKcal: 600 });
@@ -623,8 +623,8 @@ describe('energy basis and snapshot', () => {
   });
 
   it('the rate is checked on the lowest planned week; target reached gives the reverse diet; maintain has no check-in', () => {
-    // This week 1,500 kcal of training (214/day), the next weeks as low as 70/day: 0.85 kg would
-    // need 2,400 + 70 − 935 = 1,535 < 1,750 – so the rate is checked on the low week.
+    // This week 1,500 kcal of training (107/day at 50 %), the next weeks as low as 35/day: 0.85 kg
+    // would need 2,400 + 35 − 935 = 1,500 < 1,750 – so the rate is checked on the low week.
     const low = goalSnapshot({
       goal: { ...goal, ratePerWeekKg: 0.85 },
       basis,
@@ -638,9 +638,9 @@ describe('energy basis and snapshot', () => {
       today: TODAY,
       week,
     });
-    expect(low.targets).toMatchObject({ status: 'belowFloor', proposedRatePerWeekKg: 0.65 });
-    // This week's own training is in the target on top: 2,400 + 214 − 715.
-    expect(low.todayKcal).toBe(1899);
+    expect(low.targets).toMatchObject({ status: 'belowFloor', proposedRatePerWeekKg: 0.6 });
+    // This week's own training is in the target on top: 2,400 + 107 − 660.
+    expect(low.todayKcal).toBe(1847);
     const reached = goalSnapshot({
       goal: { ...goal, targetWeightKg: 81 },
       basis,
@@ -698,19 +698,19 @@ describe('reported case: 80 kg athlete, 0.75 kg per week', () => {
       week: { weekLoad: 0, typicalWeekLoad: 0, raceWeek: false, taper: false, keyDays: [] },
     });
 
-  it('the planned training counts for the floor: 0.75 kg/week works with a training week', () => {
-    // Desk job: 1,755 × 1.3 = 2,282 without sport, + 3,200 / 7 = 457 planned per day = 2,739.
-    // 0.75 kg/week (−825/day): 1,914 every day ≥ the floor (BMR 1,755).
+  it('the planned training counts for the floor at 50 %: it raises the safe pace', () => {
+    // Desk job: 1,755 × 1.3 = 2,282 without sport, + 3,200 × 0.5 / 7 = 229 planned per day = 2,511.
+    // 0.75 kg/week (−825/day) would be 1,686 < the floor (BMR 1,755): 0.65 kg/week instead of 0.45.
     const desk = snap('desk', 0.75);
-    expect(desk.targets).toMatchObject({ status: 'ok', ratePerWeekKg: 0.75 });
-    expect(desk.todayKcal).toBe(1914);
-    expect(desk.weekly.days.every((d) => d === 1914)).toBe(true);
+    expect(desk.targets).toMatchObject({ status: 'belowFloor', ratePerWeekKg: 0.65 });
+    expect(desk.todayKcal).toBe(1796);
+    expect(desk.weekly.days.every((d) => d === 1796)).toBe(true);
   });
 
   it('macros are the same every day', () => {
     const desk = snap('desk', 0.75);
     const day = macroTargets({ kcal: desk.todayKcal, weightKg: 80 });
     expect([day.proteinG, day.fatG]).toEqual([152, 72]);
-    expect(day.carbsG).toBeGreaterThan(150);
+    expect(day.carbsG).toBeGreaterThan(100);
   });
 });

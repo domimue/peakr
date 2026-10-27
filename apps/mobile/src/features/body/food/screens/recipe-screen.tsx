@@ -39,8 +39,7 @@ const MAX_PORTIONS = 50;
 /** Did an edit change what a logged portion or gram holds? Only then is there anything to ask. */
 function changesLogged(before: RecipeSummary | null, after: RecipeSummary): boolean {
   if (!before) return false;
-  const same = (a: RecipeSummary) =>
-    JSON.stringify([a.perPortion, a.portionG, a.per100 ?? null]);
+  const same = (a: RecipeSummary) => JSON.stringify([a.perPortion, a.portionG, a.per100 ?? null]);
   return same(before) !== same(after);
 }
 

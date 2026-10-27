@@ -7,13 +7,12 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 ## Open
 
-- Fixed daily calorie target like Garmin (2026-10-27): base from the wearable's day totals on days
-  without sport (factor only without a wearable), the same target every day = (7 × (base − deficit)
-  + the week's planned training) / 7, floor from the formula BMR checked on that day (so planned
-  sport counts and 0.75 kg/week is possible); breakdown, goal setup, tests, CLAUDE.md.
-
 
 ## Done
+
+- Fixed daily calorie target (2026-10-27): same target every day, base from the watch on days
+  without sport, planned training at 50 % (buffer), floor from the formula BMR checked with the
+  planned training; CLAUDE.md updated; nothing to set up
 
 - Current training instead of Strava in the quiz (2026-10-27): Strava step removed from the quiz
   and the new-plan flow (recalibration stays in Profile → Training zones); step "Your current

@@ -390,7 +390,9 @@ describe('Teil A without the add-on', () => {
     fullProfile();
     await renderWithQuery(<TodayScreen />);
     expect(await screen.findByTestId('energy-today')).toBeOnTheScreen();
-    expect(await screen.findByText(/kcal a day for this week’s planned training/)).toBeOnTheScreen();
+    expect(
+      await screen.findByText(/kcal a day for this week’s planned training/),
+    ).toBeOnTheScreen();
     expect(screen.queryByTestId('coach-teaser')).toBeNull();
   });
 

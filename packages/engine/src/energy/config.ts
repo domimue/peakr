@@ -111,6 +111,12 @@ export const energyConfig = {
      * had one and no workout; below that the everyday-activity factor is used.
      */
     wearableBaseMinDays: 3,
+    /**
+     * The daily target counts activity calories at this share – the planned training and the
+     * watch's active energy on days without sport. The rest is a buffer: keeping to the target
+     * and training as planned loses a little more than the planned deficit.
+     */
+    activeShare: 0.5,
     /** Max loss per week: this share of the body weight, and never more than `maxLossKg`. */
     maxLossShare: 0.01,
     maxLossKgPerWeek: 1.0,
