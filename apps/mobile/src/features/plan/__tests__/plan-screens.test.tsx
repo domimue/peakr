@@ -216,34 +216,51 @@ describe('Plan → Calendar', () => {
 });
 
 describe('Today tab', () => {
-  it("week strip, today's session, the week's progress; marks it done with haptics", async () => {
+  it("shows one day: today's session in full, marked done with haptics", async () => {
     storePlan();
     setToday('2026-10-26');
     await renderWithQuery(<TodayScreen />);
     expect(await screen.findByTestId('week-strip')).toBeOnTheScreen();
-    expect(screen.getByLabelText('Monday, October 26, Today, Easy')).toBeOnTheScreen();
-    expect(screen.getByLabelText('Tuesday, October 27, Strength')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Monday, October 26, Today, Easy')).toBeSelected();
     expect(screen.getByLabelText('Friday, October 30, Rest day')).toBeOnTheScreen();
-    expect(screen.getByLabelText(/^Easy run, Easy, /)).toBeOnTheScreen();
-    // The forecast loads on its own; under a busy test run it can come a moment later.
+    // The session block: type, duration range, bpm band, steps and why – no need to open it.
+    const block = within(screen.getByTestId('day-session-2026-10-26-1'));
+    expect(block.getByText('Easy run')).toBeOnTheScreen();
+    expect(block.getByText(/^\d+–\d+ min$/)).toBeOnTheScreen();
+    expect(block.getByTestId('day-target')).toHaveTextContent(/bpm/);
+    expect(block.getByTestId('step-1')).toBeOnTheScreen();
+    expect(block.getByText('Why this session')).toBeOnTheScreen();
     expect(await screen.findByTestId('weather-chip')).toBeOnTheScreen();
-    expect(screen.getByTestId('insights')).toBeOnTheScreen();
-    expect(screen.getByText('Sessions 0/6')).toBeOnTheScreen();
+    // The week is one small line, not the main content.
+    expect(screen.getByTestId('today-week-line')).toHaveTextContent(/^This week: 0 of 6 sessions/);
+    expect(screen.queryByTestId('week-progress-0')).toBeNull();
 
     await fireEvent.press(screen.getByText('Mark as done'));
     await waitFor(() => expect(state().status['2026-10-26-1']).toBe('done'));
     expect(Haptics.notificationAsync).toHaveBeenCalledWith('success');
-    expect(await screen.findByText('Sessions 1/6')).toBeOnTheScreen();
+    expect(await screen.findByText(/^This week: 1 of 6 sessions/)).toBeOnTheScreen();
   });
 
-  it('a rest day says so and offers the week', async () => {
+  it('the week strip switches the day without leaving Today; back to today', async () => {
     storePlan();
-    setToday('2026-10-30');
+    setToday('2026-10-26');
     await renderWithQuery(<TodayScreen />);
-    expect(await screen.findByText('Rest day')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByText('See this week'));
-    expect(router.push).toHaveBeenCalledWith('/plan');
-    expect(usePlanUiStore.getState().view).toBe('calendar');
+    await fireEvent.press(await screen.findByLabelText('Tuesday, October 27, Strength'));
+    expect(router.push).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Tuesday, October 27, Strength')).toBeSelected();
+    expect(screen.getByTestId('day-legend')).toHaveTextContent(/Tuesday, October 27 · Strength/);
+    // A future session cannot be marked done yet.
+    expect(screen.queryByText('Mark as done')).toBeNull();
+    // Rest day: says so and names the next session.
+    await fireEvent.press(screen.getByLabelText('Friday, October 30, Rest day'));
+    expect(screen.getByText('Rest day')).toBeOnTheScreen();
+    expect(screen.getByTestId('rest-next')).toHaveTextContent(/^Next: .+, Saturday$/);
+    // Next week via the arrow, then back to today.
+    await fireEvent.press(screen.getByLabelText('Next week'));
+    expect(screen.getByTestId('strip-2026-11-06')).toBeSelected();
+    await fireEvent.press(screen.getByText('Back to today'));
+    expect(screen.getByLabelText('Monday, October 26, Today, Easy')).toBeSelected();
+    expect(screen.queryByText('Back to today')).toBeNull();
   });
 
   it('before the plan starts it names the start date', async () => {

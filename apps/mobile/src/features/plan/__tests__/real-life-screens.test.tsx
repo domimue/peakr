@@ -22,6 +22,7 @@ function renderCalendar() {
 }
 
 jest.mock('@/data/repositories/plan-repository');
+jest.mock('@/data/repositories/route-repository');
 
 const mock = repo as unknown as typeof import('@/data/repositories/__mocks__/plan-repository');
 

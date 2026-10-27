@@ -1,20 +1,31 @@
-import { activePause, statusOf, weekTags, type PlanState, type Workout } from '@peakr/engine';
+import {
+  activePause,
+  statusOf,
+  weekProgress,
+  type HrZone,
+  type PlanState,
+  type PlanWeek,
+  type UserProfile,
+  type Workout,
+} from '@peakr/engine';
+import type { TFunction } from 'i18next';
+import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { todayIso } from '@/data/ids';
-import { Button, Card, Icon, ListState, spacing, Text, useTheme } from '@/ui';
+import { Button, Card, Icon, IconButton, ListState, spacing, Text, useTheme } from '@/ui';
+import { planTargetBands } from '@/features/training-zones/resolve';
 import { sessionDoneHaptic } from '@/ui/haptics';
 
 import { MatchQuestionCards } from '../activities/match-question-card';
 import { useAccess } from '../billing/billing-store';
 import { LockedCard } from '../billing/locked';
-import { formatDate, initialWeek, mondayOf, weekOfPlan } from '../plan/calendar';
-import { WeekProgressCard } from '../plan/components/week-progress-card';
+import { addDays, formatDate, mondayOf, weekOfPlan } from '../plan/calendar';
 import { WeekStrip } from '../plan/components/week-strip';
-import { WorkoutCard } from '../plan/components/workout-card';
+import { calendarTitle, typeName } from '../plan/kind';
 import { usePlanUiStore } from '../plan/plan-ui-store';
 import { usePlan, usePlanActions } from '../plan/queries';
 import { CoachTeaser } from '../body/components/coach-teaser';
@@ -23,15 +34,16 @@ import { RecoveryLine } from '../insights/health/recovery-line';
 import { useArchiveEndedPlan } from '@/features/plan-new/ended';
 import { NoPlanState } from '@/features/plan-new/no-plan-state';
 import { TabTitle } from '@/features/profile/profile-button';
+import { DaySession, workoutHref } from './day-session';
 import { WeatherChip } from '../weather/components/weather-chip';
 import { WeatherHintCard } from '../weather/components/weather-hint-card';
 import { useWorkoutWeather } from '../weather/queries';
 
-const workoutHref = (id: string) => `/training/workout/${encodeURIComponent(id)}` as const;
-
 /**
- * Today: the week strip, today's session(s), the week's progress, insights and one primary action
- * (open today's session, or look at the week on a rest day).
+ * Today shows exactly one day (CLAUDE.md "UI patterns → Today"): the week strip is the day
+ * switcher – tapping a date swaps the content below, it never leaves Today – and "Back to today"
+ * returns. The selected day shows its session in full (type, duration range, bpm band, route,
+ * steps, why) or a rest-day card with the next session; the week is one small line below.
  */
 export function TodayScreen() {
   const { t, i18n } = useTranslation();
@@ -39,9 +51,11 @@ export function TodayScreen() {
   const { data: stored, isPending, isError, refetch } = usePlan();
   useArchiveEndedPlan();
   const actions = usePlanActions();
-  const showWeek = usePlanUiStore((s) => s.showWeek);
   const access = useAccess();
   const today = todayIso();
+  const [selected, setSelected] = useState(today);
+  // Manual zones from Profile → Training zones included.
+  const hrZones = useMemo<readonly HrZone[]>(() => planTargetBands(stored?.input), [stored?.input]);
 
   const title = (
     <TabTitle
@@ -93,34 +107,77 @@ export function TodayScreen() {
 
   const { state, input } = stored;
   const { plan } = state;
-  const monday = initialWeek(plan, today);
+  const firstMonday = plan.weeks[0]?.startDate ?? mondayOf(today);
+  const lastMonday = plan.weeks[plan.weeks.length - 1]?.startDate ?? mondayOf(today);
+  const monday = mondayOf(selected);
   const week = weekOfPlan(plan, monday);
-  const todays = (week?.workouts ?? []).filter((w) => w.date === today);
-  const sessions = todays.filter((w) => w.role !== 'commute');
-  const commutes = todays.filter((w) => w.role === 'commute');
-  const next = sessions.find((w) => statusOf(state, w.id) === 'planned') ?? null;
+  const isToday = selected === today;
+  const ofDay = (week?.workouts ?? []).filter((w) => w.date === selected);
+  const sessions = ofDay.filter((w) => w.role !== 'commute');
+  const commutes = ofDay.filter((w) => w.role === 'commute');
   const pause = activePause(state);
-  const notStarted = today < (plan.weeks[0]?.startDate ?? today);
+  const notStarted = selected < (plan.weeks[0]?.startDate ?? selected);
+  const upcoming = plan.weeks
+    .flatMap((w) => w.workouts)
+    .find((w) => w.date > selected && w.role !== 'commute' && statusOf(state, w.id) === 'planned');
+  const dayLabel = (iso: string, opts: Intl.DateTimeFormatOptions) =>
+    formatDate(iso, i18n.language, opts);
 
   const markDone = (w: Workout) => {
     const result = actions.setStatus(w.id, 'done');
     if (result.ok) sessionDoneHaptic();
   };
+  const shiftWeek = (days: number) => setSelected(addDays(selected, days));
 
   return (
     <Shell>
       {title}
       {access === 'readOnly' ? <LockedCard access={access} /> : null}
-      <WeekStrip
-        monday={monday}
-        today={today}
-        state={state}
-        onSelectDay={() => {
-          showWeek(monday);
-          router.push('/plan');
-        }}
-      />
-      <WeatherChip date={today} />
+      <View style={styles.inline}>
+        <IconButton
+          icon="chevronLeft"
+          accessibilityLabel={t('today.previousWeek')}
+          disabled={monday <= firstMonday}
+          onPress={() => shiftWeek(-7)}
+        />
+        <View style={styles.flex}>
+          <WeekStrip
+            monday={monday}
+            today={today}
+            selected={selected}
+            state={state}
+            onSelectDay={setSelected}
+          />
+        </View>
+        <IconButton
+          icon="chevronRight"
+          accessibilityLabel={t('today.nextWeek')}
+          disabled={monday >= lastMonday}
+          onPress={() => shiftWeek(7)}
+        />
+      </View>
+      {/* The dots' colours in words: what is planned on the selected day. */}
+      <View style={styles.inline} testID="day-legend">
+        <Text variant="label" style={styles.flex}>
+          {isToday
+            ? t('today.title')
+            : dayLabel(selected, { weekday: 'long', day: 'numeric', month: 'long' })}
+          {' · '}
+          {sessions.length === 0
+            ? t('plan.rest')
+            : sessions.map((w) => typeName(t, w.type)).join(' · ')}
+        </Text>
+        {isToday ? null : (
+          <Button
+            small
+            variant="secondary"
+            icon="undo"
+            label={t('today.backToToday')}
+            onPress={() => setSelected(today)}
+          />
+        )}
+      </View>
+      <WeatherChip date={selected} />
 
       {pause ? (
         <Card testID="pause-banner">
@@ -128,7 +185,7 @@ export function TodayScreen() {
             <Icon name="pause" size={22} color={colors.warning} />
             <Text style={styles.flex}>
               {t('plan.pauseBanner', {
-                date: formatDate(pause.startDate, i18n.language, { day: 'numeric', month: 'long' }),
+                date: dayLabel(pause.startDate, { day: 'numeric', month: 'long' }),
                 reason: t(`plan.pause.reasons.${pause.reason}`),
               })}
             </Text>
@@ -136,16 +193,11 @@ export function TodayScreen() {
         </Card>
       ) : null}
 
-      <Text variant="heading">{t('today.session')}</Text>
       {notStarted ? (
         <Card>
           <Text>
             {t('today.startsOn', {
-              date: formatDate(monday, i18n.language, {
-                weekday: 'long',
-                day: 'numeric',
-                month: 'long',
-              }),
+              date: dayLabel(firstMonday, { weekday: 'long', day: 'numeric', month: 'long' }),
             })}
           </Text>
         </Card>
@@ -156,21 +208,30 @@ export function TodayScreen() {
             <View style={styles.flex}>
               <Text style={styles.strong}>{t('today.restTitle')}</Text>
               <Text tone="secondary">{t('today.restHint')}</Text>
+              {upcoming ? (
+                <Text tone="secondary" testID="rest-next">
+                  {t('today.next', {
+                    session: calendarTitle(t, upcoming),
+                    day: dayLabel(upcoming.date, { weekday: 'long' }),
+                  })}
+                </Text>
+              ) : null}
             </View>
           </View>
         </Card>
       ) : (
         sessions.map((w) => (
           <View key={w.id} style={styles.session}>
-            <WorkoutCard
+            <DaySession
               workout={w}
               status={statusOf(state, w.id)}
               profile={input.profile}
-              outline={false}
-              onPress={() => router.push(workoutHref(w.id))}
+              hrZones={hrZones}
+              canMarkDone={access === 'full' && w.date <= today}
+              onMarkDone={() => markDone(w)}
             />
             <SessionWeatherHint workout={w} />
-            {statusOf(state, w.id) === 'planned' ? <RecoveryLine workout={w} /> : null}
+            {statusOf(state, w.id) === 'planned' && isToday ? <RecoveryLine workout={w} /> : null}
           </View>
         ))
       )}
@@ -183,60 +244,45 @@ export function TodayScreen() {
         </>
       ) : null}
 
-      {week ? (
-        <>
-          <Text variant="heading">{t('today.week')}</Text>
-          <WeekProgressCard
-            week={week}
-            state={state}
-            profile={input.profile}
-            totalWeeks={plan.weeks.length}
-            tags={weekTags(week, input, plan.targetDate)}
-            header={false}
-          />
-          {/* Body add-on teaser for users without it: only adds, Today works the same. */}
-          <CoachTeaser />
-        </>
-      ) : null}
+      {/* The week in one line below the day – not the main content. */}
+      {week ? <WeekLine week={week} state={state} profile={input.profile} /> : null}
 
       {/* Body add-on: only adds; Today works the same without it. */}
       <MatchQuestionCards />
       <EnergyTodayCard />
-
-      <Text variant="heading">{t('today.insights')}</Text>
-      <View style={styles.insights} testID="insights">
-        {(['load', 'zones'] as const).map((key) => (
-          <Card key={key} style={styles.insight}>
-            <Icon name="sparkles" size={20} color={colors.textMuted} />
-            <Text style={styles.strong}>{t(`today.insight.${key}.title`)}</Text>
-            <Text variant="caption" tone="secondary">
-              {t(`today.insight.${key}.body`)}
-            </Text>
-          </Card>
-        ))}
-      </View>
-
-      {next && access === 'full' ? (
-        <View style={styles.actions}>
-          <Button label={t('today.markDone')} icon="check" onPress={() => markDone(next)} />
-          <Button
-            variant="secondary"
-            label={t('today.openSession')}
-            onPress={() => router.push(workoutHref(next.id))}
-          />
-        </View>
-      ) : (
-        <Button
-          label={t('today.seeWeek')}
-          icon="calendar"
-          onPress={() => {
-            showWeek(monday);
-            router.push('/plan');
-          }}
-        />
-      )}
+      <CoachTeaser />
     </Shell>
   );
+}
+
+/** "This week: 3 of 5 sessions · 2 h 10 min of 4 h 30 min" – one small line. */
+function WeekLine({
+  week,
+  state,
+  profile,
+}: {
+  week: PlanWeek;
+  state: PlanState;
+  profile: UserProfile;
+}) {
+  const { t } = useTranslation();
+  const p = weekProgress(state, week, profile);
+  return (
+    <Text variant="caption" tone="secondary" testID="today-week-line">
+      {t('today.weekLine', {
+        done: p.sessionsDone,
+        planned: p.sessionsPlanned,
+        time: formatMinutes(t, p.minutesDone),
+        total: formatMinutes(t, p.minutesPlanned),
+      })}
+    </Text>
+  );
+}
+
+function formatMinutes(t: TFunction, minutes: number): string {
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return h > 0 ? t('progress.hoursMinutes', { h, m }) : t('workoutText.minutes', { count: m });
 }
 
 function Shell({ children }: { children: React.ReactNode }) {

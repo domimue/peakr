@@ -362,7 +362,7 @@ describe('Teil A without the add-on', () => {
     storePlan();
     billing('never', { flag: false });
     await renderWithQuery(<TodayScreen />);
-    expect(await screen.findByTestId('insights')).toBeOnTheScreen();
+    expect(await screen.findByTestId('week-strip')).toBeOnTheScreen();
     expect(screen.queryByTestId('energy-today')).toBeNull();
     expect(screen.queryByTestId('energy-today-locked')).toBeNull();
     expect(screen.queryByTestId('coach-teaser')).toBeNull();

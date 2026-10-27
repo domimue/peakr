@@ -11,11 +11,16 @@ export interface WeekStripProps {
   monday: string;
   today: string;
   state: PlanState;
+  /** The day shown below the strip (Today's day switcher); defaults to today. */
+  selected?: string;
   onSelectDay?: (date: string) => void;
 }
 
-/** Mon–Sun with today marked and one dot in the type colour per session of the day. */
-export function WeekStrip({ monday, today, state, onSelectDay }: WeekStripProps) {
+/**
+ * Mon–Sun with one dot in the type colour per session of the day. The selected day is filled,
+ * today has a ring – so both stay recognisable while browsing.
+ */
+export function WeekStrip({ monday, today, state, selected = today, onSelectDay }: WeekStripProps) {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const week = state.plan.weeks.find((w) => w.startDate === monday);
@@ -24,6 +29,7 @@ export function WeekStrip({ monday, today, state, onSelectDay }: WeekStripProps)
       {weekDates(monday).map((date) => {
         const sessions = (week?.workouts ?? []).filter((w) => w.date === date);
         const isToday = date === today;
+        const isSelected = date === selected;
         const label = [
           formatDate(date, i18n.language, { weekday: 'long', day: 'numeric', month: 'long' }),
           isToday ? t('plan.today') : null,
@@ -39,12 +45,13 @@ export function WeekStrip({ monday, today, state, onSelectDay }: WeekStripProps)
             testID={`strip-${date}`}
             accessibilityRole={onSelectDay ? 'button' : undefined}
             accessibilityLabel={label}
-            accessibilityState={isToday ? { selected: true } : undefined}
+            accessibilityState={{ selected: isSelected }}
             disabled={!onSelectDay}
             onPress={() => onSelectDay?.(date)}
             style={[
               styles.day,
-              isToday && { backgroundColor: colors.surface2, borderColor: colors.accentLine },
+              isSelected && { backgroundColor: colors.surface2 },
+              isToday && { borderColor: colors.accentLine },
             ]}
           >
             <Text variant="micro" tone="secondary">

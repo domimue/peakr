@@ -156,7 +156,7 @@ describe('plan without a subscription', () => {
     readOnly();
     await renderWithQuery(<TodayScreen />);
     expect(await screen.findByText('Your plan is read-only')).toBeOnTheScreen();
-    expect(screen.getByTestId('insights')).toBeOnTheScreen();
+    expect(screen.getByTestId('week-strip')).toBeOnTheScreen();
     expect(screen.queryByText('Mark as done')).toBeNull();
   });
 

@@ -13,7 +13,7 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
   CLAUDE.md updates. Plan approved, in `.claude/plans/navigation-screens.md`. Steps:
   - [x] 1 theme + engine building blocks
   - [x] 2 navigation (tabs, profile icon, profile/settings, Plan → History, Body/Nutrition)
-  - [ ] 3 Today shows one day
+  - [x] 3 Today shows one day
   - [ ] 4 weekly volume per sport
   - [ ] 5 workout types screen
   - [ ] 6 Strava route preview

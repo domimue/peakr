@@ -991,27 +991,21 @@
   },
   "today": {
     "title": "Today",
-    "session": "Today’s session",
-    "week": "This week",
-    "insights": "Insights",
-    "insight": {
-      "load": {
-        "title": "Training load",
-        "body": "How this week’s load compares with your plan – shown here once you have trained for a week."
-      },
-      "zones": {
-        "title": "Easy vs hard",
-        "body": "Your 80/20 balance of easy and hard minutes appears here as sessions get done."
-      }
-    },
     "startsOn": "Your plan starts on {{date}}.",
     "restTitle": "Rest day",
     "restHint": "Recovery is part of the plan – nothing scheduled today.",
     "markDone": "Mark as done",
     "openSession": "Open session",
-    "seeWeek": "See this week",
     "seeWeekOne": "See week 1",
-    "openInsights": "Insights"
+    "route": "Route: {{name}} · {{distance}} · {{gain}} m up",
+    "freeSession": "Free session – time and heart rate only",
+    "chooseRoute": "Choose a route",
+    "changeRoute": "Change route",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "backToToday": "Back to today",
+    "next": "Next: {{session}}, {{day}}",
+    "weekLine": "This week: {{done}} of {{planned}} sessions · {{time}} of {{total}}"
   },
   "calendar": {
     "add": "Add",
