@@ -47,6 +47,13 @@ export { paceZonesFromBoundaries, ZONE_NUMBERS, type PaceZone, type ZoneNumber }
 export { planConfig, type PlanConfig } from './plan/config';
 export { generatePlan, type PlanContinuation, type PlanField } from './plan/generate';
 export { checkStartFloors, startFloors, type FloorBreach, type StartFloors } from './plan/floors';
+export { difficultyFactor, difficultyGrowth, difficultyLevel } from './plan/difficulty';
+export {
+  planOutlook,
+  previewDifficulty,
+  type DifficultyChange,
+  type PlanOutlook,
+} from './plan/difficulty-preview';
 export {
   activePause,
   activeTravel,

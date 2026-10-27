@@ -63,6 +63,7 @@ export function weekTargetLoad(
   week: WeekSkeleton,
   lastLoading: number | null,
   startLoad: number,
+  growth: number = prog.weeklyGrowth,
 ): number {
   const reference = lastLoading ?? startLoad;
   if (week.taperIndex !== null) {
@@ -70,5 +71,5 @@ export function weekTargetLoad(
     return reference * assertDefined(cfg.taperFactors[i], 'taperFactor');
   }
   if (week.isRecovery) return reference * prog.recoveryFactor;
-  return lastLoading === null ? startLoad : lastLoading * prog.weeklyGrowth;
+  return lastLoading === null ? startLoad : lastLoading * growth;
 }

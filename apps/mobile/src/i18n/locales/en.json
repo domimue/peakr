@@ -230,6 +230,28 @@
     "views": {
       "weeks": "Weeks",
       "calendar": "Calendar"
+    },
+    "difficulty": {
+      "title": "Difficulty",
+      "intro": "How hard your plan is, from 1 to 10. 5 is the plan Peakr calculates for you. A change rebuilds the coming weeks only – completed weeks stay as they are.",
+      "label": "Difficulty",
+      "value": "{{value}} of 10",
+      "hint": {
+        "easier": "Easier: your weekly load grows more slowly and long sessions get longer more gently. Recovery weeks stay.",
+        "neutral": "The plan as Peakr calculates it.",
+        "harder": "Harder: more weekly load and longer long sessions – never more than +10 % per week, recovery weeks, 80/20 and no hard days back to back still apply."
+      },
+      "preview": "What changes in the next {{weeks}} weeks",
+      "sessions": "Sessions per week",
+      "volume": "Time per week",
+      "distance": "Distance per week",
+      "longest": "Longest session",
+      "change": "{{before}} → {{after}}",
+      "km": "{{value}} km",
+      "apply": "Apply",
+      "notARepair": "This is not a way to repair a wrong starting point. If your plan starts too low or too high, correct the starting values instead.",
+      "fixStart": "Correct the starting values",
+      "minutes": "{{value}} min"
     }
   },
   "fields": {

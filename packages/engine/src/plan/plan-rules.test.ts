@@ -13,11 +13,21 @@ import type { Plan, PlanWeek, Workout } from './types';
  * CLAUDE.md "Training engine rules" that the generator promises is checked on every plan.
  */
 
-const cases = grid().map((c) => {
-  const result = generatePlan(c.profile, { kind: c.goal }, c.availability, c.start, c.target);
-  if (!result.ok) throw new Error(`${c.name}: ${JSON.stringify(result.issues)}`);
-  return { ...c, plan: result.value };
-});
+// Every plan again at the lowest and the highest difficulty: the slider shifts the targets, the
+// rules below hold at every setting (CLAUDE.md "Difficulty").
+const cases = grid()
+  .flatMap((c) =>
+    [5, 1, 10].map((difficulty) => ({
+      ...c,
+      name: difficulty === 5 ? c.name : `${c.name} @difficulty ${difficulty}`,
+      profile: difficulty === 5 ? c.profile : { ...c.profile, difficulty },
+    })),
+  )
+  .map((c) => {
+    const result = generatePlan(c.profile, { kind: c.goal }, c.availability, c.start, c.target);
+    if (!result.ok) throw new Error(`${c.name}: ${JSON.stringify(result.issues)}`);
+    return { ...c, plan: result.value };
+  });
 
 /** Every plan day in order (across weeks) with its workouts. */
 function days(plan: Plan): Workout[][] {

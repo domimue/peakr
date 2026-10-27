@@ -120,6 +120,13 @@ export const planConfig = {
     techniqueLevelBeforeCss: 4,
   },
   /**
+   * Difficulty slider 1–10 (CLAUDE.md "Training engine rules → Difficulty"): 5 is exactly what the
+   * engine computes. Each step scales the weekly target load and the long-session increase by
+   * `perStep`; every safety rule (+10 % cap, recovery weeks, 80/20, no hard days back to back,
+   * start floors) is applied after it and still holds at every setting.
+   */
+  difficulty: { min: 1, max: 10, neutral: 5, perStep: 0.04 },
+  /**
    * Hard floors of a new plan (CLAUDE.md "Baseline"): it never starts below what the athlete
    * demonstrably does. Statistics-free; the only exception is a return after a pause or injury.
    */

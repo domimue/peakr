@@ -3,6 +3,7 @@ import { isHardOnItsOwn } from './classify';
 import { commuteSession, commutesOn } from './commute';
 import { composeWeek, EASY_TEMPLATE, type CompositionContext, type Slot } from './composition';
 import { planConfig } from './config';
+import { difficultyFactor } from './difficulty';
 import { startFloors } from './floors';
 import { toIsoDate } from './dates';
 import { rpe, time } from './library/helpers';
@@ -930,7 +931,11 @@ class WeekScheduler {
         // Shortened by the cap: hold (but never below the template minimum).
         longMin[sport] = i.shortened
           ? Math.max(i.minutes, i.template.durationScaled.minMin)
-          : i.minutes + planConfig.long.weeklyIncreaseMin;
+          : i.minutes +
+            Math.round(
+              planConfig.long.weeklyIncreaseMin *
+                difficultyFactor(input.athlete.profile.difficulty),
+            );
       }
     }
 

@@ -20,6 +20,7 @@ import {
   type Availability,
   type MoveResult,
   type PauseReason,
+  type PlanInput,
   type PlanState,
   type EditResult,
   type TravelPeriod,
@@ -118,6 +119,11 @@ export function usePlanActions() {
       const result = moveWorkout(stored.state, id, toDate, stored.input, today);
       if (result.ok) commit({ ok: true, value: result.value.state });
       return result;
+    },
+    /** A previewed difficulty change (`previewDifficulty`): plan and stored setting together. */
+    applyDifficulty(change: { state: PlanState; input: PlanInput }): Edit {
+      if (!stored) return missing;
+      return commit({ ok: true, value: change.state }, { ...stored.input, ...change.input });
     },
     /** Applies the engine's rebalance suggestion of the last move. */
     apply(state: PlanState): Edit {

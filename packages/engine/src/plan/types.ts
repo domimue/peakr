@@ -431,6 +431,8 @@ export interface PlanWeek {
   targetLoad: number;
   load: number;
   minutes: number;
+  /** Difficulty factor the week was generated with (1 = setting 5; absent in older plans). */
+  difficultyFactor?: number;
   /** Share of endurance time in Z3+ (80/20 rule). */
   hardShare: number;
   workouts: Workout[];

@@ -48,6 +48,7 @@ export function ProfileScreen() {
         ]
       : []),
     { icon: 'tune', title: t('plan.availability.title'), href: '/training/availability' },
+    { icon: 'bolt', title: t('plan.difficulty.title'), href: '/training/difficulty' },
     {
       icon: paused ? 'play' : 'pause',
       title: paused ? t('plan.pause.resume') : t('plan.pause.title'),

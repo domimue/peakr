@@ -13,6 +13,7 @@ import { renderWithQuery } from '@/test-utils/render-with-query';
 
 import { usePlanUiStore } from '../plan-ui-store';
 import { AvailabilityScreen } from '../screens/availability-screen';
+import { DifficultyScreen } from '../screens/difficulty-screen';
 import { PauseScreen } from '../screens/pause-screen';
 import { PlanScreen } from '../screens/plan-screen';
 import { WorkoutScreen } from '../screens/workout-screen';
@@ -225,7 +226,8 @@ describe('Today tab', () => {
     expect(screen.getByLabelText('Tuesday, October 27, Strength')).toBeOnTheScreen();
     expect(screen.getByLabelText('Friday, October 30, Rest day')).toBeOnTheScreen();
     expect(screen.getByLabelText(/^Easy run, Easy, /)).toBeOnTheScreen();
-    expect(screen.getByTestId('weather-chip')).toBeOnTheScreen();
+    // The forecast loads on its own; under a busy test run it can come a moment later.
+    expect(await screen.findByTestId('weather-chip')).toBeOnTheScreen();
     expect(screen.getByTestId('insights')).toBeOnTheScreen();
     expect(screen.getByText('Sessions 0/6')).toBeOnTheScreen();
 
@@ -499,6 +501,34 @@ describe('workout detail', () => {
     ).toBeOnTheScreen();
     expect(screen.queryByText('Steps')).toBeNull();
     expect(screen.queryByText('Why this session')).toBeNull();
+  });
+});
+
+describe('difficulty', () => {
+  it('previews the coming weeks and applies the new setting; completed weeks stay', async () => {
+    storePlan();
+    setToday('2026-11-02');
+    await renderWithQuery(<DifficultyScreen />);
+    const slider = await screen.findByTestId('difficulty-slider');
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeDisabled();
+    fireEvent(slider, 'accessibilityAction', { nativeEvent: { actionName: 'increment' } });
+    expect(await screen.findByTestId('difficulty-preview')).toHaveTextContent(
+      /What changes in the next 4 weeks/,
+    );
+    expect(screen.getByTestId('difficulty-run-min')).toHaveTextContent(/\d+ min → \d+ min/);
+    fireEvent.press(screen.getByRole('button', { name: 'Apply' }));
+    await waitFor(() => expect(mock.savePlanState).toHaveBeenCalled());
+    const [, state, saved] = jest.mocked(mock.savePlanState).mock.calls.at(-1) as unknown as [
+      string,
+      { plan: Plan },
+      StoredPlanInput,
+    ];
+    expect(saved.profile.difficulty).toBe(6);
+    const before = mock.store.plan?.state.plan.weeks[0];
+    expect(state.plan.weeks[0]?.workouts.map((w) => w.id)).toEqual(
+      before?.workouts.map((w) => w.id),
+    );
+    expect(screen.getByText(/not a way to repair a wrong starting point/)).toBeOnTheScreen();
   });
 });
 

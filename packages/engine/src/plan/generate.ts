@@ -4,6 +4,7 @@ import { classifyDays } from './classify';
 import { commuteMinutes, commutesOn, commutesValid } from './commute';
 import { requiredSports, sportShares } from './composition';
 import { planConfig } from './config';
+import { difficultyFactor, difficultyGrowth } from './difficulty';
 import { checkStartFloors, startFloors } from './floors';
 import { parseIsoDate, toIsoDate, weekdayOf } from './dates';
 import { hardShare } from './load';
@@ -45,8 +46,13 @@ export type PlanField =
 export interface PlanContinuation {
   /** Start date of the original plan. */
   planStartDate: string;
-  /** Load of the last full loading week before `startDate` (the +10 % reference), if any. */
+  /**
+   * Load of the last full loading week before `startDate` as the engine computed it at difficulty
+   * 5 (actual load ÷ its difficulty factor): the progression continues from here.
+   */
   referenceLoad: number | null;
+  /** That week's actual load – the +10 % cap is always measured against what was planned. */
+  referenceActualLoad?: number | null;
   /** The first regenerated week gets `referenceLoad × firstWeekFactor` (resume rules). */
   firstWeekFactor?: number;
   /** Phases restart at Base over the remaining weeks (long pause). */
@@ -242,7 +248,14 @@ export function generatePlan(
   let longMin: Partial<Record<Sport, number>> = { ...continuation?.longMin };
   let rotation = 0;
   let prev: PrevDay = continuation?.prev ?? RESTED;
+  // The slider scales every target; `reference` is kept at difficulty 5 so a lower setting
+  // does not shrink the plan week after week, while the cap uses the actual load.
+  const difficulty = difficultyFactor(profile.difficulty);
+  const scale = Math.max(1, difficulty);
+  const growth = difficultyGrowth(profile.difficulty);
   let reference: number | null = continuation?.referenceLoad ?? null;
+  let actualReference: number | null =
+    continuation?.referenceActualLoad ?? continuation?.referenceLoad ?? null;
   // Resume after a pause: the first week is a fixed share of the last loading week.
   let firstWeekLoad =
     continuation?.firstWeekFactor === undefined
@@ -291,9 +304,14 @@ export function generatePlan(
       (lastBenchmark === null || week.index - lastBenchmark >= cfg.benchmarks.everyWeeks);
     if (benchmark) lastBenchmark = week.index;
 
-    const fullTarget = firstWeekLoad ?? weekTargetLoad(week, reference, startLoad);
+    // Harder settings scale every target up (the +10 % cap below still limits it); easier ones
+    // slow the growth of the loading weeks (`difficultyGrowth`), so start, recovery and taper
+    // weeks keep the structure the rules require.
+    const fullTarget =
+      (firstWeekLoad ?? weekTargetLoad(week, reference, startLoad, growth)) * scale;
     const targetLoad = (fullTarget * planDays) / 7;
-    const cap = reference === null ? null : reference * cfg.progression.maxWeeklyIncrease;
+    const cap =
+      actualReference === null ? null : actualReference * cfg.progression.maxWeeklyIncrease;
     // Recovery, taper and resume weeks must really come down: their target is also their cap.
     const capLoad =
       firstWeekLoad !== null
@@ -340,11 +358,13 @@ export function generatePlan(
     prev = out.last;
     if (firstWeekLoad !== null) {
       // The reduced week is the new reference (scaled up when it was partial).
-      reference = (out.load * 7) / planDays;
+      actualReference = (out.load * 7) / planDays;
+      reference = actualReference / scale;
       firstWeekLoad = null;
     } else if (loading && !isPartial && !override && !days.some((d) => d.travel)) {
       // Irregular and travel weeks are no reference: the weeks after continue the normal progression.
-      reference = out.load;
+      actualReference = out.load;
+      reference = out.load / scale;
     }
     if (week.phase === 'build' || week.phase === 'peak') buildWeekIndex++;
 
@@ -365,6 +385,7 @@ export function generatePlan(
       isPartial,
       targetLoad: Math.round(targetLoad),
       load: out.load,
+      difficultyFactor: scale,
       minutes: out.minutes,
       hardShare: 0,
       workouts: out.workouts,
