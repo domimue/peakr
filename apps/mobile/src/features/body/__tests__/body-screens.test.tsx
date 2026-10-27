@@ -18,6 +18,7 @@ import { renderWithQuery } from '@/test-utils/render-with-query';
 import { bodyCsv } from '../export';
 import { BodyAddonScreen } from '../screens/body-addon-screen';
 import { BodyScreen } from '../screens/body-screen';
+import { NutritionScreen } from '../screens/nutrition-screen';
 
 jest.mock('expo-router', () => {
   const { Text: RNText } = jest.requireActual('react-native');
@@ -115,7 +116,7 @@ afterEach(() => jest.restoreAllMocks());
 describe('Body tab', () => {
   it('locked: blurred sample, benefits and the way to the add-on paywall', async () => {
     billing('never');
-    await renderWithQuery(<BodyScreen />);
+    await renderWithQuery(<NutritionScreen />);
     expect(screen.getByTestId('body-locked')).toBeOnTheScreen();
     expect(screen.getByTestId('body-sample', { includeHiddenElements: true })).toBeOnTheScreen();
     expect(screen.getByText(/Food diary: everything you eat/)).toBeOnTheScreen();
@@ -126,10 +127,12 @@ describe('Body tab', () => {
     expect(body.listFood).not.toHaveBeenCalled();
   });
 
-  it('switched off remotely: never shown, even with the add-on bought', async () => {
+  it('switched off remotely: "coming soon", even with the add-on bought', async () => {
     billing('active', { flag: false });
+    await renderWithQuery(<NutritionScreen />);
+    expect(screen.getByTestId('nutrition-soon')).toBeOnTheScreen();
     await renderWithQuery(<BodyScreen />);
-    expect(screen.getByText('redirect:/today')).toBeOnTheScreen();
+    expect(screen.getByTestId('body-soon')).toBeOnTheScreen();
   });
 
   it('asks inline only for the profile values that are missing', async () => {
@@ -140,7 +143,7 @@ describe('Body tab', () => {
       insight: false,
       finished: true,
     };
-    await renderWithQuery(<BodyScreen />);
+    await renderWithQuery(<NutritionScreen />);
     expect(await screen.findByTestId('body-profile-setup')).toBeOnTheScreen();
     expect(screen.getByText('Birth date')).toBeOnTheScreen();
     expect(screen.queryByText('Height')).toBeNull();
@@ -150,7 +153,7 @@ describe('Body tab', () => {
   it('active: logging food updates Energy today', async () => {
     billing('active');
     fullProfile();
-    await renderWithQuery(<BodyScreen />);
+    await renderWithQuery(<NutritionScreen />);
     // Resting 1324 × 1.3 everyday activity (desk job until answered) = 1721; no plan, no training.
     expect(await screen.findByText('1721 kcal left')).toBeOnTheScreen();
     expect(screen.getByTestId('target-breakdown')).toHaveTextContent(/Resting energy1324 kcal/);
@@ -168,7 +171,7 @@ describe('Body tab', () => {
   it('trial: everything, with a note that nothing is charged yet', async () => {
     billing('trial');
     fullProfile();
-    await renderWithQuery(<BodyScreen />);
+    await renderWithQuery(<NutritionScreen />);
     expect(await screen.findByTestId('body-quick-add')).toBeOnTheScreen();
     expect(screen.getByText(/Free trial/)).toBeOnTheScreen();
   });
@@ -176,7 +179,7 @@ describe('Body tab', () => {
   it('cancelled but paid up: still fully usable', async () => {
     billing('cancelled');
     fullProfile();
-    await renderWithQuery(<BodyScreen />);
+    await renderWithQuery(<NutritionScreen />);
     expect(await screen.findByTestId('body-quick-add')).toBeOnTheScreen();
     expect(screen.queryByTestId('body-read-only')).toBeNull();
   });
@@ -201,13 +204,13 @@ describe('Body tab', () => {
         createdAt: '2026-10-19T12:00:00Z',
       },
     ];
-    await renderWithQuery(<BodyScreen />);
+    await renderWithQuery(<NutritionScreen />);
     expect(await screen.findByText('Rice bowl')).toBeOnTheScreen();
     expect(screen.getByTestId('body-read-only')).toBeOnTheScreen();
     expect(screen.queryByTestId('body-quick-add')).toBeNull();
     expect(screen.queryByText('Delete')).toBeNull();
 
-    await fireEvent.press(screen.getByText('Check-in'));
+    await renderWithQuery(<BodyScreen focus="checkIn" />);
     expect(await screen.findByTestId('body-check-in')).toBeOnTheScreen();
     expect(screen.queryByText('Save check-in')).toBeNull();
 
@@ -245,7 +248,7 @@ describe('Body tab', () => {
         createdAt: 'y',
       },
     ];
-    await renderWithQuery(<BodyScreen initial="progress" />);
+    await renderWithQuery(<BodyScreen />);
     // A 9-day gap counts as nine trend steps: 62 − (1 − 0.9^9) × 1 ≈ 61.4.
     expect(await screen.findByText('61.4 kg')).toBeOnTheScreen();
     expect(screen.getByTestId('body-tdee')).toHaveTextContent(/Needs 14 days/);
@@ -264,7 +267,7 @@ describe('Phase 12: energy model in the app', () => {
       { metric: 'resting_kcal', day: TODAY, source: 'healthConnect', value: 1400, recordedAt: 'x' },
       { metric: 'steps', day: TODAY, source: 'healthConnect', value: 10000, recordedAt: 'x' },
     ];
-    await renderWithQuery(<BodyScreen />);
+    await renderWithQuery(<NutritionScreen />);
     // The target is stable: resting energy of the last 14 days (formula 1324) × 1.3 = 1721;
     // today's steps stay in the energy model, they do not move the target. − 900 eaten.
     expect(await screen.findByText('821 kcal left')).toBeOnTheScreen();
@@ -288,14 +291,14 @@ describe('Phase 12: energy model in the app', () => {
         createdAt: 'x',
       },
     ];
-    await renderWithQuery(<BodyScreen initial="progress" />);
+    await renderWithQuery(<BodyScreen />);
     expect(await screen.findByText('Now: 15.3 kg fat · 45.8 kg lean mass')).toBeOnTheScreen();
   });
 
   it('asks for Health Connect only while the add-on is active', async () => {
     billing('expired');
     fullProfile();
-    await renderWithQuery(<BodyScreen />);
+    await renderWithQuery(<NutritionScreen />);
     expect(await screen.findByTestId('body-read-only')).toBeOnTheScreen();
     expect(screen.queryByTestId('body-health-link')).toBeNull();
   });

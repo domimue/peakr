@@ -1,10 +1,10 @@
-# All five tabs open and show their main content; Plan switches between weeks and calendar
-# (Phase 5c).
+# All five tabs open and show their main content; Plan switches between weeks, calendar and
+# history; Profile and Settings open from the profile icon (navigation phase).
 #
 # Same setup as plan-drag-drop.yaml: development build + Metro running.
 #   maestro test apps/mobile/.maestro/tabs-smoke.yaml
 appId: com.peakr.app
-name: Tabs – Today, Plan, Gym, Progress, Profile
+name: Tabs – Today, Plan, Gym, Nutrition, Body; profile icon
 tags:
   - tabs
 env:
@@ -38,7 +38,9 @@ env:
     visible: Today
     timeout: 60000
 
-- tapOn: Profile
+- tapOn:
+    label: Profile and settings
+- tapOn: Settings
 - scrollUntilVisible:
     element: Plan preview \(dev\)
 - tapOn: Plan preview \(dev\)
@@ -59,11 +61,18 @@ env:
 - assertVisible:
     id: week-progress-0
 - assertVisible: Week 1 of .*
+- tapOn: History
+- assertVisible: Sessions
+- tapOn: Records
+- assertVisible: Lifetime
 - tapOn: Gym
 - assertVisible: Your gym workspace
-- tapOn: Progress
-- assertVisible: History
-- tapOn: Performance
-- assertVisible: Lifetime
-- tapOn: Profile
+- tapOn: Nutrition
+- assertVisible: Nutrition
+- tapOn: Body
+- assertVisible: Health
+- tapOn:
+    label: Profile and settings
 - assertVisible: Heart-rate zones
+- tapOn: Settings
+- assertVisible: Notifications

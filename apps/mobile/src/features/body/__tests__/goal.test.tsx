@@ -9,6 +9,7 @@ import { entitlementsOf, subscriptionsOf, type CustomerInfoLike } from '@/featur
 import { renderWithQuery } from '@/test-utils/render-with-query';
 
 import { BodyScreen } from '../screens/body-screen';
+import { NutritionScreen } from '../screens/nutrition-screen';
 import { EnergySettingsScreen } from '../screens/energy-settings-screen';
 import { GoalSetupScreen } from '../screens/goal-setup-screen';
 
@@ -172,7 +173,7 @@ describe('goal card', () => {
   it('shows today’s target, both forecasts and pauses with a stored reason', async () => {
     weighIns(21, 0.5);
     body.store.goals = [goal];
-    await renderWithQuery(<BodyScreen initial="progress" />);
+    await renderWithQuery(<BodyScreen />);
     expect(await screen.findByTestId('goal-card')).toBeOnTheScreen();
     expect(screen.getByTestId('goal-forecast')).toHaveTextContent(
       /At your real pace \(0\.\d+ kg\/week\)/,
@@ -185,7 +186,7 @@ describe('goal card', () => {
   it('weekly check-in: faster than planned → suggests eating more, applied as an adaptive change', async () => {
     weighIns(14, 0.6);
     body.store.goals = [goal];
-    await renderWithQuery(<BodyScreen initial="progress" />);
+    await renderWithQuery(<BodyScreen />);
     expect(await screen.findByTestId('goal-check-in')).toHaveTextContent(/faster than planned/);
     await fireEvent.press(screen.getByText(/Adjust target \+\d+ kcal\/day/));
     await waitFor(() => expect(body.store.goals).toHaveLength(2));
@@ -197,7 +198,7 @@ describe('goal card', () => {
   it('target reached → switch to maintain with a reverse diet', async () => {
     weighIns(3, 0, 64.8);
     body.store.goals = [goal];
-    await renderWithQuery(<BodyScreen initial="progress" />);
+    await renderWithQuery(<BodyScreen />);
     expect(await screen.findByTestId('goal-reached')).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('Switch to maintain'));
     await waitFor(() =>
@@ -207,7 +208,7 @@ describe('goal card', () => {
 
   it('without a goal Body offers to set one', async () => {
     weighIns(1, 0);
-    await renderWithQuery(<BodyScreen />);
+    await renderWithQuery(<NutritionScreen />);
     await fireEvent.press(await screen.findByTestId('body-set-goal'));
     expect(router.push).toHaveBeenCalledWith('/body/goal');
   });
@@ -232,7 +233,7 @@ describe('energy targets', () => {
         reason: 'user',
       },
     ];
-    await renderWithQuery(<BodyScreen />);
+    await renderWithQuery(<NutritionScreen />);
     expect(await screen.findByTestId('target-below-floor')).toHaveTextContent(
       /pace of 0.7 kg per week is too fast.*uses 0.35 kg per week/,
     );

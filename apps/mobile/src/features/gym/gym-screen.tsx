@@ -16,6 +16,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { todayIso } from '@/data/ids';
 import { usePlan } from '@/features/plan/queries';
+import { TabTitle } from '@/features/profile/profile-button';
 import {
   Button,
   Card,
@@ -74,7 +75,7 @@ export function GymScreen() {
     : [];
 
   return (
-    <Screen title={t('gym.title')}>
+    <Screen header={<TabTitle title={t('gym.title')} />}>
       {live ? (
         <Pressable accessibilityRole="button" onPress={() => router.push('/gym/live')}>
           <Card style={[styles.live, { borderColor: colors.accentLine }]} testID="gym-live-banner">

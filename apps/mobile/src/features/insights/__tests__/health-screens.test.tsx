@@ -17,7 +17,7 @@ import { TodayScreen } from '@/features/today/today-screen';
 import { HealthConsentScreen } from '../health/consent-screen';
 import { HealthDiagnosticsScreen } from '../health/diagnostics-screen';
 import { MetricDetailScreen } from '../health/metric-detail-screen';
-import { InsightsScreen } from '../insights-screen';
+import { HealthOverview } from '../health/health-overview';
 
 jest.mock('@/data/supabase', () => ({ supabase: {} }));
 jest.mock('@/data/repositories/plan-repository');
@@ -122,7 +122,7 @@ afterEach(() => {
 });
 
 describe('Insights → Health overview', () => {
-  it('opens on Health once connected and shows values against the own baseline', async () => {
+  it('shows the values against the own baseline', async () => {
     history('resting_hr', 50, 30, 58);
     history('sleep_duration', 450, 5, 440, {
       deepMin: 80,
@@ -132,7 +132,7 @@ describe('Insights → Health overview', () => {
       bedTime: '23:05',
       wakeTime: '06:45',
     });
-    await renderWithQuery(<InsightsScreen />);
+    await renderWithQuery(<HealthOverview />);
     expect(await screen.findByTestId('health-overview')).toBeOnTheScreen();
     expect(screen.getByText('58 bpm')).toBeOnTheScreen();
     expect(screen.getByText('Well above your usual range')).toBeOnTheScreen();
@@ -147,7 +147,7 @@ describe('Insights → Health overview', () => {
   });
 
   it('says why a metric is missing – the reason of that metric', async () => {
-    await renderWithQuery(<InsightsScreen />);
+    await renderWithQuery(<HealthOverview />);
     expect(await screen.findByTestId('health-overview')).toBeOnTheScreen();
     // Enabled and provided, but nothing in the window: the reason for SpO2, not the overnight one.
     expect(
@@ -179,7 +179,7 @@ describe('Insights → Health overview', () => {
       recordedAt: `${addDays(TODAY, -12)}T06:00:00.000Z`,
       sourceIds: ['hc-1'],
     });
-    await renderWithQuery(<InsightsScreen />);
+    await renderWithQuery(<HealthOverview />);
     expect(await screen.findByTestId('health-overview')).toBeOnTheScreen();
     expect(
       screen.getByLabelText(
@@ -204,7 +204,7 @@ describe('Insights → Health overview', () => {
       recordedAt: `${addDays(TODAY, -20)}T06:00:00.000Z`,
       sourceIds: ['w1'],
     });
-    await renderWithQuery(<InsightsScreen />);
+    await renderWithQuery(<HealthOverview />);
     expect(await screen.findByTestId('health-overview')).toBeOnTheScreen();
     expect(screen.getByText('72.4 kg')).toBeOnTheScreen();
   });
@@ -220,7 +220,7 @@ describe('Insights → Health overview', () => {
         },
       }),
     );
-    await renderWithQuery(<InsightsScreen />);
+    await renderWithQuery(<HealthOverview />);
     expect(
       await screen.findByLabelText(/^Resting heart rate: The last fetch from Garmin did not work/),
     ).toBeOnTheScreen();
@@ -228,19 +228,15 @@ describe('Insights → Health overview', () => {
 
   it('says when Garmin was not allowed to share a group (OAuth)', async () => {
     jest.mocked(api.fetchHealthStatus).mockResolvedValue(status({ permitted: [] }));
-    await renderWithQuery(<InsightsScreen />);
+    await renderWithQuery(<HealthOverview />);
     expect(
       await screen.findByLabelText(/^Resting heart rate: Garmin is not allowed to share this/),
     ).toBeOnTheScreen();
   });
 
-  it('invites to set up health data without any source and stays on Training', async () => {
+  it('invites to set up health data without any source', async () => {
     jest.mocked(api.fetchHealthStatus).mockResolvedValue(status({ connection: null, groups: [] }));
-    await renderWithQuery(<InsightsScreen />);
-    expect(
-      await screen.findByText('Your progress appears here once you have a plan.'),
-    ).toBeOnTheScreen();
-    await fireEvent.press(screen.getByText('Health'));
+    await renderWithQuery(<HealthOverview />);
     await fireEvent.press(await screen.findByText('Set up health data'));
     expect(router.push).toHaveBeenCalledWith('/health/consent');
   });
@@ -256,7 +252,7 @@ describe('Insights → Health overview', () => {
         },
       }),
     );
-    await renderWithQuery(<InsightsScreen />);
+    await renderWithQuery(<HealthOverview />);
     expect(
       await screen.findByText(
         'Data starts on the day you connected – this Garmin connection does not deliver older days.',

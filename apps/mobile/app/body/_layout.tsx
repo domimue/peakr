@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import { useEntitlement } from '@/features/billing/billing-store';
 
+import { stackScreenOptions } from '@/features/profile/stack-options';
+
 /** Without the add-on only the paywall opens; every other Body route leads there. */
 const FREE_ROUTES = ['addon'];
 
@@ -25,7 +27,7 @@ export default function BodyLayout() {
     return <Redirect href="/body/addon" />;
   }
   return (
-    <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
+    <Stack screenOptions={stackScreenOptions}>
       <Stack.Screen name="addon" options={{ title: t('bodyAddon.paywall.title') }} />
       <Stack.Screen name="today" options={{ title: t('bodyAddon.sections.today') }} />
       <Stack.Screen name="energy" options={{ title: t('bodyAddon.energy.title') }} />

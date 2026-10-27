@@ -19,6 +19,7 @@ import { PaywallScreen } from '@/features/paywall/paywall-screen';
 import { renderWithQuery } from '@/test-utils/render-with-query';
 
 import { BodyScreen } from '../screens/body-screen';
+import { NutritionScreen } from '../screens/nutrition-screen';
 
 jest.mock('expo-router', () => {
   const { Text: RNText } = jest.requireActual('react-native');
@@ -212,7 +213,7 @@ describe('Body dashboard', () => {
     billing('active');
     seed();
     storePlan();
-    await render(<BodyScreen initial="progress" />);
+    await render(<BodyScreen />);
     expect(await screen.findByTestId('body-kpis')).toBeOnTheScreen();
     expect(screen.getByTestId('kpi-trend')).toHaveTextContent(/\d+(\.\d)? kg/);
     expect(screen.getByTestId('kpi-start')).toHaveTextContent(/-\d/);
@@ -239,7 +240,7 @@ describe('Body dashboard', () => {
     billing('active');
     seed();
     storePlan();
-    await render(<BodyScreen initial="progress" />);
+    await render(<BodyScreen />);
     const coach = await screen.findByTestId('body-coach');
     expect(coach).toHaveTextContent(/Looking back on the week of Oct 19/);
     expect(screen.getByTestId('coach-progress')).toHaveTextContent(/% of the way to your goal/);
@@ -263,7 +264,7 @@ describe('Body dashboard', () => {
       note: null,
       createdAt: '',
     }));
-    await render(<BodyScreen initial="progress" />);
+    await render(<BodyScreen />);
     await screen.findByTestId('body-coach');
     expect(screen.getByTestId('coach-hint-tooFastLoss')).toBeOnTheScreen();
     expect(body.store.goals).toHaveLength(1);
@@ -277,7 +278,7 @@ describe('Body dashboard', () => {
   it('with little data: says so instead of guessing', async () => {
     billing('active');
     body.store.profile = { sex: 'female', birthDate: '1992-01-01', heightCm: 166, weightKg: 62 };
-    await render(<BodyScreen initial="progress" />);
+    await render(<BodyScreen />);
     expect(await screen.findByTestId('coach-hint-incompleteData')).toBeOnTheScreen();
     expect(screen.getByTestId('body-measurements')).toHaveTextContent(/start with the first/);
     expect(screen.getByTestId('kpi-goal')).toHaveTextContent(/^–/);
@@ -336,7 +337,7 @@ describe('paywall with the add-on', () => {
 
   it('every entry point leads to the add-on paywall', async () => {
     billing('none');
-    await render(<BodyScreen />);
+    await render(<NutritionScreen />);
     await fireEvent.press(await screen.findByText('Unlock the Body add-on'));
     expect(router.push).toHaveBeenLastCalledWith('/body/addon');
     screen.unmount();

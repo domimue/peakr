@@ -2,7 +2,7 @@ import { activePause, weekTags, type PlanWeek } from '@peakr/engine';
 import { router } from 'expo-router';
 import { useRef, useState, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { todayIso } from '@/data/ids';
@@ -11,6 +11,8 @@ import { useAccess } from '@/features/billing/billing-store';
 import { LockedCard } from '@/features/billing/locked';
 import { Badge, ListState, SegmentedControl, spacing, Text, useTheme } from '@/ui';
 import { NoPlanState } from '@/features/plan-new/no-plan-state';
+import { TabTitle } from '@/features/profile/profile-button';
+import { PlanHistory } from '@/features/progress/progress-screen';
 
 import { formatDate, initialWeek } from '../calendar';
 import { CalendarView } from '../components/calendar-view';
@@ -35,18 +37,25 @@ export function PlanScreen() {
   const options: { value: PlanView; label: string }[] = [
     { value: 'weeks', label: t('plan.views.weeks') },
     { value: 'calendar', label: t('plan.views.calendar') },
+    { value: 'history', label: t('plan.views.history') },
   ];
   const header = (
     <View style={styles.head}>
-      <Text variant="title" accessibilityRole="header">
-        {t('plan.title')}
-      </Text>
+      <TabTitle title={t('plan.title')} />
       {preview ? null : <SegmentedControl options={options} value={view} onChange={setView} />}
     </View>
   );
 
   let content: ReactNode;
-  if (isPending || isError || !stored) {
+  if (view === 'history' && !preview) {
+    // History needs no active plan: archived plans have one too.
+    content = (
+      <ScrollView contentContainerStyle={styles.content} testID="plan-history-scroll">
+        {header}
+        <PlanHistory />
+      </ScrollView>
+    );
+  } else if (isPending || isError || !stored) {
     content = (
       <View style={styles.content}>
         {header}

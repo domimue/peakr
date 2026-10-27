@@ -3,7 +3,7 @@ import { dayToIso, isoToDay, QUESTION_IDS as Q, STRENGTH_QUESTION_IDS as S } fro
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
-import ProfileScreen from '../../../../app/(tabs)/profile';
+import ProfileScreen from '../../../../app/profile';
 import type { StoredPlanInput } from '@/data/db/schema';
 import * as ids from '@/data/ids';
 import * as baselineRepo from '@/data/repositories/baseline-repository';

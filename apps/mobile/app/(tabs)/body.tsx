@@ -1,6 +1,6 @@
 import { BodyScreen } from '@/features/body/screens/body-screen';
 
-/** Body add-on: always in the tab bar while the add-on is switched on; locked it shows previews. */
+/** Body: the watch's health data (Training) and body tracking (Body add-on). */
 export default function BodyTab() {
   return <BodyScreen />;
 }

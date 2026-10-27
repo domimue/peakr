@@ -45,6 +45,25 @@ function hoursText(t: TFunction, minutes: number): string {
  * or "All time"; personal bests and lifetime totals are always all time (CLAUDE.md "Plan
  * history"). Without any plan they show the way to the quiz.
  */
+/** Plan → History: completed sessions and records of this plan or all plans (CLAUDE.md "Plan"). */
+export function PlanHistory() {
+  const { t } = useTranslation();
+  const [section, setSection] = useState<'history' | 'performance'>('history');
+  return (
+    <View style={styles.gap} testID="plan-history">
+      <SegmentedControl
+        options={[
+          { value: 'history', label: t('progress.sessionsTab') },
+          { value: 'performance', label: t('progress.records') },
+        ]}
+        value={section}
+        onChange={setSection}
+      />
+      <PlanInsights section={section} />
+    </View>
+  );
+}
+
 export function PlanInsights({ section }: { section: 'history' | 'performance' }) {
   const { t } = useTranslation();
   const sources = useHistorySources();

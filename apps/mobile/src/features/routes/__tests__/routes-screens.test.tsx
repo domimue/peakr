@@ -11,7 +11,8 @@ import * as planRepo from '@/data/repositories/plan-repository';
 import * as routeRepo from '@/data/repositories/route-repository';
 import { useSessionStore } from '@/features/auth/session-store';
 import { WorkoutScreen } from '@/features/plan/screens/workout-screen';
-import { InsightsScreen } from '@/features/insights/insights-screen';
+import { PlanScreen } from '@/features/plan/screens/plan-screen';
+import { usePlanUiStore } from '@/features/plan/plan-ui-store';
 import { renderWithQuery } from '@/test-utils/render-with-query';
 
 import { redirectSystemPath } from '../../../../app/+native-intent';
@@ -593,7 +594,8 @@ describe('Komoot and progress', () => {
       },
     ];
     activities.store.links = [{ activityKey: 'strava:9', workoutId: id, planId: 'plan-1' }];
-    await renderWithQuery(<InsightsScreen />);
+    usePlanUiStore.setState({ view: 'history' });
+    await renderWithQuery(<PlanScreen />);
     expect(await screen.findByTestId(`history-route-${id}`)).toBeOnTheScreen();
   });
 });

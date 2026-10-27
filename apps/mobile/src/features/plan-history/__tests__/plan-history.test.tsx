@@ -7,7 +7,8 @@ import * as Sharing from 'expo-sharing';
 import type { StoredPlanInput } from '@/data/db/schema';
 import * as ids from '@/data/ids';
 import * as repo from '@/data/repositories/plan-repository';
-import { InsightsScreen } from '@/features/insights/insights-screen';
+import { usePlanUiStore } from '@/features/plan/plan-ui-store';
+import { PlanScreen } from '@/features/plan/screens/plan-screen';
 import { renderWithQuery } from '@/test-utils/render-with-query';
 
 import { planHistoryJson } from '../export';
@@ -80,7 +81,8 @@ describe('Insights over several plans', () => {
     );
     expect(mock.store.archive[0]?.outcome).toBe('replaced');
 
-    await renderWithQuery(<InsightsScreen />);
+    usePlanUiStore.setState({ view: 'history' });
+    await renderWithQuery(<PlanScreen />);
     // This plan: nothing done yet.
     expect(await screen.findByText('No completed sessions yet')).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('All time'));
@@ -102,7 +104,8 @@ describe('Insights over several plans', () => {
     storeFirstPlan('2026-12-19');
     await mock.archiveEndedPlan('2026-12-21');
     expect(mock.store.plan).toBeNull();
-    await renderWithQuery(<InsightsScreen />);
+    usePlanUiStore.setState({ view: 'history' });
+    await renderWithQuery(<PlanScreen />);
     expect(await screen.findByText('October 2026')).toBeOnTheScreen();
     expect(screen.queryByText('This plan')).toBeNull();
   });

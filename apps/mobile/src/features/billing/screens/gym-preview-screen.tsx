@@ -7,6 +7,7 @@ import { todayIso } from '@/data/ids';
 import { useActiveWorkoutStore } from '@/features/gym/active-workout-store';
 import { usePlan } from '@/features/plan/queries';
 import { Badge, Button, Card, radius, Screen, spacing, Text, useTheme } from '@/ui';
+import { TabTitle } from '@/features/profile/profile-button';
 
 /** Clearly invented numbers: the preview shows what the statistics look like, never user data. */
 const EXAMPLE_SETS = [
@@ -44,7 +45,7 @@ export function GymPreviewScreen() {
     : undefined;
 
   return (
-    <Screen title={t('gymAddon.title')}>
+    <Screen header={<TabTitle title={t('gymAddon.title')} />}>
       <Text tone="secondary">{t('gymAddon.tagline')}</Text>
 
       {plannedToday ? (

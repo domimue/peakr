@@ -17,9 +17,8 @@
     "today": "Today",
     "plan": "Plan",
     "gym": "Gym",
-    "insights": "Insights",
-    "profile": "Profile",
-    "body": "Body"
+    "body": "Body",
+    "nutrition": "Nutrition"
   },
   "plan": {
     "title": "Your plan",
@@ -229,7 +228,8 @@
     "openInCalendar": "Open in calendar",
     "views": {
       "weeks": "Weeks",
-      "calendar": "Calendar"
+      "calendar": "Calendar",
+      "history": "History"
     },
     "difficulty": {
       "title": "Difficulty",
@@ -361,7 +361,17 @@
     "privacy": "Privacy",
     "accountGroup": "Account & privacy",
     "signIn": "Sign in",
-    "theme": "Theme"
+    "theme": "Theme",
+    "open": "Profile and settings",
+    "personal": {
+      "title": "Personal data",
+      "hint": "Used by your plan (age, heart-rate estimate) and by the Body add-on (energy). One profile – nothing is asked twice."
+    },
+    "you": "You",
+    "goalAndPlan": "Goal & plan",
+    "subscriptionGroup": "Subscription & settings",
+    "notSignedIn": "Not signed in yet",
+    "connectionsGroup": "Strava & watch"
   },
   "dev": {
     "planPreview": {
@@ -1101,7 +1111,9 @@
     },
     "fromPlan": "Plan: {{goal}}",
     "bestsAllTime": "Personal bests · all plans",
-    "lifetimeAllPlans": "Lifetime · all plans"
+    "lifetimeAllPlans": "Lifetime · all plans",
+    "records": "Records",
+    "sessionsTab": "Sessions"
   },
   "comingSoon": {
     "label": "Coming soon",
@@ -2579,6 +2591,10 @@
       "policy": "Privacy policy",
       "delete": "Delete account",
       "deleteHint": "Removes your account and all its data for good."
+    },
+    "title": "Settings",
+    "groups": {
+      "app": "App"
     }
   },
   "bodyAddon": {
@@ -3433,5 +3449,19 @@
     "difficultyTake": "Use {{to}}",
     "difficultyKeep": "Keep mine",
     "doctor": "If the pain or discomfort persists, talk to a doctor."
+  },
+  "nutrition": {
+    "soon": {
+      "title": "Food diary and energy targets",
+      "body": "Log food, see today’s energy next to your training, and get targets that follow your plan. This arrives with the Body add-on."
+    }
+  },
+  "bodyTab": {
+    "health": "Health",
+    "tracking": "Weight & body",
+    "soon": {
+      "title": "Weight, measurements and progress photos",
+      "body": "Track your weight trend, body measurements and photos next to your training. This arrives with the Body add-on."
+    }
   }
 }

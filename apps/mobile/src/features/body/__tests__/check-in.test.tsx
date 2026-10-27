@@ -115,7 +115,7 @@ beforeEach(() => {
 afterEach(() => jest.restoreAllMocks());
 
 async function openCheckInSection() {
-  await renderWithQuery(<BodyScreen initial="checkIn" />);
+  await renderWithQuery(<BodyScreen focus="checkIn" />);
   return screen.findByTestId('body-check-in');
 }
 

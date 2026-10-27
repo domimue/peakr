@@ -61,13 +61,16 @@ export function mergeProfile(
     : { values, missing: [...new Set(result.issues.map((i) => i.field))], profile: null };
 }
 
-/** Only read where the add-on shows real data (the guard's `canRead`). */
-export function useBodyProfile() {
+/**
+ * Only read where the add-on shows real data (the guard's `canRead`) – or with `always` for
+ * Profile → Personal data, where the shared values are the user's own regardless of the add-on.
+ */
+export function useBodyProfile({ always = false }: { always?: boolean } = {}) {
   const userId = useSessionStore(selectAccountUserId);
   const guard = useEntitlement('body_nutrition');
   return useQuery({
     queryKey: [...bodyProfileKey, userId],
-    enabled: guard.canRead,
+    enabled: always || guard.canRead,
     queryFn: async (): Promise<BodyProfileState> => {
       const stored = await repo.getProfile();
       const remote = await repo.fetchRemoteProfile(userId).catch(() => ({}));

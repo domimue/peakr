@@ -19,7 +19,7 @@ import { AddFoodScreen } from '../food/screens/add-food-screen';
 import { FoodDetailScreen } from '../food/screens/food-detail-screen';
 import { RecipeScreen } from '../food/screens/recipe-screen';
 import { ScanScreen } from '../food/screens/scan-screen';
-import { BodyScreen } from '../screens/body-screen';
+import { NutritionScreen } from '../screens/nutrition-screen';
 
 jest.mock('@/data/repositories/plan-repository');
 jest.mock('@/data/repositories/billing-repository');
@@ -330,7 +330,7 @@ describe('diary', () => {
         createdAt: 'x',
       },
     ];
-    await renderWithQuery(<BodyScreen />);
+    await renderWithQuery(<NutritionScreen />);
     const breakfast = await screen.findByTestId('meal-breakfast');
     expect(breakfast).toBeOnTheScreen();
     await fireEvent.press(screen.getAllByText('Copy from yesterday')[0] as never);
@@ -371,7 +371,7 @@ describe('diary', () => {
       input,
       state: { plan: r.value, status: {}, pauses: [], revision: 0 },
     };
-    await renderWithQuery(<BodyScreen />);
+    await renderWithQuery(<NutritionScreen />);
     expect(await screen.findByTestId('body-added-back')).toHaveTextContent(
       /Your ride today: \+\d+ kcal/,
     );
