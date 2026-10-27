@@ -18,7 +18,7 @@ import {
 import { readDeviceHealth } from './read-device';
 import { syncGarminHealth } from './sync';
 
-/** TanStack Query hooks of the health data (Insights → Health). */
+/** TanStack Query hooks of the health data (Body → Health). */
 
 export const healthKeys = {
   all: ['health'] as const,

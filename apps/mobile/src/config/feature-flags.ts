@@ -30,7 +30,7 @@ export const featureFlags = {
    */
   garminPersonalKey: true,
   /**
-   * Developer only: Insights → Health → settings links to a diagnostics screen with the last call
+   * Developer only: Body → Health → settings links to a diagnostics screen with the last call
    * per Garmin endpoint (status, record count, error) and the values per source on the device.
    */
   healthDiagnostics: false,

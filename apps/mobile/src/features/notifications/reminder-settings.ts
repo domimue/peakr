@@ -1,5 +1,5 @@
 /**
- * Daily workout reminder settings (Profile → Notifications; CLAUDE.md "Account & notifications"):
+ * Daily workout reminder settings (Settings → Notifications; CLAUDE.md "Account & notifications"):
  * on by default at 07:00 local time, changeable or off; the weather line is merged into the same
  * push. Stored on the device and mirrored to `notification_settings` with the device time zone.
  */

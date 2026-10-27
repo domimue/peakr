@@ -116,7 +116,7 @@ What the add-on reads and from where (the priority is in CLAUDE.md "Energy & bod
   release (Android first); the identifiers are listed in `health.ios.ts`.
 - **Garmin**: body composition (`bodyComps`: weight, body fat, muscle mass) and daily energy
   (`dailies`: `activeKilocalories`, now also `bmrKilocalories` → `resting_kcal`) through the
-  existing health sync – as long as the user switched on the matching groups in Insights →
+  existing health sync – as long as the user switched on the matching groups in Body →
   Health. Check `bmrKilocalories` against the current Garmin Health API docs together with the
   other fields in `docs/health-garmin.md`. Garmin has no nutrition; intake comes from the diary
   or Health Connect only.

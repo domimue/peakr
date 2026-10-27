@@ -20,7 +20,7 @@ const SUBSCRIPTIONS_URL =
     ? 'https://apps.apple.com/account/subscriptions'
     : 'https://play.google.com/store/account/subscriptions';
 
-/** Profile → Account: who is signed in, sync state, sign out, delete account. */
+/** Settings → Account: who is signed in, sync state, sign out, delete account. */
 export function AccountScreen() {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();

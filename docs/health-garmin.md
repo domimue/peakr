@@ -1,6 +1,6 @@
 # Health data from Garmin (Phase 9d)
 
-Insights → Health shows the body and recovery data the watch records, compared with the user's own
+Body → Health shows the body and recovery data the watch records, compared with the user's own
 history. This page is the API report, what ships and what is switched off, and what you do in
 Garmin Connect and the Garmin developer portal.
 
@@ -107,7 +107,7 @@ labels it "Developer". It is for you and early testers on your own accounts, nev
 | Tables `health_consents`, `health_daily` (encrypted values), `health_sync_state`; `integrations.credential_mode`; pull every 2 h | `supabase/migrations/20261028000000_health.sql` |
 | Edge Function `garmin-health` (status, connect/disconnect key, consent, sync, cron, list, delete, probe) and push route `watch-webhook/garmin-health` | `supabase/functions/` |
 | Health Connect as the second source (last 30 days, only the switched-on groups, values stay on the phone, Garmin wins on the same day) | `apps/mobile/src/features/health/` |
-| Insights tab (Health · Training · Records), overview, detail per metric, sleep, resting HR / HRV with hard sessions, body composition, settings, Today's recovery line | `apps/mobile/src/features/insights/` |
+| Body tab → Health (Training history and Records are in Plan → History), overview, detail per metric, sleep, resting HR / HRV with hard sessions, body composition, settings, Today's recovery line | `apps/mobile/src/features/insights/` |
 
 Rules kept: values are compared only with the user's own history; no text names a condition or
 says someone is ill (a test scans every Health string); "if this keeps up, talk to a doctor"
@@ -135,7 +135,7 @@ data yet.
    `supabase functions deploy garmin-health watch-webhook oauth delete-account`.
 5. The personal build (docs/personal-build.md) shows the key mode automatically (flag
    `garminPersonalKey` is on there; in a development build set it to `true` by hand). Sign in,
-   then Insights → Health → "Set up health data" → paste the key under "Developer" → switch on the
+   then Body → Health → "Set up health data" → paste the key under "Developer" → switch on the
    groups → Save. The backfill runs in the background ("Fetching your older data").
 6. Send me the output of `GET /functions/v1/garmin-health/probe?date=<yesterday>` (with your user
    JWT) or of `gc-personal daily-summaries / sleep-summaries / hrv-summaries / weight-measurements`

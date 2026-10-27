@@ -7,21 +7,15 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 ## Open
 
-- Prompt 3 – Navigation and screens (2026-10-27): tabs Today/Plan/Gym/Nutrition/Body with profile
-  icon top right (Profile + Settings), Today shows one day, weekly volume per sport, workout types
-  screen, Strava route preview, congratulation push, Body screen design + change colour scale;
-  CLAUDE.md updates. Plan approved, in `.claude/plans/navigation-screens.md`. Steps:
-  - [x] 1 theme + engine building blocks
-  - [x] 2 navigation (tabs, profile icon, profile/settings, Plan → History, Body/Nutrition)
-  - [x] 3 Today shows one day
-  - [x] 4 weekly volume per sport
-  - [x] 5 workout types screen
-  - [x] 6 Strava route preview
-  - [x] 7 congratulation push
-  - [x] 8 Body design + coach
-  - [ ] 9 CLAUDE.md + report
+(empty)
 
 ## Done
+
+- Prompt 3 – Navigation and screens (2026-10-27): tabs Today/Plan/Gym/Nutrition/Body with the
+  profile icon on every screen, Profile vs. Settings, Plan → History, Today as one day, weekly
+  volume per sport, workout types rows, Strava route preview, congratulation push, Body tiles /
+  change colours / measurements table, coach in Nutrition, chart colours; CLAUDE.md updated;
+  nothing to set up (no migrations); Maestro flows updated but not run here (no emulator)
 
 - New plan without a new account (2026-10-27): weekly session mix (threshold/VO2 rotation), plan
   archive with outcome and same-day undo, Insights "This plan / All time", badges, Plan history

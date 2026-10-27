@@ -121,7 +121,7 @@ afterEach(() => {
   useSessionStore.setState({ session: null, isAnonymous: false });
 });
 
-describe('Insights → Health overview', () => {
+describe('Body → Health overview', () => {
   it('shows the values against the own baseline', async () => {
     history('resting_hr', 50, 30, 58);
     history('sleep_duration', 450, 5, 440, {

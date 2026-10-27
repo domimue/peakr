@@ -504,7 +504,7 @@ export const bodyTargetChanges = sqliteTable('body_target_changes', {
 });
 
 // Body values from the phone's health store (Health Connect / HealthKit), read only while the
-// add-on is active and kept on this device. Separate from `health_daily` (Insights → Health has
+// add-on is active and kept on this device. Separate from `health_daily` (Body → Health has
 // its own consent per data group).
 export const bodyDeviceDaily = sqliteTable(
   'body_device_daily',

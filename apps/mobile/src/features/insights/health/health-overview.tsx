@@ -18,7 +18,7 @@ import { isConnected, metricState, periodStart, type MetricState, type Sources }
 export const healthHref = (metric: string) => `/health/${metric}` as const;
 
 /**
- * Insights → Health overview: one tile per metric with today's value (or the latest recent one),
+ * Body → Health overview: one tile per metric with today's value (or the latest recent one),
  * how it compares to the user's own baseline, the trend, and when and where it was recorded.
  * Metrics without a value say why. Nothing here interprets a value medically.
  */

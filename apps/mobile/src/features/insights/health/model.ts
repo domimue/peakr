@@ -16,7 +16,7 @@ import type { HealthStatus } from '@/features/health-data/api';
 import { METRIC_META } from './metrics';
 
 /**
- * View model of Insights → Health: per metric either today's (or the latest recent) value with
+ * View model of Body → Health: per metric either today's (or the latest recent) value with
  * the user's own baseline, or the concrete reason why there is nothing to show. Pure, so the
  * screens stay thin and this is tested on its own.
  */
