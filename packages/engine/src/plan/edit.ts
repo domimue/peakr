@@ -582,12 +582,15 @@ export function setWorkoutRoute(
 // ---------------------------------------------------------------------------------------------
 // Regenerate (new availability, resume)
 
-/** First day a regeneration may replace: today, or tomorrow if something was done today. */
+/** First day a regeneration may replace: today (tomorrow if something was done today), at the earliest the plan's start. */
 export function regenerationStart(state: PlanState, today: string): string {
   const doneToday = allWorkouts(state.plan).some(
     (w) => w.date === today && statusOf(state, w.id) === 'done',
   );
-  return doneToday ? toIsoDate(day(today) + 1) : today;
+  const from = doneToday ? toIsoDate(day(today) + 1) : today;
+  // A plan that has not started yet (created mid-week, it starts on Monday) is rebuilt from its
+  // first day – never from a day before it.
+  return from < state.plan.startDate ? state.plan.startDate : from;
 }
 
 /**
