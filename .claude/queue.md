@@ -7,19 +7,15 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 ## Open
 
-- Prompt 4 – Recipes and portions in food logging (2026-10-27): recipes with photo, note,
-  ingredients from search / barcode / recents / favourites / by hand, portions and optional cooked
-  weight, live totals and per portion; log by portion or grams; edit, duplicate, scale; edits never
-  rewrite logged days (ask, default keep); delete keeps entries; offline, OFF rules, Health write.
-  Plan approved: `.claude/plans/recipes.md`. Steps:
-  - [x] 1 engine
-  - [x] 2 repository, JSON format, photo sync, search
-  - [x] 3 draft store + ingredient mode in add / scan / form / detail
-  - [x] 4 recipe editor
-  - [x] 5 recipe detail: log, duplicate, scale, delete, ask on edit
-  - [ ] 6 tests, docs, report
+(empty)
 
 ## Done
+
+- Prompt 4 – Recipes and portions (2026-10-27): engine recipe maths (totals, per portion, cooked
+  weight, units, scaling, relog), recipe editor with photo / note / ingredients through the same
+  search, scanner, favourites and manual entry, log by portion or grams, "My recipes" filter,
+  edit / duplicate / scale / delete, logged days kept unless chosen; CLAUDE.md + docs updated;
+  nothing to set up (no migration)
 
 - Prompt 3 – Navigation and screens (2026-10-27): tabs Today/Plan/Gym/Nutrition/Body with the
   profile icon on every screen, Profile vs. Settings, Plan → History, Today as one day, weekly
