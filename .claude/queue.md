@@ -7,7 +7,8 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 ## Open
 
-(empty)
+- Sessions per discipline (2026-10-27): quiz asks how many sessions per week per discipline before the
+  daily availability; skippable → Peakr suggests; engine plans that many; editable later.
 
 ## Done
 
