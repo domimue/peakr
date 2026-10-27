@@ -1,9 +1,12 @@
 import { useTranslation } from 'react-i18next';
 import { Pressable, StyleSheet, View } from 'react-native';
 
-import { numeric, spacing, Text, useTheme } from '@/ui';
+import type { FoodItem } from '@/data/repositories/body-repository';
+import { Badge, numeric, spacing, Text, useTheme } from '@/ui';
 
-/** One food in a list: name, brand, energy per 100 g / ml. */
+import { isRecipe, summaryOf } from '../recipes';
+
+/** One food in a list: name, brand, energy per 100 g / ml (or another line, e.g. per portion). */
 export function FoodRow({
   name,
   brand,
@@ -11,6 +14,8 @@ export function FoodRow({
   basis,
   onPress,
   testID,
+  badge,
+  detail,
 }: {
   name: string;
   brand: string | null;
@@ -18,6 +23,9 @@ export function FoodRow({
   basis: 'g' | 'ml';
   onPress: () => void;
   testID?: string;
+  badge?: string;
+  /** Replaces "… kcal / 100 g" (recipes: per portion). */
+  detail?: string;
 }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
@@ -40,10 +48,37 @@ export function FoodRow({
           </Text>
         ) : null}
       </View>
+      {badge ? <Badge label={badge} /> : null}
       <Text tone="secondary" style={numeric}>
-        {t('bodyAddon.food.per100', { kcal: Math.round(kcal), basis })}
+        {detail ?? t('bodyAddon.food.per100', { kcal: Math.round(kcal), basis })}
       </Text>
     </Pressable>
+  );
+}
+
+/** A stored food or recipe as a row: recipes with their badge and kcal per portion. */
+export function FoodItemRow({
+  item,
+  onPress,
+  testID,
+}: {
+  item: FoodItem;
+  onPress: () => void;
+  testID?: string;
+}) {
+  const { t } = useTranslation();
+  const s = isRecipe(item) ? summaryOf(item.recipe) : null;
+  return (
+    <FoodRow
+      name={item.name}
+      brand={item.brand}
+      kcal={item.kcal}
+      basis={item.basis}
+      onPress={onPress}
+      testID={testID ?? `food-row-${item.id}`}
+      badge={isRecipe(item) ? t('bodyAddon.recipes.badge') : undefined}
+      detail={s ? t('bodyAddon.recipes.perPortionShort', { kcal: s.perPortion.kcal }) : undefined}
+    />
   );
 }
 

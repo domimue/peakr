@@ -14,9 +14,9 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
   Plan approved: `.claude/plans/recipes.md`. Steps:
   - [x] 1 engine
   - [x] 2 repository, JSON format, photo sync, search
-  - [ ] 3 draft store + ingredient mode in add / scan / form / detail
-  - [ ] 4 recipe editor
-  - [ ] 5 recipe detail: log, duplicate, scale, delete, ask on edit
+  - [x] 3 draft store + ingredient mode in add / scan / form / detail
+  - [x] 4 recipe editor
+  - [x] 5 recipe detail: log, duplicate, scale, delete, ask on edit
   - [ ] 6 tests, docs, report
 
 ## Done

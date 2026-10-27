@@ -217,3 +217,17 @@ There is nothing new to set up: no migration and no new native module.
 - **Add-on paywall:** shows the same feature list.
 - **Entry points to the add-on paywall:** the locked Body tab, the "Energy today" card, the coach teaser, and Profile → Subscription.
 - **Trend fix (engine):** one far weigh-in still moves the trend by at most 2 %, but a second one in a row on the same side now counts in full. Before, a steady loss faster than about 1.4 % a week was hidden behind the cap, so the too-fast-loss warning could never fire.
+
+## 13. Recipes and portions
+
+Nothing to set up: no migration, no new bucket.
+
+- A recipe is a `body_foods` row with `kind = 'recipe'`; the new fields (ingredient units,
+  note, photo path) live in its `recipe` JSON (`StoredRecipe`), which already syncs.
+- The optional photo goes into the existing private bucket `body-photos` under
+  `<user id>/recipes/<recipe id>.<ext>` – the folder-per-user policies of that bucket cover it.
+  It is copied on the device first (offline) and uploaded by the next sync; the server JSON only
+  holds its storage path (`photoPath`).
+- Diary entries keep the values they were logged with. Only when the user picks "Also update the
+  logged entries" after an edit are they recomputed (`relogEntry`) and written to the health
+  store again (same record id, so it replaces the old one).

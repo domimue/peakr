@@ -8,6 +8,7 @@ import type { FoodItem } from '@/data/repositories/body-repository';
 import type { Meal } from '@/features/body/meals';
 import { Button, ListState, Screen, SegmentedControl, spacing, Text, TextField } from '@/ui';
 
+import { flowParams, type FoodMode } from '../flow';
 import { useFoodItem, useSaveFoodItem } from '../queries';
 
 const parse = (s: string) => {
@@ -25,15 +26,17 @@ export function FoodFormScreen({
   barcode,
   meal,
   day,
+  mode = 'log',
 }: {
   id?: string;
   barcode?: string;
   meal: Meal;
   day: string;
+  mode?: FoodMode;
 }) {
   const food = useFoodItem(id);
   if (id && food.isPending) return <ListState kind="loading" label="…" />;
-  return <Form base={food.data ?? null} barcode={barcode} meal={meal} day={day} />;
+  return <Form base={food.data ?? null} barcode={barcode} meal={meal} day={day} mode={mode} />;
 }
 
 function Form({
@@ -41,11 +44,13 @@ function Form({
   barcode,
   meal,
   day,
+  mode,
 }: {
   base: FoodItem | null;
   barcode?: string;
   meal: Meal;
   day: string;
+  mode: FoodMode;
 }) {
   const { t } = useTranslation();
   const save = useSaveFoodItem();
@@ -163,7 +168,10 @@ function Form({
             },
             {
               onSuccess: (item) =>
-                router.replace({ pathname: '/body/food/[id]', params: { id: item.id, meal, day } }),
+                router.replace({
+                  pathname: '/body/food/[id]',
+                  params: { id: item.id, ...flowParams(meal, day, mode) },
+                }),
             },
           )
         }

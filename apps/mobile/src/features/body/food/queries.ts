@@ -1,9 +1,12 @@
 import {
   amountOf,
   nutrientsFor,
+  recipeServing,
+  relogEntry,
   type FoodData,
   type OffFood,
   type PortionChoice,
+  type RecipeServing,
 } from '@peakr/engine';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
@@ -14,6 +17,8 @@ import { useEntitlement } from '@/features/billing/billing-store';
 import { assertCanWrite, bodyKeys } from '../queries';
 import { syncEntryToHealth } from './health-nutrition';
 import { cacheOffResult, lookupBarcode, searchOff } from './off-client';
+import { recipeFoodColumns, summaryOf } from './recipes';
+import type { DraftIngredient, DraftPhoto } from './recipe-draft';
 
 /**
  * Food database hooks. Reads need the guard's `canRead`, writes `canWrite` (like every Body
@@ -43,13 +48,15 @@ export interface SearchResults {
   online: OffFood[] | null;
 }
 
-export function useFoodSearch(query: string) {
+/** Search; `recipes` limits it to the user's recipes ("My recipes", no Open Food Facts). */
+export function useFoodSearch(query: string, recipes = false) {
   const guard = useEntitlement('body_nutrition');
   return useQuery({
-    queryKey: foodKeys.search(query),
+    queryKey: [...foodKeys.search(query), recipes ? 'recipes' : 'all'],
     enabled: guard.canRead && query.trim().length > 0,
     queryFn: async (): Promise<SearchResults> => {
-      const local = await repo.searchFoodItems(query);
+      const local = await repo.searchFoodItems(query, 30, recipes ? 'recipe' : undefined);
+      if (recipes) return { local, online: [] };
       const online = await searchOff(query);
       const known = new Set(local.map((f) => f.barcode).filter(Boolean));
       return { local, online: online && online.filter((f) => !known.has(f.barcode)) };
@@ -123,3 +130,95 @@ export const useLogFood = () =>
     await syncEntryToHealth(entry);
     return entry;
   });
+
+/** Logs a recipe: a number of portions, or grams of the weighed dish. */
+export const useLogRecipe = () =>
+  useFoodWrite(
+    async (v: {
+      food: FoodItem;
+      serving: RecipeServing;
+      day: string;
+      meal: Meal;
+      portionLabel: string;
+    }) => {
+      const s = summaryOf(v.food.recipe);
+      const n = s && recipeServing(s, v.serving);
+      if (!n) throw new Error('invalid serving');
+      const entry = await repo.addFood({
+        day: v.day,
+        meal: v.meal,
+        name: v.food.name,
+        ...n,
+        foodId: v.food.id,
+        ...('portions' in v.serving
+          ? { amount: v.serving.portions, unit: 'portion' as const, portionLabel: v.portionLabel }
+          : { amount: v.serving.grams, unit: 'g' as const, portionLabel: null }),
+      });
+      await syncEntryToHealth(entry);
+      return entry;
+    },
+  );
+
+export interface RecipeSave {
+  id: string | null;
+  name: string;
+  note: string;
+  photo: DraftPhoto;
+  ingredients: readonly DraftIngredient[];
+  portions: number;
+  cookedWeightG: number | null;
+  /**
+   * Entries already logged keep the values they were logged with. Only when the user chose
+   * "update them too" are they recomputed with the new recipe.
+   */
+  updateLogged?: boolean;
+}
+
+/** Saves a recipe (new or edited); returns it with the number of entries recomputed. */
+export const useSaveRecipe = () =>
+  useFoodWrite(async (v: RecipeSave) => {
+    const recipe = {
+      ingredients: v.ingredients.map(({ key: _k, ...i }) => i),
+      servings: v.portions,
+      totalWeightG: v.cookedWeightG,
+      note: v.note.trim() || null,
+      photo: v.photo.kind === 'saved' ? v.photo.photo : null,
+    };
+    const s = summaryOf(recipe);
+    if (!s) throw new Error('empty recipe');
+    const item = await repo.saveFoodItem(
+      {
+        id: v.id ?? undefined,
+        kind: 'recipe',
+        name: v.name.trim(),
+        brand: null,
+        barcode: null,
+        ...recipeFoodColumns(s),
+        recipe,
+      },
+      v.photo.kind === 'picked' ? v.photo.uri : v.photo.kind === 'removed' ? null : undefined,
+    );
+    let updated = 0;
+    if (v.id && v.updateLogged) {
+      const changes = (await repo.entriesOfFood(v.id)).flatMap((e) => {
+        const n = relogEntry(e, s);
+        return n ? [{ id: e.id, ...n }] : [];
+      });
+      const entries = await repo.updateEntryValues(changes);
+      for (const e of entries) await syncEntryToHealth(e);
+      updated = entries.length;
+    }
+    return { item, updated };
+  });
+
+/** How many diary entries were logged from a food (for the question when editing a recipe). */
+export function useLoggedCount(id: string | null) {
+  return useQuery({
+    queryKey: ['body', 'foods', 'logged', id ?? ''],
+    enabled: Boolean(id),
+    queryFn: async () => (await repo.entriesOfFood(id ?? '')).length,
+  });
+}
+
+export const useDuplicateFoodItem = () =>
+  useFoodWrite((v: { id: string; name: string }) => repo.duplicateFoodItem(v.id, v.name));

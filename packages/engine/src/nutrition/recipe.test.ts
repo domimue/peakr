@@ -18,6 +18,13 @@ const egg: FoodData = {
   pieceAmount: 60,
   portions: [{ label: '1 box', amount: 600 }],
 };
+/** The summary of a recipe that must add up (fails the test otherwise). */
+function sum(input: Parameters<typeof recipeSummary>[0]) {
+  const s = recipeSummary(input);
+  if (!s) throw new Error('expected a recipe');
+  return s;
+}
+
 const milk: FoodData = { basis: 'ml', per100: { kcal: 64, proteinG: 3.4, carbsG: 4.8, fatG: 3.5 } };
 
 describe('recipe summary', () => {
@@ -53,7 +60,7 @@ describe('recipe summary', () => {
 });
 
 describe('servings', () => {
-  const s = recipeSummary({ ingredients: [pasta, sauce], portions: 4, cookedWeightG: 1200 })!;
+  const s = sum({ ingredients: [pasta, sauce], portions: 4, cookedWeightG: 1200 });
 
   it('by portions: one, a half, one and a half', () => {
     expect(recipeServing(s, { portions: 1 })?.kcal).toBe(410);
@@ -67,16 +74,14 @@ describe('servings', () => {
   it('by weight of the cooked dish: 380 g of 1,200 g', () => {
     expect(recipeServing(s, { grams: 380 })?.kcal).toBe(Math.round((1640 * 380) / 1200));
     expect(recipeServing(s, { grams: 0 })).toBeNull();
-    const unweighed = recipeSummary({ ingredients: [pasta], portions: 2 })!;
+    const unweighed = sum({ ingredients: [pasta], portions: 2 });
     expect(recipeServing(unweighed, { grams: 380 })).toBeNull();
   });
 
   it('the grams of a serving', () => {
     expect(servingGrams(s, { portions: 1.5 })).toBe(450);
     expect(servingGrams(s, { grams: 380 })).toBe(380);
-    expect(
-      servingGrams(recipeSummary({ ingredients: [pasta], portions: 2 })!, { portions: 1 }),
-    ).toBe(null);
+    expect(servingGrams(sum({ ingredients: [pasta], portions: 2 }), { portions: 1 })).toBe(null);
   });
 });
 
@@ -122,8 +127,8 @@ describe('scaling', () => {
     ]);
     expect(doubled.portions).toBe(8);
     expect(doubled.cookedWeightG).toBe(2400);
-    const a = recipeSummary(recipe)!;
-    const b = recipeSummary(doubled)!;
+    const a = sum(recipe);
+    const b = sum(doubled);
     expect(b.perPortion).toEqual(a.perPortion);
     expect(b.portionG).toBe(a.portionG);
     expect(scaleRecipe({ ...recipe, cookedWeightG: null }, 0.5).cookedWeightG).toBeNull();
@@ -132,12 +137,12 @@ describe('scaling', () => {
 });
 
 describe('relogging an entry after an edit (only when chosen)', () => {
-  const before = recipeSummary({ ingredients: [pasta, sauce], portions: 4, cookedWeightG: 1200 })!;
-  const after = recipeSummary({
+  const before = sum({ ingredients: [pasta, sauce], portions: 4, cookedWeightG: 1200 });
+  const after = sum({
     ingredients: [pasta, { ...sauce, amount: 400 }],
     portions: 4,
     cookedWeightG: 1000,
-  })!;
+  });
 
   it('portions and grams are recomputed with the new recipe', () => {
     expect(relogEntry({ unit: 'portion', amount: 1 }, before)?.kcal).toBe(410);

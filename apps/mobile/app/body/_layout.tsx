@@ -47,7 +47,7 @@ export default function BodyLayout() {
       <Stack.Screen name="food/scan" options={{ title: t('bodyAddon.food.scan') }} />
       <Stack.Screen name="food/[id]" options={{ title: t('bodyAddon.food.portionTitle') }} />
       <Stack.Screen name="food/new" options={{ title: t('bodyAddon.food.createFood') }} />
-      <Stack.Screen name="food/recipe" options={{ title: t('bodyAddon.food.createRecipe') }} />
+      <Stack.Screen name="food/recipe" options={{ title: t('bodyAddon.recipes.title') }} />
     </Stack>
   );
 }
