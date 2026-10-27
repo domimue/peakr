@@ -819,177 +819,202 @@
       "run.easy": {
         "name": "Easy run",
         "short": "Relaxed, conversational running",
-        "description": "Running at a pace where you can still hold a conversation – heart rate in Zone 2 (Zone 1 for recovery runs). Some easy runs end with strides: 15–20 seconds of relaxed, quick running.",
+        "description": "Keep the heart rate in Zone 2 (Zone 1 for recovery runs) and let the pace follow. Some easy runs end with strides: 15–20 seconds of relaxed, quick running.",
         "why": "Builds your aerobic base, strengthens muscles and tendons and helps you recover. Most of your running should be easy.",
-        "intensity": "Zone 1–2 · effort 3–4/10"
+        "intensity": "Zone 1–2 · effort 3–4/10",
+        "chip": "Z1–2 · 3–4/10"
       },
       "run.long": {
         "name": "Long run",
         "short": "Your longest run of the week, at an easy effort",
-        "description": "A steady run clearly longer than your other runs, mostly in Zone 2. Go slower than you think – time on your feet counts, not pace.",
+        "description": "Clearly longer than your other runs and mostly in Zone 2. Go slower than you think – time on your feet counts, not pace.",
         "why": "Improves endurance and fat burning and gets body and mind ready for longer races.",
-        "intensity": "Zone 2 · effort 4/10"
+        "intensity": "Zone 2 · effort 4/10",
+        "chip": "Z2 · 4/10"
       },
       "run.tempo": {
         "name": "Tempo run",
         "short": "Comfortably hard, sustained running",
-        "description": "After a warm-up you run one long block – or a few shorter ones – at threshold or race pace. Progression runs that get faster towards the end belong here too.",
+        "description": "After a warm-up, one long block – or a few shorter ones – at threshold or race pace. Progression runs that get faster towards the end belong here too.",
         "why": "Raises the pace you can hold for a long time – the key for 10 km up to the marathon.",
-        "intensity": "Zone 3–4 · effort 6–7/10"
+        "intensity": "Zone 3–4 · effort 6–7/10",
+        "chip": "Z3–4 · 6–7/10"
       },
       "run.intervals": {
         "name": "Intervals",
         "short": "Fast repeats with easy recoveries",
-        "description": "Repeats of about 1–5 minutes at a hard effort – or a playful fartlek – with easy jogging in between, always with a proper warm-up and cool-down.",
+        "description": "Repeats of about 1–5 minutes – or a playful fartlek – with easy jogging in between, always after a proper warm-up.",
         "why": "Improves your VO₂max, speed and running economy.",
-        "intensity": "Zone 4–5 · effort 8–9/10"
+        "intensity": "Zone 4–5 · effort 8–9/10",
+        "chip": "Z4–5 · 8–9/10"
       },
       "run.hills": {
         "name": "Hills",
         "short": "Uphill repeats and hilly terrain",
         "description": "Short or long climbs run hard with easy recoveries on the way down – or steady hiking and running on steep terrain, plus downhill technique.",
         "why": "Builds strength, power and running form with less impact than fast flat running, and prepares you for hilly races.",
-        "intensity": "Zone 3–5 · effort 6–9/10"
+        "intensity": "Zone 3–5 · effort 6–9/10",
+        "chip": "Z3–5 · 6–9/10"
       },
       "run.test": {
         "name": "Test run",
         "short": "A benchmark that calibrates your zones",
         "description": "A time trial – e.g. 5 km or 30 minutes – at the best effort you can sustain. Your result updates your paces and zones.",
         "why": "Keeps your training targets right as you get fitter.",
-        "intensity": "Maximal effort"
+        "intensity": "Maximal effort",
+        "chip": "Max"
       },
       "bike.easy": {
         "name": "Easy ride",
         "short": "Relaxed endurance riding",
-        "description": "Steady riding in Zone 2 at a cadence that feels smooth. Recovery rides and bike commutes count as easy rides too.",
+        "description": "Zone 2 at a cadence that feels smooth. Recovery rides and bike commutes count here too.",
         "why": "Builds aerobic endurance with very little stress on your legs.",
-        "intensity": "Zone 1–2 · effort 3–4/10"
+        "intensity": "Zone 1–2 · effort 3–4/10",
+        "chip": "Z1–2 · 3–4/10"
       },
       "bike.long": {
         "name": "Long ride",
         "short": "Your longest ride of the week",
-        "description": "Hours in the saddle at an easy, steady effort. A good time to practise eating and drinking on the bike.",
+        "description": "Hours at an easy, steady effort – a good time to practise eating and drinking on the bike.",
         "why": "Builds endurance for long events like a gran fondo or a triathlon.",
-        "intensity": "Zone 2 · effort 4/10"
+        "intensity": "Zone 2 · effort 4/10",
+        "chip": "Z2 · 4/10"
       },
       "bike.tempo": {
         "name": "Tempo ride",
         "short": "Steady, moderately hard riding",
         "description": "Longer blocks at an effort that needs focus but stays under control.",
         "why": "Raises the power you can sustain on long rides.",
-        "intensity": "Zone 3 · effort 6/10"
+        "intensity": "Zone 3 · effort 6/10",
+        "chip": "Z3 · 6/10"
       },
       "bike.threshold": {
         "name": "Threshold ride",
         "short": "Sweet spot and threshold blocks",
         "description": "Blocks of about 8–20 minutes just below or at your threshold (FTP) with short recoveries.",
         "why": "The most time-efficient way to lift your FTP.",
-        "intensity": "Zone 3–4 · effort 7–8/10"
+        "intensity": "Zone 3–4 · effort 7–8/10",
+        "chip": "Z3–4 · 7–8/10"
       },
       "bike.intervals": {
         "name": "Intervals",
         "short": "Hard efforts of a few minutes",
         "description": "Repeats of about 2–5 minutes well above threshold with equally long recoveries.",
         "why": "Improves your VO₂max and your ability to handle surges and short climbs.",
-        "intensity": "Zone 5 · effort 9/10"
+        "intensity": "Zone 5 · effort 9/10",
+        "chip": "Z5 · 9/10"
       },
       "bike.hills": {
         "name": "Climbing ride",
         "short": "Sustained climbs",
         "description": "Seated and standing efforts on climbs – or high resistance on the indoor trainer.",
         "why": "Builds climbing strength and teaches you to pace long ascents.",
-        "intensity": "Zone 3–4 · effort 6–8/10"
+        "intensity": "Zone 3–4 · effort 6–8/10",
+        "chip": "Z3–4 · 6–8/10"
       },
       "bike.technique": {
         "name": "Cadence drills",
         "short": "Smooth, fast pedalling",
         "description": "Easy riding with blocks of high and low cadence.",
         "why": "Makes your pedalling more efficient and coordinated.",
-        "intensity": "Zone 2 · effort 4/10"
+        "intensity": "Zone 2 · effort 4/10",
+        "chip": "Z2 · 4/10"
       },
       "bike.test": {
         "name": "FTP test",
         "short": "A benchmark for your power zones",
         "description": "A 20-minute all-out effort after a thorough warm-up; about 95 % of the average power is your FTP.",
         "why": "Keeps your power and heart-rate targets right.",
-        "intensity": "Maximal effort"
+        "intensity": "Maximal effort",
+        "chip": "Max"
       },
       "swim.technique": {
         "name": "Technique swim",
         "short": "Drills for a better stroke",
         "description": "Short repeats with drills for catch, kick and body position, with plenty of rest.",
         "why": "Better technique makes you faster with less effort – the biggest lever in swimming.",
-        "intensity": "Easy · effort 3–5/10"
+        "intensity": "Easy · effort 3–5/10",
+        "chip": "Easy · 3–5/10"
       },
       "swim.easy": {
         "name": "Easy swim",
         "short": "Relaxed, continuous swimming",
-        "description": "Steady swimming at a comfortable pace, a little slower than your CSS pace.",
+        "description": "A little slower than your CSS pace, without stopping.",
         "why": "Builds swim endurance and feel for the water.",
-        "intensity": "CSS + 10 s/100 m · effort 4/10"
+        "intensity": "CSS + 10 s/100 m · effort 4/10",
+        "chip": "CSS +10 s · 4/10"
       },
       "swim.threshold": {
         "name": "CSS swim",
         "short": "Repeats at threshold pace",
         "description": "Repeats of 100–400 m at your Critical Swim Speed with short rests.",
         "why": "Raises the pace you can hold over longer distances.",
-        "intensity": "CSS pace · effort 7/10"
+        "intensity": "CSS pace · effort 7/10",
+        "chip": "CSS · 7/10"
       },
       "swim.speed": {
         "name": "Speed swim",
         "short": "Short, fast repeats",
         "description": "Sprints of 25–50 m with long rests.",
         "why": "Improves top speed and the power of your stroke.",
-        "intensity": "Faster than CSS · effort 9/10"
+        "intensity": "Faster than CSS · effort 9/10",
+        "chip": "< CSS · 9/10"
       },
       "swim.openwater": {
         "name": "Open-water swim",
         "short": "Practice for lakes and the sea",
         "description": "Continuous swimming with sighting, swimming in a group and changes of pace.",
         "why": "Prepares you for race conditions without lane lines and walls.",
-        "intensity": "Easy to moderate"
+        "intensity": "Easy to moderate",
+        "chip": "Easy–moderate"
       },
       "swim.test": {
         "name": "CSS test",
         "short": "A benchmark for your swim paces",
         "description": "A 400 m and a 200 m time trial; together they give your Critical Swim Speed.",
         "why": "Sets the paces of every swim session.",
-        "intensity": "Maximal effort"
+        "intensity": "Maximal effort",
+        "chip": "Max"
       },
       "brick.brick": {
         "name": "Brick",
         "short": "Ride straight into a run",
         "description": "A ride followed immediately by a run, just like in a triathlon or duathlon.",
         "why": "Teaches your legs to run well after cycling.",
-        "intensity": "Zone 2–4"
+        "intensity": "Zone 2–4",
+        "chip": "Z2–4"
       },
       "strength.strength": {
         "name": "Strength",
         "short": "Strength training that fits your plan",
         "description": "Your strength session – the Peakr programme, your own split or your own routine. The workout lists every exercise with sets, reps and rest.",
         "why": "Makes you more robust, prevents injuries and improves running economy. Heavy leg sessions are never placed right before a key session.",
-        "intensity": "Effort 6–8/10"
+        "intensity": "Effort 6–8/10",
+        "chip": "6–8/10"
       },
       "winter.easy": {
         "name": "Winter endurance",
         "short": "Cross-country skiing, ski touring, snowshoeing",
         "description": "Easy endurance on snow that replaces a run or ride with the same training load.",
         "why": "Real training in winter – full body and low impact.",
-        "intensity": "Zone 1–2"
+        "intensity": "Zone 1–2",
+        "chip": "Z1–2"
       },
       "winter.intervals": {
         "name": "Ski intervals",
         "short": "Hard efforts on skis",
         "description": "Repeats at a hard effort on cross-country skis.",
         "why": "A strong aerobic stimulus that uses the whole body.",
-        "intensity": "Zone 4–5"
+        "intensity": "Zone 4–5",
+        "chip": "Z4–5"
       },
       "commute.commute": {
         "name": "Commute",
         "short": "Getting to work by bike, running or on foot",
         "description": "Your regular trip to work or school, one way or there and back. Ridden, run or walked at an easy effort – no pace to hit.",
         "why": "Easy minutes that build your aerobic base without extra time. They count towards your training load, so the rest of the week is planned around them.",
-        "intensity": "Zone 1–2 · effort 2–4/10"
+        "intensity": "Zone 1–2 · effort 2–4/10",
+        "chip": "Z1–2 · 2–4/10"
       }
     },
     "types": {
@@ -1002,7 +1027,9 @@
       "strength": "Strength",
       "cross": "Cross-training",
       "commute": "Commute"
-    }
+    },
+    "showAll": "Show all sports",
+    "filter": "Sports"
   },
   "today": {
     "title": "Today",
