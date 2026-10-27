@@ -161,6 +161,21 @@ describe('"Create a new plan" in the same account', () => {
     expect(newPlanInput({}, { activities: [], meta: null }, current, today)).toBeNull();
   });
 
+  it('a week the user entered as current training wins over the previous plan', () => {
+    storeCurrent();
+    const own = { ...answers, [Q.currentMode]: 'own', [Q.runWeeklyKm]: 5 };
+    const v = newPlanInput(own, { activities: [], meta: null }, mock.store.plan, today);
+    const fromHistory = newPlanInput(
+      answers,
+      { activities: [], meta: null },
+      mock.store.plan,
+      today,
+    );
+    expect(v?.profile.baseline?.weeklyMin?.run).toBeLessThan(
+      fromHistory?.profile.baseline?.weeklyMin?.run ?? 0,
+    );
+  });
+
   it('forecast → confirmation (no paywall) → the old plan is archived, its sessions kept', async () => {
     const old = storeCurrent();
     progress.store.progress = { answers, stepId: 'disclaimer', insight: false, finished: true };

@@ -11,6 +11,9 @@ import {
   requiredSports,
   SPORTS,
   suggestedSessions,
+  applyCurrentTraining,
+  currentTrainingEstimate,
+  type CurrentTraining,
   thresholdFromEasyPace,
   zoneConfig,
   type Availability,
@@ -91,6 +94,9 @@ export const QUESTION_IDS = {
   runRaceTime: 'run.raceTime',
   runEasyPace: 'run.easyPace',
   bikeHours: 'bike.hoursPerWeek',
+  currentMode: 'current.mode',
+  runWeeklyKm: 'run.weeklyKm',
+  swimWeeklyM: 'swim.weeklyM',
   runLongest: 'run.longest',
   bikeLongest: 'bike.longest',
   swimLongest: 'swim.longest',
@@ -135,6 +141,9 @@ const SESSIONS_ID = { run: Q.runSessions, bike: Q.bikeSessions, swim: Q.swimSess
 /** Easy pace entry: 3:30–12:00 per km. */
 const EASY_PACE_RANGE = { min: 210, max: 720 };
 const BIKE_HOURS_RANGE = { min: 0, max: 25 };
+/** Current training per week: km run, metres swum (hours ridden: `BIKE_HOURS_RANGE`). */
+const RUN_KM_RANGE = { min: 0, max: 200 };
+const SWIM_M_RANGE = { min: 0, max: 30_000 };
 /** Longest session of the last weeks: km for run and bike, metres for swims. */
 const LONGEST_RANGE = {
   run: { min: 1, max: 60 },
@@ -186,6 +195,26 @@ export function sportsOf(a: QuizAnswers): Sport[] {
 
 const has = (sport: Sport) => (a: QuizAnswers) => sportsOf(a).includes(sport);
 const ownSessions = (a: QuizAnswers) => str(a, Q.sessionsMode) === 'own';
+const ownCurrent = (a: QuizAnswers) => str(a, Q.currentMode) === 'own';
+
+/** Peakr's estimate of the current training for this level (the starting value of "I enter it"). */
+function estimateOf(a: QuizAnswers): CurrentTraining {
+  const experience = (str(a, Q.experience) as Experience | undefined) ?? 'beginner';
+  return currentTrainingEstimate(experience, sportsOf(a));
+}
+
+/** The current training the user entered (nothing when Peakr estimates it). */
+export function currentTrainingOf(a: QuizAnswers): CurrentTraining | undefined {
+  if (!ownCurrent(a)) return undefined;
+  const run = num(a, Q.runWeeklyKm);
+  const bike = num(a, Q.bikeHours);
+  const swim = num(a, Q.swimWeeklyM);
+  return {
+    ...(run !== undefined ? { runKmPerWeek: run } : {}),
+    ...(bike !== undefined ? { bikeHoursPerWeek: bike } : {}),
+    ...(swim !== undefined ? { swimMPerWeek: swim } : {}),
+  };
+}
 
 /** What Peakr plans per discipline for these answers when the user leaves it open. */
 export function sessionSuggestion(a: QuizAnswers): Record<Sport, number> {
@@ -290,14 +319,43 @@ export const onboardingQuestions: readonly QuizQuestion[] = [
     visibleIf: (a) => has('run')(a) && str(a, Q.runReference) === 'easyPace',
   },
   {
+    id: Q.currentMode,
+    kind: 'single',
+    titleKey: 'quiz.current.mode.title',
+    hintKey: 'quiz.current.mode.hint',
+    options: options('current.mode', ['suggest', 'own'], true),
+    defaultValue: () => 'suggest',
+    visibleIf: (a) => sportsOf(a).length > 0,
+  },
+  {
     id: Q.bikeHours,
     kind: 'number',
     titleKey: 'quiz.bike.hoursPerWeek.title',
     hintKey: 'quiz.bike.hoursPerWeek.hint',
     unitKey: 'quiz.bike.hoursPerWeek.unit',
     range: () => BIKE_HOURS_RANGE,
-    defaultValue: () => 2,
-    visibleIf: has('bike'),
+    defaultValue: (a) => estimateOf(a).bikeHoursPerWeek,
+    visibleIf: (a) => has('bike')(a) && ownCurrent(a),
+  },
+  {
+    id: Q.runWeeklyKm,
+    kind: 'number',
+    titleKey: 'quiz.run.weeklyKm.title',
+    hintKey: 'quiz.run.weeklyKm.hint',
+    unitKey: 'quiz.run.weeklyKm.unit',
+    range: () => RUN_KM_RANGE,
+    defaultValue: (a) => estimateOf(a).runKmPerWeek,
+    visibleIf: (a) => has('run')(a) && ownCurrent(a),
+  },
+  {
+    id: Q.swimWeeklyM,
+    kind: 'number',
+    titleKey: 'quiz.swim.weeklyM.title',
+    hintKey: 'quiz.swim.weeklyM.hint',
+    unitKey: 'quiz.swim.weeklyM.unit',
+    range: () => SWIM_M_RANGE,
+    defaultValue: (a) => estimateOf(a).swimMPerWeek,
+    visibleIf: (a) => has('swim')(a) && ownCurrent(a),
   },
   ...(['run', 'bike', 'swim'] as const).map((sport): QuizQuestion => ({
     id: { run: Q.runLongest, bike: Q.bikeLongest, swim: Q.swimLongest }[sport],
@@ -582,12 +640,6 @@ export interface QuizInsight {
 
 export interface QuizStep {
   id: string;
-  /**
-   * `baseline`: the optional "make my plan more accurate" step (Strava calibration, CLAUDE.md
-   * "Baseline from past activities"). It asks no question; each surface renders its own UI and may
-   * leave it out (the website offers it after sign-up instead).
-   */
-  kind?: 'questions' | 'baseline';
   /** Questions on this screen (hidden ones are skipped; a step without visible ones too). */
   questionIds: readonly string[];
   /** Personalised insight shown after the step, if there is something to say. */
@@ -747,17 +799,20 @@ export const ONBOARDING_STEPS: readonly QuizStep[] = [
   { id: 'strength', questionIds: [S.mode] },
   { id: 'strengthDetails', questionIds: [S.split, S.equipment, S.daysPerWeek, S.priority] },
   { id: 'experience', questionIds: [Q.experience] },
-  { id: 'baseline', kind: 'baseline', questionIds: [] },
   {
     id: 'run',
     questionIds: [Q.runReference, Q.runRaceTime, Q.runEasyPace, Q.runLongest],
     insight: runInsight,
   },
-  { id: 'bike', questionIds: [Q.bikeHours, Q.bikeLongest, Q.bikePowerMeter] },
+  { id: 'bike', questionIds: [Q.bikeLongest, Q.bikePowerMeter] },
   {
     id: 'swim',
     questionIds: [Q.swimAbility, Q.swimTime400, Q.swimTime200, Q.swimLongest, Q.swimWater],
     insight: swimInsight,
+  },
+  {
+    id: 'current',
+    questionIds: [Q.currentMode, Q.runWeeklyKm, Q.bikeHours, Q.swimWeeklyM],
   },
   { id: 'heartRate', questionIds: [Q.restingHr, Q.hrMax], insight: zone2Insight },
   {
@@ -790,13 +845,8 @@ export function stepQuestions(step: QuizStep, answers: QuizAnswers): QuizQuestio
 }
 
 /** Steps the user sees for the current answers. */
-export function visibleSteps(
-  answers: QuizAnswers,
-  options: { baseline?: boolean } = {},
-): QuizStep[] {
-  return ONBOARDING_STEPS.filter((s) =>
-    s.kind === 'baseline' ? options.baseline === true : stepQuestions(s, answers).length > 0,
-  );
+export function visibleSteps(answers: QuizAnswers): QuizStep[] {
+  return ONBOARDING_STEPS.filter((s) => stepQuestions(s, answers).length > 0);
 }
 
 /** Answers with defaults (and without answers to hidden questions). */
@@ -969,6 +1019,13 @@ export function toPlanInput(
   if (commute) profile.commutes = [commute];
   const sessions = sessionsOf(a);
   if (sessions) profile.sessionsPerWeek = sessions;
+  // What the user trains now is where the plan starts (after the paces above: runs and swims are
+  // turned into minutes at the user's own easy pace).
+  const current = currentTrainingOf(a);
+  if (current) {
+    const baseline = applyCurrentTraining(profile, current).baseline;
+    if (baseline) profile.baseline = baseline;
+  }
   const winterSports = winterSportsOf(a);
   if (winterSports.length > 0) profile.winterSports = winterSports;
   // Longest recent session per sport: the long-session floor of the new plan (swims in metres).

@@ -95,16 +95,52 @@ function mapped(a: QuizAnswers): OnboardingResult {
   return r.value;
 }
 
-describe('baseline step', () => {
-  it('is only shown where the surface offers it, right after the level question', () => {
-    expect(stepIds(halfMarathon)).not.toContain('baseline');
-    const ids = visibleSteps(prepareAnswers(halfMarathon, TODAY), { baseline: true }).map(
-      (s) => s.id,
-    );
-    expect(ids[ids.indexOf('experience') + 1]).toBe('baseline');
-    const step = ONBOARDING_STEPS.find((s) => s.id === 'baseline');
-    expect(step?.kind).toBe('baseline');
-    expect(stepIssues(step as (typeof ONBOARDING_STEPS)[number], halfMarathon, TODAY)).toEqual([]);
+describe('current training (no Strava in the quiz)', () => {
+  const step = ONBOARDING_STEPS.find(
+    (x) => x.id === 'current',
+  ) as (typeof ONBOARDING_STEPS)[number];
+
+  it('there is no Strava step; the current training follows the sport steps', () => {
+    const ids = ONBOARDING_STEPS.map((x) => x.id);
+    expect(ids).not.toContain('baseline');
+    expect(ids.indexOf('current')).toBe(ids.indexOf('swim') + 1);
+  });
+
+  it('left to Peakr by default: nothing entered, no starting point set', () => {
+    const a = prepareAnswers(halfMarathon, TODAY);
+    expect(a[Q.currentMode]).toBe('suggest');
+    expect(stepQuestions(step, a).map((q) => q.id)).toEqual([Q.currentMode]);
+    const mapped = toPlanInput(halfMarathon, TODAY);
+    if (!mapped.ok) throw new Error(JSON.stringify(mapped.issues));
+    expect(mapped.value.profile.baseline).toBeUndefined();
+  });
+
+  it('entered: starts at Peakr’s estimate, the plan starts from the entry', () => {
+    const a = prepareAnswers({ ...halfMarathon, [Q.currentMode]: 'own' }, TODAY);
+    expect(stepQuestions(step, a).map((q) => q.id)).toEqual([Q.currentMode, Q.runWeeklyKm]);
+    expect(a[Q.runWeeklyKm]).toBe(20);
+    const mapped = toPlanInput({ ...a, [Q.runWeeklyKm]: 30 }, TODAY);
+    if (!mapped.ok) throw new Error(JSON.stringify(mapped.issues));
+    // 30 km at the runner's own easy pace (from the 10K time) – more than 2.5 h a week.
+    expect(mapped.value.profile.baseline?.weeklyMin?.run).toBeGreaterThan(150);
+    expect(mapped.value.profile.baseline?.startLoad).toBeGreaterThan(300);
+  });
+
+  it('all three sports: km run, hours ridden, metres swum', () => {
+    const a = prepareAnswers({ ...triathlon, [Q.currentMode]: 'own' }, TODAY);
+    expect(stepQuestions(step, a).map((q) => q.id)).toEqual([
+      Q.currentMode,
+      Q.runWeeklyKm,
+      Q.bikeHours,
+      Q.swimWeeklyM,
+    ]);
+    const mapped = toPlanInput(a, TODAY);
+    if (!mapped.ok) throw new Error(JSON.stringify(mapped.issues));
+    expect(Object.keys(mapped.value.profile.baseline?.weeklyMin ?? {}).sort()).toEqual([
+      'bike',
+      'run',
+      'swim',
+    ]);
   });
 });
 
@@ -213,6 +249,7 @@ describe('onboarding branching', () => {
       'strengthDetails',
       'experience',
       'run',
+      'current',
       'heartRate',
       'sessions',
       'availability',
@@ -438,7 +475,8 @@ describe('mapping to plan input', () => {
     // Easy 6:30/km is the middle of pace zone 2 → threshold ≈ 5:21/km.
     expect(r.profile.thresholdPaceSecPerKm).toBe(321);
     expect(r.availability.doublesAllowed).toBe(true);
-    expect(r.bikeHoursPerWeek).toBe(3);
+    // Hours ridden are part of the entered current training only.
+    expect(r.bikeHoursPerWeek).toBeUndefined();
   });
 
   it('maps swim beginners, open goals and pending routines', () => {

@@ -41,7 +41,7 @@ const WISHES: readonly ReviewWish[] = ['moreIntervals', 'moreVolume', 'moreStren
 /**
  * Start of "Create a new plan" (Profile): "How was your last plan?" – what the plan measured, a
  * few optional taps, and what that changes, each with its reason – then the quiz with the earlier
- * answers, the Strava recalibration, the forecast and the confirmation.
+ * answers (current training included), the forecast and the confirmation.
  */
 export function NewPlanStartScreen() {
   const { t } = useTranslation();

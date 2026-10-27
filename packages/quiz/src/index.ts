@@ -62,6 +62,7 @@ export {
   winterSportsOf,
   sessionSuggestion,
   sessionsOf,
+  currentTrainingOf,
   sportsOf,
   stepInsight,
   stepIssues,

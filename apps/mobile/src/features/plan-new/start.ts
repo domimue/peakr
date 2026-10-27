@@ -36,8 +36,9 @@ export function prefilledAnswers(
 }
 
 /**
- * Starts "Create a new plan": the quiz opens at its first step with the earlier answers, and the
- * Strava baseline is read again (a new plan is always calibrated on the last two months).
+ * Starts "Create a new plan": the quiz opens at its first step with the earlier answers. An older
+ * Strava baseline is dropped – the new plan starts from the previous plan and the current training
+ * the quiz asks for.
  */
 export async function startNewPlan(current: PreviousPlan | null): Promise<void> {
   const quiz = useQuizStore.getState();

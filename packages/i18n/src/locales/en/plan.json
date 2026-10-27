@@ -254,6 +254,12 @@
         "hint": "One number is enough. Your plan never starts below it.",
         "unit_one": "{{count}} km",
         "unit_other": "{{count}} km"
+      },
+      "weeklyKm": {
+        "title": "Kilometres you run per week",
+        "hint": "A normal week of the last month – not your best one.",
+        "unit_one": "{{count}} km",
+        "unit_other": "{{count}} km"
       }
     },
     "bike": {
@@ -316,6 +322,12 @@
       "longest": {
         "title": "Your longest swim of the last few weeks",
         "hint": "One number is enough. Your plan never starts below it.",
+        "unit_one": "{{count}} m",
+        "unit_other": "{{count}} m"
+      },
+      "weeklyM": {
+        "title": "Metres you swim per week",
+        "hint": "A normal week of the last month.",
         "unit_one": "{{count}} m",
         "unit_other": "{{count}} m"
       }
@@ -623,6 +635,22 @@
       },
       "unit_one": "{{count}} session",
       "unit_other": "{{count}} sessions"
+    },
+    "current": {
+      "mode": {
+        "title": "Your current training",
+        "hint": "Where your plan starts – from your level, or from your own numbers.",
+        "options": {
+          "suggest": {
+            "label": "Let Peakr estimate",
+            "description": "From your level – the plan starts carefully and builds up."
+          },
+          "own": {
+            "label": "I enter it",
+            "description": "What you do in a normal week now, per sport. Your plan starts there."
+          }
+        }
+      }
     }
   },
   "notes": {

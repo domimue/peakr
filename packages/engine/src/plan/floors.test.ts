@@ -322,6 +322,23 @@ describe('start floors with short days (every day 45 min)', () => {
     expect(tri.value.weeks.some((w) => w.workouts.some((x) => x.sport === 'brick'))).toBe(true);
   });
 
+  it('a long day holds one easy run of at most its length – enough runs are planned', () => {
+    // 165 min of running a week, rides on the side: two runs would fill the 120 and 90 min days
+    // only up to 75 min each (the longest easy run) – three are needed.
+    const r = generatePlan(
+      athlete({
+        experience: 'intermediate',
+        sports: ['run', 'bike'],
+        baseline: { weeklyMin: { run: 165 }, longMin: { run: 75 }, startLoad: 330 },
+      }),
+      { kind: 'fitness' },
+      { minutesPerDay: [60, 60, 60, 60, 60, 120, 90], doublesAllowed: false },
+      '2026-11-02',
+    );
+    if (!r.ok) throw new Error(JSON.stringify(r.issues));
+    expect(minutes(r.value, 'run')).toBeGreaterThanOrEqual(157);
+  });
+
   it('still refuses when the days cannot hold both floors', () => {
     const r = generatePlan(
       athlete({ sports: ['run', 'bike'], baseline: { weeklyMin: { run: 98, bike: 98 } } }),
