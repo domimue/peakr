@@ -238,6 +238,7 @@ export {
   type PerformanceWeek,
   type PersonalBests,
   type ProgressSegment,
+  type SportVolume,
   type Totals,
   type WeekProgress,
   type WeekTag,

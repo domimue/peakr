@@ -124,6 +124,44 @@ export const sleepStageColors = {
 
 export type SleepStageKey = keyof (typeof sleepStageColors)['dark'];
 
+/**
+ * Change scale (Body tiles, measurement table, coach stats, chart deltas): whether a change is
+ * favourable for this user's goal, unfavourable, or neutral. Which direction is favourable is
+ * decided per metric and goal in the engine (`changeTone`), never by "down is green". Used as text
+ * and fills: ≥ 4.5:1 on bg, surface and surface2. Never Volt (reserved for primary actions), and
+ * always shown with a sign or an arrow – colour never carries the meaning alone.
+ */
+export const changeColors = {
+  dark: { favourable: '#4ADE9A', unfavourable: '#FF8A7A', neutral: '#9AA3AE' },
+  light: { favourable: '#0C6E42', unfavourable: '#B42318', neutral: '#5A6270' },
+} as const;
+
+export type ChangeTone = keyof (typeof changeColors)['dark'];
+
+/**
+ * Chart series of the Body add-on (energy balance resting / active / intake, weight trend and
+ * target). ≥ 4.5:1 on bg, surface and surface2 so labels in the series colour stay readable; every
+ * chart has a legend with swatch and word.
+ */
+export const chartColors = {
+  dark: {
+    resting: '#8C9DB8',
+    active: '#FFB547',
+    intake: '#5CB8FF',
+    trend: '#E6EAF0',
+    target: '#C4A2FF',
+  },
+  light: {
+    resting: '#4E6B5C',
+    active: '#8F5400',
+    intake: '#1A63A8',
+    trend: '#0B0D10',
+    target: '#6E36B8',
+  },
+} as const;
+
+export type ChartSeries = keyof (typeof chartColors)['dark'];
+
 export type ColorScheme = 'dark' | 'light';
 export type ZoneNumber = 1 | 2 | 3 | 4 | 5;
 
@@ -166,6 +204,14 @@ export interface SchemeColors extends Record<WorkoutTypeColorKey, string> {
   sleepLight: string;
   sleepRem: string;
   sleepAwake: string;
+  changeFavourable: string;
+  changeUnfavourable: string;
+  changeNeutral: string;
+  chartResting: string;
+  chartActive: string;
+  chartIntake: string;
+  chartTrend: string;
+  chartTarget: string;
 }
 
 function typeTokens(name: ColorScheme): Record<WorkoutTypeColorKey, string> {
@@ -204,6 +250,14 @@ function scheme(name: ColorScheme): SchemeColors {
     sleepLight: sleepStageColors[name].light,
     sleepRem: sleepStageColors[name].rem,
     sleepAwake: sleepStageColors[name].awake,
+    changeFavourable: changeColors[name].favourable,
+    changeUnfavourable: changeColors[name].unfavourable,
+    changeNeutral: changeColors[name].neutral,
+    chartResting: chartColors[name].resting,
+    chartActive: chartColors[name].active,
+    chartIntake: chartColors[name].intake,
+    chartTrend: chartColors[name].trend,
+    chartTarget: chartColors[name].target,
   };
 }
 

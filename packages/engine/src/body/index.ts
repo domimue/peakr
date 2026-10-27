@@ -45,3 +45,4 @@ export {
   type CoachTraining,
   type CoachWatch,
 } from './coach';
+export { changeTone, type ChangeMetric, type ChangeTone } from './change';

@@ -320,6 +320,64 @@ describe('week progress and tags', () => {
     expect(p.segments.find((x) => x.workoutId === '2026-10-27-1')?.status).toBe('skipped');
   });
 
+  it('volume per sport: time across sports, km for run and bike, metres for swims', () => {
+    const week = weekAt(plan, WEEK2);
+    const p = weekProgress(state, week, input.profile);
+    expect(p.minutesPlanned).toBe(week.workouts.reduce((a, w) => a + w.durationMin, 0));
+    expect(p.minutesDone).toBe(0);
+    // A run-only profile with strength: run in km, strength in sessions – nothing added up.
+    expect(p.bySport.map((v) => [v.sport, v.unit])).toEqual([
+      ['run', 'km'],
+      ['strength', 'sessions'],
+    ]);
+    expect(p.bySport[0]?.planned).toBe(p.kmPlanned);
+    expect(p.bySport[1]?.planned).toBe(week.workouts.filter((w) => w.sport === 'strength').length);
+    // A selected sport without a session this week still has its line.
+    const withBike = weekProgress(state, week, { ...input.profile, sports: ['run', 'bike'] });
+    expect(withBike.bySport[1]).toEqual({ sport: 'bike', unit: 'km', done: 0, planned: 0 });
+    const done = ok(setWorkoutStatus(state, week.workouts[0]?.id as string, 'done'));
+    const after = weekProgress(done, week, input.profile);
+    expect(after.minutesDone).toBe(week.workouts[0]?.durationMin);
+    // A brick counts towards ride and run; a swim in metres (50 m steps); a selected sport
+    // without sessions still has its line.
+    const easy = week.workouts[0] as Workout;
+    const step = easy.main[0]?.steps[0] as Workout['main'][number]['steps'][number];
+    const brick: Workout = {
+      ...easy,
+      id: 'b',
+      sport: 'brick',
+      main: [
+        {
+          repeat: 1,
+          steps: [
+            { ...step, sport: 'bike', distanceM: 20_000 },
+            { ...step, sport: 'run', distanceM: 5000 },
+          ],
+        },
+      ],
+      warmup: [],
+      cooldown: [],
+    };
+    const swim: Workout = {
+      ...easy,
+      id: 's',
+      sport: 'swim',
+      main: [{ repeat: 1, steps: [{ ...step, distanceM: 1560 }] }],
+      warmup: [],
+      cooldown: [],
+    };
+    const multi = {
+      ...input.profile,
+      sports: ['swim', 'bike', 'run'] as Workout['sport'][] as never,
+    };
+    const m = weekProgress(state, { ...week, workouts: [brick, swim] }, multi);
+    expect(m.bySport).toEqual([
+      { sport: 'run', unit: 'km', done: 0, planned: 5 },
+      { sport: 'bike', unit: 'km', done: 0, planned: 20 },
+      { sport: 'swim', unit: 'm', done: 0, planned: 1600 },
+    ]);
+  });
+
   it('commutes add km but are no session', () => {
     const week = weekAt(plan, WEEK2);
     const easy = week.workouts[0] as Workout;

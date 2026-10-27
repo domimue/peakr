@@ -27,6 +27,18 @@ export interface ProgressSegment {
   status: WorkoutStatus;
 }
 
+/**
+ * Done / planned volume of one sport in a week. Distances of different sports are never added
+ * up (30 km running and 30 km riding are not the same): run and bike in km, swim in metres,
+ * strength in sessions. Time (`WeekProgress.minutes*`) is the one figure across sports.
+ */
+export interface SportVolume {
+  sport: Sport | 'strength';
+  unit: 'km' | 'm' | 'sessions';
+  done: number;
+  planned: number;
+}
+
 export interface WeekProgress {
   /** One per training session in date order (commutes are no session of their own). */
   segments: ProgressSegment[];
@@ -39,6 +51,11 @@ export interface WeekProgress {
   maxMin: number;
   /** Every session is done or skipped, at least one done. */
   complete: boolean;
+  /** Minutes done / planned (skipped sessions are not planned any more), commutes included. */
+  minutesDone: number;
+  minutesPlanned: number;
+  /** One entry per selected sport (and strength when the week has some), in a fixed order. */
+  bySport: SportVolume[];
 }
 
 export function weekProgress(state: PlanState, week: PlanWeek, profile: UserProfile): WeekProgress {
@@ -52,12 +69,27 @@ export function weekProgress(state: PlanState, week: PlanWeek, profile: UserProf
   }));
   let kmDone = 0;
   let kmPlanned = 0;
+  let minutesDone = 0;
+  let minutesPlanned = 0;
+  const volume = new Map<Sport | 'strength', { done: number; planned: number }>();
+  const add = (sport: Sport | 'strength', amount: number, done: boolean) => {
+    const v = volume.get(sport) ?? { done: 0, planned: 0 };
+    v.planned += amount;
+    if (done) v.done += amount;
+    volume.set(sport, v);
+  };
   for (const w of week.workouts) {
     const status = statusOf(state, w.id);
     if (status === 'skipped') continue;
+    const done = status === 'done';
     const km = workoutKm(w, profile);
     kmPlanned += km;
-    if (status === 'done') kmDone += km;
+    if (done) kmDone += km;
+    minutesPlanned += w.durationMin;
+    if (done) minutesDone += w.durationMin;
+    if (w.sport === 'strength') add('strength', 1, done);
+    for (const [sport, d] of Object.entries(workoutDistances(w, profile)) as [Sport, number][])
+      add(sport, d, done);
   }
   const sessionsDone = segments.filter((s) => s.status === 'done').length;
   return {
@@ -69,6 +101,21 @@ export function weekProgress(state: PlanState, week: PlanWeek, profile: UserProf
     minMin: week.workouts.reduce((sum, w) => sum + w.duration.minMin, 0),
     maxMin: week.workouts.reduce((sum, w) => sum + w.duration.maxMin, 0),
     complete: sessionsDone > 0 && segments.every((s) => s.status !== 'planned'),
+    minutesDone,
+    minutesPlanned,
+    bySport: (['run', 'bike', 'swim', 'strength'] as const)
+      .filter((s) => (s === 'strength' ? volume.has(s) : profile.sports.includes(s)))
+      .map((sport) => {
+        const v = volume.get(sport) ?? { done: 0, planned: 0 };
+        const unit = sport === 'strength' ? 'sessions' : sport === 'swim' ? 'm' : 'km';
+        const round =
+          unit === 'm'
+            ? (x: number) => Math.round((x * 1000) / 50) * 50
+            : unit === 'km'
+              ? round1
+              : (x: number) => x;
+        return { sport, unit, done: round(v.done), planned: round(v.planned) };
+      }),
   };
 }
 

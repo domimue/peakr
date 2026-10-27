@@ -501,6 +501,8 @@ export const planConfig = {
       samplePoints: 64,
       maxMeanDeviationM: 75,
       minOccurrences: 2,
+      /** Shorter tracks are GPS fragments or warm-ups, not routes ("Ride, 1.1 km, 2 times"). */
+      minDistanceM: { run: 1500, bike: 5000 },
     },
     /** Evaluation: a km is "in range" within this share of the planned pace. */
     evaluationTolerance: 0.03,

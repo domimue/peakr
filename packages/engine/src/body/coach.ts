@@ -91,6 +91,12 @@ export interface CoachSummary {
   watch: CoachWatch[];
   adjustments: CoachAdjustment[];
   hints: CoachHint[];
+  /**
+   * `thin`: too little logged this week for a fair look back (fewer than `thinLoggedDays` days
+   * with intake and fewer than `thinWeighIns` weigh-ins). The UI then says so in one sentence and
+   * names the one thing that would help – no percentages, no counting of what is missing.
+   */
+  dataState: 'enough' | 'thin';
 }
 
 export const coachConfig = {
@@ -109,6 +115,8 @@ export const coachConfig = {
   minStrengthSessions: 2,
   stableKg: 0.3,
   maxAdjustments: 3,
+  thinLoggedDays: 3,
+  thinWeighIns: 2,
 };
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
@@ -240,5 +248,6 @@ export function weeklyCoach(input: CoachInput): CoachSummary {
     watch,
     adjustments: adjustments.slice(0, K.maxAdjustments),
     hints,
+    dataState: logged.length < K.thinLoggedDays && weighInDays < K.thinWeighIns ? 'thin' : 'enough',
   };
 }
