@@ -248,6 +248,12 @@
       "easyPace": {
         "title": "Your easy pace",
         "hint": "The pace you can run while still talking in full sentences."
+      },
+      "longest": {
+        "title": "Your longest run of the last few weeks",
+        "hint": "One number is enough. Your plan never starts below it.",
+        "unit_one": "{{count}} km",
+        "unit_other": "{{count}} km"
       }
     },
     "bike": {
@@ -259,6 +265,12 @@
       },
       "powerMeter": {
         "title": "Do you ride with a power meter or smart trainer?"
+      },
+      "longest": {
+        "title": "Your longest ride of the last few weeks",
+        "hint": "One number is enough. Your plan never starts below it.",
+        "unit_one": "{{count}} km",
+        "unit_other": "{{count}} km"
       }
     },
     "swim": {
@@ -300,6 +312,12 @@
             "label": "Open water"
           }
         }
+      },
+      "longest": {
+        "title": "Your longest swim of the last few weeks",
+        "hint": "One number is enough. Your plan never starts below it.",
+        "unit_one": "{{count}} m",
+        "unit_other": "{{count}} m"
       }
     },
     "hr": {

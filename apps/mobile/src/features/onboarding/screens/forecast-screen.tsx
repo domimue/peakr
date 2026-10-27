@@ -66,7 +66,8 @@ export function ForecastScreen() {
     // The Strava baseline (if the user gave one) calibrates levels, week 1, paces and zones.
     const v = calibrateOnboarding(input.value, { activities, meta }, today);
     const plan = generatePlan(v.profile, v.goal, v.availability, v.startDate, v.targetDate);
-    if (!plan.ok) return null;
+    // Below what the athlete already does: say why instead of a generic error.
+    if (!plan.ok) return { issues: plan.issues.filter((i) => i.field === 'baseline') };
     return {
       input: v,
       plan: plan.value,
@@ -77,16 +78,19 @@ export function ForecastScreen() {
 
   // The strength answers become the saved setup (Profile → Strength edits it).
   useEffect(() => {
-    if (!result || saved.current) return;
+    if (!result || 'issues' in result || saved.current) return;
     saved.current = true;
     saveStrength.mutate(setupFromAnswers(prepareAnswers(given, today)));
   }, [given, result, saveStrength, today]);
 
   if (!hydrated) return <Screen />;
-  if (!result) {
+  if (!result || 'issues' in result) {
+    const issue = result?.issues?.[0];
     return (
       <Screen title={t('quiz.forecast.title')}>
-        <Text>{t('quiz.forecast.error')}</Text>
+        <Text testID="forecast-error">
+          {issue ? t(`validation.${issue.code}`, issue.params ?? {}) : t('quiz.forecast.error')}
+        </Text>
         <Button
           label={t('quiz.forecast.editAnswers')}
           onPress={() => router.replace('/onboarding/quiz')}

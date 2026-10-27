@@ -87,6 +87,8 @@
     "tooFewSelected": "Choose at least {{min}}.",
     "bmiTooLow": "A weight-loss goal is not offered here: the weight would be below a healthy range for your height.",
     "targetNotBelowCurrent": "For a weight-loss goal, the target needs to be below your current trend weight.",
-    "targetNotAboveCurrent": "For a gain goal, the target needs to be above your current trend weight."
+    "targetNotAboveCurrent": "For a gain goal, the target needs to be above your current trend weight.",
+    "belowBaselineLong": "Your available time cannot hold a first long session of {{floorMin}} min – that is about what you already do. Peakr does not start you below that. Give your long-session day more time.",
+    "belowBaselineVolume": "Your available time holds only {{plannedMin}} min in week 1, but you already train about {{floorMin}} min a week. Peakr does not start you below that. Add more time per week."
   }
 }

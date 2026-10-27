@@ -71,7 +71,17 @@ describe('deriveBaseline – volume and level', () => {
     expect(run?.volume).toEqual({
       status: 'ok',
       count: 24,
-      value: { weeklyMin: 190, weeklyKm: 30, sessionsPerWeek: 3, longestMin: 90, longMin: 90 },
+      value: {
+        weeklyMin: 190,
+        weeklyKm: 30,
+        sessionsPerWeek: 3,
+        longestMin: 90,
+        longMin: 90,
+        longKm: 14,
+        longSessions: 6,
+        recentWeeklyMin: 190,
+        recentWeeklyKm: 30,
+      },
     });
     expect(run?.experience).toMatchObject({ status: 'ok', value: 'intermediate' });
     expect(r.sports.find((s) => s.sport === 'swim')?.volume.status).toBe('notEnoughData');
@@ -441,6 +451,15 @@ describe('deriveBaseline – edge cases', () => {
   it('skips the partial week at the start of the window', () => {
     const acts = [act({ date: '2026-08-22' }), ...typicalRunner()];
     expect(derive(acts).weeks).toBe(8);
+  });
+
+  it('a long session without distance (trainer) has no long distance', () => {
+    const rides = MONDAYS.flatMap((m) => [
+      act({ date: m, sport: 'bike', durationSec: 60 * 60, distanceM: null }),
+      act({ date: addDays(m, 5), sport: 'bike', durationSec: 180 * 60, distanceM: null }),
+    ]);
+    const v = derive(rides).sports.find((s) => s.sport === 'bike')?.volume;
+    expect(v?.status === 'ok' && [v.value.longMin, v.value.longKm]).toEqual([180, null]);
   });
 
   it('copes with missing distance and elevation', () => {

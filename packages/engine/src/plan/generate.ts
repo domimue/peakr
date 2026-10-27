@@ -4,6 +4,7 @@ import { classifyDays } from './classify';
 import { commuteMinutes, commutesOn, commutesValid } from './commute';
 import { requiredSports, sportShares } from './composition';
 import { planConfig } from './config';
+import { checkStartFloors, startFloors } from './floors';
 import { parseIsoDate, toIsoDate, weekdayOf } from './dates';
 import { hardShare } from './load';
 import { athleteFor } from './materialize';
@@ -26,6 +27,7 @@ import {
 } from './types';
 
 export type PlanField =
+  | 'baseline'
   | 'startDate'
   | 'targetDate'
   | 'sports'
@@ -370,19 +372,39 @@ export function generatePlan(
     });
   }
 
-  return {
-    ok: true,
-    value: annotateWeeks(
-      {
-        goal,
-        startDate: continuation?.planStartDate ?? startDate,
-        targetDate: targetDate ?? null,
-        weeks: classifyPlan(weeks, profile.experience),
-        notes,
-      },
-      profile,
-    ),
-  };
+  const plan = annotateWeeks(
+    {
+      goal,
+      startDate: continuation?.planStartDate ?? startDate,
+      targetDate: targetDate ?? null,
+      weeks: classifyPlan(weeks, profile.experience),
+      notes,
+    },
+    profile,
+  );
+  // A new plan never starts below what the athlete already does (CLAUDE.md "Baseline"). If the
+  // availability cannot hold it, that is an error to show – not a beginner plan to ship. A plan
+  // continued after a pause starts lower on purpose (resume rules) and is not checked.
+  if (!continuation) {
+    const breaches = checkStartFloors(plan, startFloors(profile));
+    if (breaches.length > 0) {
+      return {
+        ok: false,
+        issues: breaches.map((b) => ({
+          field: 'baseline' as const,
+          code:
+            b.kind === 'long' ? ('belowBaselineLong' as const) : ('belowBaselineVolume' as const),
+          // `sport` is the index in `SPORTS` (issue params are numbers).
+          params: {
+            sport: SPORTS.indexOf(b.sport),
+            plannedMin: b.plannedMin,
+            floorMin: b.floorMin,
+          },
+        })),
+      };
+    }
+  }
+  return { ok: true, value: plan };
 }
 
 /**

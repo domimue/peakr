@@ -311,7 +311,9 @@
     "dateOutOfRange": "Choose a date between {{min}} and {{max}} weeks from today.",
     "bmiTooLow": "A weight-loss goal is not offered here: the weight would be below a healthy range for your height.",
     "targetNotBelowCurrent": "For a weight-loss goal, the target needs to be below your current trend weight.",
-    "targetNotAboveCurrent": "For a gain goal, the target needs to be above your current trend weight."
+    "targetNotAboveCurrent": "For a gain goal, the target needs to be above your current trend weight.",
+    "belowBaselineLong": "Your available time cannot hold a first long session of {{floorMin}} min – that is about what you already do. Peakr does not start you below that. Give your long-session day more time.",
+    "belowBaselineVolume": "Your available time holds only {{plannedMin}} min in week 1, but you already train about {{floorMin}} min a week. Peakr does not start you below that. Add more time per week."
   },
   "profile": {
     "title": "Profile",
@@ -2008,7 +2010,7 @@
       "volume": "{{sessions}} sessions and {{minutes}} min a week, longest {{longest}} min",
       "terrain": "Usual terrain: {{terrain}} ({{gain}} m per km)",
       "level": "Starting level",
-      "longSession": "First long session",
+      "longSession": "Typical long session",
       "minutes": "{{value}} min",
       "paces": "Paces",
       "easyPace": "Easy pace (grade-adjusted)",
@@ -2036,7 +2038,18 @@
       "cancel": "Cancel",
       "reset": "Use derived value",
       "done": "Done",
-      "apply": "Apply to my plan"
+      "apply": "Apply to my plan",
+      "longSessionValue": "{{minutes}} min · {{km}} km",
+      "longSessionFrom_one": "From your {{count}} long session of the last six weeks.",
+      "longSessionFrom_other": "From your {{count}} long sessions of the last six weeks.",
+      "longSessionFallback": "No clearly longer sessions – your longest session per week is used.",
+      "weeklyStart": "Weekly volume, last four weeks",
+      "weeklyStartValue": "{{minutes}} min · {{km}} km per week",
+      "startsWith": "Your plan starts here",
+      "startsWithLong": "First long session at least {{minutes}} min (≈ {{km}} km)",
+      "startsWithLongNoKm": "First long session at least {{minutes}} min",
+      "startsWithVolume": "Week 1 at least {{minutes}} min",
+      "startsWithHint": "Peakr never starts you below what you already do. Correct the values above if they are wrong."
     },
     "recalibrate": {
       "title": "Recalibrate from recent activities",

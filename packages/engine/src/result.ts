@@ -21,7 +21,9 @@ export type ValidationCode =
   | 'invalidFormat'
   | 'gpxEmpty'
   | 'gpxNoPoints'
-  | 'gpxTooLarge';
+  | 'gpxTooLarge'
+  | 'belowBaselineLong'
+  | 'belowBaselineVolume';
 
 export interface ValidationIssue<F extends string> {
   field: F;

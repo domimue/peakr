@@ -121,6 +121,19 @@ export interface UserProfile {
    * activities"). The user's own entries above always win over these values.
    */
   baseline?: PlanBaseline;
+  /**
+   * Quiz: the longest session of the last few weeks per sport (one number, distance or time). It
+   * sets the long-session floor of a new plan together with the Strava baseline.
+   */
+  recentLongest?: Partial<Record<Sport, RecentLongest>>;
+  /** Difficulty 1–10 (default 5 = the engine's own targets), see `difficultyFactor`. */
+  difficulty?: number;
+}
+
+/** One number from the quiz: a distance (km; swim in km too) or a duration. */
+export interface RecentLongest {
+  km?: number;
+  min?: number;
 }
 
 /** Values the plan takes from the Strava baseline instead of the quiz defaults. */
@@ -129,8 +142,12 @@ export interface PlanBaseline {
   experience?: Partial<Record<Sport, Experience>>;
   /** Current weekly load: week 1 starts here (within the capacity of the availability). */
   startLoad?: number;
-  /** Starting duration of the long session per sport. */
+  /** Starting duration of the long session per sport (the recent typical long session). */
   longMin?: Partial<Record<Sport, number>>;
+  /** Distance of that long session, for showing it. */
+  longKm?: Partial<Record<Sport, number>>;
+  /** Mean minutes per week of the last four weeks per sport: the week-1 volume floor. */
+  weeklyMin?: Partial<Record<Sport, number>>;
   thresholdPaceSecPerKm?: number;
   cssPacePer100mSec?: number;
   /** Observed HRmax (only when above the age estimate) and LTHR estimate for the HR zones. */

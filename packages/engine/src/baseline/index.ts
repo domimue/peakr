@@ -7,6 +7,7 @@ export {
   type BaselineOverrides,
 } from './apply';
 export { deriveBaseline, type DeriveOptions } from './derive';
+export { classifyBaseline, type BaselineKind } from './classify';
 export { suggestSelection, type OutlierReason, type SelectionSuggestion } from './outliers';
 export type {
   BaselineActivity,

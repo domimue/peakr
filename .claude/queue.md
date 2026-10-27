@@ -9,7 +9,7 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 - Engine phase (user prompt 2026-10-27): plan start floors, intensity bands, difficulty slider,
   energy & macros, activity matching. Approved plan: `.claude/plans/engine-phase.md`. Progress:
-  - [ ] 1 plan start  - [ ] 2 bands  - [ ] 3 slider  - [ ] 4 energy  - [ ] 5 matching
+  - [x] 1 plan start  - [ ] 2 bands  - [ ] 3 slider  - [ ] 4 energy  - [ ] 5 matching
   - [ ] CLAUDE.md updated
 
 ## Done

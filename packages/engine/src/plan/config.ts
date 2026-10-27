@@ -119,6 +119,18 @@ export const planConfig = {
     /** Swim beginners do technique until this technique level, then CSS sets. */
     techniqueLevelBeforeCss: 4,
   },
+  /**
+   * Hard floors of a new plan (CLAUDE.md "Baseline"): it never starts below what the athlete
+   * demonstrably does. Statistics-free; the only exception is a return after a pause or injury.
+   */
+  floors: {
+    /** First long session ≥ this share of the recent typical long session. */
+    longShare: 0.9,
+    /** Week-1 minutes per sport ≥ this share of the last four weeks (5-minute rounding of sessions). */
+    volumeShare: 0.95,
+    /** Speeds used to turn a distance from the quiz into minutes when no pace is known. */
+    defaultSpeedKmh: { run: 10, bike: 25, swim: 2.5 } satisfies Record<Sport, number>,
+  },
   long: {
     /** Start duration of the long session by experience. */
     startMin: {
@@ -514,11 +526,25 @@ export const planConfig = {
       swims: 3,
     },
     /**
-     * Outliers: unticked when longer than median + k × MAD of the sport and at least this multiple
-     * of its median duration (the weekly long session is not an outlier).
+     * Activities are first sorted into easy / long / other per sport, relative to that person's own
+     * sessions: long = at least `longFactor` × the sport's median duration and at least
+     * `longMinMin`. Outliers are then looked for inside each kind only, so a long run is compared
+     * with long runs and never thrown out for being longer than the easy runs.
+     */
+    classify: {
+      longFactor: 1.4,
+      longMinMin: { run: 60, bike: 120, swim: 45 } satisfies Record<Sport, number>,
+    },
+    /**
+     * Outliers inside one kind: unticked when longer than median + k × MAD of that kind and at
+     * least this multiple of its median duration. A kind needs `min.volume` sessions to be judged.
      */
     outlierMadFactor: 3,
     outlierMinFactor: 2.5,
+    /** The typical long session is the median long session of the last n days. */
+    longRecentDays: 42,
+    /** Week-1 volume floor: the plain mean of the last n full weeks per sport. */
+    floorWeeks: 4,
     /** Runs shorter than this are not used for paces. */
     minRunDistanceM: 1000,
     /** HRmax: the n-th highest observed value (protects against strap spikes). */

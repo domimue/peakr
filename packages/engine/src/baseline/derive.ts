@@ -7,6 +7,7 @@ import { gainPaceFactor } from '../plan/terrain';
 import { SPORTS, type Experience, type Sport } from '../plan/types';
 import { classifyTerrain } from '../route/terrain-profile';
 import { median, theilSen, trimmedMean } from '../stats';
+import { classifyBaseline, type BaselineKind } from './classify';
 import type {
   BaselineActivity,
   BaselineResult,
@@ -62,12 +63,13 @@ export function deriveBaseline(
   });
   const zones = options.stravaHrZones ?? options.hrZones;
   const weeks = coveredWeeks(acts, windowStart, today);
+  const kinds = classifyBaseline(acts);
   const hrMax = deriveHrMax(acts);
 
   return {
     activities: acts.length,
     weeks: weeks.length,
-    sports: SPORTS.map((sport) => sportBaseline(sport, acts, weeks)),
+    sports: SPORTS.map((sport) => sportBaseline(sport, acts, weeks, kinds, today)),
     easyPaceSecPerKm: deriveEasyPace(acts, zones),
     paceHr: derivePaceHr(acts, zones),
     hrMax,
@@ -112,9 +114,11 @@ function sportBaseline(
   sport: Sport,
   acts: readonly BaselineActivity[],
   weeks: readonly number[],
+  kinds: ReadonlyMap<string, BaselineKind>,
+  today: number,
 ): SportBaseline {
   const own = acts.filter((a) => a.sport === sport);
-  const volume = deriveVolume(own, weeks);
+  const volume = deriveVolume(own, weeks, kinds, today);
   return {
     sport,
     activities: own.length,
@@ -130,6 +134,8 @@ function sportBaseline(
 function deriveVolume(
   own: readonly BaselineActivity[],
   weeks: readonly number[],
+  kinds: ReadonlyMap<string, BaselineKind>,
+  today: number,
 ): Derived<SportVolume> {
   if (own.length < cfg.min.volume || weeks.length < cfg.minWeeks)
     return notEnough(own.length, cfg.min.volume);
@@ -139,6 +145,19 @@ function deriveVolume(
   const longestPerWeek = perWeek
     .filter((w) => w.length > 0)
     .map((w) => Math.max(...w.map((a) => a.durationSec / 60)));
+  // The long sessions are compared with each other – never with the easy ones in between.
+  const long = own.filter((a) => kinds.get(a.externalId) === 'long');
+  const recentLong = long.filter(
+    (a) => (parseIsoDate(a.date) as number) > today - cfg.longRecentDays,
+  );
+  const typicalLong = recentLong.length > 0 ? recentLong : long;
+  const longMin =
+    typicalLong.length > 0
+      ? (median(typicalLong.map((a) => a.durationSec / 60)) as number)
+      : (median(longestPerWeek) ?? 0);
+  const longKms = typicalLong.filter((a) => (a.distanceM ?? 0) > 0);
+  const recent = weeks.slice(-cfg.floorWeeks);
+  const mean = (xs: number[]) => xs.reduce((s, x) => s + x, 0) / Math.max(1, xs.length);
   return ok(
     {
       weeklyMin: Math.round(trimmedMean(minutes, cfg.trim) as number),
@@ -150,7 +169,14 @@ function deriveVolume(
         ) as number,
       ),
       longestMin: Math.round(Math.max(...own.map((a) => a.durationSec / 60))),
-      longMin: Math.round((median(longestPerWeek) ?? 0) / 5) * 5,
+      longMin: Math.round(longMin / 5) * 5,
+      longKm:
+        longKms.length > 0
+          ? round1(median(longKms.map((a) => (a.distanceM as number) / 1000)) as number)
+          : null,
+      longSessions: typicalLong.length,
+      recentWeeklyMin: Math.round(mean(recent.map((m) => minutes[weeks.indexOf(m)] as number))),
+      recentWeeklyKm: round1(mean(recent.map((m) => km[weeks.indexOf(m)] as number))),
     },
     own.length,
   );

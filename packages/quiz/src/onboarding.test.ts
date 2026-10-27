@@ -145,6 +145,23 @@ describe('commute and winter sports', () => {
     expect(mapped(halfMarathon).profile.winterSports).toBeUndefined();
   });
 
+  it('maps the longest recent session per selected sport (swims in metres)', () => {
+    const tri = mapped({
+      ...triathlon,
+      [Q.runLongest]: 14,
+      [Q.bikeLongest]: 80,
+      [Q.swimLongest]: 1500,
+    });
+    expect(tri.profile.recentLongest).toEqual({
+      run: { km: 14 },
+      bike: { km: 80 },
+      swim: { km: 1.5 },
+    });
+    // Only for the selected sports, and optional.
+    expect(mapped({ ...halfMarathon, [Q.bikeLongest]: 80 }).profile.recentLongest).toBeUndefined();
+    expect(stepIds(halfMarathon)).toContain('run');
+  });
+
   it('validates the commute', () => {
     const issues = (a: QuizAnswers) =>
       validateOnboarding(prepareAnswers(a, TODAY), TODAY).map((i) => `${i.questionId}:${i.code}`);

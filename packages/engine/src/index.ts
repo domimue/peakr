@@ -37,6 +37,7 @@ export * from './body';
 export { paceZonesFromBoundaries, ZONE_NUMBERS, type PaceZone, type ZoneNumber } from './zones';
 export { planConfig, type PlanConfig } from './plan/config';
 export { generatePlan, type PlanContinuation, type PlanField } from './plan/generate';
+export { checkStartFloors, startFloors, type FloorBreach, type StartFloors } from './plan/floors';
 export {
   activePause,
   activeTravel,

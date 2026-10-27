@@ -3,6 +3,7 @@ import { isHardOnItsOwn } from './classify';
 import { commuteSession, commutesOn } from './commute';
 import { composeWeek, EASY_TEMPLATE, type CompositionContext, type Slot } from './composition';
 import { planConfig } from './config';
+import { startFloors } from './floors';
 import { toIsoDate } from './dates';
 import { rpe, time } from './library/helpers';
 import { getTemplate } from './library';
@@ -319,12 +320,18 @@ class WeekScheduler {
     const sport = template.sport as Sport;
     const cfg = planConfig.long;
     const caps = { run: cfg.runCapMin, bike: cfg.bikeCapMin, swim: cfg.swimCapMin }[sport];
-    const cap = caps[input.composition.goal] ?? caps.default;
+    // The floor (what the athlete already does) beats the goal's cap and the default start.
+    const floor = startFloors(input.athlete.profile).longMin[sport] ?? 0;
+    const cap = Math.max(caps[input.composition.goal] ?? caps.default, floor);
+    const next = input.longMin[sport];
     let minutes = Math.min(
       cap,
-      input.longMin[sport] ??
-        input.athlete.profile.baseline?.longMin?.[sport] ??
-        cfg.startMin[sport][sportExperience(input.athlete.profile, sport)],
+      next ??
+        Math.max(
+          floor,
+          input.athlete.profile.baseline?.longMin?.[sport] ??
+            cfg.startMin[sport][sportExperience(input.athlete.profile, sport)],
+        ),
     );
     if (input.skeleton.isRecovery) minutes *= cfg.recoveryFactor;
     const taper = input.skeleton.taperIndex;
