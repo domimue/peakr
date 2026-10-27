@@ -118,6 +118,13 @@ export const planConfig = {
     sprintBrickEvery: 2,
     /** Swim beginners do technique until this technique level, then CSS sets. */
     techniqueLevelBeforeCss: 4,
+    /**
+     * Run quality rotation (WORKOUTS.md §9): every `every`-th Build/Peak loading week brings the
+     * distance's other kind of quality – VO2 for 10K/HM/marathon, threshold for a 5K with one
+     * quality session, a fartlek for 5K/10K Build with two. Half-marathon Peak swaps race pace
+     * for a short VO2 set every `halfPeakEvery`-th week.
+     */
+    qualityRotation: { every: 3, halfPeakEvery: 2 },
   },
   /**
    * Difficulty slider 1–10 (CLAUDE.md "Training engine rules → Difficulty"): 5 is exactly what the

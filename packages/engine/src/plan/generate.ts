@@ -264,6 +264,9 @@ export function generatePlan(
   let buildWeekIndex = skeleton
     .slice(0, firstIndex)
     .filter((w) => w.phase === 'build' || w.phase === 'peak').length;
+  let qualityIndex = skeleton
+    .slice(0, firstIndex)
+    .filter((w) => (w.phase === 'build' || w.phase === 'peak') && !w.isRecovery).length;
   let lastBenchmark: number | null = continuation?.lastBenchmarkWeek ?? null;
   const weeks: PlanWeek[] = [];
 
@@ -335,6 +338,7 @@ export function generatePlan(
         cssAllowed: cssAllowed(profile, levels),
         benchmark,
         buildWeekIndex,
+        qualityIndex,
       },
       shares,
       days,
@@ -366,7 +370,13 @@ export function generatePlan(
       actualReference = out.load;
       reference = out.load / scale;
     }
-    if (week.phase === 'build' || week.phase === 'peak') buildWeekIndex++;
+    if (week.phase === 'build' || week.phase === 'peak') {
+      buildWeekIndex++;
+      // Benchmark weeks replace the key session, so they do not use up a rotation turn either.
+      // (also when the 80/20 balance turned the test into an easy run – the turn is still gone).
+      const tested = out.workouts.some((w) => w.notes.some((n) => n.key === 'notes.benchmark'));
+      if (!week.isRecovery && !tested) qualityIndex++;
+    }
 
     const weekNotes: PlanNote[] = [...out.notes];
     if (week.isRecovery) weekNotes.unshift({ key: 'notes.recoveryWeek' });

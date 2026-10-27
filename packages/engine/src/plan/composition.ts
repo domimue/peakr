@@ -95,6 +95,8 @@ export interface CompositionContext {
   benchmark: boolean;
   /** 0-based count of build/peak weeks so far (brick cadence for sprint triathlons). */
   buildWeekIndex: number;
+  /** 0-based count of build/peak loading weeks so far, recovery weeks not counted (run quality rotation). */
+  qualityIndex: number;
 }
 
 const slot = (
@@ -119,7 +121,7 @@ export const EASY_TEMPLATE: Record<Sport | 'brick', string> = {
 const repeat = (n: number, s: Slot): Slot[] => Array.from({ length: Math.max(0, n) }, () => s);
 
 function runTemplates(ctx: CompositionContext) {
-  const { phase, weekIndex, goal, profile } = ctx;
+  const { phase, weekIndex, goal, profile, qualityIndex: q } = ctx;
   const flat = profile.terrain === 'flat';
   const odd = weekIndex % 2 === 1;
   const hilly = profile.terrain === 'hilly' || profile.terrain === 'mountainous';
@@ -127,47 +129,91 @@ function runTemplates(ctx: CompositionContext) {
   const vo2 = vo2Ready ? (hilly ? 'run.vo2_intervals_time' : 'run.vo2_intervals') : 'run.tempo';
   const marathonish = goal === 'half' || goal === 'marathon';
   const strides = phase !== 'base' || weekIndex + 1 >= sessions.stridesFromWeek;
+  // Threshold work: tempo, every other loading week long hills in Build (not on flat terrain).
+  const threshold = phase === 'build' && !flat && q % 2 === 1 ? 'run.hills_long' : 'run.tempo';
+  const rotation = sessions.qualityRotation;
+  const every = goal === 'half' && phase === 'peak' ? rotation.halfPeakEvery : rotation.every;
+  // The rotation counts loading weeks only (recovery weeks keep the slot of the week after).
+  const vo2Turn = q % every === every - 1;
   return {
     marathonish,
     vo2,
+    vo2Turn,
+    threshold,
     easy: slot('easy', 'run', 'run.easy'),
     strides: slot('easy', 'run', strides ? 'run.easy_strides' : 'run.easy'),
     fartlekOrHills: slot('key', 'run', !flat && odd ? 'run.hills_short' : 'run.fartlek'),
-    tempo: slot('key', 'run', phase === 'build' && !flat && odd ? 'run.hills_long' : 'run.tempo'),
+    tempo: slot('key', 'run', threshold),
     racePace: goal === 'half' ? 'run.race_pace_hm' : 'run.race_pace_m',
     long: slot('long', 'run', 'run.long'),
   };
 }
 
+/**
+ * The quality sessions of a running week (WORKOUTS.md §9 "Quality rotation"): the key session
+ * (placed with the long run, kept longest) and the second one (dropped first when the days or the
+ * 80/20 balance cannot hold it). On a rotation turn the distance's other kind of quality moves
+ * into the key slot, so threshold and VO2 work both appear every few loading weeks even when only
+ * one quality session fits. With one quality session a week only the key session is used.
+ */
+function runQuality(ctx: CompositionContext, t: ReturnType<typeof runTemplates>): [Slot, Slot] {
+  const { goal, phase } = ctx;
+  const build = phase === 'build';
+  // A VO2 set that does not fit the day (warm-up and cool-down make it the longest quality run)
+  // becomes threshold work rather than an easy run.
+  const vo2 = (role: SlotRole, extra: Partial<Slot> = {}) =>
+    slot(role, 'run', t.vo2, { ...extra, fallback: slot(role, 'run', t.threshold) });
+  const threshold = (role: SlotRole) => slot(role, 'run', t.threshold);
+  const fartlek = slot('quality', 'run', 'run.fartlek');
+  switch (goal) {
+    case '5k':
+      // VO2 is the main quality; threshold every third week (Build: fartlek as the second).
+      return t.vo2Turn
+        ? [threshold('key'), build ? fartlek : vo2('quality')]
+        : [vo2('key'), threshold('quality')];
+    case '10k':
+      return t.vo2Turn
+        ? [vo2('key'), build ? fartlek : threshold('quality')]
+        : [threshold('key'), vo2('quality')];
+    default: {
+      // HM / marathon: threshold, the race-specific session second; a VO2 set on the turn (one
+      // level shorter for the marathon and in half-marathon Peak).
+      const specific = slot('quality', 'run', build ? 'run.progression' : t.racePace);
+      const short = goal === 'marathon' || phase === 'peak' ? { levelDrop: 1 } : {};
+      return [t.vo2Turn ? vo2('key', short) : threshold('key'), specific];
+    }
+  }
+}
+
 function runGoalSlots(ctx: CompositionContext, n: number): Slot[] {
   const t = runTemplates(ctx);
   const easyCount = (fixed: number) => repeat(n - fixed, t.easy);
+  const [key, second] = runQuality(ctx, t);
   switch (ctx.phase) {
     case 'base':
       return [t.long, t.fartlekOrHills, t.strides, ...easyCount(3)];
     case 'build':
-      if (n <= 3) return [t.long, t.tempo, t.easy];
-      if (n === 4) return [t.long, t.tempo, t.easy, t.strides];
-      return [
-        t.long,
-        t.tempo,
-        slot('quality', 'run', t.marathonish ? 'run.progression' : t.vo2),
-        t.strides,
-        ...easyCount(4),
-      ];
+      if (n <= 3) return [t.long, key, t.easy];
+      if (n === 4) return [t.long, key, t.easy, t.strides];
+      return [t.long, key, second, t.strides, ...easyCount(4)];
     case 'peak':
       if (n <= 3) {
-        return [t.marathonish ? slot('long', 'run', t.racePace) : t.long, t.tempo, t.easy];
+        // HM/M: the long run at race pace is the week's second quality – except in VO2 weeks,
+        // where an easy long run leaves room in the 20 % for the intervals.
+        return [
+          t.marathonish && !t.vo2Turn ? slot('long', 'run', t.racePace) : t.long,
+          key,
+          t.easy,
+        ];
       }
-      return [
-        t.long,
-        t.tempo,
-        slot('quality', 'run', t.marathonish ? t.racePace : t.vo2),
-        ...easyCount(3),
-      ];
+      return [t.long, key, second, ...easyCount(3)];
     default: {
-      // Taper: short sharp session, strides, short easy runs; race week drops the long run.
-      const sharp = slot('key', 'run', t.marathonish ? 'run.tempo' : t.vo2, { levelDrop: 2 });
+      // Taper: short sharp session, strides, short easy runs; race week drops the long run. The
+      // half marathon keeps tempo until race week, then a short VO2 opener; the marathon stays at
+      // tempo.
+      const sharpId =
+        ctx.goal === 'marathon' || (ctx.goal === 'half' && !ctx.raceWeek) ? 'run.tempo' : t.vo2;
+      const sharp = slot('key', 'run', sharpId, { levelDrop: 2 });
       if (ctx.raceWeek) return [sharp, t.strides, ...repeat(n - 3, t.easy)];
       return [t.long, sharp, t.strides, ...easyCount(3)];
     }

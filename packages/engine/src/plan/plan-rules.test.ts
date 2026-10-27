@@ -198,6 +198,61 @@ describe('generatePlan rules over the fixture grid', () => {
     }
   });
 
+  // WORKOUTS.md §9 "Quality rotation": both kinds of quality work show up regularly. Loading
+  // weeks of Build/Peak from week 5 on (VO2 needs four weeks in the plan), benchmark weeks aside.
+  const THRESHOLD = [
+    'run.tempo',
+    'run.hills_long',
+    'run.progression',
+    'run.race_pace_hm',
+    'run.race_pace_m',
+  ];
+  const isVo2 = (w: Workout) => w.templateId.startsWith('run.vo2_intervals');
+  const qualityWeeks = (plan: Plan) => {
+    const weeks = plan.weeks
+      .filter(
+        (w) =>
+          (w.phase === 'build' || w.phase === 'peak') &&
+          !w.isRecovery &&
+          !w.isPartial &&
+          w.index >= 4 &&
+          !w.workouts.some((x) => x.notes.some((n) => n.key === 'notes.benchmark')),
+      )
+      .map((w) => w.workouts.filter((x) => x.sport === 'run'));
+    // Days too short for any VO2 set (45 minutes) get threshold work instead – nothing to check.
+    return weeks.flat().some(isVo2) ? weeks : [];
+  };
+
+  each(
+    '5K/10K/HM: threshold and VO2 in every three loading weeks of Build/Peak',
+    ({ plan, goal }) => {
+      if (!['5k', '10k', 'half'].includes(goal)) return;
+      const weeks = qualityWeeks(plan);
+      for (let i = 0; i + 3 <= weeks.length; i++) {
+        const window = weeks.slice(i, i + 3).flat();
+        expect(
+          window.some((w) => THRESHOLD.includes(w.templateId)),
+          `threshold from ${i}`,
+        ).toBe(true);
+        expect(window.some(isVo2), `VO2 from ${i}`).toBe(true);
+      }
+    },
+  );
+
+  each('marathon: VO2 at least every four loading weeks of Build/Peak', ({ plan, goal }) => {
+    if (goal !== 'marathon') return;
+    const weeks = qualityWeeks(plan);
+    for (let i = 0; i + 4 <= weeks.length; i++) {
+      expect(
+        weeks
+          .slice(i, i + 4)
+          .flat()
+          .some(isVo2),
+        `VO2 from ${i}`,
+      ).toBe(true);
+    }
+  });
+
   each('fills the goal disciplines', ({ plan, goal, availability }) => {
     const sports = new Set(
       plan.weeks.flatMap((w) => w.workouts.map((x) => (x.sport === 'brick' ? 'bike' : x.sport))),
