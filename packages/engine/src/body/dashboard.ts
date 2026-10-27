@@ -92,6 +92,8 @@ export interface WeekEnergyBar {
   balanceKcal: number | null;
   /** Estimated fat change from the balance (kg; an estimate). */
   fatKg: number | null;
+  /** The goal's planned balance for the logged days since its start; null without a goal. */
+  plannedKcal: number | null;
 }
 
 /** The last `weeks` calendar weeks up to today's, oldest first, for the stacked bars. */
@@ -99,6 +101,8 @@ export function weeklyEnergyBars(
   days: readonly EnergyDay[],
   today: string,
   weeks = 8,
+  /** The goal's start and planned deficit per day, for the planned figure of each week. */
+  goal?: { from: string; deficitKcal: number } | null,
 ): WeekEnergyBar[] {
   const first = addDays(mondayOf(today), -7 * (weeks - 1));
   const out: WeekEnergyBar[] = [];
@@ -113,6 +117,7 @@ export function weeklyEnergyBars(
     const avg = (f: (d: EnergyDay) => number) =>
       pool.length ? Math.round(pool.reduce((s, d) => s + f(d), 0) / pool.length) : 0;
     const balance = logged.reduce((s, d) => s + (dayBalance(d) as number), 0);
+    const inGoal = goal ? logged.filter((d) => d.day >= goal.from).length : 0;
     out.push({
       week,
       loggedDays: logged.length,
@@ -121,9 +126,78 @@ export function weeklyEnergyBars(
       intakeKcal: logged.length ? avg((d) => d.intakeKcal as number) : null,
       balanceKcal: logged.length ? balance : null,
       fatKg: logged.length ? r2(balance / C.kcalPerKgFat) : null,
+      plannedKcal: goal && inGoal > 0 ? -Math.round(goal.deficitKcal) * inGoal : null,
     });
   }
   return out;
+}
+
+/** One day of the energy balance: what was eaten against resting and active energy. */
+export interface DayEnergyBalance {
+  day: string;
+  intakeKcal: number | null;
+  restingKcal: number;
+  activeKcal: number;
+  /** Intake − resting − active (negative = deficit); null without a log. */
+  balanceKcal: number | null;
+  /** Counted in the sums (logged and not marked incomplete; today only once it is over). */
+  counted: boolean;
+}
+
+/** The last `count` days up to today, newest first, for the day view of the balance. */
+export function dailyEnergyBalances(
+  days: readonly EnergyDay[],
+  today: string,
+  count = 14,
+): DayEnergyBalance[] {
+  return days
+    .filter((d) => d.day <= today && daysBetween(d.day, today) < count)
+    .map((d) => ({
+      day: d.day,
+      intakeKcal: d.intakeKcal,
+      restingKcal: Math.round(d.restingKcal),
+      activeKcal: Math.round(d.activeKcal),
+      balanceKcal: dayBalance(d),
+      counted: isLogged(d),
+    }))
+    .sort((a, b) => b.day.localeCompare(a.day));
+}
+
+/** The balance since a day (the goal's start): measured against what the goal planned. */
+export interface BalanceSince {
+  from: string;
+  countedDays: number;
+  /** Sum over the counted days (negative = deficit). */
+  balanceKcal: number;
+  /** Estimated fat change (kg; an estimate). */
+  fatKg: number;
+  /** The goal's planned balance for the same days (−deficit × days); null without a goal. */
+  plannedKcal: number | null;
+}
+
+/**
+ * Sum of the counted days since `from`, and – with the goal's daily deficit – what was planned
+ * for those days. The planned figure leaves out the share of training the target does not count,
+ * so keeping to the target and training as planned ends up ahead of it.
+ */
+export function balanceSince(input: {
+  days: readonly EnergyDay[];
+  from: string;
+  /** The goal's planned deficit per day (negative = surplus). */
+  deficitKcal?: number | null;
+}): BalanceSince {
+  const counted = input.days.filter((d) => d.day >= input.from && isLogged(d));
+  const balanceKcal = counted.reduce((s, d) => s + (dayBalance(d) as number), 0);
+  return {
+    from: input.from,
+    countedDays: counted.length,
+    balanceKcal,
+    fatKg: r2(balanceKcal / C.kcalPerKgFat),
+    plannedKcal:
+      input.deficitKcal === null || input.deficitKcal === undefined
+        ? null
+        : -Math.round(input.deficitKcal) * counted.length,
+  };
 }
 
 export interface ForecastPoint {
