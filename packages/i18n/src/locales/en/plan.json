@@ -500,6 +500,7 @@
     },
     "forecast": {
       "title": "Your plan is ready",
+      "errorTitle": "Your plan needs a change",
       "error": "Your plan could not be built from these answers. Please check them.",
       "editAnswers": "Edit my answers",
       "weeks": "weeks",

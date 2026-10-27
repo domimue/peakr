@@ -1,6 +1,14 @@
 import { assertDefined } from '../result';
 import { planConfig } from './config';
-import type { GoalKind, Phase, PlanNote, SlotRole, Sport, UserProfile } from './types';
+import {
+  SPORTS,
+  type GoalKind,
+  type Phase,
+  type PlanNote,
+  type SlotRole,
+  type Sport,
+  type UserProfile,
+} from './types';
 
 const sessions = planConfig.sessions;
 
@@ -16,6 +24,8 @@ export interface Slot {
   note?: PlanNote;
   /** Placed instead when this slot does not fit (benchmark → the normal key session). */
   fallback?: Slot;
+  /** Needed to hold the start floor of its sport: placed before strength. */
+  floor?: boolean;
 }
 
 export type GoalFamily = 'run' | 'bike' | 'swim' | 'multisport' | 'fitness';
@@ -89,6 +99,11 @@ export interface CompositionContext {
   raceWeek: boolean;
   /** Days with at least the minimum session length. */
   trainingDays: number;
+  /**
+   * Sessions per sport a new plan needs to hold what the athlete already does with the minutes of
+   * their days (start floors): three 45-minute days cannot hold 150 minutes, four can.
+   */
+  floorSessions?: Partial<Record<Sport, number>>;
   /** CSS sets allowed (400 m continuous, technique-first for beginners done). */
   cssAllowed: boolean;
   /** Replace key sessions with benchmark tests this week. */
@@ -422,5 +437,46 @@ export function composeWeek(ctx: CompositionContext, raceGoal: boolean): Slot[] 
         slots.push(slot('easy', sport, sport === 'swim' ? 'swim.technique' : EASY_TEMPLATE[sport]));
     }
   }
+  if (!ctx.raceWeek) slots = withFloorSessions(slots, ctx);
   return ctx.benchmark ? withBenchmarks(slots, ctx, raceGoal) : slots;
+}
+
+/**
+ * Never fewer sessions of a sport than it takes to hold what the athlete already does (start
+ * floors): easy sessions are added, as many as there are days. The load fill sizes them.
+ */
+function withFloorSessions(slots: Slot[], ctx: CompositionContext): Slot[] {
+  const want = ctx.floorSessions;
+  if (!want) return slots;
+  let out = [...slots];
+  for (const sport of SPORTS) {
+    const need = want[sport] ?? 0;
+    if (need === 0) continue;
+    const ofSport = (s: Slot) => s.sport === sport || (s.sport === 'brick' && sport !== 'swim');
+    for (let i = out.filter(ofSport).length; i < need; i++) {
+      const add = slot('easy', sport, sport === 'swim' ? 'swim.aerobic' : EASY_TEMPLATE[sport]);
+      if (out.length < ctx.trainingDays) {
+        out.push(add);
+        continue;
+      }
+      // No day left: an easy session of a sport with more than its own floor needs makes room.
+      const isSpare = (s: Slot) =>
+        s.role === 'easy' &&
+        !s.floor &&
+        s.sport !== sport &&
+        s.sport !== 'brick' &&
+        out.filter((x) => x.sport === s.sport).length > (want[s.sport] ?? 0);
+      const spare = out.map(isSpare).lastIndexOf(true);
+      if (spare < 0) break;
+      out[spare] = add;
+    }
+    // The sessions that hold the floor go before strength (the others keep their place).
+    let counted = 0;
+    out = out.map((s) => {
+      if (!ofSport(s) || counted >= need) return s;
+      counted++;
+      return s.role === 'easy' || s.role === 'technique' ? { ...s, floor: true } : s;
+    });
+  }
+  return out;
 }

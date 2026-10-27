@@ -305,6 +305,15 @@ export function generatePlan(
         : d.minutes - commutesOn(profile, d.weekday).reduce((s, c) => s + commuteMinutes(c), 0);
     const planDays = days.filter((d) => d.day !== null).length;
     const isPartial = planDays < 7;
+    // Sessions per sport the floors need: the fewest of this week's days (longest first) whose
+    // minutes hold that sport's floor. Three 45-minute days cannot hold 150 minutes – four can.
+    const weekMinutes = days.filter((d) => d.day !== null).map(trainingMinutes);
+    const floorSessions = Object.fromEntries(
+      Object.entries(floors.weeklyMin).map(([sport, min]) => [
+        sport,
+        sessionsToHold((min * planDays) / 7, weekMinutes),
+      ]),
+    ) as Partial<Record<Sport, number>>;
     const loading = !week.isRecovery && week.taperIndex === null;
     const benchmark =
       profile.benchmarks !== false &&
@@ -343,6 +352,7 @@ export function generatePlan(
           isRecovery: week.isRecovery,
           raceWeek: week.index === weekCount - 1 && week.taperIndex !== null,
           trainingDays: days.filter((d) => trainingMinutes(d) >= cfg.plan.minSessionMin).length,
+          floorSessions,
           cssAllowed: cssAllowed(profile, levels),
           benchmark,
           buildWeekIndex,
@@ -371,10 +381,12 @@ export function generatePlan(
       for (let tries = 0, load = targetLoad; tries < cfg.floors.retries; tries++) {
         const short = volumeShortfall(out.workouts, floors.weeklyMin, planDays);
         if (short <= 1) break;
-        load *= short;
+        // From what the week already carries: strength and the minimum sessions can put it above
+        // its target, and a higher target below that would build the same week again. At least
+        // one step that survives the 5-minute rounding of the sessions.
+        load = Math.max(load, out.load) * Math.max(short, cfg.floors.minStep);
         const next = scheduleAt(load);
-        if (next.load <= out.load) break;
-        out = next;
+        if (next.load > out.load) out = next;
       }
     }
 
@@ -506,6 +518,17 @@ export function classifyPlan(weeks: PlanWeek[], experience: Experience): PlanWee
       .map(describeWorkout);
     return { ...w, workouts, hardShare: Math.round(hardShare(workouts) * 1000) / 1000 };
   });
+}
+
+/** The fewest days (longest first) whose minutes add up to `minutes`; all of them if never. */
+function sessionsToHold(minutes: number, minutesPerDay: readonly number[]): number {
+  const usable = minutesPerDay.filter((m) => m >= cfg.plan.minSessionMin).sort((a, b) => b - a);
+  let sum = 0;
+  for (let n = 0; n < usable.length; n++) {
+    sum += usable[n] as number;
+    if (sum >= minutes) return n + 1;
+  }
+  return usable.length;
 }
 
 /**

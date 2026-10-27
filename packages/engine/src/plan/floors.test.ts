@@ -225,3 +225,111 @@ describe('plan start floors', () => {
     expect(startFloors(runner)).toEqual({ longMin: {}, weeklyMin: {} });
   });
 });
+
+describe('start floors with short days (every day 45 min)', () => {
+  const days45: Availability = {
+    minutesPerDay: [45, 45, 45, 45, 45, 45, 45],
+    doublesAllowed: false,
+  };
+  const athlete = (over: Partial<UserProfile>): UserProfile => ({
+    age: 35,
+    experience: 'beginner',
+    sports: ['run'],
+    terrain: 'flat',
+    strength: { mode: 'none' },
+    ...over,
+  });
+  const minutes = (plan: Plan, sport: 'run' | 'bike') =>
+    (plan.weeks[0]?.workouts ?? [])
+      .filter((w) => w.sport === sport)
+      .reduce((s, w) => s + w.durationMin, 0);
+
+  it('adds sessions when the usual count of 45-minute days cannot hold what the athlete does', () => {
+    const r = generatePlan(
+      athlete({ baseline: { weeklyMin: { run: 150 }, startLoad: 300 } }),
+      { kind: 'fitness' },
+      days45,
+      '2026-10-26',
+    );
+    if (!r.ok) throw new Error(JSON.stringify(r.issues));
+    expect(minutes(r.value, 'run')).toBeGreaterThanOrEqual(143);
+    expect(r.value.weeks[0]?.workouts.filter((w) => w.sport === 'run').length).toBeGreaterThan(3);
+  });
+
+  it('raises the week from the load it already carries (strength above the target)', () => {
+    const r = generatePlan(
+      athlete({
+        strength: { mode: 'peakr', equipment: 'home' },
+        baseline: { weeklyMin: { run: 150 }, startLoad: 300 },
+      }),
+      { kind: 'fitness' },
+      days45,
+      '2026-10-26',
+    );
+    if (!r.ok) throw new Error(JSON.stringify(r.issues));
+    expect(minutes(r.value, 'run')).toBeGreaterThanOrEqual(143);
+  });
+
+  it('the sessions holding a floor come before strength – 90 min of riding are not enough for 93', () => {
+    const r = generatePlan(
+      athlete({
+        sports: ['run', 'bike'],
+        strength: { mode: 'peakr', equipment: 'home' },
+        baseline: { weeklyMin: { run: 98, bike: 98 }, startLoad: 400 },
+      }),
+      { kind: 'fitness' },
+      days45,
+      '2026-10-26',
+    );
+    if (!r.ok) throw new Error(JSON.stringify(r.issues));
+    expect(minutes(r.value, 'bike')).toBeGreaterThanOrEqual(93);
+    expect(minutes(r.value, 'run')).toBeGreaterThanOrEqual(93);
+  });
+
+  it('with every day taken, an easy session of the main sport makes room for the other floor', () => {
+    const r = generatePlan(
+      athlete({ sports: ['run', 'bike'], baseline: { weeklyMin: { bike: 98 }, startLoad: 300 } }),
+      { kind: '10k' },
+      days45,
+      '2026-10-29',
+      '2027-04-01',
+    );
+    if (!r.ok) throw new Error(JSON.stringify(r.issues));
+    expect(minutes(r.value, 'bike')).toBeGreaterThanOrEqual(53);
+  });
+
+  it('swims are topped up with aerobic sets; bricks count for riding and running', () => {
+    const swim = generatePlan(
+      athlete({ sports: ['run', 'swim'], baseline: { weeklyMin: { swim: 98 }, startLoad: 300 } }),
+      { kind: 'fitness' },
+      days45,
+      '2026-10-26',
+    );
+    if (!swim.ok) throw new Error(JSON.stringify(swim.issues));
+    expect(swim.value.weeks[0]?.workouts.some((w) => w.templateId === 'swim.aerobic')).toBe(true);
+    const tri = generatePlan(
+      athlete({
+        experience: 'intermediate',
+        sports: ['run', 'bike', 'swim'],
+        baseline: { weeklyMin: { run: 60, bike: 60 }, startLoad: 300 },
+      }),
+      { kind: 'tri_olympic' },
+      { minutesPerDay: [60, 60, 60, 60, 60, 120, 90], doublesAllowed: false },
+      '2026-10-26',
+      '2027-05-30',
+    );
+    if (!tri.ok) throw new Error(JSON.stringify(tri.issues));
+    expect(tri.value.weeks.some((w) => w.workouts.some((x) => x.sport === 'brick'))).toBe(true);
+  });
+
+  it('still refuses when the days cannot hold both floors', () => {
+    const r = generatePlan(
+      athlete({ sports: ['run', 'bike'], baseline: { weeklyMin: { run: 98, bike: 98 } } }),
+      { kind: 'fitness' },
+      { minutesPerDay: [45, 0, 45, 0, 45, 0, 0], doublesAllowed: false },
+      '2026-10-26',
+    );
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.issues[0]?.code).toBe('belowBaselineVolume');
+  });
+});

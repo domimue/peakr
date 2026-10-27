@@ -166,13 +166,18 @@ class WeekScheduler {
     const slots = composeWeek(input.composition, input.raceGoal);
     const first = slots.filter((s) => ['long', 'key', 'brick', 'benchmark'].includes(s.role));
     const second = slots.filter((s) => s.role === 'quality');
-    const rest = slots.filter((s) => !first.includes(s) && !second.includes(s));
+    // Sessions that hold what the athlete already does (start floors) come before strength.
+    const floor = slots.filter((s) => s.floor && !first.includes(s) && !second.includes(s));
+    const rest = slots.filter(
+      (s) => !first.includes(s) && !second.includes(s) && !floor.includes(s),
+    );
     const strengthFirst = input.athlete.profile.strength.priority === 'strengthFirst';
 
     this.placeCommutes();
     first.forEach((s) => this.placeSlot(s));
     if (strengthFirst) this.placeStrength();
     second.forEach((s) => this.placeSlot(s));
+    floor.forEach((s) => this.placeSlot(s));
     if (!strengthFirst) this.placeStrength();
     rest.forEach((s) => this.placeSlot(s));
 
