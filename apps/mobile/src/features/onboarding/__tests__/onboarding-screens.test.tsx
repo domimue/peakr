@@ -103,6 +103,12 @@ describe('onboarding quiz', () => {
     expect(screen.getByText(/threshold pace is about 5:03 \/km/)).toBeOnTheScreen();
     await proceed();
 
+    // Current training: Peakr's estimate, or the user's own week (no Strava in the quiz).
+    expect(screen.getByText('Your current training')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('I enter it'));
+    expect(screen.getByText('Kilometres you run per week')).toBeOnTheScreen();
+    await next();
+
     // Heart rate is optional; an impossible value blocks the step.
     await fireEvent.changeText(screen.getByLabelText('Resting heart rate (optional)'), '12');
     expect(screen.getByText('Enter a value between 25 and 120.')).toBeOnTheScreen();

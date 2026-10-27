@@ -1,11 +1,12 @@
 import {
+  applyCurrentTraining,
   applyReview,
   historyBaseline,
   withHistoryBaseline,
   type PlanState,
   type ReviewChanges,
 } from '@peakr/engine';
-import { toPlanInput, type QuizAnswers } from '@peakr/quiz';
+import { currentTrainingOf, toPlanInput, type QuizAnswers } from '@peakr/quiz';
 
 import type { StoredPlanInput } from '@/data/db/schema';
 import { calibrateOnboarding } from '@/features/baseline/calibration';
@@ -22,9 +23,9 @@ export interface PreviousPlan {
 }
 
 /**
- * The input of the new plan: the quiz answers, calibrated with the fresh Strava baseline, and the
- * sessions of the previous plan as the primary source of the start values (the higher value per
- * sport wins, so it never starts below what the user really did).
+ * The input of the new plan: the quiz answers and the sessions of the previous plan as the primary
+ * source of the start values (the higher value per sport wins, so it never starts below what the
+ * user really did). A week the user entered as their current training wins over both.
  */
 export function newPlanInput(
   answers: QuizAnswers,
@@ -41,7 +42,7 @@ export function newPlanInput(
   const history = historyBaseline(current.state, current.input.profile, today);
   // Settings made in Profile after the first quiz stay what the user set.
   const kept = current.input.profile;
-  const profile = withHistoryBaseline(
+  const merged = withHistoryBaseline(
     {
       ...calibrated.profile,
       ...(kept.difficulty !== undefined ? { difficulty: kept.difficulty } : {}),
@@ -51,6 +52,8 @@ export function newPlanInput(
     },
     history,
   );
+  const own = currentTrainingOf(answers);
+  const profile = own ? applyCurrentTraining(merged, own) : merged;
   return {
     ...calibrated,
     profile: review ? applyReview(profile, review.changes, review.acceptDifficulty) : profile,

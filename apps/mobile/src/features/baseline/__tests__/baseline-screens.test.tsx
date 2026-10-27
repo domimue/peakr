@@ -1,6 +1,7 @@
 import { generatePlan, newPlanState } from '@peakr/engine';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { router, useLocalSearchParams } from 'expo-router';
+import { useTranslation } from 'react-i18next';
 
 import type { StoredPlanInput } from '@/data/db/schema';
 import * as baselineRepo from '@/data/repositories/baseline-repository';
@@ -9,13 +10,14 @@ import * as planRepo from '@/data/repositories/plan-repository';
 import { useSessionStore } from '@/features/auth/session-store';
 import { connect } from '@/features/integrations/api';
 import { renderWithQuery } from '@/test-utils/render-with-query';
+import { Button, Text } from '@/ui';
 
 import IntegrationResult from '../../../../app/integrations/[provider]';
 import { importBaseline } from '../api';
 import { useBaselineStore } from '../baseline-store';
 import { usePendingConnect } from '../pending-connect';
 import { BaselineSelectScreen } from '../screens/baseline-select-screen';
-import { BaselineStep } from '../screens/baseline-step';
+import { useBaselineImport } from '../screens/baseline-step';
 import { BaselineSummaryScreen } from '../screens/baseline-summary-screen';
 
 jest.mock('@/data/repositories/baseline-repository');
@@ -82,16 +84,20 @@ beforeEach(() => {
 
 afterEach(() => jest.restoreAllMocks());
 
-describe('baseline quiz step', () => {
-  it('says what is read and that it is reference only', async () => {
-    await renderWithQuery(<BaselineStep />);
-    expect(await screen.findByText('Make my plan more accurate')).toBeOnTheScreen();
-    expect(
-      screen.getByText(/only runs, rides and swims from the last 60 days, nothing older/),
-    ).toBeOnTheScreen();
-  });
+/** The connect flow as Profile → Training zones runs it (the quiz no longer has a Strava step). */
+function ImportHarness() {
+  const { t } = useTranslation();
+  const { start, error } = useBaselineImport('recalibrate');
+  return (
+    <>
+      <Button label="Connect with Strava" onPress={() => void start()} />
+      {error ? <Text>{t(error as never)}</Text> : null}
+    </>
+  );
+}
 
-  it('signs in anonymously, connects Strava for the baseline and opens the list', async () => {
+describe('baseline import', () => {
+  it('signs in anonymously, connects Strava and opens the list', async () => {
     jest
       .mocked(importBaseline)
       .mockResolvedValueOnce({ ok: false, reason: 'not_connected' })
@@ -100,17 +106,17 @@ describe('baseline quiz step', () => {
         return { ok: true, activities: 1 };
       });
     jest.mocked(connect).mockResolvedValueOnce('connected');
-    await renderWithQuery(<BaselineStep />);
+    await renderWithQuery(<ImportHarness />);
     fireEvent.press(await screen.findByRole('button', { name: 'Connect with Strava' }));
-    await waitFor(() => expect(router.push).toHaveBeenCalledWith('/onboarding/baseline'));
+    await waitFor(() => expect(router.push).toHaveBeenCalledWith('/training/baseline'));
     expect(useSessionStore.getState().ensureSession).toHaveBeenCalled();
-    expect(connect).toHaveBeenCalledWith('strava', 'baseline');
+    expect(connect).toHaveBeenCalledWith('strava', undefined);
   });
 
-  it('a declined connection shows a message and leaves skipping open', async () => {
+  it('a declined connection shows a message', async () => {
     jest.mocked(importBaseline).mockResolvedValueOnce({ ok: false, reason: 'not_connected' });
     jest.mocked(connect).mockResolvedValueOnce('denied');
-    await renderWithQuery(<BaselineStep />);
+    await renderWithQuery(<ImportHarness />);
     fireEvent.press(await screen.findByRole('button', { name: 'Connect with Strava' }));
     expect(await screen.findByText(/Strava access was not granted/)).toBeOnTheScreen();
     expect(router.push).not.toHaveBeenCalled();
@@ -124,9 +130,9 @@ describe('Strava consent handled by the Strava app (Android deep link)', () => {
   it('the connect flow waits for the deep link instead of giving up', async () => {
     jest.mocked(importBaseline).mockResolvedValueOnce({ ok: false, reason: 'not_connected' });
     jest.mocked(connect).mockResolvedValueOnce('cancelled');
-    await renderWithQuery(<BaselineStep />);
+    await renderWithQuery(<ImportHarness />);
     fireEvent.press(await screen.findByRole('button', { name: 'Connect with Strava' }));
-    await waitFor(() => expect(usePendingConnect.getState().flow).toBe('onboarding'));
+    await waitFor(() => expect(usePendingConnect.getState().flow).toBe('recalibrate'));
     expect(screen.queryByText(/went wrong/)).toBeNull();
   });
 

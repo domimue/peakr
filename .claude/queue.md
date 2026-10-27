@@ -7,11 +7,12 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 ## Open
 
-- Current training instead of Strava in the quiz (2026-10-27): remove the Strava calibration step from
-  the quiz and the new-plan flow; per sport current weekly volume (and the run pace) entered by
-  the user or Peakr's estimate; feeds start load and floors; CLAUDE.md updated.
 
 ## Done
+
+- Current training instead of Strava in the quiz (2026-10-27): Strava step removed from the quiz
+  and the new-plan flow (recalibration stays in Profile → Training zones); step "Your current
+  training" – Peakr's estimate or own km/h/m per week – sets start load and floors; nothing to set up
 
 - Sessions per discipline (2026-10-27): quiz step before the availability (Let Peakr suggest / I
   choose, starting at the suggestion), engine plans the asked numbers, check against days, Profile →
