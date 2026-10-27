@@ -7,8 +7,9 @@ import { Button, numeric, spacing, Text } from '@/ui';
 import type { BodyModel } from '../model';
 
 /**
- * How today's target is built (CLAUDE.md "Energy & body rules"): resting energy, everyday
- * activity, today's planned training and the goal's deficit – plus the notices that belong to the
+ * How the daily target is built (CLAUDE.md "Energy & body rules"): resting energy, everyday
+ * activity (from the watch when it measures it), this week's planned training per day and the
+ * goal's deficit – the same every day – plus the notices that belong to the
  * target: a goal pace that would break the intake floor, training clearly off the plan this week,
  * and the everyday activity not answered yet. Every number comes from the engine.
  */
@@ -42,6 +43,14 @@ export function TargetBreakdown({ model }: { model: BodyModel }) {
             />
           ) : null}
           <Line label={t('bodyAddon.energy.total')} value={kcal(b.totalKcal)} strong />
+          {model.basis?.everydaySource === 'wearable' ? (
+            <Text variant="caption" tone="secondary" testID="target-everyday-watch">
+              {t('bodyAddon.energy.everydayWatch', { count: model.basis.wearableDays })}
+            </Text>
+          ) : null}
+          <Text variant="caption" tone="secondary">
+            {t('bodyAddon.energy.sameEveryDay')}
+          </Text>
         </>
       ) : null}
       {model.deviation?.hint ? (
@@ -54,7 +63,7 @@ export function TargetBreakdown({ model }: { model: BodyModel }) {
           )}
         </Text>
       ) : null}
-      {model.energy.everydayActivity === null ? (
+      {model.energy.everydayActivity === null && model.basis?.everydaySource !== 'wearable' ? (
         <Text variant="caption" tone="secondary" testID="target-everyday-unset">
           {t('bodyAddon.energy.everydayUnset')}
         </Text>

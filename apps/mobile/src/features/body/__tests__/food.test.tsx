@@ -303,7 +303,7 @@ describe('diary', () => {
     expect(screen.getByTestId('ring-protein')).toBeOnTheScreen();
   });
 
-  it('shows what today’s ride adds back and a fuelling hint for a long planned session', async () => {
+  it('shows the training share in the target and a fuelling hint for a long planned session', async () => {
     activities.store.activities = [
       {
         source: 'strava',
@@ -337,7 +337,7 @@ describe('diary', () => {
     };
     await renderWithQuery(<NutritionScreen />);
     expect(await screen.findByTestId('body-added-back')).toHaveTextContent(
-      /Your ride today: \+\d+ kcal/,
+      /Includes \d+ kcal a day for this week’s training/,
     );
     expect(screen.getByTestId('body-fuelling')).toHaveTextContent(/Long session today/);
   });

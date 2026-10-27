@@ -17,7 +17,7 @@ describe('rate presets', () => {
     const presets = ratePresets({
       kind: 'lose',
       weightKg: 80,
-      tdeeKcal: 2600,
+      nonExerciseTdeeKcal: 2600,
       bmrKcal: 1700,
       sex: 'male',
     });
@@ -34,7 +34,7 @@ describe('rate presets', () => {
     const presets = ratePresets({
       kind: 'lose',
       weightKg: 130,
-      tdeeKcal: 3400,
+      nonExerciseTdeeKcal: 3400,
       bmrKcal: 2100,
       sex: 'male',
     });
@@ -45,7 +45,7 @@ describe('rate presets', () => {
     const presets = ratePresets({
       kind: 'gain',
       weightKg: 70,
-      tdeeKcal: 2500,
+      nonExerciseTdeeKcal: 2500,
       bmrKcal: 1600,
       sex: 'male',
     });
@@ -56,7 +56,7 @@ describe('rate presets', () => {
     const presets = ratePresets({
       kind: 'lose',
       weightKg: 62,
-      tdeeKcal: 1800,
+      nonExerciseTdeeKcal: 1800,
       bmrKcal: 1300,
       sex: 'female',
     });
@@ -70,7 +70,6 @@ describe('goal targets', () => {
     const t = goalTargets({
       kind: 'lose',
       ratePerWeekKg: 0.5,
-      tdeeKcal: 1800,
       nonExerciseTdeeKcal: 1800,
       bmrKcal: 1300,
       sex: 'female',
@@ -92,7 +91,6 @@ describe('goal targets', () => {
     const t = goalTargets({
       kind: 'lose',
       ratePerWeekKg: 1.5,
-      tdeeKcal: 3000,
       nonExerciseTdeeKcal: 3000,
       bmrKcal: 1800,
       sex: 'male',

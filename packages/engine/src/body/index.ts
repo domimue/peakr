@@ -26,6 +26,8 @@ export {
   trainingWeek,
   trendChange,
   weeklyEnergyBars,
+  balanceSince,
+  dailyEnergyBalances,
   type BodyIndices,
   type ForecastPoint,
   type MeasurementTrend,
@@ -33,6 +35,8 @@ export {
   type TrainingGroup,
   type TrainingWeek,
   type WeekEnergyBar,
+  type BalanceSince,
+  type DayEnergyBalance,
 } from './dashboard';
 export {
   coachConfig,

@@ -259,6 +259,75 @@ describe('Body tab', () => {
   });
 });
 
+describe('energy balance: since the goal, planned vs. measured, day by day', () => {
+  const entry = (id: string, day: string, kcal: number) => ({
+    id,
+    day,
+    meal: 'lunch' as const,
+    name: 'Meal',
+    kcal,
+    proteinG: null,
+    carbsG: null,
+    fatG: null,
+    foodId: null,
+    amount: null,
+    unit: null,
+    portionLabel: null,
+    createdAt: `${day}T12:00:00Z`,
+  });
+  const goal = (id: string, createdAt: string, ratePerWeekKg: number) => ({
+    id,
+    createdAt,
+    kind: 'lose' as const,
+    startWeightKg: 61,
+    targetWeightKg: 57,
+    ratePerWeekKg,
+    eatBackPct: 0,
+    weeklyMode: false,
+    adjustmentKcal: 0,
+    paused: false,
+    reason: 'user' as const,
+  });
+
+  it('sums the complete days since the goal started and compares them with the plan', async () => {
+    billing('active');
+    fullProfile();
+    // The goal started on 12 October; a changed rate on the 15th is the same goal.
+    body.store.goals = [
+      goal('g1', '2026-10-12T08:00:00Z', 0.5),
+      goal('g2', '2026-10-15T08:00:00Z', 0.25),
+    ];
+    body.store.food = [
+      entry('a', '2026-10-13', 1200),
+      entry('b', '2026-10-14', 1300),
+      entry('c', TODAY, 900),
+    ];
+    await renderWithQuery(<BodyScreen />);
+    const since = await screen.findByTestId('balance-since-goal');
+    expect(since).toHaveTextContent(/Since your goal started \(Oct 12\)/);
+    // Two complete days (today is never counted): eaten 2,500 against two days of energy.
+    expect(since).toHaveTextContent(/2 complete days/);
+    expect(screen.getByTestId('balance-vs-plan')).toHaveTextContent(/Planned −\d+ kcal/);
+    expect(screen.getByTestId('balance-2026-10-12')).toHaveTextContent(/Planned −\d+ kcal/);
+
+    expect(screen.queryByTestId('balance-days')).toBeNull();
+    await fireEvent.press(screen.getByTestId('balance-days-toggle'));
+    expect(screen.getByTestId(`balance-day-${TODAY}`)).toHaveTextContent(/Eaten 900.*not counted/);
+    expect(screen.getByTestId('balance-day-2026-10-13')).toHaveTextContent(/Eaten 1200/);
+    expect(screen.getByTestId('balance-day-2026-10-16')).toHaveTextContent(
+      /nothing logged.*no log/,
+    );
+  });
+
+  it('without a goal there is no sum since a start', async () => {
+    billing('active');
+    fullProfile();
+    await renderWithQuery(<BodyScreen />);
+    expect(await screen.findByTestId('body-tdee')).toBeOnTheScreen();
+    expect(screen.queryByTestId('balance-since-goal')).toBeNull();
+  });
+});
+
 describe('Phase 12: energy model in the app', () => {
   it('device intake counts when nothing was logged, and a day can be marked incomplete', async () => {
     billing('active');
@@ -390,7 +459,9 @@ describe('Teil A without the add-on', () => {
     fullProfile();
     await renderWithQuery(<TodayScreen />);
     expect(await screen.findByTestId('energy-today')).toBeOnTheScreen();
-    expect(await screen.findByText(/kcal for today’s planned training/)).toBeOnTheScreen();
+    expect(
+      await screen.findByText(/kcal a day for this week’s planned training/),
+    ).toBeOnTheScreen();
     expect(screen.queryByTestId('coach-teaser')).toBeNull();
   });
 

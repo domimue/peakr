@@ -155,7 +155,8 @@ describe('creating a recipe', () => {
     });
     expect(screen.getByTestId('recipe-total')).toHaveTextContent(/1640 kcal/);
     expect(screen.getByTestId('recipe-portion')).toHaveTextContent(/1640 kcal/);
-    for (let i = 0; i < 3; i++) await fireEvent.press(screen.getByLabelText('Portions the dish makes, More portions'));
+    for (let i = 0; i < 3; i++)
+      await fireEvent.press(screen.getByLabelText('Portions the dish makes, More portions'));
     expect(screen.getByTestId('recipe-portion')).toHaveTextContent(/^Per portion410 kcal/);
     await fireEvent.changeText(screen.getByTestId('recipe-cooked'), '1200');
     expect(screen.getByTestId('recipe-portion')).toHaveTextContent(/Per portion \(≈ 300 g\)/);

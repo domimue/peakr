@@ -11,6 +11,8 @@ import {
   trainingWeek,
   trendChange,
   weeklyEnergyBars,
+  balanceSince,
+  dailyEnergyBalances,
 } from './dashboard';
 
 const day = (d: string, intake: number | null, over: Partial<EnergyDay> = {}): EnergyDay => ({
@@ -96,6 +98,7 @@ describe('weeklyEnergyBars', () => {
       intakeKcal: null,
       balanceKcal: null,
       fatKg: null,
+      plannedKcal: null,
     });
     expect(bars[1]).toEqual({
       week: '2026-10-19',
@@ -105,6 +108,7 @@ describe('weeklyEnergyBars', () => {
       intakeKcal: 1700,
       balanceKcal: -800,
       fatKg: -0.1,
+      plannedKcal: null,
     });
     // Without a log, resting and active still show (averaged over the days there are).
     expect(bars[2]).toMatchObject({ loggedDays: 0, restingKcal: 1600, intakeKcal: null });
@@ -112,6 +116,48 @@ describe('weeklyEnergyBars', () => {
 
   it('defaults to eight weeks', () => {
     expect(weeklyEnergyBars([], '2026-10-26')).toHaveLength(8);
+  });
+
+  it('the planned figure counts the logged days since the goal started', () => {
+    const bars = weeklyEnergyBars(
+      [day('2026-10-19', 1800), day('2026-10-20', 1600), day('2026-10-22', 1700)],
+      '2026-10-27',
+      2,
+      { from: '2026-10-20', deficitKcal: 550 },
+    );
+    expect(bars[0]?.plannedKcal).toBe(-1100);
+    expect(bars[1]?.plannedKcal).toBeNull();
+  });
+});
+
+describe('energy balance by day and since the goal', () => {
+  const days = [
+    day('2026-10-24', 1800),
+    day('2026-10-25', 1500, { complete: false }),
+    day('2026-10-26', null),
+    day('2026-10-27', 2000),
+  ];
+
+  it('lists the last days newest first, marking what is counted', () => {
+    const list = dailyEnergyBalances(days, '2026-10-27', 3);
+    expect(list.map((d) => [d.day, d.balanceKcal, d.counted])).toEqual([
+      ['2026-10-27', -100, true],
+      ['2026-10-26', null, false],
+      ['2026-10-25', -600, false],
+    ]);
+    expect(dailyEnergyBalances(days, '2026-10-27')).toHaveLength(4);
+  });
+
+  it('sums the counted days since the start against the planned deficit', () => {
+    expect(balanceSince({ days, from: '2026-10-24', deficitKcal: 550 })).toEqual({
+      from: '2026-10-24',
+      countedDays: 2,
+      balanceKcal: -400,
+      fatKg: -0.05,
+      plannedKcal: -1100,
+    });
+    expect(balanceSince({ days, from: '2026-10-25' }).plannedKcal).toBeNull();
+    expect(balanceSince({ days, from: '2026-10-25', deficitKcal: null }).plannedKcal).toBeNull();
   });
 });
 

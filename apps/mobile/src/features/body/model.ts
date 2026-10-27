@@ -2,7 +2,12 @@ import {
   adaptiveTdee,
   allWorkouts,
   completedWorkoutKcal,
+  balanceSince,
+  dailyEnergyBalances,
   energyBasis,
+  type BalanceSince,
+  type DayEnergyBalance,
+  energyConfig,
   estimateWorkoutKcal,
   goalSnapshot,
   weekLoadContext,
@@ -11,7 +16,6 @@ import {
   macroTargets,
   type FuellingHint,
   sumNutrients,
-  type ActivitySport,
   type EnergyBasis,
   type MacroTargets,
   type Nutrients,
@@ -23,6 +27,8 @@ import {
   nextTargetChange,
   statusOf,
   rapidLossWarning,
+  recentBodyFat,
+  restingEnergy,
   trendOn,
   weekBalance,
   type AdaptiveResult,
@@ -83,13 +89,15 @@ export interface BodyModel {
   tooFastLoss: boolean;
   /** Maintenance used for targets (adaptive once available, else formula). */
   basis: EnergyBasis | null;
+  /** Planned training per day (at 50 %) the goal's rate is checked on (lowest of the next 4 weeks). */
+  goalPlannedDailyKcal: number;
   /** The latest trend weight (else the profile weight). */
   trendKg: number;
   /** Current goal version (null = none yet). Paused goals count as "maintain". */
   goal: repo.StoredGoal | null;
   goalSnapshot: GoalSnapshot | null;
-  /** Energy today's workouts add to the target, and the sport of the main one. */
-  addedBack: { kcal: number; sport: ActivitySport | null };
+  /** The week's planned training per day inside the target (without a goal: today's workouts). */
+  addedBack: { kcal: number };
   /** What was eaten today and the macro targets for the rings. */
   eaten: Nutrients;
   macros: MacroTargets;
@@ -110,6 +118,13 @@ export interface BodyModel {
   proteinByDay: { day: string; proteinG: number }[];
   /** Body fat values with their day (all sources), oldest first. */
   bodyFatPoints: { day: string; bodyFatPct: number }[];
+  /** The measured energy balance: since the goal started, the last 14 days, the goal's plan. */
+  balance: {
+    sinceGoal: BalanceSince | null;
+    days: DayEnergyBalance[];
+    /** The goal's start and planned deficit per day (for the planned figure per week). */
+    goal: { from: string; deficitKcal: number } | null;
+  };
 }
 
 interface RawInputs {
@@ -124,12 +139,38 @@ interface RawInputs {
   goals: repo.StoredGoal[];
   dayKcal: repo.DayKcal[];
   measurements: repo.Measurement[];
+  /** First day loaded (the window, or the goal's start when that is earlier). */
+  from: string;
 }
 
 /** Body fat of a check-in as a sourced value: a Navy result is an estimate, a scale is a device. */
 const FAT_SOURCE = { manual: 'manual', navy: 'estimate', scale: 'healthConnect' } as const;
 
-async function loadInputs(from: string): Promise<RawInputs> {
+/** How far back "since your goal started" reaches at most. */
+const GOAL_HISTORY_DAYS = 365;
+
+/**
+ * The start of the current goal: the first of the saved versions in a row with the same kind and
+ * start weight (a changed rate or target saves a new version of the same goal).
+ */
+export function goalStartDay(goals: readonly repo.StoredGoal[]): string | null {
+  const last = goals.at(-1);
+  if (!last || last.paused) return null;
+  let start = last;
+  for (let i = goals.length - 2; i >= 0; i--) {
+    const g = goals[i] as repo.StoredGoal;
+    if (g.kind !== last.kind || g.startWeightKg !== last.startWeightKg) break;
+    start = g;
+  }
+  return start.createdAt.slice(0, 10);
+}
+
+async function loadInputs(window: string): Promise<RawInputs> {
+  // The window, reaching back to the goal's start for the balance since then.
+  const goalStart = goalStartDay(await repo.listGoals());
+  const today = todayIso();
+  const floor = shift(today, -GOAL_HISTORY_DAYS);
+  const from = goalStart && goalStart < window ? (goalStart < floor ? floor : goalStart) : window;
   const [
     food,
     checkIns,
@@ -170,6 +211,7 @@ async function loadInputs(from: string): Promise<RawInputs> {
     goals,
     dayKcal: dayKcal.filter((d) => d.day >= from),
     measurements,
+    from,
   };
 }
 
@@ -225,7 +267,7 @@ export function useBodyModel(): BodyModel | null {
     const stored = plan.data;
     const planned = stored
       ? allWorkouts(stored.state.plan)
-          .filter((w) => w.date >= from && w.date <= today)
+          .filter((w) => w.date >= raw.from && w.date <= today)
           .map((w) => ({
             day: w.date,
             workout: {
@@ -236,9 +278,9 @@ export function useBodyModel(): BodyModel | null {
             },
           }))
       : [];
-    const { days, trend } = energyDays({
+    const inputsFrom = (start: string) => ({
       profile: p,
-      from,
+      from: start,
       to: today,
       today,
       intake: [
@@ -270,6 +312,7 @@ export function useBodyModel(): BodyModel | null {
       planned,
       incompleteDays: raw.incompleteDays,
     });
+    const { days, trend } = energyDays(inputsFrom(from));
     const previous = raw.estimates.filter((e) => e.date < today).at(-1) ?? null;
     const adaptive = adaptiveTdee({ days, trend, today, previous });
     const correctionKcal =
@@ -286,11 +329,21 @@ export function useBodyModel(): BodyModel | null {
     });
     const monday = mondayOf(today);
     const trendKg = trend.at(-1)?.trendKg ?? p.weightKg;
+    const fat = recentBodyFat(
+      [...bodyFatValues(raw), ...sourced(raw, 'body_fat')].map((b) => ({
+        day: b.day,
+        value: b.value,
+      })),
+      today,
+    );
     const basis = energyBasis({
       days,
       today,
       adaptive,
       everydayActivity: energy.everydayActivity,
+      trainingDays: raw.activities.map((a) => a.date),
+      // The intake floor uses the formula, never the watch's resting value.
+      formulaBmrKcal: restingEnergy({ ...p, weightKg: trendKg }, today, fat).kcal,
     });
     const goal = raw.goals.at(-1) ?? null;
     const week = stored?.state.plan.weeks.find((w) => w.startDate === monday);
@@ -305,6 +358,23 @@ export function useBodyModel(): BodyModel | null {
     const actualWeekKcalSoFar = days
       .filter((d) => d.day >= monday && d.day <= today)
       .reduce((sum, d) => sum + completedWorkoutKcal(d.active, d.restingKcal), 0);
+    // The goal's rate is checked on the lowest planned week of the next four, so it holds in a
+    // recovery week too.
+    const weekDaily = (w: (typeof weekWorkouts)[number][]) =>
+      w.reduce((sum, x) => sum + estimateWorkoutKcal(x, trendKg), 0) / 7;
+    const comingWeeks = (stored?.state.plan.weeks ?? []).filter(
+      (w) => w.startDate >= monday && w.startDate < shift(monday, 28),
+    );
+    const ratePlannedDailyKcal =
+      stored && comingWeeks.length > 0
+        ? Math.round(
+            Math.min(
+              ...comingWeeks.map((w) =>
+                weekDaily(w.workouts.filter((x) => statusOf(stored.state, x.id) !== 'skipped')),
+              ),
+            ),
+          )
+        : undefined;
     const tags = week && stored ? weekTags(week, stored.input, stored.state.plan.targetDate) : [];
     const snapshotFor = (settings: Parameters<typeof goalSnapshot>[0]['goal']) =>
       goalSnapshot({
@@ -313,6 +383,7 @@ export function useBodyModel(): BodyModel | null {
         sex: p.sex,
         trendKg,
         plannedWeekKcal,
+        ...(ratePlannedDailyKcal !== undefined ? { ratePlannedDailyKcal } : {}),
         actualWeekKcalSoFar,
         weekdayIndex: daysBetween(monday, today),
         trend,
@@ -350,10 +421,6 @@ export function useBodyModel(): BodyModel | null {
         fatG: f.fatG ?? 0,
       })),
     );
-    const mainSport =
-      [...raw.activities.filter((a) => a.date === today)].sort(
-        (a, b) => b.durationSec - a.durationSec,
-      )[0]?.sport ?? null;
     const fatPoints = [...bodyFatValues(raw), ...sourced(raw, 'body_fat')]
       .map((b) => ({
         day: b.day,
@@ -390,6 +457,24 @@ export function useBodyModel(): BodyModel | null {
       }),
       tooFastLoss: rapidLossWarning(trend, today).warning,
       basis,
+      balance: (() => {
+        const start = goalStartDay(raw.goals);
+        const goalPlan =
+          start && snapshot ? { from: start, deficitKcal: snapshot.targets.deficitKcal } : null;
+        // Days before the window are only built for the sum since the goal started.
+        const since =
+          goalPlan && goalPlan.from < from ? energyDays(inputsFrom(goalPlan.from)).days : days;
+        return {
+          sinceGoal: goalPlan ? balanceSince({ days: since, ...goalPlan }) : null,
+          days: dailyEnergyBalances(days, today, 14),
+          goal: goalPlan,
+        };
+      })(),
+      // Counted at the target's activity share, like in the goal snapshot.
+      goalPlannedDailyKcal: Math.round(
+        Math.min(plannedWeekKcal.reduce((a, b) => a + b, 0) / 7, ratePlannedDailyKcal ?? Infinity) *
+          energyConfig.goal.activeShare,
+      ),
       trendKg,
       goal,
       goalSnapshot: snapshot,
@@ -397,7 +482,6 @@ export function useBodyModel(): BodyModel | null {
         kcal: week0
           ? week0.addedBackKcal
           : completedWorkoutKcal(todayDay.active, todayDay.restingKcal),
-        sport: mainSport,
       },
       breakdown: week0?.breakdown ?? null,
       deviation: week0?.deviation ?? null,

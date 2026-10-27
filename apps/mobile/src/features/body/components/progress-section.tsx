@@ -6,6 +6,7 @@ import { StyleSheet, View } from 'react-native';
 import { Card, ListState, numeric, spacing, StatTile, Text, TileGrid, useTheme } from '@/ui';
 
 import { useBodyDashboard } from '../dashboard';
+import { BalanceDays, BalanceSinceGoal, signedKcal } from './balance-details';
 import { EnergyBarsChart } from './charts/energy-bars-chart';
 import { TrendChart } from './charts/trend-chart';
 
@@ -136,6 +137,7 @@ export function ProgressSection() {
 
       <Card style={styles.stack} testID="body-balance">
         <Text variant="label">{t('bodyAddon.balance.title')}</Text>
+        <BalanceSinceGoal balance={model.balance} />
         <EnergyBarsChart
           bars={bars}
           labels={bars.map((b) => short(b.week, i18n.language))}
@@ -143,9 +145,16 @@ export function ProgressSection() {
         />
         {recentBars.map((b) => (
           <View key={b.week} style={styles.row} testID={`balance-${b.week}`}>
-            <Text tone="secondary" style={styles.flex}>
-              {t('bodyAddon.dashboard.energy.weekOf', { date: short(b.week, i18n.language) })}
-            </Text>
+            <View style={styles.flex}>
+              <Text tone="secondary">
+                {t('bodyAddon.dashboard.energy.weekOf', { date: short(b.week, i18n.language) })}
+              </Text>
+              {b.plannedKcal !== null ? (
+                <Text variant="caption" tone="secondary" style={numeric}>
+                  {t('bodyAddon.balance.weekPlanned', { kcal: signedKcal(b.plannedKcal) })}
+                </Text>
+              ) : null}
+            </View>
             <Text style={numeric}>
               {b.balanceKcal === null || b.fatKg === null
                 ? t('bodyAddon.balance.noDays')
@@ -162,6 +171,7 @@ export function ProgressSection() {
             </Text>
           </View>
         ))}
+        <BalanceDays days={model.balance.days} />
         <Text variant="caption" tone="secondary">
           {t('bodyAddon.balance.hint')}
         </Text>
