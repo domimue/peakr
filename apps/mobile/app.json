@@ -148,6 +148,7 @@
         }
       ],
       "./plugins/with-share-gpx",
+      "./plugins/with-build-limits",
       [
         "expo-location",
         {
@@ -181,6 +182,12 @@
       "typedRoutes": true,
       "reactCompiler": true
     },
-    "backgroundColor": "#0B0D10"
+    "backgroundColor": "#0B0D10",
+    "owner": "peakr-app",
+    "extra": {
+      "eas": {
+        "projectId": "536755e4-300f-4c8c-ac5b-8835f79fbb3d"
+      }
+    }
   }
 }
