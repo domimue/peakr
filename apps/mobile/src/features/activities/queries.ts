@@ -1,7 +1,9 @@
 import { activityKeys, dedupeActivities, type Activity } from '@peakr/engine';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
+import { answerQuestion, undoLink } from '@/data/activities/questions';
 import * as repo from '@/data/repositories/activity-repository';
+import { planKeys } from '@/features/plan/queries';
 
 /** Imported activities as the screens see them: merged across sources, with their links. */
 
@@ -45,5 +47,37 @@ export function useActivityRecords() {
   return useQuery({
     queryKey: [...activityQueryKeys.all, 'records'],
     queryFn: repo.listActivities,
+  });
+}
+
+/** Activities Peakr was not sure about – the user picks the workout (Today shows them). */
+export function useMatchQuestions() {
+  return useQuery({
+    queryKey: [...activityQueryKeys.all, 'questions'],
+    queryFn: repo.listQuestions,
+  });
+}
+
+export function useAnswerQuestion() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: ({ activityKey, workoutId }: { activityKey: string; workoutId: string | null }) =>
+      answerQuestion(activityKey, workoutId),
+    onSettled: () => {
+      void client.invalidateQueries({ queryKey: activityQueryKeys.all });
+      void client.invalidateQueries({ queryKey: planKeys.plan });
+    },
+  });
+}
+
+export function useUndoLink() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: (n: { activityKey: string; workoutId: string; wasDone: boolean }) =>
+      undoLink(n.activityKey, n.workoutId, n.wasDone),
+    onSettled: () => {
+      void client.invalidateQueries({ queryKey: activityQueryKeys.all });
+      void client.invalidateQueries({ queryKey: planKeys.plan });
+    },
   });
 }

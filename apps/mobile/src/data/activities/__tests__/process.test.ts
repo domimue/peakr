@@ -10,6 +10,7 @@ import { noticeText } from '../../../features/activities/activity-notice';
 import type { ActivityNotice } from '../apply';
 import { onActivities } from '../events';
 import { processNewActivities } from '../process';
+import { answerQuestion, undoLink } from '../questions';
 
 jest.mock('@/data/repositories/plan-repository');
 jest.mock('@/data/repositories/activity-repository');
@@ -94,6 +95,71 @@ beforeEach(() => {
 });
 afterEach(() => stop());
 
+describe('matching with confidence', () => {
+  afterEach(() => jest.clearAllMocks());
+  it('asks instead of guessing; the plan stays as it is until the user answers', async () => {
+    storePlan();
+    // 65 minutes and 12 km on Monday (50' easy planned): plausible, not confident.
+    receive({ durationSec: 65 * 60, distanceM: 12_000 });
+    const notices = await processNewActivities('2026-10-26');
+    expect(notices).toEqual([
+      expect.objectContaining({ kind: 'question', activityKey: 'strava:1' }),
+    ]);
+    expect(statusOf(state(), '2026-10-26-1')).toBe('planned');
+    expect(activities.store.links).toEqual([]);
+    expect(activities.store.questions).toEqual([
+      expect.objectContaining({
+        activityKey: 'strava:1',
+        planId: 'plan-1',
+        candidates: [expect.objectContaining({ workoutId: '2026-10-26-1' })],
+        durationSec: 3900,
+      }),
+    ]);
+    expect(noticeText(i18n.t, notices, 'en', '2026-10-26')).toMatch(/which session was it/);
+
+    // "That was Monday's run": done, linked, question gone.
+    await answerQuestion('strava:1', '2026-10-26-1', '2026-10-26');
+    expect(statusOf(state(), '2026-10-26-1')).toBe('done');
+    expect(activities.store.links).toEqual([
+      { activityKey: 'strava:1', workoutId: '2026-10-26-1', planId: 'plan-1' },
+    ]);
+    expect(activities.store.questions).toEqual([]);
+  });
+
+  it('"none of these": counts as unplanned training, the planned session stays open', async () => {
+    storePlan();
+    receive({ durationSec: 65 * 60, distanceM: 12_000 });
+    await processNewActivities('2026-10-26');
+    await answerQuestion('strava:1', null, '2026-10-26');
+    expect(statusOf(state(), '2026-10-26-1')).toBe('planned');
+    expect(activities.store.links).toEqual([]);
+    expect(activities.store.questions).toEqual([]);
+    expect(state().plan.weeks[1]?.notes.map((n) => n.key) ?? []).toContain(
+      'notes.unplannedActivity',
+    );
+  });
+
+  it('an automatic link can be undone: the session opens again and the activity is asked about', async () => {
+    storePlan();
+    receive({});
+    await processNewActivities('2026-10-26');
+    expect(statusOf(state(), '2026-10-26-1')).toBe('done');
+    await undoLink('strava:1', '2026-10-26-1', false);
+    expect(activities.store.links).toEqual([]);
+    expect(statusOf(state(), '2026-10-26-1')).toBe('planned');
+    expect(activities.store.questions[0]?.candidates[0]?.workoutId).toBe('2026-10-26-1');
+  });
+
+  it('a 15-minute jog is never attached to the 50-minute session', async () => {
+    storePlan();
+    receive({ durationSec: 900, distanceM: 2500 });
+    const [notice] = await processNewActivities('2026-10-26');
+    expect(notice?.kind).toBe('unplanned');
+    expect(statusOf(state(), '2026-10-26-1')).toBe('planned');
+    expect(activities.store.questions).toEqual([]);
+  });
+});
+
 describe('processNewActivities', () => {
   it('marks the planned session done, links it and announces it once', async () => {
     storePlan();
@@ -106,6 +172,8 @@ describe('processNewActivities', () => {
         source: 'strava',
         date: '2026-10-26',
         workoutId: '2026-10-26-1',
+        activityKey: 'strava:1',
+        wasDone: false,
         adjusted: 0,
       },
     ]);

@@ -11,6 +11,7 @@ import {
   isHardActivity,
   isSameActivity,
   matchActivities,
+  matchScore,
   type Activity,
   type SourceActivity,
 } from './activities';
@@ -221,54 +222,83 @@ describe('activity load', () => {
   });
 });
 
-describe('matchActivities', () => {
+describe('matchActivities (confidence)', () => {
   const state = baseState();
   const none = new Set<string>();
+  const monday = () => workoutOn(state, '2026-10-26');
 
-  it('links an activity to the planned workout of the same day and sport', () => {
+  it('links a confident match: same sport, same day, about the planned duration', () => {
     const a = activity();
     const r = matchActivities(state, [a], none, none);
-    expect(r.links).toEqual([{ activityKey: a.key, workoutId: workoutOn(state, '2026-10-26').id }]);
-    expect(r.unplanned).toEqual([]);
+    expect(r.links).toEqual([{ activityKey: a.key, workoutId: monday().id }]);
+    expect(r).toMatchObject({ questions: [], unplanned: [] });
   });
 
-  it('treats activities without a fitting workout as unplanned', () => {
-    const ride = activity({ sport: 'bike' });
-    const tuesday = activity({ date: '2026-10-27', startTime: '2026-10-27T06:00:00Z' });
-    const restDay = activity({ date: '2026-10-30', startTime: '2026-10-30T06:00:00Z' });
-    const r = matchActivities(state, [ride, tuesday, restDay], none, none);
+  it('asks when the activity only roughly fits, offering the plausible candidates', () => {
+    // 70 minutes instead of 50: plausible, not confident.
+    const longer = activity({ durationSec: 70 * 60 });
+    const r = matchActivities(state, [longer], none, none);
     expect(r.links).toEqual([]);
-    expect(r.unplanned).toEqual([ride, tuesday, restDay]);
+    expect(r.questions).toEqual([
+      { activityKey: longer.key, candidates: [{ workoutId: monday().id, score: 0.583 }] },
+    ]);
+    // A run on Tuesday (no run planned) could be Monday's or Wednesday's session: ask.
+    const tuesday = activity({ date: '2026-10-27', startTime: '2026-10-27T06:00:00Z' });
+    const q = matchActivities(state, [tuesday], none, none).questions[0];
+    expect(q?.candidates.map((c) => c.workoutId).sort()).toEqual(
+      [monday().id, workoutOn(state, '2026-10-28').id].sort(),
+    );
   });
 
-  it('gives each workout one activity; the closest duration wins', () => {
-    const short = activity({ durationSec: 900, startTime: '2026-10-26T06:00:00Z' });
-    const long = activity({ durationSec: 3000, startTime: '2026-10-26T18:00:00Z' });
-    const r = matchActivities(state, [short, long], none, none);
-    expect(r.links).toEqual([{ activityKey: short.key, workoutId: '2026-10-26-1' }]);
-    expect(r.unplanned).toEqual([long]);
+  it('never attaches an activity that fits nothing: it is unplanned and the workout stays open', () => {
+    const ride = activity({ sport: 'bike' });
+    const restDay = activity({ date: '2026-10-30', startTime: '2026-10-30T06:00:00Z' });
+    // 15 minutes are not the planned 50-minute run.
+    const jog = activity({ durationSec: 900, startTime: '2026-10-26T18:00:00Z' });
+    const r = matchActivities(state, [ride, restDay, jog], none, none);
+    expect(r.links).toEqual([]);
+    expect(r.questions).toEqual([]);
+    expect(r.unplanned).toEqual([ride, restDay, jog]);
+  });
+
+  it('uses the planned distance when it is known', () => {
+    const short = activity({ distanceM: 4000 });
+    // 50 minutes as planned, but 4 km instead of 10: not confident any more.
+    const r = matchActivities(state, [short], none, none, () => 10);
+    expect(r.links).toEqual([]);
+    expect(r.questions[0]?.candidates[0]).toEqual({ workoutId: monday().id, score: 0.7 });
+    expect(matchActivities(state, [activity()], none, none, () => 10).links).toHaveLength(1);
+  });
+
+  it('gives each workout one activity', () => {
+    const first = activity({ startTime: '2026-10-26T06:00:00Z' });
+    const second = activity({ startTime: '2026-10-26T18:00:00Z' });
+    const r = matchActivities(state, [first, second], none, none);
+    expect(r.links).toEqual([{ activityKey: first.key, workoutId: monday().id }]);
+    expect(r.links.map((l) => l.activityKey)).not.toContain(second.key);
   });
 
   it('skips skipped workouts but links workouts already marked done by hand', () => {
-    const mon = workoutOn(state, '2026-10-26');
-    const skipped = ok(setWorkoutStatus(state, mon.id, 'skipped'));
+    const skipped = ok(setWorkoutStatus(state, monday().id, 'skipped'));
     expect(matchActivities(skipped, [activity()], none, none).links).toEqual([]);
-    const done = ok(setWorkoutStatus(state, mon.id, 'done'));
+    const done = ok(setWorkoutStatus(state, monday().id, 'done'));
     expect(matchActivities(done, [activity()], none, none).links).toHaveLength(1);
   });
 
   it('leaves linked activities and workouts alone', () => {
     const a = activity();
-    const garminKey = 'garmin:9';
-    const both: Activity = {
-      ...a,
-      sources: [{ source: 'garmin', externalId: '9' }, ...a.sources],
-    };
-    const r1 = matchActivities(state, [both], new Set([a.key]), none);
-    expect(r1).toEqual({ links: [], unplanned: [] });
-    const r2 = matchActivities(state, [a], none, new Set([workoutOn(state, '2026-10-26').id]));
-    expect(r2.unplanned).toEqual([a]);
-    expect(garminKey).toBe(activityKeys(both)[0]);
+    const both: Activity = { ...a, sources: [{ source: 'garmin', externalId: '9' }, ...a.sources] };
+    expect(matchActivities(state, [both], new Set([a.key]), none)).toEqual({
+      links: [],
+      questions: [],
+      unplanned: [],
+    });
+    const r = matchActivities(state, [a], none, new Set([monday().id]));
+    expect(r.links).toEqual([]);
+    expect(r.questions.flatMap((q) => q.candidates.map((c) => c.workoutId))).not.toContain(
+      monday().id,
+    );
+    expect(activityKeys(both)[0]).toBe('garmin:9');
   });
 
   /** State with the given workouts on one day (matching only reads dates, sports and roles). */
@@ -288,17 +318,23 @@ describe('matchActivities', () => {
         winterVariant: { templateId: 'xcski.long', sport: 'xcski', durationMin: 80, load: 130 },
       },
     ]);
-    const ski = activity({ sport: 'xcski', date: '2026-10-31', durationSec: 4800 });
+    const ski = activity({
+      sport: 'xcski',
+      date: '2026-10-31',
+      durationSec: long.durationMin * 60,
+    });
     expect(matchActivities(winter, [ski], none, none).links).toEqual([
       { activityKey: ski.key, workoutId: long.id },
     ]);
 
     const brick = withDay('2026-10-31', [{ ...long, sport: 'brick' }]);
-    const ride = activity({ sport: 'bike', date: '2026-10-31', durationSec: 3600 });
+    // Each half is about half of the brick.
+    const half = (long.durationMin / 2) * 60;
+    const ride = activity({ sport: 'bike', date: '2026-10-31', durationSec: half });
     const run = activity({
       date: '2026-10-31',
-      startTime: '2026-10-26T07:00:00Z',
-      durationSec: 1200,
+      startTime: '2026-10-31T07:00:00Z',
+      durationSec: half,
     });
     expect(matchActivities(brick, [ride, run], none, none).links.map((l) => l.workoutId)).toEqual([
       long.id,
@@ -307,15 +343,26 @@ describe('matchActivities', () => {
   });
 
   it('sends commutes to commute sessions', () => {
-    const easy = workoutOn(state, '2026-10-26');
+    const easy = monday();
     const day = withDay('2026-10-26', [
-      { ...easy, id: 'ride', sport: 'bike', durationMin: 30 },
-      { ...easy, id: 'commute', sport: 'bike', role: 'commute', durationMin: 60 },
+      { ...easy, id: 'ride', sport: 'bike', durationMin: 60 },
+      { ...easy, id: 'commute', sport: 'bike', role: 'commute', durationMin: 30 },
     ]);
     const commute = activity({ sport: 'bike', durationSec: 1800, commute: true });
     expect(matchActivities(day, [commute], none, none).links[0]?.workoutId).toBe('commute');
     const ride = activity({ sport: 'bike', durationSec: 3600 });
     expect(matchActivities(day, [ride], none, none).links[0]?.workoutId).toBe('ride');
+  });
+
+  it('scores 0 for another sport, a day too far or no planned duration', () => {
+    const w = monday();
+    expect(matchScore(w, activity({ sport: 'bike' }))).toBe(0);
+    expect(matchScore(w, activity({ date: '2026-10-28' }))).toBe(0);
+    expect(matchScore({ ...w, durationMin: 0 }, activity())).toBe(0);
+    // The next day counts half.
+    expect(matchScore(w, activity({ date: '2026-10-27' }))).toBe(0.5);
+    // A distance only counts with a planned distance and a recorded one.
+    expect(matchScore(w, activity({ distanceM: null }), 10)).toBe(1);
   });
 });
 

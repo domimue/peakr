@@ -8,6 +8,7 @@ import { todayIso } from '@/data/ids';
 import { Button, Card, Icon, ListState, spacing, Text, useTheme } from '@/ui';
 import { sessionDoneHaptic } from '@/ui/haptics';
 
+import { MatchQuestionCards } from '../activities/match-question-card';
 import { useAccess } from '../billing/billing-store';
 import { LockedCard } from '../billing/locked';
 import { formatDate, initialWeek, mondayOf, weekOfPlan } from '../plan/calendar';
@@ -203,6 +204,7 @@ export function TodayScreen() {
       ) : null}
 
       {/* Body add-on: only adds; Today works the same without it. */}
+      <MatchQuestionCards />
       <EnergyTodayCard />
 
       <Text variant="heading">{t('today.insights')}</Text>

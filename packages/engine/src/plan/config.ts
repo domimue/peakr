@@ -347,6 +347,30 @@ export const planConfig = {
   },
   /** Imported activities (CLAUDE.md "Automatic activity sync"). */
   activities: {
+    /**
+     * Matching a synced activity to a planned workout (CLAUDE.md "After import"): a confidence
+     * score 0–1 from sport (required), date, duration and distance. Linked automatically from
+     * `confident` with a lead of `margin` over the next candidate; asked from `plausible`; below
+     * it the activity is unplanned and the planned workout stays open.
+     */
+    match: {
+      confident: 0.75,
+      margin: 0.15,
+      plausible: 0.4,
+      /** Date factor: same day, or one day before / after. */
+      sameDay: 1,
+      adjacentDay: 0.5,
+      /** Duration / distance: full within ±this share of the plan, falling to 0 at ±`zeroAt`. */
+      fullWithin: 0.15,
+      zeroAt: 0.75,
+      /** Weights when the planned distance is known (else duration alone). */
+      durationWeight: 0.6,
+      distanceWeight: 0.4,
+      /** A commute matched to a non-commute session (or the other way round). */
+      commuteMismatch: 0.8,
+      /** Candidates offered when asking. */
+      maxCandidates: 3,
+    },
     /** Same activity from two sources: start times at most this far apart … */
     dedupeStartToleranceSec: 5 * 60,
     /** … and durations differing by at most this share of the longer one. */

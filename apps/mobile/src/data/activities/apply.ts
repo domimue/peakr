@@ -7,12 +7,14 @@ import {
   planRange,
   setWorkoutStatus,
   statusOf,
+  workoutDistances,
   type Activity,
   type ActivityLink,
   type ActivitySource,
   type GymSession,
   type HrZone,
   type ImportedSport,
+  type MatchQuestion,
   type PlanState,
   type SourceRef,
 } from '@peakr/engine';
@@ -30,12 +32,17 @@ import type { StoredPlan } from '../repositories/plan-repository';
  */
 
 export interface ActivityNotice {
-  kind: 'matched' | 'unplanned';
+  /** `question`: Peakr was not sure which planned workout it was – the user picks. */
+  kind: 'matched' | 'unplanned' | 'question';
   sport: ImportedSport;
   source: ActivitySource;
   date: string;
   /** Matched: the workout marked done. */
   workoutId?: string;
+  /** Matched: the activity, so the link can be undone. */
+  activityKey?: string;
+  /** Matched: the workout was already marked done by hand (undo leaves it done). */
+  wasDone?: boolean;
   /** Unplanned: sessions made shorter / easier. */
   adjusted: number;
 }
@@ -44,9 +51,21 @@ export interface ImportOutcome {
   /** The new plan state, or null when nothing in the plan changed. */
   state: PlanState | null;
   links: ActivityLink[];
+  /** Not confident: ask the user (stored until answered). */
+  questions: (MatchQuestion & { activity: Activity })[];
   /** Source records that are now handled. */
   handled: SourceRef[];
   notices: ActivityNotice[];
+}
+
+/** Planned distance of a workout for the activity's sport, for the match score. */
+export function plannedKmFor(stored: StoredPlan) {
+  return (w: Parameters<typeof workoutDistances>[0], a: Activity): number | null => {
+    const km = workoutDistances(w, stored.input.profile)[
+      a.sport as keyof ReturnType<typeof workoutDistances>
+    ];
+    return km !== undefined && km > 0 ? km : null;
+  };
 }
 
 /** The plan's heart rate zones (manual zones included) for the load of imported activities. */
@@ -78,7 +97,7 @@ export function applyImportedActivities(
   today: string,
   gymSessions: readonly GymSession[] = [],
 ): ImportOutcome {
-  const none: ImportOutcome = { state: null, links: [], handled: [], notices: [] };
+  const none: ImportOutcome = { state: null, links: [], questions: [], handled: [], notices: [] };
   // Without a plan there is nothing to adapt yet; the activities wait.
   if (!stored) return none;
 
@@ -99,12 +118,11 @@ export function applyImportedActivities(
   const linkedWorkouts = new Set(
     links.filter((l) => l.planId === stored.id).map((l) => l.workoutId),
   );
-  const { links: newLinks, unplanned } = matchActivities(
-    stored.state,
-    fresh,
-    linkedKeys,
-    linkedWorkouts,
-  );
+  const {
+    links: newLinks,
+    questions,
+    unplanned,
+  } = matchActivities(stored.state, fresh, linkedKeys, linkedWorkouts, plannedKmFor(stored));
   const range = planRange(stored.state.plan);
   const inPlan = (date: string) => date >= range.first && date <= range.last;
 
@@ -115,7 +133,8 @@ export function applyImportedActivities(
     const a = fresh.find((x) => x.key === link.activityKey);
     /* istanbul ignore next -- links come from `fresh` */
     if (!a) continue;
-    if (statusOf(state, link.workoutId) !== 'done') {
+    const wasDone = statusOf(state, link.workoutId) === 'done';
+    if (!wasDone) {
       const result = setWorkoutStatus(state, link.workoutId, 'done');
       if (result.ok) {
         state = result.value;
@@ -128,6 +147,24 @@ export function applyImportedActivities(
       source: a.source,
       date: a.date,
       workoutId: link.workoutId,
+      activityKey: a.key,
+      wasDone,
+      adjusted: 0,
+    });
+  }
+
+  // Unsure: nothing changes until the user says which workout it was (or none of them).
+  const asked = questions.flatMap((q) => {
+    const activity = fresh.find((x) => x.key === q.activityKey);
+    return activity ? [{ ...q, activity }] : [];
+  });
+  for (const q of asked) {
+    notices.push({
+      kind: 'question',
+      sport: q.activity.sport,
+      source: q.activity.source,
+      date: q.activity.date,
+      activityKey: q.activityKey,
       adjusted: 0,
     });
   }
@@ -148,5 +185,5 @@ export function applyImportedActivities(
       adjusted: result.shortened.length + result.eased.length,
     });
   }
-  return { state: changed ? state : null, links: newLinks, handled, notices };
+  return { state: changed ? state : null, links: newLinks, questions: asked, handled, notices };
 }

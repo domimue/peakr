@@ -23,6 +23,25 @@ export async function processNewActivities(today = todayIso()): Promise<Activity
   const outcome = applyImportedActivities(stored, records, links, today, gym.sessions);
   if (stored && outcome.state) await planRepo.savePlanState(stored.id, outcome.state);
   if (stored) activityRepo.addLinks(stored.id, outcome.links);
+  if (stored && outcome.questions.length > 0) {
+    const open = await activityRepo.listQuestions();
+    const asked = new Set(open.map((q) => q.activityKey));
+    await activityRepo.saveQuestions([
+      ...open,
+      ...outcome.questions
+        .filter((q) => !asked.has(q.activityKey))
+        .map((q) => ({
+          activityKey: q.activityKey,
+          planId: stored.id,
+          candidates: q.candidates,
+          sport: q.activity.sport,
+          date: q.activity.date,
+          durationSec: q.activity.durationSec,
+          distanceM: q.activity.distanceM,
+          source: q.activity.source,
+        })),
+    ]);
+  }
   activityRepo.markHandled(outcome.handled);
   notifyActivities(outcome.notices);
   return outcome.notices;

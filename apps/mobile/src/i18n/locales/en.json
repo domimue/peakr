@@ -1226,7 +1226,17 @@
       "unplanned": "{{sport}} synced from {{source}} – counted towards this week's load",
       "unplannedAdjusted": "{{sport}} synced from {{source}} – counted as extra training, the rest of the week is a little easier",
       "many_one": "{{count}} activity synced from {{source}}",
-      "many_other": "{{count}} activities synced from {{source}}"
+      "many_other": "{{count}} activities synced from {{source}}",
+      "question": "{{sport}} synced from {{source}} – which session was it? See Today.",
+      "undo": "Undo"
+    },
+    "question": {
+      "title": "Which session was this?",
+      "body": "{{sport}} on {{day}} · {{minutes}} min{{distance}} – synced from {{source}}. Peakr was not sure which planned session it was.",
+      "km": " · {{km}} km",
+      "candidate": "{{title}} · {{day}} · {{minutes}} min",
+      "none": "None of these",
+      "noneHint": "It then counts as extra training towards this week's load, and your planned session stays open."
     }
   },
   "watch": {

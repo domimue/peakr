@@ -1,19 +1,21 @@
 import { activityKey, type ActivityLink, type SourceActivity, type SourceRef } from '@peakr/engine';
 
-import type { StoredActivity } from '../activity-repository';
+import type { StoredActivity, StoredMatchQuestion } from '../activity-repository';
 
 /** In-memory activity repository for Jest (`jest.mock('@/data/repositories/activity-repository')`). */
 
-export type { StoredActivity } from '../activity-repository';
+export type { StoredActivity, StoredMatchQuestion } from '../activity-repository';
 
 export const store = {
   activities: [] as StoredActivity[],
   links: [] as (ActivityLink & { planId: string })[],
+  questions: [] as StoredMatchQuestion[],
 };
 
 export function resetStore(): void {
   store.activities = [];
   store.links = [];
+  store.questions = [];
 }
 
 export const listActivities = jest.fn(async () => store.activities);
@@ -45,4 +47,14 @@ export const addLinks = jest.fn((planId: string, links: readonly ActivityLink[])
     if (!store.links.some((x) => x.activityKey === l.activityKey))
       store.links.push({ ...l, planId });
   }
+});
+
+export const removeLink = jest.fn((key: string) => {
+  store.links = store.links.filter((l) => l.activityKey !== key);
+});
+
+export const listQuestions = jest.fn(async () => [...store.questions]);
+
+export const saveQuestions = jest.fn(async (questions: readonly StoredMatchQuestion[]) => {
+  store.questions = [...questions];
 });
