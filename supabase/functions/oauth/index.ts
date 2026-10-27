@@ -160,7 +160,7 @@ async function callback(req: Request): Promise<Response> {
       redirectUri: callbackUrl(),
       state: query.get('state') ?? '',
     });
-    const scopes = provider.grantedScopes(query);
+    const scopes = tokens.grantedScopes ?? provider.grantedScopes(query);
     // Scope upgrade for posting: if the athlete does not grant write access, the existing
     // connection stays exactly as it was (no revoke, no overwrite).
     if (

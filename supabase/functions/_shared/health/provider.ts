@@ -4,6 +4,8 @@ import {
   mintPersonalToken,
   tokenUsable,
   type BearerToken,
+  type PullFailure,
+  type PullOptions,
   type PullResult,
 } from './garmin-personal.ts';
 import { DELIVERY, type CredentialMode, type HealthDelivery, type HealthGroup } from './model.ts';
@@ -23,9 +25,23 @@ export interface GarminHealthProvider {
     groups: ReadonlySet<HealthGroup>,
     from: string,
     to: string,
-  ): Promise<PullResult | { ok: false; failure: 'unsupported'; calls: 0 }>;
+    options?: PullOptions,
+  ): Promise<PullResult | UnsupportedPull>;
   /** The token to persist after a call (minted again from the key when it ran out). */
   currentToken(): BearerToken | null;
+}
+
+export interface UnsupportedPull {
+  ok: false;
+  failure: 'unsupported';
+  calls: 0;
+  records: [];
+  endpoints: Record<string, never>;
+}
+
+/** A pull that did not reach Garmin (no token could be minted). */
+function stopped(failure: PullFailure, calls: number): PullResult {
+  return { ok: false, failure, calls, records: [], endpoints: {} };
 }
 
 export interface ProviderCredentials {
@@ -43,7 +59,14 @@ export function createGarminHealthProvider(
   if (creds.mode === 'oauth') {
     return {
       delivery: DELIVERY.oauth,
-      pull: () => Promise.resolve({ ok: false, failure: 'unsupported', calls: 0 }),
+      pull: () =>
+        Promise.resolve({
+          ok: false,
+          failure: 'unsupported',
+          calls: 0,
+          records: [],
+          endpoints: {},
+        }),
       currentToken: () => creds.token ?? null,
     };
   }
@@ -51,26 +74,24 @@ export function createGarminHealthProvider(
   return {
     delivery: DELIVERY.personal_key,
     currentToken: () => token,
-    async pull(groups, from, to) {
+    async pull(groups, from, to, options) {
       if (!tokenUsable(token, now())) {
-        if (!creds.apiKey) return { ok: false, failure: 'not_connected', calls: 0 };
+        if (!creds.apiKey) return stopped('not_connected', 0);
         const minted = await mintPersonalToken(fetch, creds.apiKey, base);
         if (!minted.ok) {
-          return {
-            ok: false,
-            failure:
-              minted.reason === 'invalid_key'
-                ? 'not_connected'
-                : minted.reason === 'rate_limited'
-                  ? 'rate_limited'
-                  : 'unavailable',
-            calls: 1,
-          };
+          return stopped(
+            minted.reason === 'invalid_key'
+              ? 'not_connected'
+              : minted.reason === 'rate_limited'
+                ? 'rate_limited'
+                : 'unavailable',
+            1,
+          );
         }
         token = minted.token;
       }
       const api = createGarminPersonalHealthApi({ fetch, accessToken: token.accessToken, base });
-      return api.pull(groups, from, to);
+      return api.pull(groups, from, to, options);
     },
   };
 }

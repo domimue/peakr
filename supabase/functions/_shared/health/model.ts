@@ -89,6 +89,31 @@ export function onlyEnabled(
 export type CredentialMode = 'oauth' | 'personal_key';
 
 /**
+ * Garmin OAuth: the permission on Garmin's consent screen each group needs. The user ticks these at
+ * Garmin, not in Peakr; a group whose permission is missing cannot deliver anything. NOT VERIFIED
+ * beyond public descriptions of the Health API (HEALTH_EXPORT; MCT_EXPORT for the menstrual-cycle
+ * data of women's health).
+ */
+export const GARMIN_PERMISSION: Record<HealthGroup, string> = {
+  sleep: 'HEALTH_EXPORT',
+  hrv_rhr: 'HEALTH_EXPORT',
+  stress: 'HEALTH_EXPORT',
+  activity: 'HEALTH_EXPORT',
+  spo2_resp: 'HEALTH_EXPORT',
+  body_comp: 'HEALTH_EXPORT',
+  womens_health: 'MCT_EXPORT',
+};
+
+/**
+ * Groups the connection may deliver. A personal key reads all of the person's own data, so every
+ * group is permitted; on OAuth only those whose Garmin permission was granted.
+ */
+export function permittedGroups(mode: CredentialMode, permissions: readonly string[]): HealthGroup[] {
+  if (mode === 'personal_key') return [...HEALTH_GROUPS];
+  return HEALTH_GROUPS.filter((g) => permissions.includes(GARMIN_PERMISSION[g]));
+}
+
+/**
  * How data reaches Peakr for a connection. The OAuth tier pushes (no history before the
  * connection, per the Starter terms as far as public sources say); the personal key is pulled.
  */
@@ -99,8 +124,9 @@ export interface HealthDelivery {
   backfillDays: number;
   /**
    * Metrics Peakr reads from this kind of connection – the rest are "not provided" in the app
-   * instead of an empty chart. Personal API: no VO2max or fitness-age summary is read (not in the
-   * endpoints Peakr calls). Health API push: Body Battery is not part of the summaries mapped.
+   * instead of an empty chart. Personal API: VO2max is Garmin's per-activity estimate (there is no
+   * daily one); fitness age is not read. Health API push: Body Battery is not part of the summaries
+   * mapped.
    */
   provides: readonly HealthMetric[];
 }
@@ -116,6 +142,6 @@ export const DELIVERY: Record<CredentialMode, HealthDelivery> = {
     mode: 'personal_key',
     delivery: 'pull',
     backfillDays: 365,
-    provides: HEALTH_METRICS.filter((m) => m !== 'vo2max' && m !== 'fitness_age'),
+    provides: HEALTH_METRICS.filter((m) => m !== 'fitness_age'),
   },
 };
