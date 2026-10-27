@@ -7,7 +7,9 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 ## Open
 
-(empty)
+- Current training instead of Strava in the quiz (2026-10-27): remove the Strava calibration step from
+  the quiz and the new-plan flow; per sport current weekly volume (and the run pace) entered by
+  the user or Peakr's estimate; feeds start load and floors; CLAUDE.md updated.
 
 ## Done
 
