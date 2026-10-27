@@ -7,7 +7,10 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 ## Open
 
-(empty)
+- Prompt 3 – Navigation and screens (2026-10-27): tabs Today/Plan/Gym/Nutrition/Body with profile
+  icon top right (Profile + Settings), Today shows one day, weekly volume per sport, workout types
+  screen, Strava route preview, congratulation push, Body screen design + change colour scale;
+  CLAUDE.md updates. Plan mode first (waiting for approval).
 
 ## Done
 
