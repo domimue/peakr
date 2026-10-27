@@ -132,7 +132,11 @@ function runTemplates(ctx: CompositionContext) {
   // Threshold work: tempo, every other loading week long hills in Build (not on flat terrain).
   const threshold = phase === 'build' && !flat && q % 2 === 1 ? 'run.hills_long' : 'run.tempo';
   const rotation = sessions.qualityRotation;
-  const every = goal === 'half' && phase === 'peak' ? rotation.halfPeakEvery : rotation.every;
+  // More intervals: VO2 more often – for the 5K, whose turn brings threshold work, less often.
+  const emphasis = profile.qualityEmphasis ?? 'balanced';
+  const shift = emphasis === 'balanced' ? 0 : (emphasis === 'more') === (goal === '5k') ? 1 : -1;
+  const base = goal === 'half' && phase === 'peak' ? rotation.halfPeakEvery : rotation.every;
+  const every = Math.max(2, base + shift);
   // The rotation counts loading weeks only (recovery weeks keep the slot of the week after).
   const vo2Turn = q % every === every - 1;
   return {

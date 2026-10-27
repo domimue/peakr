@@ -60,6 +60,16 @@ export {
   type SummaryGroup,
 } from './plan/outcome';
 export { historyBaseline, withHistoryBaseline } from './plan/history-baseline';
+export {
+  applyReview,
+  planReview,
+  reviewAdjustments,
+  type LinkedActivityFacts,
+  type PlanReview,
+  type ReviewAnswers,
+  type ReviewChanges,
+  type ReviewWish,
+} from './plan/review';
 export { checkStartFloors, startFloors, type FloorBreach, type StartFloors } from './plan/floors';
 export { difficultyFactor, difficultyGrowth, difficultyLevel } from './plan/difficulty';
 export {

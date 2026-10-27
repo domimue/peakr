@@ -128,7 +128,14 @@ export interface UserProfile {
   recentLongest?: Partial<Record<Sport, RecentLongest>>;
   /** Difficulty 1–10 (default 5 = the engine's own targets), see `difficultyFactor`. */
   difficulty?: number;
+  /**
+   * How often the run quality rotation brings VO2 work (WORKOUTS.md §9): `more` every second
+   * loading week, `less` every fourth; default every third. Set by the plan review.
+   */
+  qualityEmphasis?: QualityEmphasis;
 }
+
+export type QualityEmphasis = 'more' | 'balanced' | 'less';
 
 /** One number from the quiz: a distance (km; swim in km too) or a duration. */
 export interface RecentLongest {

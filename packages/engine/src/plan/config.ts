@@ -362,6 +362,19 @@ export const planConfig = {
    * completed.
    */
   completion: { minShare: 0.8, badgeShare: 0.95 },
+  /**
+   * "How was your last plan?" (CLAUDE.md "Plan history"): one level up from `levelUpShare` of the
+   * sessions done (and not too hard), one down below `levelDownShare`; a long-run change of
+   * `longChange`; a skipped template is named from `skippedMin` skips; easy pace needs
+   * `paceMinPerThird` runs in the first and the last third.
+   */
+  review: {
+    levelUpShare: 0.8,
+    levelDownShare: 0.6,
+    longChange: 0.1,
+    skippedMin: 2,
+    paceMinPerThird: 3,
+  },
   /** Start values from the previous plan: long sessions of the last 6 weeks, volume of the last 4. */
   history: { longWeeks: 6, volumeWeeks: 4 },
   activities: {
