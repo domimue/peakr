@@ -7,7 +7,11 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 ## Open
 
-(empty)
+- Prompt 4 – Recipes and portions in food logging (2026-10-27): recipes with photo, note,
+  ingredients from search / barcode / recents / favourites / by hand, portions and optional cooked
+  weight, live totals and per portion; log by portion or grams; edit, duplicate, scale; edits never
+  rewrite logged days (ask, default keep); delete keeps entries; offline, OFF rules, Health write.
+  Plan: `.claude/plans/recipes.md` (waiting for approval).
 
 ## Done
 
