@@ -1,6 +1,6 @@
 import type { BodyProfile } from '@peakr/engine';
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { and, asc, desc, eq, gte, isNotNull, like, or } from 'drizzle-orm';
+import { and, asc, desc, eq, gte, isNotNull, like, or, sql } from 'drizzle-orm';
 
 import { db } from '../db/client';
 import {
@@ -20,11 +20,12 @@ import {
   PHOTO_SLOTS,
   removeLocalCopy,
   removeRemotePhotos,
+  recipePhotoPath,
   remotePath,
   uploadPhoto,
   type PhotoSlot,
 } from '../body-photos';
-import type { BodyPhoto } from '../db/schema';
+import type { BodyPhoto, StoredRecipe } from '../db/schema';
 import { newId } from '../ids';
 import { supabase } from '../supabase';
 import { parseCheckInSettings, type CheckInSettings } from '../../features/body/check-in-settings';
@@ -322,14 +323,27 @@ export async function foodByBarcode(barcode: string): Promise<FoodItem | null> {
   return row ? toItem(row) : null;
 }
 
-/** Local search by name or brand (works offline); OFF results join when online. */
-export async function searchFoodItems(query: string, limit = 30): Promise<FoodItem[]> {
+/**
+ * Local search by name or brand (works offline); OFF results join when online. Favourites first,
+ * then the most recently used, then by name; `recipe` limits it to the user's recipes.
+ */
+export async function searchFoodItems(
+  query: string,
+  limit = 30,
+  kind?: 'recipe',
+): Promise<FoodItem[]> {
   const q = `%${query.trim()}%`;
+  const match = or(like(bodyFoods.name, q), like(bodyFoods.brand, q));
   const rows = await db
     .select()
     .from(bodyFoods)
-    .where(and(live, or(like(bodyFoods.name, q), like(bodyFoods.brand, q))))
-    .orderBy(desc(bodyFoods.lastUsedAt))
+    .where(kind ? and(live, match, eq(bodyFoods.kind, kind)) : and(live, match))
+    .orderBy(
+      desc(bodyFoods.favourite),
+      sql`${bodyFoods.lastUsedAt} is null`,
+      desc(bodyFoods.lastUsedAt),
+      asc(bodyFoods.name),
+    )
     .limit(limit);
   return rows.map(toItem);
 }
@@ -359,13 +373,22 @@ export async function listFoodItems(
   return rows.map(toItem);
 }
 
-/** Creates or replaces a food (an OFF product cached, an own food, a recipe, a correction). */
-export async function saveFoodItem(draft: FoodItemDraft): Promise<FoodItem> {
+/**
+ * Creates or replaces a food (an OFF product cached, an own food, a recipe, a correction).
+ * `photo` (recipes): a picked image uri, null to remove the photo, undefined to keep it. The
+ * picked image is copied into Peakr's folder right away (offline first) and uploaded by the sync.
+ */
+export async function saveFoodItem(draft: FoodItemDraft, photo?: string | null): Promise<FoodItem> {
   const at = now();
   const existing = draft.id ? await getFoodItem(draft.id) : null;
+  const id = draft.id ?? newId();
+  const recipe = draft.recipe
+    ? { ...draft.recipe, photo: recipePhoto(existing?.recipe?.photo ?? null, photo, id) }
+    : draft.recipe;
   const row = {
     ...draft,
-    id: draft.id ?? newId(),
+    recipe,
+    id,
     favourite: draft.favourite ?? existing?.favourite ?? false,
     lastUsedAt: existing?.lastUsedAt ?? null,
     createdAt: existing?.createdAt ?? at,
@@ -375,6 +398,65 @@ export async function saveFoodItem(draft: FoodItemDraft): Promise<FoodItem> {
   };
   await db.insert(bodyFoods).values(row).onConflictDoUpdate({ target: bodyFoods.id, set: row });
   return toItem(row);
+}
+
+/** The recipe photo after a save: kept, replaced (old upload removed later) or removed. */
+function recipePhoto(
+  old: BodyPhoto | null,
+  picked: string | null | undefined,
+  id: string,
+): BodyPhoto | null {
+  if (picked === undefined) return old;
+  if (old?.localUri) removeLocalCopy(old.localUri);
+  if (picked === null) {
+    return old?.remotePath ? { localUri: null, remotePath: old.remotePath, removed: true } : null;
+  }
+  const localUri = keepLocalCopy(picked, id, 'recipe');
+  return {
+    localUri,
+    remotePath: null,
+    ...(old?.remotePath ? { stalePath: old.remotePath } : {}),
+  };
+}
+
+/** A copy of a recipe ("… (copy)"); its photo is copied too when this device has it. */
+export async function duplicateFoodItem(id: string, name: string): Promise<FoodItem | null> {
+  const item = await getFoodItem(id);
+  if (!item) return null;
+  const { id: _id, createdAt: _at, lastUsedAt: _u, favourite: _f, ...rest } = item;
+  const local =
+    item.recipe?.photo && !item.recipe.photo.removed ? item.recipe.photo.localUri : null;
+  return saveFoodItem(
+    { ...rest, name, recipe: item.recipe ? { ...item.recipe, photo: null } : null },
+    local ?? undefined,
+  );
+}
+
+/** Diary entries logged from a food or recipe (they keep their own values). */
+export async function entriesOfFood(foodId: string): Promise<FoodEntry[]> {
+  const rows = await db
+    .select()
+    .from(bodyFoodEntries)
+    .where(and(eq(bodyFoodEntries.foodId, foodId), eq(bodyFoodEntries.deleted, false)))
+    .orderBy(asc(bodyFoodEntries.day));
+  return rows.map(toEntry);
+}
+
+/** New values for logged entries – only when the user chose "update them too". */
+export async function updateEntryValues(
+  updates: readonly Pick<FoodEntry, 'id' | 'kcal' | 'proteinG' | 'carbsG' | 'fatG'>[],
+): Promise<FoodEntry[]> {
+  const at = now();
+  const out: FoodEntry[] = [];
+  for (const { id, ...values } of updates) {
+    await db
+      .update(bodyFoodEntries)
+      .set({ ...values, updatedAt: at, dirty: true })
+      .where(eq(bodyFoodEntries.id, id));
+    const [row] = await db.select().from(bodyFoodEntries).where(eq(bodyFoodEntries.id, id));
+    if (row) out.push(toEntry(row));
+  }
+  return out;
 }
 
 export async function setFavourite(id: string, favourite: boolean): Promise<void> {
@@ -994,7 +1076,7 @@ SPECS.push({
           fat_g: r.fatG,
           piece_amount: r.pieceAmount,
           portions: r.portions,
-          recipe: r.recipe,
+          recipe: serverRecipe(r.recipe as StoredRecipe | null),
           favourite: r.favourite,
           last_used_at: r.lastUsedAt,
           created_at: r.createdAt,
@@ -1003,7 +1085,8 @@ SPECS.push({
   key: (r) => ({ id: String(r.id) }),
   markPushed: async (r) => {
     if (r.deleted) await db.delete(bodyFoods).where(eq(bodyFoods.id, String(r.id)));
-    else
+    // A photo that did not upload keeps the row dirty, so the next sync tries again.
+    else if (!photoPending((r.recipe as StoredRecipe | null)?.photo ?? null))
       await db
         .update(bodyFoods)
         .set({ dirty: false })
@@ -1026,7 +1109,7 @@ SPECS.push({
       fatG: Number(r.fat_g),
       pieceAmount: numOrNull(r.piece_amount),
       portions: (r.portions ?? []) as FoodItem['portions'],
-      recipe: (r.recipe ?? null) as FoodItem['recipe'],
+      recipe: localRecipe(r.recipe, existing?.recipe ?? null),
       favourite: Boolean(r.favourite),
       lastUsedAt: str(r.last_used_at),
       createdAt: String(r.created_at),
@@ -1038,6 +1121,30 @@ SPECS.push({
     return true;
   },
 });
+
+const photoPending = (p: BodyPhoto | null) =>
+  Boolean(p && (p.removed || p.stalePath || (p.localUri && !p.remotePath)));
+
+/** The recipe as the server stores it: the photo as its storage path only. */
+function serverRecipe(recipe: StoredRecipe | null) {
+  if (!recipe) return null;
+  const { photo, ...rest } = recipe;
+  return { ...rest, photoPath: photo && !photo.removed ? photo.remotePath : null };
+}
+
+/** A recipe from the server; this device's copy of the same photo is kept. */
+function localRecipe(raw: unknown, existing: StoredRecipe | null): StoredRecipe | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const { photoPath, ...rest } = raw as StoredRecipe & { photoPath?: unknown };
+  const path = typeof photoPath === 'string' ? photoPath : null;
+  const local = existing?.photo;
+  return {
+    ...rest,
+    photo: path
+      ? { localUri: local?.remotePath === path ? local.localUri : null, remotePath: path }
+      : null,
+  };
+}
 
 type Photos = Measurement['photos'];
 
@@ -1157,6 +1264,49 @@ async function syncPhotos(client: SupabaseClient, userId: string): Promise<void>
   }
 }
 
+/** The same for recipe photos: upload new ones, remove replaced, removed and deleted ones. */
+async function syncRecipePhotos(client: SupabaseClient, userId: string): Promise<void> {
+  const rows = await db
+    .select()
+    .from(bodyFoods)
+    .where(and(eq(bodyFoods.dirty, true), eq(bodyFoods.kind, 'recipe')));
+  for (const row of rows) {
+    const p = row.recipe?.photo ?? null;
+    if (!row.recipe || !p) continue;
+    if (row.deleted) {
+      await removeRemotePhotos(
+        client,
+        [p.remotePath, p.stalePath].filter((x): x is string => Boolean(x)),
+      );
+      removeLocalCopy(p.localUri);
+      continue;
+    }
+    if (!photoPending(p)) continue;
+    let next: BodyPhoto | null = p;
+    if (p.removed) {
+      if (!p.remotePath || (await removeRemotePhotos(client, [p.remotePath]))) next = null;
+    } else {
+      if (p.localUri && !p.remotePath) {
+        const path = await uploadPhoto(
+          client,
+          p.localUri,
+          recipePhotoPath(userId, row.id, p.localUri),
+        );
+        if (path) next = { ...p, remotePath: path };
+      }
+      if (next?.remotePath && next.stalePath) {
+        const { stalePath, ...rest } = next;
+        if (stalePath === next.remotePath || (await removeRemotePhotos(client, [stalePath])))
+          next = rest;
+      }
+    }
+    await db
+      .update(bodyFoods)
+      .set({ recipe: { ...row.recipe, photo: next } })
+      .where(eq(bodyFoods.id, row.id));
+  }
+}
+
 const cursorKey = (server: string) => `body.cursor.${server}`;
 
 /**
@@ -1167,6 +1317,7 @@ const cursorKey = (server: string) => `body.cursor.${server}`;
 export async function syncBody(client: SupabaseClient, userId: string): Promise<boolean> {
   let changed = false;
   await syncPhotos(client, userId);
+  await syncRecipePhotos(client, userId);
   for (const spec of SPECS) {
     for (const row of await spec.dirty()) {
       const values = spec.toServer(row);

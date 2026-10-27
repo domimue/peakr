@@ -13,7 +13,7 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
   rewrite logged days (ask, default keep); delete keeps entries; offline, OFF rules, Health write.
   Plan approved: `.claude/plans/recipes.md`. Steps:
   - [x] 1 engine
-  - [ ] 2 repository, JSON format, photo sync, search
+  - [x] 2 repository, JSON format, photo sync, search
   - [ ] 3 draft store + ingredient mode in add / scan / form / detail
   - [ ] 4 recipe editor
   - [ ] 5 recipe detail: log, duplicate, scale, delete, ask on edit

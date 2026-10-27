@@ -548,6 +548,33 @@ export const bodyGoals = sqliteTable('body_goals', {
   dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
 });
 
+/** One ingredient of a recipe; `amount` is always in the ingredient's basis unit (g or ml). */
+export interface StoredRecipeIngredient {
+  foodId: string | null;
+  name: string;
+  amount: number;
+  per100: { kcal: number; proteinG: number; carbsG: number; fatG: number };
+  /** Missing in recipes saved before the units existed: grams. */
+  basis?: 'g' | 'ml';
+  unit?: 'g' | 'ml' | 'piece' | 'portion';
+  count?: number | null;
+  portionLabel?: string | null;
+  /** `off`: an Open Food Facts product (its attribution is shown with the recipe). */
+  source?: 'off' | 'custom' | 'recipe' | null;
+}
+
+/**
+ * A recipe in `body_foods.recipe` (synced as JSON). `servings` is the number of portions,
+ * `totalWeightG` the weight of the cooked dish (optional). Older recipes lack note and photo.
+ */
+export interface StoredRecipe {
+  ingredients: StoredRecipeIngredient[];
+  totalWeightG: number | null;
+  servings: number | null;
+  note?: string | null;
+  photo?: BodyPhoto | null;
+}
+
 // Foods of the diary (Phase 14): Open Food Facts products (the local cache, `off`), the user's own
 // foods (`custom`, also corrected OFF entries – same barcode, they win) and recipes. Nutrients per
 // 100 g / ml of `basis`.
@@ -568,17 +595,8 @@ export const bodyFoods = sqliteTable(
     portions: text('portions', { mode: 'json' })
       .$type<{ label: string; amount: number }[]>()
       .notNull(),
-    /** Recipes: ingredients (food id, name, amount, nutrients per 100), finished weight, servings. */
-    recipe: text('recipe', { mode: 'json' }).$type<{
-      ingredients: {
-        foodId: string;
-        name: string;
-        amount: number;
-        per100: { kcal: number; proteinG: number; carbsG: number; fatG: number };
-      }[];
-      totalWeightG: number | null;
-      servings: number | null;
-    }>(),
+    /** Recipes: ingredients, portions, the cooked weight, a note and a photo (see `StoredRecipe`). */
+    recipe: text('recipe', { mode: 'json' }).$type<StoredRecipe>(),
     favourite: integer('favourite', { mode: 'boolean' }).notNull().default(false),
     lastUsedAt: text('last_used_at'),
     createdAt: text('created_at').notNull(),
