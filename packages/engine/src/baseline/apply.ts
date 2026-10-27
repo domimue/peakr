@@ -7,6 +7,8 @@ import type { BaselineResult, Derived } from './types';
 export interface BaselineOverrides {
   experience?: Partial<Record<Sport, Experience>>;
   longMin?: Partial<Record<Sport, number>>;
+  /** Weekly minutes per sport the plan starts from (the week-1 floor). */
+  weeklyMin?: Partial<Record<Sport, number>>;
   weeklyLoad?: number;
   easyPaceSecPerKm?: number;
   cssPacePer100mSec?: number;
@@ -29,17 +31,27 @@ export function calibrateProfile(
 ): UserProfile {
   const experience: Partial<Record<Sport, Experience>> = {};
   const longMin: Partial<Record<Sport, number>> = {};
+  const longKm: Partial<Record<Sport, number>> = {};
+  const weeklyMin: Partial<Record<Sport, number>> = {};
   for (const s of result.sports) {
     if (!profile.sports.includes(s.sport)) continue;
     const level = overrides.experience?.[s.sport] ?? valueOf(s.experience);
     if (level !== undefined) experience[s.sport] = level;
-    const long = overrides.longMin?.[s.sport] ?? valueOf(s.volume)?.longMin;
+    const volume = valueOf(s.volume);
+    const ownLong = overrides.longMin?.[s.sport];
+    const long = ownLong ?? volume?.longMin;
     if (long !== undefined && long > 0) longMin[s.sport] = long;
+    // A long session typed by hand has no derived distance.
+    if (ownLong === undefined && volume?.longKm) longKm[s.sport] = volume.longKm;
+    const weekly = overrides.weeklyMin?.[s.sport] ?? volume?.recentWeeklyMin;
+    if (weekly !== undefined && weekly > 0) weeklyMin[s.sport] = weekly;
   }
   const easy = valueOf(result.easyPaceSecPerKm);
   const baseline: PlanBaseline = {
     ...(Object.keys(experience).length > 0 ? { experience } : {}),
     ...(Object.keys(longMin).length > 0 ? { longMin } : {}),
+    ...(Object.keys(longKm).length > 0 ? { longKm } : {}),
+    ...(Object.keys(weeklyMin).length > 0 ? { weeklyMin } : {}),
     ...defined('startLoad', overrides.weeklyLoad ?? valueOf(result.weeklyLoad)),
     ...defined(
       'thresholdPaceSecPerKm',

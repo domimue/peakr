@@ -10,7 +10,17 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { todayIso } from '@/data/ids';
-import { Card, IconButton, radius, Screen, spacing, StatTile, Text, useTheme } from '@/ui';
+import {
+  Card,
+  IconButton,
+  radius,
+  Screen,
+  spacing,
+  StatTile,
+  TileGrid,
+  Text,
+  useTheme,
+} from '@/ui';
 
 import { BodyMap } from '../figures/body-map';
 import { formatKg, formatVolume } from '../format';
@@ -56,7 +66,7 @@ export function StatsScreen() {
 
   return (
     <Screen>
-      <View style={styles.tiles}>
+      <TileGrid>
         <StatTile
           value={String(week.sessions)}
           label={t('gym.stats.sessions')}
@@ -68,7 +78,7 @@ export function StatsScreen() {
           label={t('gym.stats.volume')}
           testID="stats-volume"
         />
-      </View>
+      </TileGrid>
 
       <Card>
         <Text variant="heading">{t('gym.stats.volumePerWeek')}</Text>
@@ -185,7 +195,6 @@ function MuscleRow({ shade }: { shade: MuscleShade }) {
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
-  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   weekRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   weekTitle: { flex: 1, textAlign: 'center' },
   muscle: { gap: spacing.xs },

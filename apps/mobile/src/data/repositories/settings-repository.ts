@@ -15,6 +15,7 @@ import { appSettings } from '../db/schema';
 
 const APP_KEY = 'app.settings';
 const REMINDER_KEY = 'notifications.reminder';
+const CONGRATS_SENT_KEY = 'notifications.congratsSent';
 
 async function read(key: string): Promise<unknown> {
   const row = await db.query.appSettings.findFirst({ where: eq(appSettings.key, key) });
@@ -48,4 +49,14 @@ export async function getReminderSettings(): Promise<ReminderSettings> {
 
 export async function saveReminderSettings(settings: ReminderSettings): Promise<void> {
   await write(REMINDER_KEY, settings);
+}
+
+/** Workouts a congratulation was already sent for (at most one per session). */
+export async function getCongratsSent(): Promise<string[]> {
+  const raw = await read(CONGRATS_SENT_KEY);
+  return Array.isArray(raw) ? raw.filter((x): x is string => typeof x === 'string') : [];
+}
+
+export async function saveCongratsSent(ids: readonly string[]): Promise<void> {
+  await write(CONGRATS_SENT_KEY, ids);
 }

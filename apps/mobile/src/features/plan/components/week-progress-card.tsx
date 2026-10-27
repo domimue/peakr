@@ -14,10 +14,10 @@ import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 
 import { Badge, Button, Icon, radius, SegmentedProgress, spacing, Text, useTheme } from '@/ui';
 import { useSettingsStore } from '@/features/settings/settings-store';
-import { distanceUnit, KM_PER_MILE } from '@/features/settings/units';
 
 import { addDays, formatDate, weekDates } from '../calendar';
 import { typeColor, typeName } from '../kind';
+import { SportVolumeLines, volumeLine } from './sport-volume';
 import { WorkoutCard } from './workout-card';
 
 export interface WeekProgressCardProps {
@@ -67,12 +67,8 @@ export function WeekProgressCard({
     done: p.sessionsDone,
     planned: p.sessionsPlanned,
   });
-  const toUnit = (km: number) => Math.round(units === 'imperial' ? km / KM_PER_MILE : km);
-  const distance = t('plan.progress.distance', {
-    done: toUnit(p.kmDone),
-    planned: toUnit(p.kmPlanned),
-    unit: distanceUnit(units),
-  });
+  // Time across sports, distances per sport – never one mixed distance.
+  const distance = volumeLine(t, units, p);
   const segments = p.segments.map((s) => ({
     key: s.workoutId,
     color: typeColor(colors, s),
@@ -93,11 +89,11 @@ export function WeekProgressCard({
       <SegmentedProgress
         testID={`week-progress-${week.index}`}
         segments={segments}
-        accessibilityLabel={`${sessions}, ${distance}`}
+        accessibilityLabel={[sessions, distance].filter(Boolean).join(', ')}
       />
       <View style={styles.figures}>
         <Text variant="caption">{sessions}</Text>
-        {p.kmPlanned > 0 ? <Text variant="caption">{distance}</Text> : null}
+        <SportVolumeLines progress={p} testID={`week-volume-${week.index}`} />
       </View>
     </>
   );
@@ -118,7 +114,7 @@ export function WeekProgressCard({
     weekLabel,
     typeSummary,
     sessions,
-    distance,
+    distance || null,
     p.complete ? t('plan.weekComplete') : null,
   ]
     .filter(Boolean)
@@ -246,6 +242,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    alignItems: 'flex-start',
     gap: spacing.sm,
   },
   divider: { height: StyleSheet.hairlineWidth, marginVertical: spacing.xs },

@@ -19,6 +19,7 @@ import type {
   MeasurementDraft,
 } from '@/data/repositories/body-repository';
 import { DEFAULT_CHECKIN_SETTINGS, type CheckInSettings } from '@/features/body/check-in-settings';
+import { DEFAULT_ENERGY_SETTINGS, type EnergySettings } from '@/features/body/energy-settings';
 
 /** In-memory Body data for Jest (`jest.mock('@/data/repositories/body-repository')`). */
 
@@ -36,6 +37,7 @@ export const store = {
   measurements: [] as Measurement[],
   dayKcal: [] as DayKcal[],
   checkInSettings: DEFAULT_CHECKIN_SETTINGS as CheckInSettings,
+  energySettings: DEFAULT_ENERGY_SETTINGS as EnergySettings,
 };
 
 let seq = 0;
@@ -54,6 +56,7 @@ export function resetStore() {
   store.measurements = [];
   store.dayKcal = [];
   store.checkInSettings = DEFAULT_CHECKIN_SETTINGS;
+  store.energySettings = DEFAULT_ENERGY_SETTINGS;
   seq = 0;
 }
 
@@ -109,11 +112,21 @@ export const foodByBarcode = jest.fn(async (barcode: string) => {
   const rows = store.foods.filter((f) => f.barcode === barcode);
   return rows.find((f) => f.kind !== 'off') ?? rows[0] ?? null;
 });
-export const searchFoodItems = jest.fn(async (query: string) => {
+/** Same order as the real one: favourites, then most recently used, then name. */
+export const searchFoodItems = jest.fn(async (query: string, _limit = 30, kind?: 'recipe') => {
   const q = query.trim().toLowerCase();
-  return store.foods.filter(
-    (f) => f.name.toLowerCase().includes(q) || (f.brand ?? '').toLowerCase().includes(q),
-  );
+  return store.foods
+    .filter(
+      (f) =>
+        (!kind || f.kind === kind) &&
+        (f.name.toLowerCase().includes(q) || (f.brand ?? '').toLowerCase().includes(q)),
+    )
+    .sort(
+      (a, b) =>
+        Number(b.favourite) - Number(a.favourite) ||
+        (b.lastUsedAt ?? '').localeCompare(a.lastUsedAt ?? '') ||
+        a.name.localeCompare(b.name),
+    );
 });
 export const recentFoodItems = jest.fn(async () =>
   store.foods
@@ -125,11 +138,24 @@ export const listFoodItems = jest.fn(async (filter: 'favourites' | 'custom' | 'r
     filter === 'favourites' ? f.favourite : f.kind === (filter === 'custom' ? 'custom' : 'recipe'),
   ),
 );
-export const saveFoodItem = jest.fn(async (draft: FoodItemDraft) => {
+/** A picked recipe photo keeps its uri as the "local copy". */
+export const saveFoodItem = jest.fn(async (draft: FoodItemDraft, photo?: string | null) => {
   const id = draft.id ?? `item-${++seq}`;
   const existing = store.foods.find((f) => f.id === id);
+  const recipe = draft.recipe
+    ? {
+        ...draft.recipe,
+        photo:
+          photo === undefined
+            ? (existing?.recipe?.photo ?? null)
+            : photo === null
+              ? null
+              : { localUri: photo, remotePath: null },
+      }
+    : draft.recipe;
   const item: FoodItem = {
     ...draft,
+    recipe,
     id,
     favourite: draft.favourite ?? existing?.favourite ?? false,
     lastUsedAt: existing?.lastUsedAt ?? null,
@@ -142,6 +168,28 @@ export const setFavourite = jest.fn(async (id: string, favourite: boolean) => {
   const f = store.foods.find((x) => x.id === id);
   if (f) f.favourite = favourite;
 });
+export const duplicateFoodItem = jest.fn(async (id: string, name: string) => {
+  const item = store.foods.find((f) => f.id === id);
+  if (!item) return null;
+  const { id: _id, createdAt: _at, lastUsedAt: _u, favourite: _f, ...rest } = item;
+  return saveFoodItem(
+    { ...rest, name, recipe: item.recipe ? { ...item.recipe, photo: null } : null },
+    item.recipe?.photo?.localUri ?? undefined,
+  );
+});
+export const entriesOfFood = jest.fn(async (foodId: string) =>
+  store.food.filter((e) => e.foodId === foodId),
+);
+export const updateEntryValues = jest.fn(
+  async (updates: readonly Pick<FoodEntry, 'id' | 'kcal' | 'proteinG' | 'carbsG' | 'fatG'>[]) => {
+    store.food = store.food.map((e) => {
+      const u = updates.find((x) => x.id === e.id);
+      return u ? { ...e, ...u } : e;
+    });
+    return store.food.filter((e) => updates.some((u) => u.id === e.id));
+  },
+);
+/** Soft delete like the real one: the diary entries stay. */
 export const deleteFoodItem = jest.fn(async (id: string) => {
   store.foods = store.foods.filter((f) => f.id !== id);
 });
@@ -239,6 +287,10 @@ export const saveGoal = jest.fn(async (draft: GoalDraft) => {
   return goal;
 });
 
+export const getEnergySettings = jest.fn(async () => ({ ...store.energySettings }));
+export const saveEnergySettings = jest.fn(async (settings: EnergySettings) => {
+  store.energySettings = { ...settings };
+});
 export const getCheckInSettings = jest.fn(async () => ({ ...store.checkInSettings }));
 export const saveCheckInSettings = jest.fn(async (settings: CheckInSettings) => {
   store.checkInSettings = { ...settings };

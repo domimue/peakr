@@ -18,3 +18,17 @@ export {
 } from './nutrients';
 export { isBarcode, parseOffProduct, parseOffSearch, type OffFood } from './off';
 export { FUELLING, fuellingHints, type FuellingHint, type FuellingSession } from './fuelling';
+export {
+  ingredientAmount,
+  recipeServing,
+  recipeSummary,
+  relogEntry,
+  scaleRecipe,
+  servingGrams,
+  type IngredientAmount,
+  type IngredientUnit,
+  type RecipeInput,
+  type RecipeServing,
+  type RecipeSummary,
+  type ScalableRecipe,
+} from './recipe';

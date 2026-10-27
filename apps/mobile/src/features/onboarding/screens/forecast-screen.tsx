@@ -7,8 +7,12 @@ import { StyleSheet, View } from 'react-native';
 
 import { useBaselineStore } from '@/features/baseline/baseline-store';
 import { calibrateOnboarding } from '@/features/baseline/calibration';
+import { newPlanInput } from '@/features/plan-new/calibrate';
+import { useNewPlanFlow } from '@/features/plan-new/flow-store';
+import { usePreviousPlan } from '@/features/plan-new/previous';
+import { usePlanReview } from '@/features/plan-new/review';
 import { useSaveStrengthSetup } from '@/features/strength/queries';
-import { planHrZones } from '@/features/training-zones/resolve';
+import { planTargetBands } from '@/features/training-zones/resolve';
 import { setupFromAnswers } from '@/features/strength/setup-form';
 import {
   Badge,
@@ -53,6 +57,11 @@ export function ForecastScreen() {
   const baseline = useBaselineStore();
   const saveStrength = useSaveStrengthSetup();
   const saved = useRef(false);
+  // "Create a new plan": the current plan's sessions set the start, and the next step confirms.
+  const newPlan = useNewPlanFlow((s) => s.active);
+  const { previous: current } = usePreviousPlan();
+  const review = usePlanReview();
+  const acceptDifficulty = useNewPlanFlow((s) => s.acceptDifficulty);
 
   useEffect(() => {
     void hydrate();
@@ -64,29 +73,42 @@ export function ForecastScreen() {
     const input = toPlanInput(given, today);
     if (!input.ok) return null;
     // The Strava baseline (if the user gave one) calibrates levels, week 1, paces and zones.
-    const v = calibrateOnboarding(input.value, { activities, meta }, today);
+    const v =
+      newPlan && current
+        ? (newPlanInput(
+            given,
+            { activities, meta },
+            current,
+            today,
+            review ? { changes: review.changes, acceptDifficulty } : undefined,
+          ) ?? calibrateOnboarding(input.value, { activities, meta }, today))
+        : calibrateOnboarding(input.value, { activities, meta }, today);
     const plan = generatePlan(v.profile, v.goal, v.availability, v.startDate, v.targetDate);
-    if (!plan.ok) return null;
+    // Below what the athlete already does: say why instead of a generic error.
+    if (!plan.ok) return { issues: plan.issues.filter((i) => i.field === 'baseline') };
     return {
       input: v,
       plan: plan.value,
       forecast: buildForecast(plan.value, v, prepareAnswers(given, today)),
-      hrZones: planHrZones({ ...v, ...(v.targetDate ? { targetDate: v.targetDate } : {}) }),
+      hrZones: planTargetBands({ ...v, ...(v.targetDate ? { targetDate: v.targetDate } : {}) }),
     };
-  }, [given, today, activities, meta]);
+  }, [given, today, activities, meta, newPlan, current, review, acceptDifficulty]);
 
   // The strength answers become the saved setup (Profile → Strength edits it).
   useEffect(() => {
-    if (!result || saved.current) return;
+    if (!result || 'issues' in result || saved.current) return;
     saved.current = true;
     saveStrength.mutate(setupFromAnswers(prepareAnswers(given, today)));
   }, [given, result, saveStrength, today]);
 
   if (!hydrated) return <Screen />;
-  if (!result) {
+  if (!result || 'issues' in result) {
+    const issue = result?.issues?.[0];
     return (
       <Screen title={t('quiz.forecast.title')}>
-        <Text>{t('quiz.forecast.error')}</Text>
+        <Text testID="forecast-error">
+          {issue ? t(`validation.${issue.code}`, issue.params ?? {}) : t('quiz.forecast.error')}
+        </Text>
         <Button
           label={t('quiz.forecast.editAnswers')}
           onPress={() => router.replace('/onboarding/quiz')}
@@ -163,13 +185,24 @@ export function ForecastScreen() {
           />
         ) : null}
 
-        <Card>
-          <Text style={styles.strong}>
-            {t('quiz.forecast.lockedTitle', { weeks: forecast.weeks - 1 })}
-          </Text>
-          <Text tone="secondary">{t('quiz.forecast.trial')}</Text>
-          <Button label={t('quiz.forecast.unlock')} onPress={() => router.push('/paywall')} />
-        </Card>
+        {newPlan && current ? (
+          <Card>
+            <Text style={styles.strong}>{t('planNew.forecast.title')}</Text>
+            <Text tone="secondary">{t('planNew.forecast.hint')}</Text>
+            <Button
+              label={t('planNew.forecast.continue')}
+              onPress={() => router.push('/plan-new/confirm')}
+            />
+          </Card>
+        ) : (
+          <Card>
+            <Text style={styles.strong}>
+              {t('quiz.forecast.lockedTitle', { weeks: forecast.weeks - 1 })}
+            </Text>
+            <Text tone="secondary">{t('quiz.forecast.trial')}</Text>
+            <Button label={t('quiz.forecast.unlock')} onPress={() => router.push('/paywall')} />
+          </Card>
+        )}
         <Button
           variant="secondary"
           label={t('quiz.forecast.editAnswers')}

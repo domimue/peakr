@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 
 import { decryptHealth, decryptToken, encryptHealth, encryptToken } from '../crypto.ts';
-import type { BearerToken } from './garmin-personal.ts';
+import type { BearerToken, EndpointStats } from './garmin-personal.ts';
 import {
   HEALTH_GROUPS,
   isHealthGroup,
@@ -24,9 +24,11 @@ export interface HealthIntegration {
   credential_mode: CredentialMode;
   expires_at: string | null;
   status: string;
+  /** For Garmin OAuth: the permissions granted on Garmin's consent screen. */
+  scopes: string[];
 }
 
-const COLUMNS = 'id, user_id, external_user_id, credential_mode, expires_at, status';
+const COLUMNS = 'id, user_id, external_user_id, credential_mode, expires_at, status, scopes';
 
 export async function garminIntegration(
   admin: SupabaseClient,
@@ -138,6 +140,19 @@ export async function saveBearerToken(
     .eq('id', integration.id);
 }
 
+/** Garmin OAuth: stores the permissions the user granted (consent screen or a change push). */
+export async function saveGarminPermissions(
+  admin: SupabaseClient,
+  integration: HealthIntegration,
+  permissions: readonly string[],
+): Promise<void> {
+  const { error } = await admin
+    .from('integrations')
+    .update({ scopes: [...permissions] })
+    .eq('id', integration.id);
+  if (error) throw error;
+}
+
 export async function markIntegration(
   admin: SupabaseClient,
   integration: HealthIntegration,
@@ -244,12 +259,17 @@ export interface SyncState {
   backfill_done: boolean;
   last_pulled_at: string | null;
   last_error: string | null;
+  parser_version: number;
+  endpoints: { recent?: EndpointStats; backfill?: EndpointStats };
+  backfill_requested_at: string | null;
 }
 
 export async function syncState(admin: SupabaseClient, userId: string): Promise<SyncState | null> {
   const { data, error } = await admin
     .from('health_sync_state')
-    .select('earliest_day, backfill_before, backfill_done, last_pulled_at, last_error')
+    .select(
+      'earliest_day, backfill_before, backfill_done, last_pulled_at, last_error, parser_version, endpoints, backfill_requested_at',
+    )
     .eq('user_id', userId)
     .eq('source', 'garmin')
     .maybeSingle();

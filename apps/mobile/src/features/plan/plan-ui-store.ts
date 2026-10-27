@@ -10,8 +10,8 @@ export interface MoveFeedback {
   suggestion: RebalanceSuggestion | null;
 }
 
-/** The two views of the Plan tab (segmented control). */
-export type PlanView = 'weeks' | 'calendar';
+/** The three views of the Plan tab (segmented control): week list, calendar, history and records. */
+export type PlanView = 'weeks' | 'calendar' | 'history';
 
 interface PlanUiState {
   view: PlanView;

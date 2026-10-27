@@ -6,7 +6,7 @@ import { Text } from 'react-native';
 import type { StoredPlanInput } from '@/data/db/schema';
 import * as ids from '@/data/ids';
 import * as repo from '@/data/repositories/plan-repository';
-import { InsightsScreen } from '@/features/insights/insights-screen';
+import { BodyScreen } from '@/features/body/screens/body-screen';
 import { PlanScreen } from '@/features/plan/screens/plan-screen';
 import { WorkoutScreen } from '@/features/plan/screens/workout-screen';
 import { lockActions } from '@/features/plan/queries';
@@ -123,16 +123,16 @@ describe('plan without a subscription', () => {
     expect(screen.getByTestId('locked-card')).toBeOnTheScreen();
   });
 
-  it('Today and Insights show nothing but the way to the paywall', async () => {
+  it('Today and the health data in Body show nothing but the way to the paywall', async () => {
     storePlan();
     preview();
     const { unmount } = await renderWithQuery(<TodayScreen />);
     expect(await screen.findByTestId('locked-card')).toBeOnTheScreen();
     expect(screen.queryByText('Mark as done')).toBeNull();
     await unmount();
-    await renderWithQuery(<InsightsScreen />);
+    await renderWithQuery(<BodyScreen />);
     expect(screen.getByTestId('locked-card')).toBeOnTheScreen();
-    expect(screen.queryByText('Health')).toBeNull();
+    expect(screen.queryByTestId('health-overview')).toBeNull();
   });
 
   it('a week-1 workout can be read without actions, a later one not at all', async () => {
@@ -156,7 +156,7 @@ describe('plan without a subscription', () => {
     readOnly();
     await renderWithQuery(<TodayScreen />);
     expect(await screen.findByText('Your plan is read-only')).toBeOnTheScreen();
-    expect(screen.getByTestId('insights')).toBeOnTheScreen();
+    expect(screen.getByTestId('week-strip')).toBeOnTheScreen();
     expect(screen.queryByText('Mark as done')).toBeNull();
   });
 

@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, View } from 'react-native';
 
 import { radius, spacing, useTheme, zoneColorKey } from '../theme';
 import { Badge } from './badge';
+import { Icon } from './icon';
 import { Text } from './text';
 
 export interface ZoneRow {
@@ -43,6 +44,7 @@ export function ZoneTable({ rows, customLabel, onPressRow, rowHint }: ZoneTableP
             </View>
             {custom ? <Badge label={custom} /> : null}
             <Text style={styles.range}>{row.range}</Text>
+            {onPressRow ? <Icon name="edit" size={16} color={colors.textMuted} /> : null}
           </>
         );
         const rowStyle = [

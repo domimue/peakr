@@ -47,6 +47,7 @@ const USER_TABLES = [
   'activities',
   'workouts',
   'plans',
+  'plan_archive',
   'routes',
   'push_tokens',
   'trial_reminders',

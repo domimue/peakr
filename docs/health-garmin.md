@@ -1,39 +1,74 @@
 # Health data from Garmin (Phase 9d)
 
-Insights → Health shows the body and recovery data the watch records, compared with the user's own
+Body → Health shows the body and recovery data the watch records, compared with the user's own
 history. This page is the API report, what ships and what is switched off, and what you do in
 Garmin Connect and the Garmin developer portal.
 
 ## What I could verify about the Garmin API
 
-**Limitation first:** developer.garmin.com, developerportal.garmin.com and the blogs about the
-October 2026 relaunch are blocked by the network policy of the container I worked in. The one
-primary source I could read in full is Garmin's own **official Personal API client**,
-[github.com/garmin/connect-personal-api-python](https://github.com/garmin/connect-personal-api-python)
-(Apache 2.0, © Garmin 2026). Everything marked *secondary* below comes from search-result summaries
-and must be checked against the portal. The Health API reference and Swagger (Starter tier) sit
-behind the portal login – I could not read them.
+**Limitation first:** developer.garmin.com and developerportal.garmin.com do not resolve from the
+container I work in. Two primary-grade sources could be read in full:
 
-### Personal tier (verified from Garmin's client unless marked)
+- Garmin's own **official Personal API client**,
+  [github.com/garmin/connect-personal-api-python](https://github.com/garmin/connect-personal-api-python)
+  (Apache 2.0, © Garmin 2026): base URL, token exchange, every endpoint path.
+- Garmin's **Personal API OpenAPI spec 1.0.0** (the Swagger at
+  `developer.garmin.com/gc-developer-program/personal/swagger-docs/`), through the types generated
+  from it in [github.com/DynamicsNinja/garminconnect-js](https://github.com/DynamicsNinja/garminconnect-js)
+  (`src/generated/personal-api.ts`), which that project checked against a real account on
+  2026-10-23. Field names and response shapes below come from there.
 
-| | |
-| --- | --- |
-| Access | Self-service. The user creates a key in Garmin Connect Web: Settings → Personal API token (`connect.garmin.com/app/settings/personalApiToken`). Shown once. |
-| Token | `POST https://personal.connectapi.garmin.com/personalapitoken-service/personal-api/personal-api-key/token` with `Authorization: ApiKey <key>` → the bearer token (JWT) as plain text; expiry in its `exp` claim. **No refresh token** – a new token is minted from the key. *Secondary (FAQ):* token valid 24 h or until the key expires; keys expire after 30, 90, 180 or 365 days (the user chooses), Garmin emails about a week before. |
-| Delivery | **Pull only.** No webhooks. |
-| Health endpoints | daily summaries (`/usersummary-service/v2/dailysummaries?startDate&endDate`), steps and stress per day (ranges), daily heart rate incl. resting HR (one day), HRV (`/hrv-service/hrv/{date}` and `/hrv-service/hrv/daily/{start}/{end}`), sleep (`/sleep-service/sleep/dailySleep?date`, `…/dailySleepSummariesByDate?startDate&endDate`), **Body Battery** (`/wellness-service/wellness/bodyBattery/reports/daily`), SpO2 (one day), weight/body composition (`/weight-service/weight/range/{start}/{end}?includeAll=true`), fitness age, menstrual cycle summary and day view, hydration, food logs, weight goals, HR zones, profile, activities and their FIT files. |
-| Granularity | Per day; heart rate, HRV and sleep also with the readings of the day/night. |
-| History depth | **Not documented.** Peakr walks back in 28-day steps up to 365 days and stops when two steps before the earliest value come back empty; the app shows "Data from <date> on". |
-| Rate limits | **Not published.** *Secondary:* per-call range caps of 7 days for steps/stress and 28 for sleep/Body Battery (sources disagree). Peakr asks for 7 days per call, only the endpoints the switched-on groups need, stops on the first 429 and limits a scheduled run to 400 calls. |
-| Not in the client | Respiration as its own endpoint (Peakr reads the waking average from the daily summary if present), **VO2max**, **Training Readiness**, **Training Status**, skin temperature. Peakr shows these as "not provided" instead of inventing them. They may still be in the Swagger – call `garmin-health/probe` and tell me. |
+Everything marked *secondary* comes from search-result summaries and must be checked against the
+portal. The Health API reference (Starter tier) sits behind the portal login – I could not read it.
 
-**JSON field names are not verified.** The mappers read the Garmin Connect DTO names as publicly
-known (`totalSteps`, `restingHeartRate`, `sleepTimeSeconds`, `deepSleepSeconds`, `lastNightAvg`,
-`bodyBatteryHighestValue` …), defensively: a missing field gives no value, never a zero. The
-developer route `GET /garmin-health/probe?date=YYYY-MM-DD` returns Garmin's raw responses for one
-day, so we can compare them with the mappers. Correcting a field is one line in
-`supabase/functions/_shared/health/garmin-personal.ts` plus its fixture in
-`packages/health/src/garmin-health.test.ts`.
+### Personal tier – endpoints and what Peakr calls
+
+| Endpoint | Delivers | Peakr |
+| --- | --- | --- |
+| `/usersummary-service/v2/dailysummaries?startDate&endDate` | `{ data: [ … ] }`, one object per day grouped by topic: `movement.steps.value`, `movement.floorsAscended.value`, `calories.burnedActive/burnedResting`, `heartRate.restingValue`, `intensityMinutes.moderate/vigorous`, `stress.avgLevel`, `bodyBattery.maxValue/minValue`, `respiration.avgValue`, `pulseOx.avgValue` | pulled (steps, floors, intensity minutes, active/resting kcal, resting HR, stress, Body Battery, respiration, SpO2) |
+| `/sleep-service/sleep/dailySleepSummariesByDate?startDate&endDate` | sleep with stages and score | pulled |
+| `/hrv-service/hrv/daily/{from}/{to}` | overnight HRV | pulled |
+| `/weight-service/weight/range/{from}/{to}?includeAll=true` | `dailyWeightSummaries[].allWeightMetrics[]` (weight in g, body fat, muscle mass, BMI) | pulled |
+| `/wellness-service/wellness/daily/spo2acclimation/{day}` | `averageSpO2` of one day | pulled for recent days whose summary had no SpO2 (one call per day, never in the backfill) |
+| `/activitylist-service/activities/search/activities?startDate&endDate` | activities, each with Garmin's `vO2MaxValue` | pulled **only** for VO2max (Garmin's estimate of that activity; the activities are not stored) |
+| `/wellness-service/wellness/bodyBattery/reports/daily`, `/usersummary-service/stats/stress/daily/…`, `/usersummary-service/stats/steps/daily/…`, `/wellness-service/wellness/dailyHeartRate` | the same values per day or the readings of the day | not pulled (the daily summary has them); in `probe` |
+| `/fitnessage-service/fitnessage/v2/{day}`, hydration, nutrition, menstrual cycle, HR zones, profile, weight goals | – | not used |
+
+**Not in the Personal API at all** (Peakr says "not provided", never recalculates): a daily
+VO2max (only the per-activity estimate above), Training Readiness, Training Status, skin
+temperature. Respiration and body composition have no endpoint of their own on this tier.
+
+**Backfill:** the Personal API has no backfill request – history is read with date ranges. Peakr
+walks back in 28-day steps up to 365 days and stops when two steps before the earliest value come
+back empty. When the mappers change (`PARSER_VERSION` in `_shared/health/garmin-personal.ts`) the
+next pull starts that walk again, and Health data settings → "Fetch older data again" does it on
+demand (`POST /garmin-health/backfill`).
+
+**Range limits** (from garminconnect-js, live-tested): daily summaries up to a year per call,
+stress stats 28 days, `weight/all` only 52-week spans (Peakr uses `weight/range`). Peakr asks for
+7 days per call, only the endpoints the switched-on groups need, stops on a 429 or a rejected key,
+goes on with the other endpoints after any other failure, and limits a scheduled run to 400 calls.
+
+**Token:** `POST https://personal.connectapi.garmin.com/personalapitoken-service/personal-api/personal-api-key/token`
+with `Authorization: ApiKey <key>` → the bearer token (JWT) as plain text, expiry in its `exp`
+claim, no refresh token. *Secondary (FAQ):* token valid 24 h; keys expire after 30, 90, 180 or 365
+days (the user chooses).
+
+**Scopes:** a personal key has none – it reads all of the person's own data, so every data group
+is permitted. On Garmin OAuth (Starter) there is no scope parameter either: the user ticks
+permissions on Garmin's consent screen (`HEALTH_EXPORT`, `ACTIVITY_EXPORT`, `MCT_EXPORT` …). Peakr
+reads them after the token exchange (`GET /wellness-api/rest/user/permissions`, *secondary*) and on
+every user-permission-change push, stores them in `integrations.scopes`, and does not let the user
+switch on a group whose permission is missing.
+
+### Diagnostics
+
+`GET /garmin-health/diagnostics` returns per endpoint the last call of the recent window and of the
+backfill step (time, HTTP status, records, calls, error kind – never Garmin's text), the backfill
+state and the parser version. In the app it is Health data settings → "Health sync details
+(developer)", behind the flag `healthDiagnostics` (on in the personal build), together with the
+number of days per metric each source has on the phone. `GET /garmin-health/probe?date=…` still
+returns Garmin's raw responses for one day.
 
 ### Can a user paste their own personal key into Peakr?
 
@@ -72,7 +107,7 @@ labels it "Developer". It is for you and early testers on your own accounts, nev
 | Tables `health_consents`, `health_daily` (encrypted values), `health_sync_state`; `integrations.credential_mode`; pull every 2 h | `supabase/migrations/20261028000000_health.sql` |
 | Edge Function `garmin-health` (status, connect/disconnect key, consent, sync, cron, list, delete, probe) and push route `watch-webhook/garmin-health` | `supabase/functions/` |
 | Health Connect as the second source (last 30 days, only the switched-on groups, values stay on the phone, Garmin wins on the same day) | `apps/mobile/src/features/health/` |
-| Insights tab (Health · Training · Records), overview, detail per metric, sleep, resting HR / HRV with hard sessions, body composition, settings, Today's recovery line | `apps/mobile/src/features/insights/` |
+| Body tab → Health (Training history and Records are in Plan → History), overview, detail per metric, sleep, resting HR / HRV with hard sessions, body composition, settings, Today's recovery line | `apps/mobile/src/features/insights/` |
 
 Rules kept: values are compared only with the user's own history; no text names a condition or
 says someone is ill (a test scans every Health string); "if this keeps up, talk to a doctor"
@@ -100,7 +135,7 @@ data yet.
    `supabase functions deploy garmin-health watch-webhook oauth delete-account`.
 5. The personal build (docs/personal-build.md) shows the key mode automatically (flag
    `garminPersonalKey` is on there; in a development build set it to `true` by hand). Sign in,
-   then Insights → Health → "Set up health data" → paste the key under "Developer" → switch on the
+   then Body → Health → "Set up health data" → paste the key under "Developer" → switch on the
    groups → Save. The backfill runs in the background ("Fetching your older data").
 6. Send me the output of `GET /functions/v1/garmin-health/probe?date=<yesterday>` (with your user
    JWT) or of `gc-personal daily-summaries / sleep-summaries / hrv-summaries / weight-measurements`
@@ -139,9 +174,30 @@ Pick three recent days and compare Garmin Connect with Peakr:
 - Wear the watch less one night → that day shows "Nothing recorded" instead of a zero.
 - Baselines appear after 14 days with data; before that the tile says how many days it still needs.
 
+## Empty tiles: what each one means
+
+A tile without a current value says which of these applies – for that metric, not one sentence
+for all of them:
+
+1. **Not permitted** – Garmin OAuth only: the permission was not granted at Garmin.
+2. **Not switched on** – listed once under the tiles with a "Turn on" button.
+3. **Not provided** – neither the Garmin access nor the phone's health store delivers it ("Garmin
+   does not provide this on Peakr's current Garmin access …").
+4. **No data in the window** – with the reason of that metric: overnight (sleep, HRV), all day
+   while worn (resting HR, stress, Body Battery, steps, intensity minutes), Pulse Ox setting
+   (SpO2), breathing-rate watches (respiration), weigh-ins (weight, body composition), VO2max
+   updates; or "the last fetch from Garmin did not work" when the last pull failed.
+
+When an older value or a value from another source (Health Connect) exists, the tile shows it with
+its day and source instead of saying nothing was recorded. Weight, body composition and VO2max
+count as current for 30 days, everything else for 7.
+
 ## Not verified here
 
 - The Edge Functions were type-checked with `deno check` but never run against Supabase or Garmin.
-- All Garmin JSON field names (both tiers) and the Starter push format.
+- The Starter push format and its field names (`_shared/health/garmin-push.ts`). The Personal API
+  field names now follow the spec, but have not run against your account yet.
+- The unit of `movement.floorsAscended.value` (floors, as in v1 – or metres?).
+- Garmin's `user/permissions` endpoint (OAuth) – from public descriptions only.
 - Health Connect reading needs a development build on a phone (the mapping is unit-tested).
 - No imperial units for weight yet (metric only, like the rest of the Health screens).

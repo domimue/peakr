@@ -29,6 +29,12 @@ export interface HealthSyncInfo {
 export interface HealthStatus {
   connection: HealthConnection | null;
   groups: HealthGroup[];
+  /**
+   * Groups the connection may deliver at all: every group with a personal key, on Garmin OAuth
+   * only those whose permission the user granted on Garmin's consent screen. Missing on an older
+   * server answer – then nothing is treated as forbidden.
+   */
+  permitted?: HealthGroup[];
   sync: HealthSyncInfo;
   /** What the server can offer right now (Garmin OAuth once approved, the developer key flag). */
   offers: { oauth: boolean; personalKey: boolean };
@@ -99,6 +105,40 @@ export async function saveConsents(
 export async function requestHealthSync(): Promise<void> {
   const { error } = await client().functions.invoke('garmin-health/sync', { body: {} });
   if (error) throw new Error('sync failed');
+}
+
+/** "Fetch older data again" (pull tier): restarts the history walk on the server. */
+export async function requestHealthBackfill(): Promise<void> {
+  const { error } = await client().functions.invoke('garmin-health/backfill', { body: {} });
+  if (error) throw new Error('backfill failed');
+}
+
+/** Last call of one Garmin endpoint (developer diagnostics). Counts and status only. */
+export interface EndpointStat {
+  at: string;
+  status: number;
+  records: number;
+  calls: number;
+  error: string | null;
+}
+
+export interface HealthDiagnostics {
+  mode: 'oauth' | 'personal_key' | null;
+  status: HealthConnection['status'] | null;
+  permissions: string[];
+  groups: HealthGroup[];
+  endpoints: { endpoint: string; recent: EndpointStat | null; backfill: EndpointStat | null }[];
+  parserVersion: { stored: number; current: number };
+  sync: HealthSyncInfo & { backfillBefore: string | null; backfillRequestedAt: string | null };
+}
+
+export async function fetchHealthDiagnostics(): Promise<HealthDiagnostics> {
+  const { data, error } = await client().functions.invoke<HealthDiagnostics>(
+    'garmin-health/diagnostics',
+    { method: 'GET' },
+  );
+  if (error || !data) throw new Error('health diagnostics unavailable');
+  return data;
 }
 
 export async function deleteServerHealthData(): Promise<boolean> {

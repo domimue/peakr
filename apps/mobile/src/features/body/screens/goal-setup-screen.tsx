@@ -17,22 +17,23 @@ import { useEntitlement } from '@/features/billing/billing-store';
 import {
   Button,
   Card,
+  ChoiceList,
   ListState,
   numeric,
   Screen,
   SegmentedControl,
   Slider,
   spacing,
-  Stepper,
   Text,
   TextField,
 } from '@/ui';
 
+import { EVERYDAY_ACTIVITIES, type EverydayActivity } from '../energy-settings';
 import { useBodyModel } from '../model';
 import { useBodyProfile } from '../profile';
-import { useAddCheckIn, useSaveGoal } from '../queries';
+import { useAddCheckIn, useSaveEnergySettings, useSaveGoal } from '../queries';
 
-type Step = 'current' | 'target' | 'rate' | 'summary';
+type Step = 'everyday' | 'current' | 'target' | 'rate' | 'summary';
 
 const parse = (s: string) => {
   const n = Number(s.replace(',', '.'));
@@ -51,9 +52,11 @@ export function GoalSetupScreen() {
   const profile = useBodyProfile();
   const saveGoal = useSaveGoal();
   const addCheckIn = useAddCheckIn();
+  const saveEnergy = useSaveEnergySettings();
   const current = model?.goal;
   const hasTrend = (model?.trend.length ?? 0) > 0;
   const [step, setStep] = useState<Step>('current');
+  const [everydayAnswered, setEverydayAnswered] = useState(false);
   const [weight, setWeight] = useState(model ? String(model.trendKg) : '');
   const [target, setTarget] = useState(
     current?.targetWeightKg ? String(current.targetWeightKg) : '',
@@ -62,13 +65,16 @@ export function GoalSetupScreen() {
   const [rate, setRate] = useState(
     current && current.ratePerWeekKg > 0 ? current.ratePerWeekKg : 0.5,
   );
-  const [eatBack, setEatBack] = useState(current?.eatBackPct ?? 50);
-  const [weekly, setWeekly] = useState(current?.weeklyMode ?? false);
 
   const p = profile.data?.profile;
   if (!guard.canWrite) return <ListState kind="empty" title={t('bodyAddon.goal.locked')} />;
   if (!model || !p || !model.basis) return <ListState kind="loading" label={t('common.loading')} />;
   const basis = model.basis;
+  // The everyday activity is asked once, before the first goal (editable in Body → Energy targets).
+  const shown: Step =
+    step === 'current' && model.energy.everydayActivity === null && !everydayAnswered
+      ? 'everyday'
+      : step;
 
   const today = todayIso();
   const currentKg = (hasTrend ? model.trendKg : parse(weight)) ?? model.trendKg;
@@ -99,7 +105,10 @@ export function GoalSetupScreen() {
     bmrKcal: basis.bmrKcal,
     sex: p.sex,
     weightKg: currentKg,
+    proteinGPerKg: model.energy.proteinGPerKg,
   });
+  // Below the floor the targets are those of the proposed rate – only once it is accepted.
+  const belowFloor = targets.status === 'belowFloor';
   const forecast = goalForecast({
     kind,
     startKg: currentKg,
@@ -115,6 +124,7 @@ export function GoalSetupScreen() {
           kind,
           weightKg: currentKg,
           tdeeKcal: basis.tdeeKcal,
+          nonExerciseTdeeKcal: basis.nonExerciseKcal,
           bmrKcal: basis.bmrKcal,
           sex: p.sex,
         });
@@ -140,8 +150,9 @@ export function GoalSetupScreen() {
       startWeightKg: currentKg,
       targetWeightKg: kind === 'maintain' ? null : targetKg,
       ratePerWeekKg: targets.ratePerWeekKg,
-      eatBackPct: eatBack,
-      weeklyMode: weekly,
+      // Stored for older app versions; planned training is always part of the week's target.
+      eatBackPct: 100,
+      weeklyMode: true,
       adjustmentKcal: 0,
       paused: false,
       reason: targets.reason,
@@ -165,14 +176,26 @@ export function GoalSetupScreen() {
           {t('bodyAddon.goal.goalDate', { date: date(forecast.plannedDate) })}
         </Text>
       ) : null}
-      {targets.floorApplied ? (
-        <Text testID="goal-floor">
-          {t('bodyAddon.goal.floor', {
-            kcal: targets.floorKcal,
-            rate: targets.effectiveRatePerWeekKg,
-          })}
-        </Text>
+      {belowFloor && targets.proposedRatePerWeekKg !== null ? (
+        <View testID="goal-floor" style={styles.card}>
+          <Text>
+            {t('bodyAddon.goal.belowFloor', {
+              requested: targets.requestedRatePerWeekKg,
+              kcal: targets.floorKcal,
+              proposed: targets.proposedRatePerWeekKg,
+            })}
+          </Text>
+          <Button
+            variant="secondary"
+            testID="goal-use-proposed"
+            label={t('bodyAddon.goal.useProposed', { rate: targets.proposedRatePerWeekKg })}
+            onPress={() => setRate(targets.proposedRatePerWeekKg as number)}
+          />
+        </View>
       ) : null}
+      <Text variant="caption" tone="secondary">
+        {t('bodyAddon.goal.trainingIncluded')}
+      </Text>
       <Text variant="caption" tone="secondary">
         {t(
           basis.source === 'adaptive'
@@ -189,10 +212,30 @@ export function GoalSetupScreen() {
   return (
     <Screen>
       <Text variant="caption" tone="secondary">
-        {t(`bodyAddon.goal.step.${step}`)}
+        {t(`bodyAddon.goal.step.${shown}`)}
       </Text>
 
-      {step === 'current' ? (
+      {shown === 'everyday' ? (
+        <>
+          <Text variant="heading">{t('bodyAddon.energy.everydayTitle')}</Text>
+          <Text tone="secondary">{t('bodyAddon.energy.everydayHint')}</Text>
+          <ChoiceList
+            label={t('bodyAddon.energy.everydayTitle')}
+            choices={EVERYDAY_ACTIVITIES.map((a) => ({
+              value: a,
+              label: t(`bodyAddon.energy.everyday.${a}.label`),
+              description: t(`bodyAddon.energy.everyday.${a}.description`),
+            }))}
+            value={model.energy.everydayActivity ?? undefined}
+            onChange={(a: EverydayActivity) => {
+              saveEnergy.mutate({ ...model.energy, everydayActivity: a });
+              setEverydayAnswered(true);
+            }}
+          />
+        </>
+      ) : null}
+
+      {shown === 'current' ? (
         <>
           <Text variant="heading">{t('bodyAddon.goal.currentTitle')}</Text>
           {hasTrend ? (
@@ -296,7 +339,11 @@ export function GoalSetupScreen() {
             format={(v) => t('bodyAddon.goal.rate', { rate: v })}
           />
           {preview}
-          <Button label={t('bodyAddon.goal.next')} onPress={() => setStep('summary')} />
+          <Button
+            label={t('bodyAddon.goal.next')}
+            disabled={belowFloor}
+            onPress={() => setStep('summary')}
+          />
           <Button
             variant="secondary"
             label={t('bodyAddon.goal.back')}
@@ -320,34 +367,9 @@ export function GoalSetupScreen() {
             </Text>
           </Card>
           {preview}
-          <Stepper
-            label={t('bodyAddon.goal.eatBack')}
-            value={eatBack}
-            min={0}
-            max={100}
-            step={10}
-            onChange={setEatBack}
-            format={(v) => `${v} %`}
-            decreaseLabel={t('bodyAddon.goal.less')}
-            increaseLabel={t('bodyAddon.goal.more')}
-          />
-          <Text variant="caption" tone="secondary">
-            {t('bodyAddon.goal.eatBackHint')}
-          </Text>
-          <SegmentedControl
-            options={[
-              { value: 'daily', label: t('bodyAddon.goal.daily') },
-              { value: 'weekly', label: t('bodyAddon.goal.weekly') },
-            ]}
-            value={weekly ? 'weekly' : 'daily'}
-            onChange={(v) => setWeekly(v === 'weekly')}
-          />
-          <Text variant="caption" tone="secondary">
-            {t(weekly ? 'bodyAddon.goal.weeklyHint' : 'bodyAddon.goal.dailyHint')}
-          </Text>
           <Button
             label={t('bodyAddon.goal.save')}
-            disabled={!check.ok || saveGoal.isPending}
+            disabled={!check.ok || belowFloor || saveGoal.isPending}
             onPress={() => void save()}
           />
           <Button

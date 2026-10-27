@@ -30,10 +30,19 @@ const parseNumber = (s: string) => {
  * "Add-on rules": one profile, no duplicate fields). Saved into the shared profile, so training
  * and Body read the same values afterwards.
  */
-export function ProfileSetupCard({ state }: { state: BodyProfileState }) {
+export function ProfileSetupCard({
+  state,
+  all = false,
+}: {
+  state: BodyProfileState;
+  /** Profile → Personal data: every field, filled in, editable. */
+  all?: boolean;
+}) {
   const { t, i18n } = useTranslation();
   const save = useSaveBodyProfile();
-  const ask = new Set<BodyProfileField>(state.missing);
+  const ask = new Set<BodyProfileField>(
+    all ? ['sex', 'birthDate', 'heightCm', 'weightKg'] : state.missing,
+  );
   const [sex, setSex] = useState<BodySex | undefined>(state.values.sex);
   const [birthDate, setBirthDate] = useState<string | undefined>(state.values.birthDate);
   const [height, setHeight] = useState(state.values.heightCm?.toString() ?? '');
@@ -69,8 +78,12 @@ export function ProfileSetupCard({ state }: { state: BodyProfileState }) {
 
   return (
     <Card style={styles.card} testID="body-profile-setup">
-      <Text variant="heading">{t('bodyAddon.profile.title')}</Text>
-      <Text tone="secondary">{t('bodyAddon.profile.hint')}</Text>
+      {all ? null : (
+        <>
+          <Text variant="heading">{t('bodyAddon.profile.title')}</Text>
+          <Text tone="secondary">{t('bodyAddon.profile.hint')}</Text>
+        </>
+      )}
       {ask.has('sex') ? (
         <View style={styles.field}>
           <Text variant="caption">{t('bodyAddon.profile.sex')}</Text>

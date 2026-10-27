@@ -236,6 +236,7 @@ describe('composition (WORKOUTS.md §9)', () => {
     cssAllowed: true,
     benchmark: false,
     buildWeekIndex: 0,
+    qualityIndex: 0,
     ...extra,
   });
   const ids = (c: CompositionContext) => composeWeek(c, true).map((s) => s.templateId);
@@ -285,7 +286,7 @@ describe('composition (WORKOUTS.md §9)', () => {
     ]);
     expect(ids(ctx('10k', 'base', { weekIndex: 1 }, { terrain: 'flat' }))[1]).toBe('run.fartlek');
     expect(ids(ctx('10k', 'base', { weekIndex: 1 }))[1]).toBe('run.hills_short');
-    expect(ids(ctx('10k', 'build', { trainingDays: 3 }))).toEqual([
+    expect(ids(ctx('10k', 'build', { trainingDays: 3, qualityIndex: 1 }))).toEqual([
       'run.long',
       'run.hills_long',
       'run.easy',
@@ -296,7 +297,7 @@ describe('composition (WORKOUTS.md §9)', () => {
       'run.easy',
       'run.easy_strides',
     ]);
-    expect(ids(ctx('10k', 'build', {}, { experience: 'advanced' }))).toEqual([
+    expect(ids(ctx('10k', 'build', { qualityIndex: 1 }, { experience: 'advanced' }))).toEqual([
       'run.long',
       'run.hills_long',
       'run.vo2_intervals',
@@ -322,13 +323,14 @@ describe('composition (WORKOUTS.md §9)', () => {
       'run.race_pace_m',
       'run.easy',
     ]);
-    expect(ids(ctx('5k', 'peak'))[2]).toBe('run.vo2_intervals');
+    expect(ids(ctx('5k', 'peak')).slice(1, 3)).toEqual(['run.vo2_intervals', 'run.tempo']);
     expect(ids(ctx('half', 'taper'))).toEqual([
       'run.long',
       'run.tempo',
       'run.easy_strides',
       'run.easy',
     ]);
+    expect(ids(ctx('half', 'taper', { raceWeek: true }))[0]).toBe('run.vo2_intervals');
     expect(ids(ctx('10k', 'taper', { raceWeek: true }))).toEqual([
       'run.vo2_intervals',
       'run.easy_strides',
@@ -340,6 +342,62 @@ describe('composition (WORKOUTS.md §9)', () => {
       'bike.endurance',
       'swim.technique',
     ]);
+  });
+
+  it('rotates threshold and VO2 over the loading weeks (WORKOUTS.md §9 "Quality rotation")', () => {
+    const quality = (goal: GoalKind, phase: Phase, n: number, q: number) =>
+      composeWeek(
+        ctx(
+          goal,
+          phase,
+          { trainingDays: n, qualityIndex: q },
+          { experience: 'advanced', terrain: 'flat' },
+        ),
+        true,
+      )
+        .filter((s) => s.role === 'key' || s.role === 'quality')
+        .map((s) => `${s.templateId}${s.levelDrop ? `-${s.levelDrop}` : ''}`);
+    const weeks = (goal: GoalKind, phase: Phase, n: number) =>
+      [0, 1, 2].map((q) => quality(goal, phase, n, q));
+    // One quality session: 10K/HM threshold, threshold, VO2; 5K the other way round; the marathon
+    // a shorter VO2 set (one level lower).
+    expect(weeks('10k', 'build', 4)).toEqual([['run.tempo'], ['run.tempo'], ['run.vo2_intervals']]);
+    expect(weeks('half', 'build', 3)).toEqual([
+      ['run.tempo'],
+      ['run.tempo'],
+      ['run.vo2_intervals'],
+    ]);
+    expect(weeks('5k', 'build', 4)).toEqual([
+      ['run.vo2_intervals'],
+      ['run.vo2_intervals'],
+      ['run.tempo'],
+    ]);
+    expect(weeks('marathon', 'peak', 3)[2]).toEqual(['run.vo2_intervals-1']);
+    // Two quality sessions.
+    expect(weeks('10k', 'build', 5)).toEqual([
+      ['run.tempo', 'run.vo2_intervals'],
+      ['run.tempo', 'run.vo2_intervals'],
+      ['run.vo2_intervals', 'run.fartlek'],
+    ]);
+    expect(weeks('10k', 'peak', 5)[2]).toEqual(['run.vo2_intervals', 'run.tempo']);
+    expect(weeks('5k', 'build', 5)).toEqual([
+      ['run.vo2_intervals', 'run.tempo'],
+      ['run.vo2_intervals', 'run.tempo'],
+      ['run.tempo', 'run.fartlek'],
+    ]);
+    expect(weeks('5k', 'peak', 5)[2]).toEqual(['run.tempo', 'run.vo2_intervals']);
+    expect(weeks('half', 'build', 5)).toEqual([
+      ['run.tempo', 'run.progression'],
+      ['run.tempo', 'run.progression'],
+      ['run.vo2_intervals', 'run.progression'],
+    ]);
+    expect(weeks('half', 'peak', 5)).toEqual([
+      ['run.tempo', 'run.race_pace_hm'],
+      ['run.vo2_intervals-1', 'run.race_pace_hm'],
+      ['run.tempo', 'run.race_pace_hm'],
+    ]);
+    expect(weeks('marathon', 'build', 5)[2]).toEqual(['run.vo2_intervals-1', 'run.progression']);
+    expect(weeks('marathon', 'peak', 5)[0]).toEqual(['run.tempo', 'run.race_pace_m']);
   });
 
   it('cycling goals', () => {

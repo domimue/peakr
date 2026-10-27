@@ -45,7 +45,12 @@ describe('stored settings', () => {
       enabled: false,
     });
     // On by default at 07:00 with the weather line.
-    expect(DEFAULT_REMINDER_SETTINGS).toEqual({ enabled: true, minute: 420, weather: true });
+    expect(DEFAULT_REMINDER_SETTINGS).toEqual({
+      enabled: true,
+      minute: 420,
+      weather: true,
+      congrats: true,
+    });
   });
 
   it('are read on start and saved on change', async () => {
@@ -155,5 +160,15 @@ describe('daily reminder', () => {
     await fireEvent.press(screen.getAllByText('On')[0] as never);
     await waitFor(() => expect(repo.store.reminder.enabled).toBe(true));
     expect(Notifications.requestPermissionsAsync).toHaveBeenCalled();
+  });
+
+  it('congratulations after a session: on by default, its own switch', async () => {
+    await renderWithQuery(<NotificationsScreen />);
+    expect(await screen.findByText('Congratulations after a session')).toBeOnTheScreen();
+    // Reminder, weather line, congratulations: the last Off belongs to the congratulations.
+    const offs = screen.getAllByText('Off');
+    await fireEvent.press(offs[offs.length - 1] as never);
+    await waitFor(() => expect(repo.store.reminder.congrats).toBe(false));
+    expect(repo.store.reminder.enabled).toBe(true);
   });
 });

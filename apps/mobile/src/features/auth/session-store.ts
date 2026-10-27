@@ -8,7 +8,7 @@ interface SessionState {
   session: Session | null;
   /**
    * The session belongs to an anonymous Supabase user (created during the quiz, e.g. to connect
-   * Strava). It is not an account: no sync, no Profile → Account, and sign-in converts it.
+   * Strava). It is not an account: no sync, no Settings → Account, and sign-in converts it.
    */
   isAnonymous: boolean;
   /** The stored session was read (or Supabase is not configured). */

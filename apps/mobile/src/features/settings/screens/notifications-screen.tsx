@@ -22,8 +22,9 @@ import { Button, Screen, SegmentedControl, spacing, Stepper, Text, useTheme } fr
 type OnOff = 'on' | 'off';
 
 /**
- * Profile → Notifications: the daily workout reminder (on/off, time, weather line) and the
- * optional "activity synced" notification. One push per day at most, only on workout days.
+ * Settings → Notifications: the daily workout reminder (on/off, time, weather line) – one per day
+ * at most, only on workout days –, the congratulation after a session (its own category, on by
+ * default) and the optional "activity synced" notification.
  */
 export function NotificationsScreen() {
   const { data: settings } = useReminderSettings();
@@ -128,6 +129,18 @@ function NotificationsForm({ settings }: { settings: ReminderSettings }) {
           </View>
         </>
       ) : null}
+
+      <View style={styles.group}>
+        <Text variant="label">{t('notifications.congrats.label')}</Text>
+        <SegmentedControl
+          options={options}
+          value={onOff(settings.congrats)}
+          onChange={(v) => update({ congrats: v === 'on' })}
+        />
+        <Text variant="caption" tone="secondary">
+          {t('notifications.congrats.hint')}
+        </Text>
+      </View>
 
       {pushToken ? (
         <View style={styles.group}>

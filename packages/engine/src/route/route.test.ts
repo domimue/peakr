@@ -605,10 +605,17 @@ describe('recogniseRoutes', () => {
       track(loop(1000, () => 0)), // same start, half the length
       track(a.map((p, i) => (i > 40 ? at(2000 - (i - 41) * 50, 400) : p))), // different way back
       track(a, { sport: 'bike' }),
+      track(
+        loop(3000, () => 0),
+        { sport: 'bike' },
+      ), // a ride from the same start
       track(a, { indoor: true }),
       track(a, { polyline: null }),
       track(a, { sport: 'swim' }),
       track([ORIGIN, ORIGIN]),
+      // A GPS fragment done twice is no route.
+      track(loop(300, () => 0, at(0, 9000))),
+      track(loop(300, () => 0, at(0, 9000))),
     ];
     const routes = recogniseRoutes(acts);
     expect(routes).toHaveLength(1);
@@ -620,6 +627,14 @@ describe('recogniseRoutes', () => {
     });
     expect(routes[0]?.activityKeys).toEqual([acts[2]?.key, acts[1]?.key, acts[0]?.key]);
     expect(routes[0]?.distanceM).toBeGreaterThan(4000);
+    // No durations or climbs recorded: nothing typical to say.
+    expect(routes[0]).toMatchObject({ typicalDurationSec: null, elevationGainM: null });
+    const timed = recogniseRoutes([
+      track(a, { durationSec: 1500, elevationGainM: 40 }),
+      track(a, { durationSec: 1700, elevationGainM: null }),
+      track(a, { durationSec: 1600, elevationGainM: 50 }),
+    ]);
+    expect(timed[0]).toMatchObject({ typicalDurationSec: 1600, elevationGainM: 45 });
 
     // Already in the library → not suggested again.
     expect(recogniseRoutes(acts, new Set([acts[0]?.key as string]))).toEqual([]);

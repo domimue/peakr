@@ -3,7 +3,7 @@
 Prompts the user has given that are not finished yet. Newest at the bottom;
 work top to bottom. See "Working mode (Claude sessions)" in CLAUDE.md.
 
-Hourly check-in (scheduled task): `trig_01CLCwz6RBurU45vsaGJYsmn` (this branch, claude/focused-bell-520msa)
+Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude/bold-pascal-ozm0yd)
 
 ## Open
 
@@ -11,6 +11,31 @@ Hourly check-in (scheduled task): `trig_01CLCwz6RBurU45vsaGJYsmn` (this branch, 
 
 ## Done
 
+- Prompt 4 – Recipes and portions (2026-10-27): engine recipe maths (totals, per portion, cooked
+  weight, units, scaling, relog), recipe editor with photo / note / ingredients through the same
+  search, scanner, favourites and manual entry, log by portion or grams, "My recipes" filter,
+  edit / duplicate / scale / delete, logged days kept unless chosen; CLAUDE.md + docs updated;
+  nothing to set up (no migration)
+
+- Prompt 3 – Navigation and screens (2026-10-27): tabs Today/Plan/Gym/Nutrition/Body with the
+  profile icon on every screen, Profile vs. Settings, Plan → History, Today as one day, weekly
+  volume per sport, workout types rows, Strava route preview, congratulation push, Body tiles /
+  change colours / measurements table, coach in Nutrition, chart colours; CLAUDE.md updated;
+  nothing to set up (no migrations); Maestro flows updated but not run here (no emulator)
+
+- New plan without a new account (2026-10-27): weekly session mix (threshold/VO2 rotation), plan
+  archive with outcome and same-day undo, Insights "This plan / All time", badges, Plan history
+  with JSON export, "Create a new plan" flow starting from the previous plan, review "How was
+  your last plan?"; CLAUDE.md + WORKOUTS.md updated; waits on the user for the Supabase migration
+  `20261109000000_plan_archive.sql` and `supabase functions deploy delete-account`
+- Engine phase (2026-10-27): plan start floors, intensity bands, difficulty slider, energy &
+  macros, activity matching, CLAUDE.md updated; nothing to set up (no migrations; new settings
+  stay on the device)
+- Garmin health data not arriving (2026-10-27): v2 daily-summary mapper, per-endpoint pull, SpO2
+  day + VO2max from activities, backfill button, empty-state cases, OAuth permissions,
+  diagnostics; waits on the user for the Supabase migration `20261108000000_health_diagnostics.sql`,
+  `supabase functions deploy garmin-health oauth watch-webhook` and a new personal build
+  (docs/health-garmin.md)
 - Phase 16 – Body dashboard, coach & paywall; nothing to set up (docs/body-addon-setup.md §12)
 - Phase 15 – Body check-in; waits on the user for the Supabase migration
   `20261107000000_body_checkin.sql` (private `body-photos` bucket) and a new dev build

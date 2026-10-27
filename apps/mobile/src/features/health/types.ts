@@ -27,7 +27,7 @@ export type WriteResult =
 
 /**
  * What the Body add-on reads from the phone's health store (CLAUDE.md "Health Connect /
- * HealthKit": only what is needed). Asked for separately from Insights → Health, and only while
+ * HealthKit": only what is needed). Asked for separately from Body → Health, and only while
  * the add-on is active.
  */
 export const BODY_HEALTH_METRICS = [

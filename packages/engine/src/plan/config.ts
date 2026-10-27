@@ -118,6 +118,34 @@ export const planConfig = {
     sprintBrickEvery: 2,
     /** Swim beginners do technique until this technique level, then CSS sets. */
     techniqueLevelBeforeCss: 4,
+    /**
+     * Run quality rotation (WORKOUTS.md §9): every `every`-th Build/Peak loading week brings the
+     * distance's other kind of quality – VO2 for 10K/HM/marathon, threshold for a 5K with one
+     * quality session, a fartlek for 5K/10K Build with two. Half-marathon Peak swaps race pace
+     * for a short VO2 set every `halfPeakEvery`-th week.
+     */
+    qualityRotation: { every: 3, halfPeakEvery: 2 },
+  },
+  /**
+   * Difficulty slider 1–10 (CLAUDE.md "Training engine rules → Difficulty"): 5 is exactly what the
+   * engine computes. Each step scales the weekly target load and the long-session increase by
+   * `perStep`; every safety rule (+10 % cap, recovery weeks, 80/20, no hard days back to back,
+   * start floors) is applied after it and still holds at every setting.
+   */
+  difficulty: { min: 1, max: 10, neutral: 5, perStep: 0.04 },
+  /**
+   * Hard floors of a new plan (CLAUDE.md "Baseline"): it never starts below what the athlete
+   * demonstrably does. Statistics-free; the only exception is a return after a pause or injury.
+   */
+  floors: {
+    /** First long session ≥ this share of the recent typical long session. */
+    longShare: 0.9,
+    /** Week-1 minutes per sport ≥ this share of the last four weeks (5-minute rounding of sessions). */
+    volumeShare: 0.95,
+    /** Rebuilds of the checked start week with a higher target before the floor counts as missed. */
+    retries: 4,
+    /** Speeds used to turn a distance from the quiz into minutes when no pace is known. */
+    defaultSpeedKmh: { run: 10, bike: 25, swim: 2.5 } satisfies Record<Sport, number>,
   },
   long: {
     /** Start duration of the long session by experience. */
@@ -327,7 +355,53 @@ export const planConfig = {
     weeks: 4,
   },
   /** Imported activities (CLAUDE.md "Automatic activity sync"). */
+  /**
+   * A plan that ran through all its weeks counts as completed with at least this share of its
+   * sessions done (CLAUDE.md "Plan history"). Commutes are no session of their own (as on Today);
+   * sessions inside a pause are not counted as planned. A plan replaced before its end is never
+   * completed.
+   */
+  completion: { minShare: 0.8, badgeShare: 0.95 },
+  /**
+   * "How was your last plan?" (CLAUDE.md "Plan history"): one level up from `levelUpShare` of the
+   * sessions done (and not too hard), one down below `levelDownShare`; a long-run change of
+   * `longChange`; a skipped template is named from `skippedMin` skips; easy pace needs
+   * `paceMinPerThird` runs in the first and the last third.
+   */
+  review: {
+    levelUpShare: 0.8,
+    levelDownShare: 0.6,
+    longChange: 0.1,
+    skippedMin: 2,
+    paceMinPerThird: 3,
+  },
+  /** Start values from the previous plan: long sessions of the last 6 weeks, volume of the last 4. */
+  history: { longWeeks: 6, volumeWeeks: 4 },
   activities: {
+    /**
+     * Matching a synced activity to a planned workout (CLAUDE.md "After import"): a confidence
+     * score 0–1 from sport (required), date, duration and distance. Linked automatically from
+     * `confident` with a lead of `margin` over the next candidate; asked from `plausible`; below
+     * it the activity is unplanned and the planned workout stays open.
+     */
+    match: {
+      confident: 0.75,
+      margin: 0.15,
+      plausible: 0.4,
+      /** Date factor: same day, or one day before / after. */
+      sameDay: 1,
+      adjacentDay: 0.5,
+      /** Duration / distance: full within ±this share of the plan, falling to 0 at ±`zeroAt`. */
+      fullWithin: 0.15,
+      zeroAt: 0.75,
+      /** Weights when the planned distance is known (else duration alone). */
+      durationWeight: 0.6,
+      distanceWeight: 0.4,
+      /** A commute matched to a non-commute session (or the other way round). */
+      commuteMismatch: 0.8,
+      /** Candidates offered when asking. */
+      maxCandidates: 3,
+    },
     /** Same activity from two sources: start times at most this far apart … */
     dedupeStartToleranceSec: 5 * 60,
     /** … and durations differing by at most this share of the longer one. */
@@ -427,6 +501,8 @@ export const planConfig = {
       samplePoints: 64,
       maxMeanDeviationM: 75,
       minOccurrences: 2,
+      /** Shorter tracks are GPS fragments or warm-ups, not routes ("Ride, 1.1 km, 2 times"). */
+      minDistanceM: { run: 1500, bike: 5000 },
     },
     /** Evaluation: a km is "in range" within this share of the planned pace. */
     evaluationTolerance: 0.03,
@@ -514,11 +590,25 @@ export const planConfig = {
       swims: 3,
     },
     /**
-     * Outliers: unticked when longer than median + k × MAD of the sport and at least this multiple
-     * of its median duration (the weekly long session is not an outlier).
+     * Activities are first sorted into easy / long / other per sport, relative to that person's own
+     * sessions: long = at least `longFactor` × the sport's median duration and at least
+     * `longMinMin`. Outliers are then looked for inside each kind only, so a long run is compared
+     * with long runs and never thrown out for being longer than the easy runs.
+     */
+    classify: {
+      longFactor: 1.4,
+      longMinMin: { run: 60, bike: 120, swim: 45 } satisfies Record<Sport, number>,
+    },
+    /**
+     * Outliers inside one kind: unticked when longer than median + k × MAD of that kind and at
+     * least this multiple of its median duration. A kind needs `min.volume` sessions to be judged.
      */
     outlierMadFactor: 3,
     outlierMinFactor: 2.5,
+    /** The typical long session is the median long session of the last n days. */
+    longRecentDays: 42,
+    /** Week-1 volume floor: the plain mean of the last n full weeks per sport. */
+    floorWeeks: 4,
     /** Runs shorter than this are not used for paces. */
     minRunDistanceM: 1000,
     /** HRmax: the n-th highest observed value (protects against strap spikes). */

@@ -218,7 +218,7 @@ stripe listen --forward-to localhost:3000/api/stripe/webhook
 8. **Other cards**: `4000 0025 0000 3155` (3-D Secure, confirm in the popup),
    `4000 0000 0000 0002` (declined – Checkout shows the error, nothing is recorded as complete).
    An abandoned checkout expires after 24 h (`checkout.session.expired` → `status = expired`).
-9. **Account deletion** – Profile → Account → Delete account in the app (or the website's
+9. **Account deletion** – Settings → Account → Delete account in the app (or the website's
    deletion request): the Stripe subscription is cancelled at once, the rows are gone.
 
 Then repeat steps 1–2 once in live mode with a real card and refund yourself in the Stripe

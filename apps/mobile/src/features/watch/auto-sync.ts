@@ -7,7 +7,7 @@ import { getRoute } from '@/data/repositories/route-repository';
 import { selectAccountUserId, useSessionStore } from '@/features/auth/session-store';
 import { useIntegrations } from '@/features/integrations/queries';
 import { usePlan } from '@/features/plan/queries';
-import { planHrZones } from '@/features/training-zones/resolve';
+import { planTargetBands } from '@/features/training-zones/resolve';
 import type { StoredPlan } from '@/data/repositories/plan-repository';
 
 import { directEnabled, isDirect, type DirectWatch } from './options';
@@ -39,7 +39,7 @@ export async function syncPlanToWatch(watch: DirectWatch, stored: StoredPlan): P
     {
       state: stored.state,
       profile: stored.input.profile,
-      hrZones: planHrZones(stored.input),
+      hrZones: planTargetBands(stored.input),
       routeProfiles,
     },
     today,

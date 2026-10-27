@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import type { AddonGuard } from '@/features/billing/model';
-import { Button, Card, numeric, spacing, Text } from '@/ui';
+import { Button, Card, numeric, ProgressBar, spacing, Text } from '@/ui';
 
 import { useBodyModel } from '../model';
 import { useSaveGoal } from '../queries';
@@ -12,12 +12,19 @@ import { useSaveGoal } from '../queries';
 const REVERSE_STEP = 100;
 
 /**
- * The weight goal in Body: today's target, protein, both forecasts, the weekly check-in with its
+ * The weight goal at the top of Body: how far along the way it is, today's target, protein, both forecasts, the weekly check-in with its
  * suggestion, plateau and "target reached" hints and the training interaction. Every change –
  * accepting a suggestion, pausing, switching to maintain – is a new goal version with its reason.
  * Wording stays gentle: suggestions, never pressure.
  */
-export function GoalCard({ guard }: { guard: AddonGuard }) {
+export function GoalCard({
+  guard,
+  progressPct = null,
+}: {
+  guard: AddonGuard;
+  /** Share of the way from the start to the target weight (trend), shown first. */
+  progressPct?: number | null;
+}) {
   const { t, i18n } = useTranslation();
   const model = useBodyModel();
   const saveGoal = useSaveGoal();
@@ -83,6 +90,17 @@ export function GoalCard({ guard }: { guard: AddonGuard }) {
   return (
     <Card style={styles.card} testID="goal-card">
       <Text variant="heading">{t('bodyAddon.goal.title')}</Text>
+      {progressPct !== null && goal.kind !== 'maintain' ? (
+        <View style={styles.block} testID="goal-progress">
+          <ProgressBar
+            progress={progressPct / 100}
+            accessibilityLabel={t('bodyAddon.coach.progress', { pct: progressPct })}
+          />
+          <Text variant="caption" tone="secondary" style={numeric}>
+            {t('bodyAddon.coach.progress', { pct: progressPct })}
+          </Text>
+        </View>
+      ) : null}
       <Text tone="secondary">
         {goal.kind === 'maintain'
           ? t('bodyAddon.goal.summaryMaintain', { kg: model.trendKg })

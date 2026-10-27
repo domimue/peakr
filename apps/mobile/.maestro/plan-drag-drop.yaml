@@ -1,7 +1,7 @@
 # Plan → Calendar: move a workout to another day by drag & drop (Phase 5; a view of the Plan tab
 # since Phase 5c).
 #
-# Runs against a development build (the plan comes from Profile → Plan preview → "Use as my plan",
+# Runs against a development build (the plan comes from Profile icon → Settings → Plan preview → "Use as my plan",
 # which only exists in __DEV__ builds) with Metro running:
 #   pnpm --filter @peakr/mobile start
 #   maestro test apps/mobile/.maestro/plan-drag-drop.yaml
@@ -42,7 +42,9 @@ env:
     timeout: 60000
 
 # Create a plan from the half-marathon preset; it starts on the next Monday (or today).
-- tapOn: Profile
+- tapOn:
+    label: Profile and settings
+- tapOn: Settings
 - scrollUntilVisible:
     element: Plan preview \(dev\)
 - tapOn: Plan preview \(dev\)

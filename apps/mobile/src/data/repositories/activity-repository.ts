@@ -1,8 +1,14 @@
-import { activityKey, type ActivityLink, type SourceActivity, type SourceRef } from '@peakr/engine';
+import {
+  activityKey,
+  type ActivityLink,
+  type WorkoutCandidate,
+  type SourceActivity,
+  type SourceRef,
+} from '@peakr/engine';
 import { and, eq, inArray } from 'drizzle-orm';
 
 import { db } from '../db/client';
-import { activities, activityLinks } from '../db/schema';
+import { activities, activityLinks, appSettings } from '../db/schema';
 
 /**
  * Imported activities on the device: one row per source record (Strava now, watch providers and
@@ -108,4 +114,46 @@ export function addLinks(planId: string, links: readonly ActivityLink[], now = D
         .run();
     }
   });
+}
+
+/** Undo of an automatic link: the activity is no longer the workout's. */
+export function removeLink(activityKeyOf: string): void {
+  db.delete(activityLinks).where(eq(activityLinks.activityKey, activityKeyOf)).run();
+}
+
+/**
+ * An activity Peakr was not sure about (CLAUDE.md "After import"): the user picks the planned
+ * workout it was, or "none of these". Kept on this device until answered.
+ */
+export interface StoredMatchQuestion {
+  activityKey: string;
+  planId: string;
+  candidates: WorkoutCandidate[];
+  /** Shown with the question. */
+  sport: SourceActivity['sport'];
+  date: string;
+  durationSec: number;
+  distanceM: number | null;
+  source: SourceActivity['source'];
+}
+
+const QUESTIONS_KEY = 'activities.questions';
+
+export async function listQuestions(): Promise<StoredMatchQuestion[]> {
+  const row = await db.query.appSettings.findFirst({ where: eq(appSettings.key, QUESTIONS_KEY) });
+  if (!row) return [];
+  try {
+    const parsed = JSON.parse(row.value) as unknown;
+    return Array.isArray(parsed) ? (parsed as StoredMatchQuestion[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+export async function saveQuestions(questions: readonly StoredMatchQuestion[]): Promise<void> {
+  const value = JSON.stringify(questions);
+  await db
+    .insert(appSettings)
+    .values({ key: QUESTIONS_KEY, value })
+    .onConflictDoUpdate({ target: appSettings.key, set: { value } });
 }

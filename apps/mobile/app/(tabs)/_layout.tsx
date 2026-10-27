@@ -1,20 +1,18 @@
 import { NativeTabs } from 'expo-router/native-tabs';
 import { useTranslation } from 'react-i18next';
 
-import { useRemoteFlag } from '@/config/remote-flags';
 import { useTheme } from '@/ui';
 
 /**
- * Five tabs (CLAUDE.md "UI patterns"): Today, Plan, Gym, Body, Profile. The calendar is a view
- * inside Plan. Body takes the fourth slot while the add-on is switched on (remote flag
- * `addon_body_nutrition`) – the bar holds five at most, on Android natively so – and Insights
- * (Health, Training, Records) then opens from Profile and Today (`/training/insights`). With the
- * flag off the bar is the one before: Insights in the fourth slot, no Body.
+ * Five tabs (CLAUDE.md "UI patterns → Navigation"): Today, Plan, Gym, Nutrition, Body. Profile and
+ * Settings open from the profile icon top right of every screen; training history and records
+ * are the third segment of Plan; Body holds the watch's health data and the body tracking. The
+ * Body add-on flag only decides what Nutrition and Body show (content, preview or "coming soon"),
+ * never which tabs exist.
  */
 export default function TabsLayout() {
   const { t } = useTranslation();
   const { colors } = useTheme();
-  const body = useRemoteFlag('addon_body_nutrition');
 
   return (
     <NativeTabs
@@ -35,17 +33,13 @@ export default function TabsLayout() {
         <NativeTabs.Trigger.Label>{t('tabs.gym')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="dumbbell" md="fitness_center" />
       </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="body" hidden={!body}>
+      <NativeTabs.Trigger name="nutrition">
+        <NativeTabs.Trigger.Label>{t('tabs.nutrition')}</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="fork.knife" md="restaurant" />
+      </NativeTabs.Trigger>
+      <NativeTabs.Trigger name="body">
         <NativeTabs.Trigger.Label>{t('tabs.body')}</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon sf="figure.stand" md="accessibility_new" />
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="insights" hidden={body}>
-        <NativeTabs.Trigger.Label>{t('tabs.insights')}</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="chart.bar" md="bar_chart" />
-      </NativeTabs.Trigger>
-      <NativeTabs.Trigger name="profile">
-        <NativeTabs.Trigger.Label>{t('tabs.profile')}</NativeTabs.Trigger.Label>
-        <NativeTabs.Trigger.Icon sf="person.crop.circle" md="person" />
       </NativeTabs.Trigger>
     </NativeTabs>
   );

@@ -197,6 +197,16 @@ describe('weeklyCoach', () => {
     expect(s.watch).toEqual([{ key: 'fewLogs', days: 0 }]);
     expect(s.adjustments).toEqual([{ kind: 'logging', days: 5 }]);
     expect(s.hints).toEqual(['incompleteData']);
+    // Too little for a fair look back: the UI says so instead of showing zeros.
+    expect(s.dataState).toBe('thin');
+  });
+
+  it('a few logged days or enough weigh-ins are enough for a look back', () => {
+    expect(weeklyCoach(input()).dataState).toBe('enough');
+    const fewDays = input({ days: WEEK.map((d, i) => day(d, i < 2 ? 1700 : null)) });
+    // Two logged days, but weigh-ins from the trend: enough.
+    expect(weeklyCoach(fewDays).dataState).toBe('enough');
+    expect(weeklyCoach({ ...fewDays, trend: [] }).dataState).toBe('thin');
   });
 
   it('a goal without a target weight or trend has no progress bar; gaining gets strength', () => {

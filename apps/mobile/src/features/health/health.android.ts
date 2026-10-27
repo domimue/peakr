@@ -41,7 +41,7 @@ import { BODY_HEALTH_METRICS, nutritionRecordId } from './types';
  * Health Connect (Android): finished gym sessions as `ExerciseSession` (strength training) plus
  * `ActiveCaloriesBurned` for the energy estimate. The client record id makes a repeated write an
  * update, not a duplicate, and marks the record as Peakr's own so it is never imported back
- * (`isOwnHealthRecord`). Reading (Insights → Health) asks only for the record types of the data
+ * (`isOwnHealthRecord`). Reading (Body → Health) asks only for the record types of the data
  * groups the user switched on (CLAUDE.md "Request only the permissions actually needed").
  */
 

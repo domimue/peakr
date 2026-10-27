@@ -33,8 +33,16 @@ export function extOf(uri: string): Ext {
 export const remotePath = (userId: string, checkInId: string, slot: PhotoSlot, localUri: string) =>
   `${userId}/${checkInId}/${slot}.${extOf(localUri)}`;
 
+/** A recipe's photo in the same private bucket, under the user's folder. */
+export const recipePhotoPath = (userId: string, recipeId: string, localUri: string) =>
+  `${userId}/recipes/${recipeId}.${extOf(localUri)}`;
+
 /** Copies a picked image into Peakr's own folder; returns its uri there. */
-export function keepLocalCopy(sourceUri: string, checkInId: string, slot: PhotoSlot): string {
+export function keepLocalCopy(
+  sourceUri: string,
+  checkInId: string,
+  slot: PhotoSlot | 'recipe',
+): string {
   const dir = folder();
   if (!dir.exists) dir.create({ intermediates: true });
   const target = new File(dir, `${checkInId}-${slot}-${Date.now()}.${extOf(sourceUri)}`);

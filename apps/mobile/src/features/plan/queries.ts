@@ -20,6 +20,7 @@ import {
   type Availability,
   type MoveResult,
   type PauseReason,
+  type PlanInput,
   type PlanState,
   type EditResult,
   type TravelPeriod,
@@ -36,13 +37,19 @@ import { useCanEditPlan } from '@/features/billing/billing-store';
 
 /** TanStack Query hooks over the local plan repository plus the engine edits on top of it. */
 
-export const planKeys = { plan: ['plan'] as const };
+// The archive key starts with the plan key, so invalidating the plan refreshes the history too.
+export const planKeys = { plan: ['plan'] as const, archive: ['plan', 'archive'] as const };
 
 export function usePlan() {
   return useQuery({ queryKey: planKeys.plan, queryFn: repo.getPlan });
 }
 
-/** Generates the plan from the onboarding result and stores it (replaces an existing plan). */
+/** Archived plans, newest first (Profile → Plan history, Insights "All time", badges). */
+export function useArchivedPlans() {
+  return useQuery({ queryKey: planKeys.archive, queryFn: repo.listArchivedPlans });
+}
+
+/** Generates the plan from the onboarding result and stores it (an existing plan is archived). */
 export function useCreatePlan() {
   const client = useQueryClient();
   return useMutation({
@@ -118,6 +125,11 @@ export function usePlanActions() {
       const result = moveWorkout(stored.state, id, toDate, stored.input, today);
       if (result.ok) commit({ ok: true, value: result.value.state });
       return result;
+    },
+    /** A previewed difficulty change (`previewDifficulty`): plan and stored setting together. */
+    applyDifficulty(change: { state: PlanState; input: PlanInput }): Edit {
+      if (!stored) return missing;
+      return commit({ ok: true, value: change.state }, { ...stored.input, ...change.input });
     },
     /** Applies the engine's rebalance suggestion of the last move. */
     apply(state: PlanState): Edit {

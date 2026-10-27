@@ -22,6 +22,19 @@ export const zoneConfig = {
       karvonen: [0.5, 0.6, 0.7, 0.8, 0.9, 1.0],
       lthr: [null, 0.85, 0.9, 0.95, 1.0, null],
     },
+    /**
+     * What a session prescribes (CLAUDE.md "Training engine rules → Intensity"): one bpm band per
+     * intensity, independent of the method the zone table is shown in. Anchored on LTHR – the
+     * measured one, else estimated from the HR reserve, else from HRmax – as fractions of it,
+     * Z1 lower … Z5 upper. The easy band is ~12 % of LTHR wide (≈ 20 bpm), wide enough to run in.
+     */
+    prescription: {
+      lthrFractions: [0.68, 0.78, 0.9, 0.95, 1.0, 1.06],
+      /** LTHR estimate from the HR reserve: resting + share × (HRmax − resting). */
+      lthrShareOfReserve: 0.83,
+      /** LTHR estimate from HRmax alone. */
+      lthrShareOfHrMax: 0.88,
+    },
   },
   run: {
     /** Riegel endurance exponent: T2 = T1 × (D2 / D1)^exponent. */

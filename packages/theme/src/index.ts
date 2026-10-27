@@ -1,4 +1,6 @@
 export {
+  changeColors,
+  chartColors,
   colors,
   schemes,
   sleepStageColors,
@@ -7,6 +9,8 @@ export {
   statusText,
   zoneColor,
   zoneColors,
+  type ChangeTone,
+  type ChartSeries,
   type ColorScheme,
   type SchemeColors,
   type SportColorKey,

@@ -13,6 +13,10 @@
  *   POST /garmin-health/cron             (x-cron-secret) → { users, stored, failed }   Every 2 h.
  *   GET  /garmin-health/list?since=…     (user JWT) → { rows, cursor, more }   Decrypted values.
  *   POST /garmin-health/delete           (user JWT) → { ok }   All health data, account stays.
+ *   POST /garmin-health/backfill         (user JWT) → { sync }   "Fetch older data again" (pull
+ *        tier): restarts the history walk from today and runs its first step.
+ *   GET  /garmin-health/diagnostics      (user JWT) → per Garmin endpoint the last call (time,
+ *        HTTP status, records, error kind), backfill state and parser version. No values.
  *   GET  /garmin-health/probe?date=…     (user JWT) → raw Garmin responses [GARMIN_PERSONAL_KEY]
  *        Developer aid to check the field names against a real account.
  *
@@ -26,12 +30,15 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import {
   createGarminPersonalHealthApi,
   mintPersonalToken,
+  PARSER_VERSION,
+  PULL_ENDPOINTS,
 } from '../_shared/health/garmin-personal.ts';
 import {
   DELIVERY,
   HEALTH_GROUPS,
   isHealthGroup,
   onlyEnabled,
+  permittedGroups,
   type HealthGroup,
 } from '../_shared/health/model.ts';
 import { createGarminHealthProvider } from '../_shared/health/provider.ts';
@@ -111,6 +118,10 @@ async function status(admin: Admin, userId: string): Promise<Response> {
         }
       : null,
     groups: [...(await enabledGroups(admin, userId))],
+    // Groups the connection may deliver at all (OAuth: the permissions granted at Garmin).
+    permitted: capable
+      ? permittedGroups(integration.credential_mode, integration.scopes ?? [])
+      : [],
     sync: syncView(await syncState(admin, userId)),
     offers: {
       oauth: flagEnabled(env, 'garminHealth'),
@@ -118,6 +129,9 @@ async function status(admin: Admin, userId: string): Promise<Response> {
     },
   });
 }
+
+/** Starts the history walk again from today (writes are idempotent upserts). */
+const RESTART_BACKFILL = { backfill_before: null, backfill_done: false } as const;
 
 /** One pull for one personal-key connection: recent days, then one backfill step. */
 async function pullFor(
@@ -130,7 +144,12 @@ async function pullFor(
   if (groups.size === 0) return { stored: 0, calls: 0, failed: false };
   const creds = await loadPersonalCredentials(admin, integration);
   const provider = createGarminHealthProvider({ mode: 'personal_key', ...creds }, { fetch });
-  const state = await syncState(admin, userId);
+  let state = await syncState(admin, userId);
+  // History fetched with older mappers misses fields they did not read: fetch it again.
+  if ((state?.parser_version ?? 0) < PARSER_VERSION) {
+    await updateSyncState(admin, userId, { ...RESTART_BACKFILL, parser_version: PARSER_VERSION });
+    state = await syncState(admin, userId);
+  }
   const day = today();
   const plan = planPull({
     today: day,
@@ -141,19 +160,22 @@ async function pullFor(
 
   let stored = 0;
   let calls = 0;
-  const run = async ([from, to]: [string, string]) => {
-    const r = await provider.pull(groups, from, to);
+  const endpoints = { ...(state?.endpoints ?? {}) };
+  const run = async ([from, to]: [string, string], window: 'recent' | 'backfill') => {
+    const r = await provider.pull(groups, from, to, { spo2Fallback: window === 'recent' });
     calls += r.calls;
-    if (!r.ok) return r;
+    endpoints[window] = r.endpoints;
+    // What arrived before a stop is kept.
     const records = onlyEnabled(r.records, groups);
     stored += await storeHealthRecords(admin, userId, records);
-    return { ok: true as const, found: records.length };
+    if (!r.ok) return { ok: false as const, failure: r.failure };
+    return { ok: true as const, found: records.length, partial: r.partial };
   };
 
-  const recent = await run(plan.recent);
-  let failure = recent.ok ? null : recent.failure;
-  if (!failure && plan.backfill) {
-    const step = await run(plan.backfill);
+  const recent = await run(plan.recent, 'recent');
+  let failure: string | null = recent.ok ? recent.partial : recent.failure;
+  if (recent.ok && plan.backfill) {
+    const step = await run(plan.backfill, 'backfill');
     if (step.ok) {
       const earliestDay = (await syncState(admin, userId))?.earliest_day ?? null;
       await updateSyncState(
@@ -165,6 +187,7 @@ async function pullFor(
           earliestDay,
         }),
       );
+      failure ??= step.partial;
     } else failure = step.failure;
   }
 
@@ -175,6 +198,7 @@ async function pullFor(
   await updateSyncState(admin, userId, {
     last_pulled_at: new Date().toISOString(),
     last_error: failure,
+    endpoints,
   });
   return { stored, calls, failed: failure !== null };
 }
@@ -229,17 +253,24 @@ async function consent(req: Request): Promise<Response> {
     for (const [k, v] of Object.entries(raw as Record<string, unknown>)) {
       if (isHealthGroup(k) && typeof v === 'boolean') groups[k] = v;
     }
+    const integration = await garminIntegration(admin, userId);
+    // OAuth: a group whose permission was not granted at Garmin cannot be switched on here.
+    if (integration?.credential_mode === 'oauth' && healthCapable(integration)) {
+      const permitted = permittedGroups('oauth', integration.scopes ?? []);
+      for (const g of Object.keys(groups) as HealthGroup[]) {
+        if (groups[g] && !permitted.includes(g)) delete groups[g];
+      }
+    }
     const before = await enabledGroups(admin, userId);
     const after = await setConsents(admin, userId, groups);
     const added = [...after].some((g) => !before.has(g));
-    const integration = await garminIntegration(admin, userId);
     if (
       added &&
       integration?.credential_mode === 'personal_key' &&
       integration.status === 'active'
     ) {
       // A newly enabled group needs its history too: run the backfill again (writes are idempotent).
-      await updateSyncState(admin, userId, { backfill_before: null, backfill_done: false });
+      await updateSyncState(admin, userId, RESTART_BACKFILL);
       EdgeRuntime.waitUntil(
         pullFor(admin, integration, true).catch((e) =>
           console.warn('health pull failed', String(e)),
@@ -260,6 +291,49 @@ async function syncNow(req: Request): Promise<Response> {
     }
     const r = await pullFor(admin, integration, true);
     return json({ stored: r.stored, sync: syncView(await syncState(admin, userId)) });
+  });
+}
+
+async function backfill(req: Request): Promise<Response> {
+  return withUser(req, async (admin, userId) => {
+    const integration = await garminIntegration(admin, userId);
+    if (!healthCapable(integration)) return json({ error: 'not_connected' }, 404);
+    // Push tier: Garmin delivers no history before the connection, so there is nothing to walk.
+    if (integration.credential_mode !== 'personal_key') return json({ error: 'unsupported' }, 409);
+    await updateSyncState(admin, userId, {
+      ...RESTART_BACKFILL,
+      backfill_requested_at: new Date().toISOString(),
+    });
+    EdgeRuntime.waitUntil(
+      pullFor(admin, integration, true).catch((e) =>
+        console.warn('health backfill failed', String(e)),
+      ),
+    );
+    return json({ sync: syncView(await syncState(admin, userId)) });
+  });
+}
+
+async function diagnostics(req: Request): Promise<Response> {
+  return withUser(req, async (admin, userId) => {
+    const integration = await garminIntegration(admin, userId);
+    const state = await syncState(admin, userId);
+    return json({
+      mode: integration?.credential_mode ?? null,
+      status: integration?.status ?? null,
+      permissions: integration?.scopes ?? [],
+      groups: [...(await enabledGroups(admin, userId))],
+      endpoints: PULL_ENDPOINTS.map((endpoint) => ({
+        endpoint,
+        recent: state?.endpoints?.recent?.[endpoint] ?? null,
+        backfill: state?.endpoints?.backfill?.[endpoint] ?? null,
+      })),
+      parserVersion: { stored: state?.parser_version ?? 0, current: PARSER_VERSION },
+      sync: {
+        ...syncView(state),
+        backfillBefore: state?.backfill_before ?? null,
+        backfillRequestedAt: state?.backfill_requested_at ?? null,
+      },
+    });
   });
 }
 
@@ -337,6 +411,8 @@ Deno.serve(async (req) => {
     if (is('POST', '/disconnect-key')) return await disconnectKey(req);
     if (is('POST', '/consent')) return await consent(req);
     if (is('POST', '/sync')) return await syncNow(req);
+    if (is('POST', '/backfill')) return await backfill(req);
+    if (is('GET', '/diagnostics')) return await diagnostics(req);
     if (is('POST', '/cron')) return await cron(req);
     if (is('GET', '/list')) return await list(req);
     if (is('POST', '/delete')) return await remove(req);

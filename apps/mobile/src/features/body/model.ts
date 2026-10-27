@@ -10,7 +10,6 @@ import {
   fuellingHints,
   macroTargets,
   type FuellingHint,
-  proteinForGoal,
   sumNutrients,
   type ActivitySport,
   type EnergyBasis,
@@ -45,8 +44,9 @@ import { getDailyValues } from '@/data/repositories/health-repository';
 import { useEntitlement } from '@/features/billing/billing-store';
 import { usePlan } from '@/features/plan/queries';
 
+import { DEFAULT_ENERGY_SETTINGS, type EnergySettings } from './energy-settings';
 import { useBodyProfile } from './profile';
-import { bodyKeys } from './queries';
+import { bodyKeys, useEnergySettings } from './queries';
 
 /**
  * The Body add-on's energy model: gathers every source (diary and check-ins, Garmin through the
@@ -95,6 +95,14 @@ export interface BodyModel {
   macros: MacroTargets;
   /** Optional fuelling hints for long planned sessions today and tomorrow. */
   fuelling: FuellingHint[];
+  /** How today's target is built (resting, everyday, training, deficit). */
+  breakdown: GoalSnapshot['breakdown'] | null;
+  /** This week's actual training clearly off the plan: a hint, the target stays. */
+  deviation: GoalSnapshot['deviation'] | null;
+  /** The goal's rate would break the intake floor: the rate asked for and the one proposed. */
+  belowFloor: { requested: number; proposed: number } | null;
+  /** The person's everyday activity and macro settings (defaults until set). */
+  energy: EnergySettings;
   /** The model's days (window up to today), for the dashboard and the coach. */
   days: ModelDay[];
   incompleteDays: string[];
@@ -198,6 +206,7 @@ export function useBodyModel(): BodyModel | null {
   const plan = usePlan();
   const today = todayIso();
   const from = shift(today, -WINDOW_DAYS);
+  const energySettings = useEnergySettings();
   const inputs = useQuery({
     queryKey: [...bodyKeys.all, 'model', from],
     queryFn: () => loadInputs(from),
@@ -268,6 +277,7 @@ export function useBodyModel(): BodyModel | null {
         ? adaptive.estimate.correctionKcal
         : (raw.estimates.at(-1)?.correctionKcal ?? 0);
     const todayDay = days.at(-1) as ModelDay;
+    const energy = energySettings.data ?? DEFAULT_ENERGY_SETTINGS;
     const maintenance = intakeTarget({
       tdeeKcal: todayDay.restingKcal + todayDay.activeKcal + correctionKcal,
       bmrKcal: todayDay.restingKcal,
@@ -276,32 +286,39 @@ export function useBodyModel(): BodyModel | null {
     });
     const monday = mondayOf(today);
     const trendKg = trend.at(-1)?.trendKg ?? p.weightKg;
-    const basis = energyBasis({ days, today, adaptive });
+    const basis = energyBasis({
+      days,
+      today,
+      adaptive,
+      everydayActivity: energy.everydayActivity,
+    });
     const goal = raw.goals.at(-1) ?? null;
-    let snapshot: GoalSnapshot | null = null;
-    if (goal && !goal.paused && basis) {
-      const week = stored?.state.plan.weeks.find((w) => w.startDate === monday);
-      const weekWorkouts =
-        week && stored
-          ? week.workouts.filter((w) => statusOf(stored.state, w.id) !== 'skipped')
-          : [];
-      const plannedWeekKcal = [0, 1, 2, 3, 4, 5, 6].map((i) =>
-        weekWorkouts
-          .filter((w) => w.date === shift(monday, i))
-          .reduce((sum, w) => sum + estimateWorkoutKcal(w, trendKg), 0),
-      );
-      const tags = week && stored ? weekTags(week, stored.input, stored.state.plan.targetDate) : [];
-      snapshot = goalSnapshot({
-        goal,
-        basis,
+    const week = stored?.state.plan.weeks.find((w) => w.startDate === monday);
+    const weekWorkouts =
+      week && stored ? week.workouts.filter((w) => statusOf(stored.state, w.id) !== 'skipped') : [];
+    // The week's planned training (fixed on Monday) and what was actually done so far.
+    const plannedWeekKcal = [0, 1, 2, 3, 4, 5, 6].map((i) =>
+      weekWorkouts
+        .filter((w) => w.date === shift(monday, i))
+        .reduce((sum, w) => sum + estimateWorkoutKcal(w, trendKg), 0),
+    );
+    const actualWeekKcalSoFar = days
+      .filter((d) => d.day >= monday && d.day <= today)
+      .reduce((sum, d) => sum + completedWorkoutKcal(d.active, d.restingKcal), 0);
+    const tags = week && stored ? weekTags(week, stored.input, stored.state.plan.targetDate) : [];
+    const snapshotFor = (settings: Parameters<typeof goalSnapshot>[0]['goal']) =>
+      goalSnapshot({
+        goal: settings,
+        basis: basis as EnergyBasis,
         sex: p.sex,
         trendKg,
-        todayWorkoutKcal: completedWorkoutKcal(todayDay.active, todayDay.restingKcal),
         plannedWeekKcal,
+        actualWeekKcalSoFar,
         weekdayIndex: daysBetween(monday, today),
         trend,
         days,
         today,
+        proteinGPerKg: energy.proteinGPerKg,
         week: {
           ...weekLoadContext(stored?.state.plan.weeks ?? [], monday),
           raceWeek: tags.includes('race'),
@@ -309,9 +326,20 @@ export function useBodyModel(): BodyModel | null {
           keyDays: [...new Set(weekWorkouts.filter((w) => w.hard).map((w) => w.date))],
         },
       });
-    }
-    const target = snapshot
-      ? { intakeKcal: snapshot.todayKcal, floorApplied: snapshot.targets.floorApplied }
+    const snapshot: GoalSnapshot | null = goal && !goal.paused && basis ? snapshotFor(goal) : null;
+    // Without a goal (or paused) the target is maintenance – built the same stable way.
+    const week0 =
+      snapshot ??
+      (basis
+        ? snapshotFor({
+            kind: 'maintain',
+            targetWeightKg: null,
+            ratePerWeekKg: 0,
+            adjustmentKcal: 0,
+          })
+        : null);
+    const target = week0
+      ? { intakeKcal: week0.todayKcal, floorApplied: week0.targets.floorApplied }
       : maintenance;
     const todayEntries = raw.food.filter((f) => f.day === today);
     const eaten = sumNutrients(
@@ -366,11 +394,21 @@ export function useBodyModel(): BodyModel | null {
       goal,
       goalSnapshot: snapshot,
       addedBack: {
-        kcal: snapshot
-          ? snapshot.addedBackKcal
+        kcal: week0
+          ? week0.addedBackKcal
           : completedWorkoutKcal(todayDay.active, todayDay.restingKcal),
         sport: mainSport,
       },
+      breakdown: week0?.breakdown ?? null,
+      deviation: week0?.deviation ?? null,
+      belowFloor:
+        snapshot?.targets.status === 'belowFloor' && snapshot.targets.proposedRatePerWeekKg !== null
+          ? {
+              requested: snapshot.targets.requestedRatePerWeekKg,
+              proposed: snapshot.targets.proposedRatePerWeekKg,
+            }
+          : null,
+      energy,
       eaten,
       fuelling: fuellingHints(
         stored
@@ -385,19 +423,12 @@ export function useBodyModel(): BodyModel | null {
       ),
       macros: macroTargets({
         kcal: target.intakeKcal,
-        proteinG: (
-          snapshot?.targets.protein ??
-          proteinForGoal({
-            weightKg: trendKg,
-            deficitKcal: 0,
-            tdeeKcal: target.intakeKcal,
-            kind: 'maintain',
-          })
-        ).grams,
         weightKg: trendKg,
+        proteinGPerKg: energy.proteinGPerKg,
+        fatGPerKg: energy.fatGPerKg,
       }),
     };
-  }, [inputs.data, profile.data, plan.data, from, today]);
+  }, [inputs.data, profile.data, plan.data, energySettings.data, from, today]);
 
   // Every new estimate and every target change is stored with its basis / reason (once a day).
   useEffect(() => {

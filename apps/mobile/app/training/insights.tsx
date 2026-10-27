@@ -1,6 +1,9 @@
-import { InsightsScreen } from '@/features/insights/insights-screen';
+import { Redirect } from 'expo-router';
 
-/** Insights as a screen (Profile, Today) – the tab slot belongs to Body while it is switched on. */
-export default function InsightsRoute() {
-  return <InsightsScreen inStack />;
+import { usePlanUiStore } from '@/features/plan/plan-ui-store';
+
+/** Old links to Insights: training history and records live in Plan → History now. */
+export default function TrainingInsightsRedirect() {
+  usePlanUiStore.getState().setView('history');
+  return <Redirect href="/plan" />;
 }

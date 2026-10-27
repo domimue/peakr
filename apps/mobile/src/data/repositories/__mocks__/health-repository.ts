@@ -6,6 +6,7 @@ import {
   type HealthSource,
 } from '@peakr/engine';
 
+import { countBySource } from '../health-counts';
 import type { StoredHealthRow } from '../health-repository';
 
 /** In-memory health data for Jest (`jest.mock('@/data/repositories/health-repository')`). */
@@ -69,3 +70,4 @@ export const getEnabledGroups = jest.fn(async () => store.groups);
 export const saveEnabledGroups = jest.fn(async (groups: readonly HealthGroup[]) => {
   store.groups = [...groups];
 });
+export const getSourceCounts = jest.fn(async () => countBySource(store.rows));

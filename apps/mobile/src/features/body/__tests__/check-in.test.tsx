@@ -115,7 +115,7 @@ beforeEach(() => {
 afterEach(() => jest.restoreAllMocks());
 
 async function openCheckInSection() {
-  await renderWithQuery(<BodyScreen initial="checkIn" />);
+  await renderWithQuery(<BodyScreen focus="checkIn" />);
   return screen.findByTestId('body-check-in');
 }
 
@@ -607,8 +607,8 @@ describe('energy model', () => {
     };
     expect(probe.intake).toBe(2150);
     expect(probe.source).toBe('manual');
-    // The watch value counts with the correction factor (0.8): 400 of the 500.
-    expect(probe.active).toBe(400);
+    // The watch value counts with the correction factor (0.75): 375 of the 500.
+    expect(probe.active).toBe(375);
   });
 
   it('uses the diary instead when there are entries that day', async () => {

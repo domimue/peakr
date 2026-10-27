@@ -145,6 +145,23 @@ describe('commute and winter sports', () => {
     expect(mapped(halfMarathon).profile.winterSports).toBeUndefined();
   });
 
+  it('maps the longest recent session per selected sport (swims in metres)', () => {
+    const tri = mapped({
+      ...triathlon,
+      [Q.runLongest]: 14,
+      [Q.bikeLongest]: 80,
+      [Q.swimLongest]: 1500,
+    });
+    expect(tri.profile.recentLongest).toEqual({
+      run: { km: 14 },
+      bike: { km: 80 },
+      swim: { km: 1.5 },
+    });
+    // Only for the selected sports, and optional.
+    expect(mapped({ ...halfMarathon, [Q.bikeLongest]: 80 }).profile.recentLongest).toBeUndefined();
+    expect(stepIds(halfMarathon)).toContain('run');
+  });
+
   it('validates the commute', () => {
     const issues = (a: QuizAnswers) =>
       validateOnboarding(prepareAnswers(a, TODAY), TODAY).map((i) => `${i.questionId}:${i.code}`);
@@ -362,11 +379,11 @@ describe('insights', () => {
     // … so it comes after the body step, as an estimate (Karvonen with estimated HRmax).
     expect(insight('body', halfMarathon)).toEqual({
       key: 'quiz.insights.zone2Estimate',
-      params: { min: 131, max: 143 },
+      params: { min: 126, max: 144 },
     });
     expect(insight('heartRate', { [Q.restingHr]: 50, [Q.hrMax]: 190 })).toEqual({
       key: 'quiz.insights.zone2',
-      params: { min: 134, max: 147 },
+      params: { min: 130, max: 149 },
     });
     expect(insight('body', { ...halfMarathon, [Q.hrMax]: 190 })).toBeNull();
     expect(insight('body', weightLoss)).toEqual({

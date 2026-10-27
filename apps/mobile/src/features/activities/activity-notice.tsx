@@ -9,7 +9,9 @@ import { Pressable, StyleSheet } from 'react-native';
 import Animated, { FadeInUp, FadeOutUp } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Icon, radius, spacing, Text, useTheme } from '@/ui';
+import { Button, Icon, radius, spacing, Text, useTheme } from '@/ui';
+
+import { useUndoLink } from './queries';
 
 import { formatDate } from '../plan/calendar';
 
@@ -30,6 +32,7 @@ export function noticeText(
   const source = t(`activities.source.${first.source}`);
   if (notices.length > 1) return t('activities.notice.many', { count: notices.length, source });
   const sport = t(`activities.sport.${first.sport}`);
+  if (first.kind === 'question') return t('activities.notice.question', { sport, source });
   if (first.kind === 'matched') {
     if (first.date === today) return t('activities.notice.matchedToday', { sport, source });
     const day = formatDate(first.date, language, { weekday: 'long' });
@@ -46,6 +49,7 @@ export function ActivityNoticeHost() {
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
   const [notices, setNotices] = useState<readonly ActivityNotice[]>([]);
+  const undo = useUndoLink();
 
   useEffect(() => onActivities(setNotices), []);
   useEffect(() => {
@@ -56,7 +60,13 @@ export function ActivityNoticeHost() {
 
   if (notices.length === 0) return null;
   const text = noticeText(t, notices, i18n.language);
-  const workoutId = notices.length === 1 ? notices[0]?.workoutId : undefined;
+  const only = notices.length === 1 ? notices[0] : undefined;
+  const workoutId = only?.workoutId;
+  // An automatic link can be undone right here (it then becomes a question).
+  const undoable =
+    only?.kind === 'matched' && only.activityKey && only.workoutId
+      ? { activityKey: only.activityKey, workoutId: only.workoutId, wasDone: !!only.wasDone }
+      : null;
   return (
     <Animated.View
       entering={FadeInUp}
@@ -76,6 +86,18 @@ export function ActivityNoticeHost() {
       >
         <Icon name="check" size={18} color={colors.text} />
         <Text style={styles.text}>{text}</Text>
+        {undoable ? (
+          <Button
+            small
+            variant="secondary"
+            label={t('activities.notice.undo')}
+            testID="activity-undo"
+            onPress={() => {
+              setNotices([]);
+              undo.mutate(undoable);
+            }}
+          />
+        ) : null}
       </Pressable>
     </Animated.View>
   );

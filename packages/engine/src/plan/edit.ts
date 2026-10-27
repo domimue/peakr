@@ -601,7 +601,10 @@ function continuationState(plan: Plan, fromDate: string, trainedUntil = fromDate
   // Irregular and travel weeks progress levels but are no load reference (as in generatePlan).
   const irregular = (w: PlanWeek) =>
     w.notes.some((n) => n.key === 'notes.weekOverride' || n.key === 'notes.travelWeek');
-  const reference = [...before].reverse().find((w) => loading(w) && !irregular(w))?.load ?? null;
+  const last = [...before].reverse().find((w) => loading(w) && !irregular(w));
+  // The progression continues at difficulty 5; the cap from what was actually planned.
+  const reference = last ? last.load / (last.difficultyFactor ?? 1) : null;
+  const referenceActual = last?.load ?? null;
 
   let lastBenchmarkWeek: number | null = null;
   const levels: Record<string, number> = {};
@@ -629,7 +632,7 @@ function continuationState(plan: Plan, fromDate: string, trainedUntil = fromDate
     heavyLegs: dayBefore.some(isHeavyLegs),
     eccentric: dayBefore.some((w) => w.terrain?.eccentric === true),
   };
-  return { reference, levels, longMin, prev, lastBenchmarkWeek };
+  return { reference, referenceActual, levels, longMin, prev, lastBenchmarkWeek };
 }
 
 interface RegenerateOptions {
@@ -691,6 +694,7 @@ function regenerateFrom(
       {
         planStartDate: plan.startDate,
         referenceLoad: base.reference,
+        referenceActualLoad: base.referenceActual,
         levels,
         longMin: base.longMin,
         prev: base.prev,

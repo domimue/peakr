@@ -13,7 +13,7 @@ import type { Href } from 'expo-router';
  *   /open/gym · insights · profile
  *   /open/body · body-check-in · body-progress → the Body add-on (its guard opens the paywall
  *                              when locked, Today when the add-on is switched off)
- *   /open/account              → Profile → Account
+ *   /open/account              → Settings → Account
  *   /open/subscription         → Profile → Subscription
  */
 

@@ -272,10 +272,24 @@ export interface ActivityLink {
   workoutId: string;
 }
 
+export interface WorkoutCandidate {
+  workoutId: string;
+  /** Confidence 0–1. */
+  score: number;
+}
+
+/** An activity that may belong to one of these planned workouts – the user decides. */
+export interface MatchQuestion {
+  activityKey: string;
+  candidates: WorkoutCandidate[];
+}
+
 export interface MatchResult {
   /** New links: the workout is fulfilled by the activity (mark it done). */
   links: ActivityLink[];
-  /** Activities without a planned workout: count towards the load and rebalance the week. */
+  /** Not confident: ask, offering the plausible candidates and "none of these". */
+  questions: MatchQuestion[];
+  /** Activities without a plausible planned workout: count towards the load and rebalance the week. */
   unplanned: Activity[];
 }
 
@@ -287,49 +301,90 @@ function fits(w: Workout, a: Activity): boolean {
   return w.sport === 'brick' && (a.sport === 'bike' || a.sport === 'run');
 }
 
+const dayNumber = (iso: string) => Math.round(Date.parse(`${iso}T00:00:00Z`) / 86_400_000);
+
+/** 1 within ±`fullWithin` of the plan, falling linearly to 0 at ±`zeroAt`. */
+function closeness(actual: number, planned: number): number {
+  const m = cfg.match;
+  if (!(planned > 0)) return 0;
+  const off = Math.abs(actual - planned) / planned;
+  if (off <= m.fullWithin) return 1;
+  return Math.max(0, 1 - (off - m.fullWithin) / (m.zeroAt - m.fullWithin));
+}
+
 /**
- * Links each activity to a planned workout of the same day and sport (winter variants and bricks
- * included) that is not linked yet; with several candidates, commutes go to commutes and the
- * closest duration wins. Skipped workouts are not matched; workouts the user already marked done
- * by hand are (they get their activity). Activities in `alreadyLinked` (by any source key) and
- * workouts in `linkedWorkouts` are left alone. Deterministic: activities in start order.
+ * How sure Peakr is that the activity is this planned workout, 0–1: the sport must fit (winter
+ * variants and bricks included), the day counts fully (the next or previous day half), then
+ * duration and – when the plan has one – distance. A commute and a training session fit less.
+ */
+export function matchScore(
+  w: Workout,
+  a: Activity,
+  plannedKm: number | null = null,
+): number {
+  const m = cfg.match;
+  if (!fits(w, a)) return 0;
+  const days = Math.abs(dayNumber(w.date) - dayNumber(a.date));
+  const date = days === 0 ? m.sameDay : days === 1 ? m.adjacentDay : 0;
+  if (date === 0) return 0;
+  // A brick's ride or run is about half of the whole session.
+  const planned = w.sport === 'brick' ? w.durationMin / 2 : w.durationMin;
+  const duration = closeness(a.durationSec / 60, planned);
+  const km = plannedKm !== null && plannedKm > 0 && a.distanceM !== null && a.distanceM > 0;
+  const shape = km
+    ? m.durationWeight * duration +
+      m.distanceWeight * closeness((a.distanceM as number) / 1000, plannedKm as number)
+    : duration;
+  const commute = (w.role === 'commute') === a.commute ? 1 : m.commuteMismatch;
+  return Math.round(date * shape * commute * 1000) / 1000;
+}
+
+/**
+ * Matches each activity to a planned workout with a confidence score (`matchScore`): confident
+ * and clearly ahead → linked (mark it done); plausible → a question with the candidates; nothing
+ * plausible → unplanned (it counts towards the week's load; the planned workout stays open – an
+ * activity is never attached to the nearest workout just because it is there). Skipped workouts
+ * are not matched; workouts the user already marked done by hand are. Activities in
+ * `alreadyLinked` (by any source key) and workouts in `linkedWorkouts` are left alone. `distance`
+ * gives a workout's planned km for its sport, when known. Deterministic: activities in start order.
  */
 export function matchActivities(
   state: PlanState,
   activities: readonly Activity[],
   alreadyLinked: ReadonlySet<string>,
   linkedWorkouts: ReadonlySet<string>,
+  distance: (w: Workout, a: Activity) => number | null = () => null,
 ): MatchResult {
+  const m = cfg.match;
   const used = new Set(linkedWorkouts);
-  const byDate = new Map<string, Workout[]>();
-  for (const w of allWorkouts(state.plan)) {
-    byDate.set(w.date, [...(byDate.get(w.date) ?? []), w]);
-  }
+  // One entry per workout id (a plan lists each workout once; edited states may repeat one).
+  const workouts = [
+    ...new Map(
+      allWorkouts(state.plan)
+        .filter((w) => statusOf(state, w.id) !== 'skipped')
+        .map((w) => [w.id, w]),
+    ).values(),
+  ];
   const links: ActivityLink[] = [];
+  const questions: MatchQuestion[] = [];
   const unplanned: Activity[] = [];
   for (const a of activities) {
     if (activityKeys(a).some((k) => alreadyLinked.has(k))) continue;
-    const candidates = (byDate.get(a.date) ?? []).filter(
-      (w) =>
-        fits(w, a) &&
-        statusOf(state, w.id) !== 'skipped' &&
-        // A brick takes its ride and its run.
-        (w.sport === 'brick' || !used.has(w.id)),
-    );
-    const minutes = a.durationSec / 60;
-    const best = candidates.sort(
-      (x, y) =>
-        Number((x.role === 'commute') !== a.commute) -
-          Number((y.role === 'commute') !== a.commute) ||
-        Math.abs(x.durationMin - minutes) - Math.abs(y.durationMin - minutes) ||
-        x.id.localeCompare(y.id),
-    )[0];
-    if (best) {
-      used.add(best.id);
-      links.push({ activityKey: a.key, workoutId: best.id });
+    const scored = workouts
+      // A brick takes its ride and its run.
+      .filter((w) => w.sport === 'brick' || !used.has(w.id))
+      .map((w) => ({ workoutId: w.id, score: matchScore(w, a, distance(w, a)) }))
+      .filter((c) => c.score >= m.plausible)
+      .sort((x, y) => y.score - x.score || x.workoutId.localeCompare(y.workoutId));
+    const [best, next] = scored;
+    if (best && best.score >= m.confident && (!next || best.score - next.score >= m.margin)) {
+      used.add(best.workoutId);
+      links.push({ activityKey: a.key, workoutId: best.workoutId });
+    } else if (best) {
+      questions.push({ activityKey: a.key, candidates: scored.slice(0, m.maxCandidates) });
     } else {
       unplanned.push(a);
     }
   }
-  return { links, unplanned };
+  return { links, questions, unplanned };
 }

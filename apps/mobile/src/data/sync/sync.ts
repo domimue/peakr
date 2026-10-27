@@ -3,8 +3,10 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 import * as activities from '../repositories/activity-repository';
 import { syncBody } from '../repositories/body-repository';
 import * as routeRepo from '../repositories/route-repository';
+import * as archiveRepo from '../repositories/plan-archive-repository';
 import { pullActivities } from './activities-remote';
-import { resolvePlan, resolveWorkouts } from './merge';
+import { pullArchive, pushArchive } from './archive-remote';
+import { resolveArchive, resolvePlan, resolveWorkouts } from './merge';
 import * as remote from './remote';
 import { stravaRouteDraft, stravaRouteId } from '../routes/build';
 import { pullRoutes, pullStravaRoutes, pullStreams, pushRoutes } from './routes-remote';
@@ -80,6 +82,12 @@ export async function syncOnce(
   if (changes.cursor && changes.cursor !== cursor)
     await local.setSyncValue('sync.cursor', changes.cursor);
 
+  // Plan history: archived plans are snapshots of their own, so a failure does not stop the rest.
+  try {
+    changed = (await syncArchive(client, userId)) || changed;
+  } catch (error) {
+    console.warn('Plan archive sync failed', error);
+  }
   // Imported activities (read-only for the app). A failure here must not stop the plan sync.
   try {
     changed = (await pullActivityChanges(client)) || changed;
@@ -133,6 +141,20 @@ async function pullStravaRouteChanges(client: SupabaseClient): Promise<boolean> 
   }
   if (next && next !== cursor) await local.setSyncValue('sync.stravaRoutesCursor', next);
   return changed;
+}
+
+async function syncArchive(client: SupabaseClient, userId: string): Promise<boolean> {
+  const dirty = archiveRepo.readDirtyArchive();
+  if (dirty.length > 0) {
+    await pushArchive(client, userId, dirty);
+    archiveRepo.markArchivePushed(dirty);
+  }
+  const cursor = await local.getSyncValue('sync.archiveCursor');
+  const { rows, cursor: next } = await pullArchive(client, cursor);
+  const newer = resolveArchive(archiveRepo.readArchiveVersions(), rows);
+  if (newer.length > 0) archiveRepo.applyArchiveFromServer(newer);
+  if (next && next !== cursor) await local.setSyncValue('sync.archiveCursor', next);
+  return newer.length > 0;
 }
 
 async function syncRoutes(client: SupabaseClient, userId: string): Promise<boolean> {

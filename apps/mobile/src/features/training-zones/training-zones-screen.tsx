@@ -259,6 +259,9 @@ function ZonesForm({ baseline, saved, onSave }: ZonesFormProps) {
         onChange={setPickedMethod}
       />
       <Text tone="secondary">{t(`trainingZones.hr.methodInfo.${method}`)}</Text>
+      <Text variant="caption" tone="secondary" testID="hr-reference-note">
+        {t('trainingZones.hr.referenceNote')}
+      </Text>
       {pickedMethod === null ? (
         <Text variant="caption" tone="secondary">
           {t('trainingZones.hr.autoMethod')}

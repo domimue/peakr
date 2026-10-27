@@ -19,6 +19,9 @@ import type {
   Phase,
   PlanInput,
   PlanNote,
+  PlanOutcome,
+  PlanState,
+  PlanSummary,
   RoutineExercise,
   RouteSport,
   Sport,
@@ -231,6 +234,33 @@ export const planPauses = sqliteTable('plan_pauses', {
   reason: text('reason').$type<PauseReason>().notNull(),
   startDate: text('start_date').notNull(),
   endDate: text('end_date'),
+});
+
+/**
+ * Archived plans (CLAUDE.md "Plan history"): a read-only snapshot of a plan that was replaced by a
+ * new one or ran to its end. The full state stays – done and skipped sessions are the user's
+ * history (Insights "All time", badges, the review), the planned ones let a same-day "undo"
+ * bring the plan back. Synced as one row per plan (table `plan_archive`), last write wins.
+ */
+export const planArchive = sqliteTable('plan_archive', {
+  /** Id the plan had while it was active. */
+  id: text('id').primaryKey(),
+  input: text('input', { mode: 'json' }).$type<StoredPlanInput>().notNull(),
+  goal: text('goal', { mode: 'json' }).$type<Goal>().notNull(),
+  startDate: text('start_date').notNull(),
+  /** Last plan day (`PlanSummary.endDate`). */
+  endDate: text('end_date').notNull(),
+  /** Epoch ms; the local date of it decides the same-day undo. */
+  archivedAt: integer('archived_at').notNull(),
+  outcome: text('outcome').$type<PlanOutcome>().notNull(),
+  summary: text('summary', { mode: 'json' }).$type<PlanSummary>().notNull(),
+  /** "How was your last plan?" answers and what they changed (JSON, see plan review). */
+  review: text('review', { mode: 'json' }).$type<Record<string, unknown>>(),
+  state: text('state', { mode: 'json' }).$type<PlanState>().notNull(),
+  /** Removed again by "undo" – kept as a soft delete so other devices learn about it. */
+  deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
+  updatedAt: integer('updated_at').notNull(),
+  dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
 });
 
 // ---------------------------------------------------------------------------------------------
@@ -474,7 +504,7 @@ export const bodyTargetChanges = sqliteTable('body_target_changes', {
 });
 
 // Body values from the phone's health store (Health Connect / HealthKit), read only while the
-// add-on is active and kept on this device. Separate from `health_daily` (Insights → Health has
+// add-on is active and kept on this device. Separate from `health_daily` (Body → Health has
 // its own consent per data group).
 export const bodyDeviceDaily = sqliteTable(
   'body_device_daily',
@@ -518,6 +548,33 @@ export const bodyGoals = sqliteTable('body_goals', {
   dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
 });
 
+/** One ingredient of a recipe; `amount` is always in the ingredient's basis unit (g or ml). */
+export interface StoredRecipeIngredient {
+  foodId: string | null;
+  name: string;
+  amount: number;
+  per100: { kcal: number; proteinG: number; carbsG: number; fatG: number };
+  /** Missing in recipes saved before the units existed: grams. */
+  basis?: 'g' | 'ml';
+  unit?: 'g' | 'ml' | 'piece' | 'portion';
+  count?: number | null;
+  portionLabel?: string | null;
+  /** `off`: an Open Food Facts product (its attribution is shown with the recipe). */
+  source?: 'off' | 'custom' | 'recipe' | null;
+}
+
+/**
+ * A recipe in `body_foods.recipe` (synced as JSON). `servings` is the number of portions,
+ * `totalWeightG` the weight of the cooked dish (optional). Older recipes lack note and photo.
+ */
+export interface StoredRecipe {
+  ingredients: StoredRecipeIngredient[];
+  totalWeightG: number | null;
+  servings: number | null;
+  note?: string | null;
+  photo?: BodyPhoto | null;
+}
+
 // Foods of the diary (Phase 14): Open Food Facts products (the local cache, `off`), the user's own
 // foods (`custom`, also corrected OFF entries – same barcode, they win) and recipes. Nutrients per
 // 100 g / ml of `basis`.
@@ -538,17 +595,8 @@ export const bodyFoods = sqliteTable(
     portions: text('portions', { mode: 'json' })
       .$type<{ label: string; amount: number }[]>()
       .notNull(),
-    /** Recipes: ingredients (food id, name, amount, nutrients per 100), finished weight, servings. */
-    recipe: text('recipe', { mode: 'json' }).$type<{
-      ingredients: {
-        foodId: string;
-        name: string;
-        amount: number;
-        per100: { kcal: number; proteinG: number; carbsG: number; fatG: number };
-      }[];
-      totalWeightG: number | null;
-      servings: number | null;
-    }>(),
+    /** Recipes: ingredients, portions, the cooked weight, a note and a photo (see `StoredRecipe`). */
+    recipe: text('recipe', { mode: 'json' }).$type<StoredRecipe>(),
     favourite: integer('favourite', { mode: 'boolean' }).notNull().default(false),
     lastUsedAt: text('last_used_at'),
     createdAt: text('created_at').notNull(),

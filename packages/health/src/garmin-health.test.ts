@@ -9,9 +9,11 @@ import {
   chunks,
   createGarminPersonalHealthApi,
   GARMIN_PERSONAL,
+  mapActivityVo2max,
   mapDailySummaries,
   mapHrv,
   mapSleep,
+  mapSpo2Day,
   mapWeight,
   mintPersonalToken,
   tokenUsable,
@@ -22,6 +24,7 @@ import {
   HEALTH_METRICS,
   METRIC_GROUP,
   onlyEnabled,
+  permittedGroups,
   type HealthGroup,
 } from '../../../supabase/functions/_shared/health/model.ts';
 import {
@@ -69,6 +72,15 @@ describe('model', () => {
     expect([...HEALTH_METRICS]).toEqual([...ENGINE_METRICS]);
     expect([...HEALTH_GROUPS]).toEqual([...ENGINE_GROUPS]);
     expect(METRIC_GROUP).toEqual(ENGINE_METRIC_GROUP);
+  });
+
+  it('permits groups by credential mode and the Garmin permissions granted', () => {
+    expect(permittedGroups('personal_key', [])).toEqual([...HEALTH_GROUPS]);
+    expect(permittedGroups('oauth', [])).toEqual([]);
+    expect(permittedGroups('oauth', ['ACTIVITY_EXPORT', 'HEALTH_EXPORT'])).toEqual(
+      HEALTH_GROUPS.filter((g) => g !== 'womens_health'),
+    );
+    expect(permittedGroups('oauth', ['MCT_EXPORT'])).toEqual(['womens_health']);
   });
 
   it('drops records of groups that are off', () => {
@@ -168,8 +180,28 @@ describe('Personal API token', () => {
   });
 });
 
-// Fixtures in the shape of the Garmin Connect DTOs (field names NOT verified, see garmin-personal.ts).
-const SUMMARIES = [
+// Daily summaries in the v2 shape of Garmin's Personal API spec 1.0.0 (UserDailySummaryV2DTO).
+const SUMMARIES = {
+  data: [
+    {
+      calendarDate: '2026-10-22',
+      source: 'garmin',
+      wellnessChronology: { endTimestampGmt: '2026-10-22T21:05:00.0' },
+      movement: { steps: { value: 11234, goal: 8000 }, floorsAscended: { value: 12 } },
+      calories: { burnedActive: 820, burnedResting: 1710 },
+      heartRate: { minValue: 44, maxValue: 168, restingValue: 48 },
+      intensityMinutes: { moderate: 20, vigorous: 15 },
+      stress: { avgLevel: -1, maxLevel: 88 },
+      bodyBattery: { minValue: 22, maxValue: 86 },
+      respiration: { avgValue: 14.26 },
+      pulseOx: { avgValue: 95 },
+    },
+    { calendarDate: '2026-10-23', movement: { steps: { value: 1200 } } },
+  ],
+};
+
+// The flat names of the older `usersummary/daily` DTO, still read as a fallback.
+const SUMMARIES_V1 = [
   {
     calendarDate: '2026-10-22',
     totalSteps: 11234,
@@ -207,25 +239,27 @@ const SLEEP = {
 };
 
 describe('Personal API mappers', () => {
-  it('maps daily summaries and skips Garmin sentinels', () => {
-    const r = mapDailySummaries(SUMMARIES, FETCHED);
-    const day = r.filter((x) => x.day === '2026-10-22');
-    expect(Object.fromEntries(day.map((x) => [x.metric, x.value]))).toEqual({
-      steps: 11234,
-      floors: 12,
-      intensity_min: 50,
-      active_kcal: 820,
-      resting_kcal: 1710,
-      resting_hr: 48,
-      body_battery_high: 86,
-      body_battery_low: 22,
-      spo2_avg: 95,
-      respiration_avg: 14.3,
-    });
-    expect(day[0]?.recordedAt).toBe('2026-10-22T21:05:00.000Z');
-    expect(day[0]?.sourceId).toBe('ds:2026-10-22');
-    // No timestamp: the fetch time if it is earlier than the end of that day.
-    expect(r.find((x) => x.day === '2026-10-23')?.recordedAt).toBe(FETCHED);
+  it('maps daily summaries in the v2 shape and skips Garmin sentinels', () => {
+    for (const body of [SUMMARIES, SUMMARIES_V1]) {
+      const r = mapDailySummaries(body, FETCHED);
+      const day = r.filter((x) => x.day === '2026-10-22');
+      expect(Object.fromEntries(day.map((x) => [x.metric, x.value]))).toEqual({
+        steps: 11234,
+        floors: 12,
+        intensity_min: 50,
+        active_kcal: 820,
+        resting_kcal: 1710,
+        resting_hr: 48,
+        body_battery_high: 86,
+        body_battery_low: 22,
+        spo2_avg: 95,
+        respiration_avg: 14.3,
+      });
+      expect(day[0]?.recordedAt).toBe('2026-10-22T21:05:00.000Z');
+      expect(day[0]?.sourceId).toBe('ds:2026-10-22');
+      // No timestamp: the fetch time if it is earlier than the end of that day.
+      expect(r.find((x) => x.day === '2026-10-23')?.recordedAt).toBe(FETCHED);
+    }
     expect(
       mapDailySummaries([{ calendarDate: '2026-10-20', vigorousIntensityMinutes: 5 }], FETCHED)[0],
     ).toMatchObject({
@@ -233,6 +267,85 @@ describe('Personal API mappers', () => {
       value: 10,
       recordedAt: '2026-10-20T23:59:59.000Z',
     });
+  });
+
+  it('never dates a summary value after its fetch', () => {
+    const r = mapDailySummaries(
+      {
+        data: [
+          {
+            calendarDate: '2026-10-23',
+            wellnessChronology: { endTimestampGmt: '2026-10-23T22:00:00.0' },
+            heartRate: { restingValue: 50 },
+          },
+        ],
+      },
+      FETCHED,
+    );
+    expect(r).toEqual([
+      expect.objectContaining({ metric: 'resting_hr', value: 50, recordedAt: FETCHED }),
+    ]);
+  });
+
+  it('maps the SpO2 day endpoint', () => {
+    expect(
+      mapSpo2Day(
+        {
+          calendarDate: '2026-10-22',
+          averageSpO2: 94,
+          lowestSpO2: 88,
+          latestSpO2TimestampGMT: '2026-10-22T05:00:00.0',
+        },
+        FETCHED,
+      ),
+    ).toEqual([
+      {
+        metric: 'spo2_avg',
+        day: '2026-10-22',
+        value: 94,
+        sourceId: 'spo2:2026-10-22',
+        recordedAt: '2026-10-22T05:00:00.000Z',
+      },
+    ]);
+    // A day without data still answers the object, with null fields.
+    expect(mapSpo2Day({ calendarDate: '2026-10-22', averageSpO2: null }, FETCHED)).toEqual([]);
+  });
+
+  it("reads Garmin's own VO2max from the activity list, one per day", () => {
+    const r = mapActivityVo2max(
+      [
+        {
+          activityId: 1,
+          activityName: 'Morning run',
+          startTimeLocal: '2026-10-21 07:10:00',
+          startTimeGMT: '2026-10-21 05:10:00',
+          activityType: { typeKey: 'running' },
+          vO2MaxValue: 52,
+        },
+        {
+          activityId: 2,
+          activityName: 'Evening run',
+          startTimeLocal: '2026-10-21 18:00:00',
+          startTimeGMT: '2026-10-21 16:00:00',
+          activityType: { typeKey: 'running' },
+          vO2MaxValue: 53,
+        },
+        { activityId: 3, startTimeLocal: '2026-10-22 08:00:00', vO2MaxValue: null },
+        'junk',
+      ],
+      FETCHED,
+    );
+    expect(r).toEqual([
+      {
+        metric: 'vo2max',
+        day: '2026-10-21',
+        value: 53,
+        sourceId: 'vo2:2',
+        recordedAt: '2026-10-21T16:00:00.000Z',
+        detail: { activityId: 2, activityName: 'Evening run', activityType: 'running' },
+      },
+    ]);
+    expect(mapActivityVo2max({ not: 'a list' }, FETCHED)).toEqual([]);
   });
 
   it('maps sleep with stages, score, bed and wake time', () => {
@@ -359,10 +472,18 @@ describe('Personal API pull', () => {
     expect(m.calls.map((c) => new URL(c.url).pathname)).toEqual([
       GARMIN_PERSONAL.paths.dailySummaries,
       GARMIN_PERSONAL.paths.sleepSummaries,
+      GARMIN_PERSONAL.paths.activities,
     ]);
     expect(new URL(m.calls[0]?.url ?? '').searchParams.get('startDate')).toBe('2026-10-17');
     expect((m.calls[0]?.init?.headers as Record<string, string>).Authorization).toBe('Bearer tok');
-    expect(r.ok && r.calls).toBe(2);
+    expect(r.ok && r.calls).toBe(3);
+    expect(r.ok && r.endpoints.dailySummaries).toEqual({
+      at: FETCHED,
+      status: 200,
+      records: 11,
+      calls: 1,
+      error: null,
+    });
     // The provider returns everything it parsed; the group filter is applied by the caller.
     expect(r.ok && r.records.some((x) => x.metric === 'sleep_duration')).toBe(true);
   });
@@ -379,18 +500,96 @@ describe('Personal API pull', () => {
     expect(r.ok && r.records.map((x) => x.day)).toEqual(['2026-10-23']);
   });
 
-  it('stops at the first failure', async () => {
+  it('stops on a rejected key or a rate limit', async () => {
     for (const [status, failure] of [
       [429, 'rate_limited'],
       [401, 'not_connected'],
-      [500, 'unavailable'],
     ] as const) {
       const m = mockFetch(() => new Response('', { status }));
       const api = createGarminPersonalHealthApi({ fetch: m.fetch, accessToken: 'tok' });
       expect(
         await api.pull(new Set<HealthGroup>(['sleep', 'hrv_rhr']), '2026-10-01', '2026-10-23'),
-      ).toEqual({ ok: false, failure, calls: 1 });
+      ).toMatchObject({ ok: false, failure, calls: 1, records: [] });
     }
+  });
+
+  it('keeps what it fetched before a stop', async () => {
+    const m = mockFetch((url) =>
+      url.includes('dailySleepSummariesByDate')
+        ? new Response('', { status: 429 })
+        : jsonResponse(SUMMARIES),
+    );
+    const api = createGarminPersonalHealthApi({ fetch: m.fetch, accessToken: 'tok' });
+    const r = await api.pull(
+      new Set<HealthGroup>(['sleep', 'hrv_rhr']),
+      '2026-10-22',
+      '2026-10-22',
+    );
+    expect(r).toMatchObject({ ok: false, failure: 'rate_limited', calls: 2 });
+    expect(r.records.some((x) => x.metric === 'resting_hr')).toBe(true);
+    expect(r.endpoints.sleepSummaries).toMatchObject({ status: 429, error: 'rate_limited' });
+  });
+
+  it('goes on with the other endpoints when one fails', async () => {
+    const m = mockFetch((url) => {
+      if (url.includes('dailysummaries')) return new Response('', { status: 500 });
+      if (url.includes('dailySleepSummariesByDate')) return jsonResponse([SLEEP.dailySleepDTO]);
+      return jsonResponse({});
+    });
+    const api = createGarminPersonalHealthApi({
+      fetch: m.fetch,
+      accessToken: 'tok',
+      now: () => new Date(FETCHED),
+    });
+    const r = await api.pull(
+      new Set<HealthGroup>(['sleep', 'hrv_rhr']),
+      '2026-10-23',
+      '2026-10-23',
+    );
+    expect(r).toMatchObject({ ok: true, partial: 'unavailable', calls: 3 });
+    expect(r.records.map((x) => x.metric)).toContain('sleep_duration');
+    expect(r.endpoints.dailySummaries).toEqual({
+      at: FETCHED,
+      status: 500,
+      records: 0,
+      calls: 1,
+      error: 'rejected',
+    });
+    expect(r.endpoints.hrv).toMatchObject({ status: 200, records: 0, error: null });
+  });
+
+  it('asks the SpO2 day endpoint only for recent days the summary left without SpO2', async () => {
+    const m = mockFetch((url) => {
+      if (url.includes('dailysummaries')) return jsonResponse(SUMMARIES);
+      if (url.includes('spo2acclimation/2026-10-23'))
+        return jsonResponse({ calendarDate: '2026-10-23', averageSpO2: 96 });
+      return jsonResponse({});
+    });
+    const api = createGarminPersonalHealthApi({
+      fetch: m.fetch,
+      accessToken: 'tok',
+      now: () => new Date(FETCHED),
+    });
+    const groups = new Set<HealthGroup>(['spo2_resp']);
+    // To tomorrow, as the recent window asks: no call for a day that has not started.
+    const r = await api.pull(groups, '2026-10-22', '2026-10-24', { spo2Fallback: true });
+    expect(m.calls.map((c) => new URL(c.url).pathname)).toEqual([
+      GARMIN_PERSONAL.paths.dailySummaries,
+      GARMIN_PERSONAL.paths.spo2Day('2026-10-23'),
+    ]);
+    expect(r.records.filter((x) => x.metric === 'spo2_avg').map((x) => [x.day, x.value])).toEqual([
+      ['2026-10-22', 95],
+      ['2026-10-23', 96],
+    ]);
+    expect(r.ok && r.endpoints.spo2Day).toMatchObject({ records: 1, calls: 1 });
+    // Not during the backfill.
+    const m2 = mockFetch(() => jsonResponse(SUMMARIES));
+    await createGarminPersonalHealthApi({ fetch: m2.fetch, accessToken: 'tok' }).pull(
+      groups,
+      '2026-10-22',
+      '2026-10-23',
+    );
+    expect(m2.calls).toHaveLength(1);
   });
 
   it('probes every endpoint for one day', async () => {
@@ -402,7 +601,7 @@ describe('Personal API pull', () => {
     const out = await createGarminPersonalHealthApi({ fetch: m.fetch, accessToken: 'tok' }).probe(
       '2026-10-23',
     );
-    expect(Object.keys(out)).toHaveLength(7);
+    expect(Object.keys(out)).toHaveLength(8);
     expect(out.spo2).toEqual({ error: 'not_connected', status: 403 });
     expect(out.hrv).toEqual({ ok: true });
   });
@@ -421,7 +620,8 @@ describe('GarminHealthProvider', () => {
       { fetch: m.fetch, now: () => 1_900_000_000_000 },
     );
     expect(p.delivery).toMatchObject({ mode: 'personal_key', delivery: 'pull', backfillDays: 365 });
-    expect(p.delivery.provides).not.toContain('vo2max');
+    expect(p.delivery.provides).toContain('vo2max');
+    expect(p.delivery.provides).not.toContain('fitness_age');
     const r = await p.pull(groups, '2026-10-22', '2026-10-22');
     expect(r.ok).toBe(true);
     expect(p.currentToken()).toEqual({ accessToken: token, expiresAt: 2_000_000_000_000 });
@@ -444,6 +644,8 @@ describe('GarminHealthProvider', () => {
         ok: false,
         failure,
         calls: 1,
+        records: [],
+        endpoints: {},
       });
     }
     const none = createGarminHealthProvider(
@@ -454,6 +656,8 @@ describe('GarminHealthProvider', () => {
       ok: false,
       failure: 'not_connected',
       calls: 0,
+      records: [],
+      endpoints: {},
     });
   });
 
@@ -467,6 +671,8 @@ describe('GarminHealthProvider', () => {
       ok: false,
       failure: 'unsupported',
       calls: 0,
+      records: [],
+      endpoints: {},
     });
     expect(p.currentToken()).toEqual({ accessToken: 'a', expiresAt: 1 });
     expect(

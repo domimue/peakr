@@ -2,6 +2,8 @@ import { describe, expect, it } from 'vitest';
 
 import { logoColors } from './brand';
 import {
+  changeColors,
+  chartColors,
   colors,
   schemes,
   sleepStageColors,
@@ -227,5 +229,36 @@ describe('logo', () => {
     expect(logoColors('onDark')).toEqual({ mark: colors.volt, wordmark: colors.white });
     expect(logoColors('onLight')).toEqual({ mark: colors.ink, wordmark: colors.ink });
     expect(logoColors('onAccent').mark).toBe(colors.ink);
+  });
+});
+
+describe.each(SCHEMES)('%s change and chart colours', (name) => {
+  const scales = { change: changeColors[name], chart: chartColors[name] };
+
+  it.each(Object.keys(scales) as (keyof typeof scales)[])(
+    '%s colours read as text (≥ 4.5 on bg, surface, surface2) and are never Volt',
+    (scale) => {
+      for (const c of Object.values(scales[scale])) {
+        for (const bg of ['bg', 'surface', 'surface2'] as const) {
+          expect(contrastRatio(c, schemes[name][bg]), `${c} on ${bg}`).toBeGreaterThanOrEqual(4.5);
+        }
+        expect(deltaE(c, colors.volt), c).toBeGreaterThan(0.15);
+      }
+    },
+  );
+
+  it.each(Object.keys(scales) as (keyof typeof scales)[])('%s colours differ clearly', (scale) => {
+    const values = Object.values(scales[scale]);
+    for (let i = 0; i < values.length; i++) {
+      for (let j = i + 1; j < values.length; j++) {
+        expect(deltaE(values[i] as string, values[j] as string)).toBeGreaterThan(0.1);
+      }
+    }
+  });
+
+  it('are exposed as tokens', () => {
+    expect(schemes[name].changeFavourable).toBe(changeColors[name].favourable);
+    expect(schemes[name].changeNeutral).toBe(changeColors[name].neutral);
+    expect(schemes[name].chartIntake).toBe(chartColors[name].intake);
   });
 });

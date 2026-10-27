@@ -25,6 +25,7 @@ import {
   deleteHealthData,
   enabledGroups,
   garminIntegrationByExternal,
+  saveGarminPermissions,
   storeHealthRecords,
 } from '../_shared/health/store.ts';
 import { adminClient, json } from '../_shared/supabase.ts';
@@ -92,10 +93,12 @@ async function garminHealth(body: unknown): Promise<void> {
     await admin.from('integrations').delete().eq('id', integration.id);
   }
   for (const [garminUserId, permissions] of push.permissions) {
-    // The user withdrew the health permission at Garmin: what Peakr stored from it goes.
-    if (permissions.includes('HEALTH_EXPORT')) continue;
     const integration = await garminIntegrationByExternal(admin, garminUserId);
-    if (integration) await deleteHealthData(admin, integration.user_id);
+    if (!integration) continue;
+    // The app shows which groups Garmin still permits.
+    await saveGarminPermissions(admin, integration, permissions);
+    // The user withdrew the health permission at Garmin: what Peakr stored from it goes.
+    if (!permissions.includes('HEALTH_EXPORT')) await deleteHealthData(admin, integration.user_id);
   }
   for (const [garminUserId, records] of push.byUser) {
     const integration = await garminIntegrationByExternal(admin, garminUserId);

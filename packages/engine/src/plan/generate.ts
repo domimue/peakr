@@ -4,6 +4,8 @@ import { classifyDays } from './classify';
 import { commuteMinutes, commutesOn, commutesValid } from './commute';
 import { requiredSports, sportShares } from './composition';
 import { planConfig } from './config';
+import { difficultyFactor, difficultyGrowth } from './difficulty';
+import { checkStartFloors, sportMinutes, startFloors } from './floors';
 import { parseIsoDate, toIsoDate, weekdayOf } from './dates';
 import { hardShare } from './load';
 import { athleteFor } from './materialize';
@@ -26,6 +28,7 @@ import {
 } from './types';
 
 export type PlanField =
+  | 'baseline'
   | 'startDate'
   | 'targetDate'
   | 'sports'
@@ -43,8 +46,13 @@ export type PlanField =
 export interface PlanContinuation {
   /** Start date of the original plan. */
   planStartDate: string;
-  /** Load of the last full loading week before `startDate` (the +10 % reference), if any. */
+  /**
+   * Load of the last full loading week before `startDate` as the engine computed it at difficulty
+   * 5 (actual load ÷ its difficulty factor): the progression continues from here.
+   */
   referenceLoad: number | null;
+  /** That week's actual load – the +10 % cap is always measured against what was planned. */
+  referenceActualLoad?: number | null;
   /** The first regenerated week gets `referenceLoad × firstWeekFactor` (resume rules). */
   firstWeekFactor?: number;
   /** Phases restart at Base over the remaining weeks (long pause). */
@@ -240,7 +248,14 @@ export function generatePlan(
   let longMin: Partial<Record<Sport, number>> = { ...continuation?.longMin };
   let rotation = 0;
   let prev: PrevDay = continuation?.prev ?? RESTED;
+  // The slider scales every target; `reference` is kept at difficulty 5 so a lower setting
+  // does not shrink the plan week after week, while the cap uses the actual load.
+  const difficulty = difficultyFactor(profile.difficulty);
+  const scale = Math.max(1, difficulty);
+  const growth = difficultyGrowth(profile.difficulty);
   let reference: number | null = continuation?.referenceLoad ?? null;
+  let actualReference: number | null =
+    continuation?.referenceActualLoad ?? continuation?.referenceLoad ?? null;
   // Resume after a pause: the first week is a fixed share of the last loading week.
   let firstWeekLoad =
     continuation?.firstWeekFactor === undefined
@@ -249,6 +264,9 @@ export function generatePlan(
   let buildWeekIndex = skeleton
     .slice(0, firstIndex)
     .filter((w) => w.phase === 'build' || w.phase === 'peak').length;
+  let qualityIndex = skeleton
+    .slice(0, firstIndex)
+    .filter((w) => (w.phase === 'build' || w.phase === 'peak') && !w.isRecovery).length;
   let lastBenchmark: number | null = continuation?.lastBenchmarkWeek ?? null;
   const weeks: PlanWeek[] = [];
 
@@ -256,6 +274,13 @@ export function generatePlan(
     firstIndex,
     continuation?.weeks === undefined ? undefined : firstIndex + continuation.weeks,
   );
+  // Week of the volume floor check (`checkStartFloors`): the first one, or the second when the
+  // plan starts with fewer than four days. Only a new plan has floors.
+  const floors = startFloors(profile);
+  const floorWeek =
+    continuation || Object.keys(floors.weeklyMin).length === 0
+      ? undefined
+      : generated[7 - weekdayOf(start) >= 4 ? 0 : 1];
   for (const week of generated) {
     const weekStart = toIsoDate(monday + week.index * 7);
     const override = availability.weekOverrides?.find((o) => o.weekStart === weekStart);
@@ -289,9 +314,14 @@ export function generatePlan(
       (lastBenchmark === null || week.index - lastBenchmark >= cfg.benchmarks.everyWeeks);
     if (benchmark) lastBenchmark = week.index;
 
-    const fullTarget = firstWeekLoad ?? weekTargetLoad(week, reference, startLoad);
+    // Harder settings scale every target up (the +10 % cap below still limits it); easier ones
+    // slow the growth of the loading weeks (`difficultyGrowth`), so start, recovery and taper
+    // weeks keep the structure the rules require.
+    const fullTarget =
+      (firstWeekLoad ?? weekTargetLoad(week, reference, startLoad, growth)) * scale;
     const targetLoad = (fullTarget * planDays) / 7;
-    const cap = reference === null ? null : reference * cfg.progression.maxWeeklyIncrease;
+    const cap =
+      actualReference === null ? null : actualReference * cfg.progression.maxWeeklyIncrease;
     // Recovery, taper and resume weeks must really come down: their target is also their cap.
     const capLoad =
       firstWeekLoad !== null
@@ -300,37 +330,53 @@ export function generatePlan(
           ? cap
           : Math.min(cap, targetLoad);
     const lastIsRaceEve = raceGoal && target !== null && lastDay - (monday + week.index * 7) < 7;
-    const out = scheduleWeek({
-      athlete,
-      raceGoal,
-      skeleton: week,
-      composition: {
-        goal: goal.kind,
-        profile,
-        phase: week.phase,
-        weekIndex: week.index,
-        isRecovery: week.isRecovery,
-        raceWeek: week.index === weekCount - 1 && week.taperIndex !== null,
-        trainingDays: days.filter((d) => trainingMinutes(d) >= cfg.plan.minSessionMin).length,
-        cssAllowed: cssAllowed(profile, levels),
-        benchmark,
-        buildWeekIndex,
-      },
-      shares,
-      days,
-      doubles: availability.doublesAllowed,
-      targetLoad,
-      capLoad,
-      raceDayIndex: lastIsRaceEve ? lastDay - (monday + week.index * 7) + 1 : null,
-      ...(continuation?.next && week === generated[generated.length - 1]
-        ? { next: continuation.next }
-        : {}),
-      prev,
-      levels,
-      longMin,
-      strengthRotation: rotation,
-      ...(continuation?.idPrefix ? { idPrefix: continuation.idPrefix } : {}),
-    });
+    const scheduleAt = (load: number) =>
+      scheduleWeek({
+        athlete,
+        raceGoal,
+        skeleton: week,
+        composition: {
+          goal: goal.kind,
+          profile,
+          phase: week.phase,
+          weekIndex: week.index,
+          isRecovery: week.isRecovery,
+          raceWeek: week.index === weekCount - 1 && week.taperIndex !== null,
+          trainingDays: days.filter((d) => trainingMinutes(d) >= cfg.plan.minSessionMin).length,
+          cssAllowed: cssAllowed(profile, levels),
+          benchmark,
+          buildWeekIndex,
+          qualityIndex,
+        },
+        shares,
+        days,
+        doubles: availability.doublesAllowed,
+        targetLoad: load,
+        capLoad,
+        raceDayIndex: lastIsRaceEve ? lastDay - (monday + week.index * 7) + 1 : null,
+        ...(continuation?.next && week === generated[generated.length - 1]
+          ? { next: continuation.next }
+          : {}),
+        prev,
+        levels,
+        longMin,
+        strengthRotation: rotation,
+        ...(continuation?.idPrefix ? { idPrefix: continuation.idPrefix } : {}),
+      });
+    let out = scheduleAt(targetLoad);
+    // The week the start floors are checked on holds what the athlete already does per sport: a
+    // week that reaches its load with fewer minutes (a benchmark or quality session packs more
+    // load per minute) is rebuilt with a higher target – as far as the availability allows.
+    if (week === floorWeek) {
+      for (let tries = 0, load = targetLoad; tries < cfg.floors.retries; tries++) {
+        const short = volumeShortfall(out.workouts, floors.weeklyMin, planDays);
+        if (short <= 1) break;
+        load *= short;
+        const next = scheduleAt(load);
+        if (next.load <= out.load) break;
+        out = next;
+      }
+    }
 
     levels = out.levels;
     longMin = out.longMin;
@@ -338,13 +384,21 @@ export function generatePlan(
     prev = out.last;
     if (firstWeekLoad !== null) {
       // The reduced week is the new reference (scaled up when it was partial).
-      reference = (out.load * 7) / planDays;
+      actualReference = (out.load * 7) / planDays;
+      reference = actualReference / scale;
       firstWeekLoad = null;
     } else if (loading && !isPartial && !override && !days.some((d) => d.travel)) {
       // Irregular and travel weeks are no reference: the weeks after continue the normal progression.
-      reference = out.load;
+      actualReference = out.load;
+      reference = out.load / scale;
     }
-    if (week.phase === 'build' || week.phase === 'peak') buildWeekIndex++;
+    if (week.phase === 'build' || week.phase === 'peak') {
+      buildWeekIndex++;
+      // Benchmark weeks replace the key session, so they do not use up a rotation turn either.
+      // (also when the 80/20 balance turned the test into an easy run – the turn is still gone).
+      const tested = out.workouts.some((w) => w.notes.some((n) => n.key === 'notes.benchmark'));
+      if (!week.isRecovery && !tested) qualityIndex++;
+    }
 
     const weekNotes: PlanNote[] = [...out.notes];
     if (week.isRecovery) weekNotes.unshift({ key: 'notes.recoveryWeek' });
@@ -363,6 +417,7 @@ export function generatePlan(
       isPartial,
       targetLoad: Math.round(targetLoad),
       load: out.load,
+      difficultyFactor: scale,
       minutes: out.minutes,
       hardShare: 0,
       workouts: out.workouts,
@@ -370,19 +425,39 @@ export function generatePlan(
     });
   }
 
-  return {
-    ok: true,
-    value: annotateWeeks(
-      {
-        goal,
-        startDate: continuation?.planStartDate ?? startDate,
-        targetDate: targetDate ?? null,
-        weeks: classifyPlan(weeks, profile.experience),
-        notes,
-      },
-      profile,
-    ),
-  };
+  const plan = annotateWeeks(
+    {
+      goal,
+      startDate: continuation?.planStartDate ?? startDate,
+      targetDate: targetDate ?? null,
+      weeks: classifyPlan(weeks, profile.experience),
+      notes,
+    },
+    profile,
+  );
+  // A new plan never starts below what the athlete already does (CLAUDE.md "Baseline"). If the
+  // availability cannot hold it, that is an error to show – not a beginner plan to ship. A plan
+  // continued after a pause starts lower on purpose (resume rules) and is not checked.
+  if (!continuation) {
+    const breaches = checkStartFloors(plan, floors);
+    if (breaches.length > 0) {
+      return {
+        ok: false,
+        issues: breaches.map((b) => ({
+          field: 'baseline' as const,
+          code:
+            b.kind === 'long' ? ('belowBaselineLong' as const) : ('belowBaselineVolume' as const),
+          // `sport` is the index in `SPORTS` (issue params are numbers).
+          params: {
+            sport: SPORTS.indexOf(b.sport),
+            plannedMin: b.plannedMin,
+            floorMin: b.floorMin,
+          },
+        })),
+      };
+    }
+  }
+  return { ok: true, value: plan };
 }
 
 /**
@@ -431,4 +506,22 @@ export function classifyPlan(weeks: PlanWeek[], experience: Experience): PlanWee
       .map(describeWorkout);
     return { ...w, workouts, hardShare: Math.round(hardShare(workouts) * 1000) / 1000 };
   });
+}
+
+/**
+ * How far the week's minutes fall short of the volume floors: the largest needed / planned ratio
+ * over the sports (≤ 1: nothing missing). A sport without any session cannot be scaled up.
+ */
+function volumeShortfall(
+  workouts: readonly Workout[],
+  weeklyMin: Partial<Record<Sport, number>>,
+  planDays: number,
+): number {
+  let ratio = 1;
+  for (const [sport, floor] of Object.entries(weeklyMin) as [Sport, number][]) {
+    const planned = sportMinutes(workouts, sport);
+    const needed = (floor * planDays) / 7;
+    if (planned > 0 && planned < needed) ratio = Math.max(ratio, needed / planned);
+  }
+  return ratio;
 }

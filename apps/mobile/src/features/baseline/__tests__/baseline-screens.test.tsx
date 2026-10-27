@@ -228,6 +228,21 @@ describe('baseline summary', () => {
     expect(await screen.findByText('6:30 /km – your entry')).toBeOnTheScreen();
   });
 
+  it('shows the long session with its distance and what the plan starts from', async () => {
+    storePlan();
+    // 50-minute runs every other day, every fourth one a 13.5 km long run of 80 minutes.
+    seed(
+      Array.from({ length: 24 }, (_, i) =>
+        i % 4 === 3 ? activity(i, { durationSec: 80 * 60, distanceM: 13_500 }) : activity(i),
+      ),
+    );
+    await renderWithQuery(<BaselineSummaryScreen flow="recalibrate" />);
+    expect(await screen.findByText(/^80 min · 13\.5 km – from \d+ activities$/)).toBeOnTheScreen();
+    const start = screen.getByTestId('baseline-plan-start');
+    expect(start).toHaveTextContent(/First long session at least 70 min \(≈ 11\.8 km\)/);
+    expect(start).toHaveTextContent(/Week 1 at least \d+ min/);
+  });
+
   it('recalibration regenerates the remaining plan with the baseline', async () => {
     storePlan();
     seed(Array.from({ length: 24 }, (_, i) => activity(i)));

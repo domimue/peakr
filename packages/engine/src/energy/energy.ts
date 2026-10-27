@@ -168,9 +168,12 @@ export function energyToday(input: {
   intakeKcal: number;
   deficitKcal?: number;
   bodyFat?: Measurement | null;
+  /** Everyday-activity factor (`everydayFactor`); default: the desk-job factor. */
+  everydayFactor?: number;
 }): EnergyToday {
   const resting = restingEnergy(input.profile, input.today, input.bodyFat ?? null).kcal;
-  const base = Math.round(resting * C.dailyLivingFactor);
+  const factor = input.everydayFactor ?? C.everydayActivity[C.defaultEverydayActivity];
+  const base = Math.round(resting * factor);
   const workoutKcal = input.workouts.reduce((sum, w) => sum + countedWorkoutKcal(w), 0);
   const wanted = base + workoutKcal - Math.max(0, input.deficitKcal ?? 0);
   const floor = intakeFloorKcal(input.profile.sex, resting);

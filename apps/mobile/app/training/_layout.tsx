@@ -1,13 +1,16 @@
 import { Stack } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 
+import { stackScreenOptions } from '@/features/profile/stack-options';
+
 export default function TrainingLayout() {
   const { t } = useTranslation();
   return (
-    <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
+    <Stack screenOptions={stackScreenOptions}>
       <Stack.Screen name="workout/[id]" options={{ title: t('plan.workout.title') }} />
       <Stack.Screen name="availability" options={{ title: t('plan.availability.title') }} />
       <Stack.Screen name="pause" options={{ title: t('plan.pause.title') }} />
+      <Stack.Screen name="difficulty" options={{ title: t('plan.difficulty.title') }} />
       <Stack.Screen name="workout-types" options={{ title: t('workoutTypes.title') }} />
       <Stack.Screen name="week" options={{ title: t('plan.week.title') }} />
       <Stack.Screen name="travel" options={{ title: t('plan.travel.title') }} />
@@ -19,7 +22,8 @@ export default function TrainingLayout() {
       <Stack.Screen name="baseline" options={{ title: t('baseline.recalibrate.title') }} />
       <Stack.Screen name="baseline-summary" options={{ title: t('baseline.recalibrate.title') }} />
       <Stack.Screen name="route/[workoutId]" options={{ title: t('routes.choose.title') }} />
-      <Stack.Screen name="insights" options={{ title: t('insights.title') }} />
+      <Stack.Screen name="plan-history/index" options={{ title: t('planHistory.title') }} />
+      <Stack.Screen name="plan-history/[id]" options={{ title: t('planHistory.title') }} />
     </Stack>
   );
 }

@@ -31,7 +31,9 @@ export function isoDay(v: unknown): string | null {
 /** Epoch milliseconds or seconds or an ISO string → ISO date-time (UTC), else null. */
 export function isoTime(v: unknown): string | null {
   if (typeof v === 'string' && v.length >= 10) {
-    const withZone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(v) ? v : `${v}Z`;
+    // Garmin writes some timestamps as "2026-10-14 17:09:06" (space, no zone, UTC).
+    const t = /^\d{4}-\d{2}-\d{2} \d/.test(v) ? `${v.slice(0, 10)}T${v.slice(11)}` : v;
+    const withZone = /[zZ]|[+-]\d{2}:?\d{2}$/.test(t) ? t : `${t}Z`;
     const d = new Date(withZone);
     return Number.isNaN(d.getTime()) ? null : d.toISOString();
   }

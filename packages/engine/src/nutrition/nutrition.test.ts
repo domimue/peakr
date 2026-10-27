@@ -81,15 +81,25 @@ describe('recipes', () => {
 });
 
 describe('targets and rings', () => {
-  it('protein from the goal, fat 30 % (at least 0.6 g/kg), carbs the rest', () => {
-    expect(macroTargets({ kcal: 2000, proteinG: 130, weightKg: 70 })).toEqual({
-      kcal: 2000,
-      proteinG: 130,
-      fatG: 67,
-      carbsG: 220,
+  it('protein and fat per kg, carbohydrates whatever energy remains', () => {
+    // 80 kg at ~2,250 kcal: 1.9 g/kg protein, 0.9 g/kg fat, the rest carbohydrates.
+    expect(macroTargets({ kcal: 2250, weightKg: 80 })).toEqual({
+      kcal: 2250,
+      proteinG: 152,
+      fatG: 72,
+      carbsG: 249,
     });
-    expect(macroTargets({ kcal: 1200, proteinG: 150, weightKg: 90 }).fatG).toBe(54);
-    expect(macroTargets({ kcal: 500, proteinG: 150, weightKg: 90 }).carbsG).toBe(0);
+    // A training day with more energy: only the carbohydrates rise.
+    const hard = macroTargets({ kcal: 2850, weightKg: 80 });
+    expect([hard.proteinG, hard.fatG, hard.carbsG]).toEqual([152, 72, 399]);
+    // Settings stay inside their ranges; fat never below 0.6 g/kg.
+    expect(
+      macroTargets({ kcal: 2250, weightKg: 80, proteinGPerKg: 2.5, fatGPerKg: 0.5 }),
+    ).toMatchObject({
+      proteinG: 176,
+      fatG: 64,
+    });
+    expect(macroTargets({ kcal: 500, weightKg: 90 }).carbsG).toBe(0);
   });
 
   it('ring share caps at 1 and reports the overshoot', () => {

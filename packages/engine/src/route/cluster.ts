@@ -1,4 +1,5 @@
 import { planConfig } from '../plan/config';
+import { median } from '../stats';
 import { decodePolyline, haversineM, resampleTrack, trackLengthM, type LatLon } from './geo';
 import type { RouteSport } from './pace-plan';
 
@@ -19,6 +20,9 @@ export interface TrackActivity {
   indoor: boolean;
   /** Encoded polyline (Google format). */
   polyline: string | null;
+  /** Moving time and elevation gain, for the route's typical duration and climb. */
+  durationSec?: number;
+  elevationGainM?: number | null;
 }
 
 export interface RecognisedRoute {
@@ -32,6 +36,9 @@ export interface RecognisedRoute {
   /** Start date of the most recent activity. */
   lastDate: string;
   polyline: string;
+  /** Median moving time and elevation gain of the activities on it; null without data. */
+  typicalDurationSec: number | null;
+  elevationGainM: number | null;
 }
 
 interface Candidate {
@@ -100,12 +107,17 @@ export function sameTrack(sport: RouteSport, a: readonly LatLon[], b: readonly L
   return isSameRoute(of(a), of(b));
 }
 
+function medianOf(values: readonly (number | null | undefined)[]): number | null {
+  const m = median(values.filter((v): v is number => typeof v === 'number'));
+  return m === null ? null : Math.round(m);
+}
+
 function candidateOf(activity: TrackActivity): Candidate | null {
   if (activity.indoor || !activity.polyline) return null;
   if (activity.sport !== 'run' && activity.sport !== 'bike') return null;
   const track = decodePolyline(activity.polyline);
   const lengthM = trackLengthM(track);
-  if (lengthM === 0) return null;
+  if (lengthM < cfg.minDistanceM[activity.sport]) return null;
   return {
     activity,
     sport: activity.sport,
@@ -149,6 +161,8 @@ export function recogniseRoutes(
         distanceM: Math.round(rep.lengthM),
         lastDate: rep.activity.startTime.slice(0, 10),
         polyline: rep.activity.polyline as string,
+        typicalDurationSec: medianOf(g.map((c) => c.activity.durationSec)),
+        elevationGainM: medianOf(g.map((c) => c.activity.elevationGainM)),
       };
     })
     .sort((a, b) => b.occurrences - a.occurrences || b.lastDate.localeCompare(a.lastDate));

@@ -17,9 +17,8 @@
     "today": "Today",
     "plan": "Plan",
     "gym": "Gym",
-    "insights": "Insights",
-    "profile": "Profile",
-    "body": "Body"
+    "body": "Body",
+    "nutrition": "Nutrition"
   },
   "plan": {
     "title": "Your plan",
@@ -229,7 +228,45 @@
     "openInCalendar": "Open in calendar",
     "views": {
       "weeks": "Weeks",
-      "calendar": "Calendar"
+      "calendar": "Calendar",
+      "history": "History"
+    },
+    "difficulty": {
+      "title": "Difficulty",
+      "intro": "How hard your plan is, from 1 to 10. 5 is the plan Peakr calculates for you. A change rebuilds the coming weeks only – completed weeks stay as they are.",
+      "label": "Difficulty",
+      "value": "{{value}} of 10",
+      "hint": {
+        "easier": "Easier: your weekly load grows more slowly and long sessions get longer more gently. Recovery weeks stay.",
+        "neutral": "The plan as Peakr calculates it.",
+        "harder": "Harder: more weekly load and longer long sessions – never more than +10 % per week, recovery weeks, 80/20 and no hard days back to back still apply."
+      },
+      "preview": "What changes in the next {{weeks}} weeks",
+      "sessions": "Sessions per week",
+      "volume": "Time per week",
+      "distance": "Distance per week",
+      "longest": "Longest session",
+      "change": "{{before}} → {{after}}",
+      "km": "{{value}} km",
+      "apply": "Apply",
+      "notARepair": "This is not a way to repair a wrong starting point. If your plan starts too low or too high, correct the starting values instead.",
+      "fixStart": "Correct the starting values",
+      "minutes": "{{value}} min"
+    },
+    "volume": {
+      "time": "{{done}} / {{planned}}",
+      "distance": "Distance {{value}}",
+      "km": "{{done}} / {{planned}} km",
+      "mi": "{{done}} / {{planned}} mi",
+      "m": "{{done}} / {{planned}} m",
+      "yd": "{{done}} / {{planned}} yd",
+      "sessions": "{{done}} / {{planned}} sessions",
+      "sport": {
+        "run": "Running",
+        "bike": "Riding",
+        "swim": "Swimming",
+        "strength": "Strength"
+      }
     }
   },
   "fields": {
@@ -311,7 +348,9 @@
     "dateOutOfRange": "Choose a date between {{min}} and {{max}} weeks from today.",
     "bmiTooLow": "A weight-loss goal is not offered here: the weight would be below a healthy range for your height.",
     "targetNotBelowCurrent": "For a weight-loss goal, the target needs to be below your current trend weight.",
-    "targetNotAboveCurrent": "For a gain goal, the target needs to be above your current trend weight."
+    "targetNotAboveCurrent": "For a gain goal, the target needs to be above your current trend weight.",
+    "belowBaselineLong": "Your available time cannot hold a first long session of {{floorMin}} min – that is about what you already do. Peakr does not start you below that. Give your long-session day more time.",
+    "belowBaselineVolume": "Your available time holds only {{plannedMin}} min in week 1, but you already train about {{floorMin}} min a week. Peakr does not start you below that. Add more time per week."
   },
   "profile": {
     "title": "Profile",
@@ -337,7 +376,17 @@
     "privacy": "Privacy",
     "accountGroup": "Account & privacy",
     "signIn": "Sign in",
-    "theme": "Theme"
+    "theme": "Theme",
+    "open": "Profile and settings",
+    "personal": {
+      "title": "Personal data",
+      "hint": "Used by your plan (age, heart-rate estimate) and by the Body add-on (energy). One profile – nothing is asked twice."
+    },
+    "you": "You",
+    "goalAndPlan": "Goal & plan",
+    "subscriptionGroup": "Subscription & settings",
+    "notSignedIn": "Not signed in yet",
+    "connectionsGroup": "Strava & watch"
   },
   "dev": {
     "planPreview": {
@@ -770,177 +819,202 @@
       "run.easy": {
         "name": "Easy run",
         "short": "Relaxed, conversational running",
-        "description": "Running at a pace where you can still hold a conversation – heart rate in Zone 2 (Zone 1 for recovery runs). Some easy runs end with strides: 15–20 seconds of relaxed, quick running.",
+        "description": "Keep the heart rate in Zone 2 (Zone 1 for recovery runs) and let the pace follow. Some easy runs end with strides: 15–20 seconds of relaxed, quick running.",
         "why": "Builds your aerobic base, strengthens muscles and tendons and helps you recover. Most of your running should be easy.",
-        "intensity": "Zone 1–2 · effort 3–4/10"
+        "intensity": "Zone 1–2 · effort 3–4/10",
+        "chip": "Z1–2 · 3–4/10"
       },
       "run.long": {
         "name": "Long run",
         "short": "Your longest run of the week, at an easy effort",
-        "description": "A steady run clearly longer than your other runs, mostly in Zone 2. Go slower than you think – time on your feet counts, not pace.",
+        "description": "Clearly longer than your other runs and mostly in Zone 2. Go slower than you think – time on your feet counts, not pace.",
         "why": "Improves endurance and fat burning and gets body and mind ready for longer races.",
-        "intensity": "Zone 2 · effort 4/10"
+        "intensity": "Zone 2 · effort 4/10",
+        "chip": "Z2 · 4/10"
       },
       "run.tempo": {
         "name": "Tempo run",
         "short": "Comfortably hard, sustained running",
-        "description": "After a warm-up you run one long block – or a few shorter ones – at threshold or race pace. Progression runs that get faster towards the end belong here too.",
+        "description": "After a warm-up, one long block – or a few shorter ones – at threshold or race pace. Progression runs that get faster towards the end belong here too.",
         "why": "Raises the pace you can hold for a long time – the key for 10 km up to the marathon.",
-        "intensity": "Zone 3–4 · effort 6–7/10"
+        "intensity": "Zone 3–4 · effort 6–7/10",
+        "chip": "Z3–4 · 6–7/10"
       },
       "run.intervals": {
         "name": "Intervals",
         "short": "Fast repeats with easy recoveries",
-        "description": "Repeats of about 1–5 minutes at a hard effort – or a playful fartlek – with easy jogging in between, always with a proper warm-up and cool-down.",
+        "description": "Repeats of about 1–5 minutes – or a playful fartlek – with easy jogging in between, always after a proper warm-up.",
         "why": "Improves your VO₂max, speed and running economy.",
-        "intensity": "Zone 4–5 · effort 8–9/10"
+        "intensity": "Zone 4–5 · effort 8–9/10",
+        "chip": "Z4–5 · 8–9/10"
       },
       "run.hills": {
         "name": "Hills",
         "short": "Uphill repeats and hilly terrain",
         "description": "Short or long climbs run hard with easy recoveries on the way down – or steady hiking and running on steep terrain, plus downhill technique.",
         "why": "Builds strength, power and running form with less impact than fast flat running, and prepares you for hilly races.",
-        "intensity": "Zone 3–5 · effort 6–9/10"
+        "intensity": "Zone 3–5 · effort 6–9/10",
+        "chip": "Z3–5 · 6–9/10"
       },
       "run.test": {
         "name": "Test run",
         "short": "A benchmark that calibrates your zones",
         "description": "A time trial – e.g. 5 km or 30 minutes – at the best effort you can sustain. Your result updates your paces and zones.",
         "why": "Keeps your training targets right as you get fitter.",
-        "intensity": "Maximal effort"
+        "intensity": "Maximal effort",
+        "chip": "Max"
       },
       "bike.easy": {
         "name": "Easy ride",
         "short": "Relaxed endurance riding",
-        "description": "Steady riding in Zone 2 at a cadence that feels smooth. Recovery rides and bike commutes count as easy rides too.",
+        "description": "Zone 2 at a cadence that feels smooth. Recovery rides and bike commutes count here too.",
         "why": "Builds aerobic endurance with very little stress on your legs.",
-        "intensity": "Zone 1–2 · effort 3–4/10"
+        "intensity": "Zone 1–2 · effort 3–4/10",
+        "chip": "Z1–2 · 3–4/10"
       },
       "bike.long": {
         "name": "Long ride",
         "short": "Your longest ride of the week",
-        "description": "Hours in the saddle at an easy, steady effort. A good time to practise eating and drinking on the bike.",
+        "description": "Hours at an easy, steady effort – a good time to practise eating and drinking on the bike.",
         "why": "Builds endurance for long events like a gran fondo or a triathlon.",
-        "intensity": "Zone 2 · effort 4/10"
+        "intensity": "Zone 2 · effort 4/10",
+        "chip": "Z2 · 4/10"
       },
       "bike.tempo": {
         "name": "Tempo ride",
         "short": "Steady, moderately hard riding",
         "description": "Longer blocks at an effort that needs focus but stays under control.",
         "why": "Raises the power you can sustain on long rides.",
-        "intensity": "Zone 3 · effort 6/10"
+        "intensity": "Zone 3 · effort 6/10",
+        "chip": "Z3 · 6/10"
       },
       "bike.threshold": {
         "name": "Threshold ride",
         "short": "Sweet spot and threshold blocks",
         "description": "Blocks of about 8–20 minutes just below or at your threshold (FTP) with short recoveries.",
         "why": "The most time-efficient way to lift your FTP.",
-        "intensity": "Zone 3–4 · effort 7–8/10"
+        "intensity": "Zone 3–4 · effort 7–8/10",
+        "chip": "Z3–4 · 7–8/10"
       },
       "bike.intervals": {
         "name": "Intervals",
         "short": "Hard efforts of a few minutes",
         "description": "Repeats of about 2–5 minutes well above threshold with equally long recoveries.",
         "why": "Improves your VO₂max and your ability to handle surges and short climbs.",
-        "intensity": "Zone 5 · effort 9/10"
+        "intensity": "Zone 5 · effort 9/10",
+        "chip": "Z5 · 9/10"
       },
       "bike.hills": {
         "name": "Climbing ride",
         "short": "Sustained climbs",
         "description": "Seated and standing efforts on climbs – or high resistance on the indoor trainer.",
         "why": "Builds climbing strength and teaches you to pace long ascents.",
-        "intensity": "Zone 3–4 · effort 6–8/10"
+        "intensity": "Zone 3–4 · effort 6–8/10",
+        "chip": "Z3–4 · 6–8/10"
       },
       "bike.technique": {
         "name": "Cadence drills",
         "short": "Smooth, fast pedalling",
         "description": "Easy riding with blocks of high and low cadence.",
         "why": "Makes your pedalling more efficient and coordinated.",
-        "intensity": "Zone 2 · effort 4/10"
+        "intensity": "Zone 2 · effort 4/10",
+        "chip": "Z2 · 4/10"
       },
       "bike.test": {
         "name": "FTP test",
         "short": "A benchmark for your power zones",
         "description": "A 20-minute all-out effort after a thorough warm-up; about 95 % of the average power is your FTP.",
         "why": "Keeps your power and heart-rate targets right.",
-        "intensity": "Maximal effort"
+        "intensity": "Maximal effort",
+        "chip": "Max"
       },
       "swim.technique": {
         "name": "Technique swim",
         "short": "Drills for a better stroke",
         "description": "Short repeats with drills for catch, kick and body position, with plenty of rest.",
         "why": "Better technique makes you faster with less effort – the biggest lever in swimming.",
-        "intensity": "Easy · effort 3–5/10"
+        "intensity": "Easy · effort 3–5/10",
+        "chip": "Easy · 3–5/10"
       },
       "swim.easy": {
         "name": "Easy swim",
         "short": "Relaxed, continuous swimming",
-        "description": "Steady swimming at a comfortable pace, a little slower than your CSS pace.",
+        "description": "A little slower than your CSS pace, without stopping.",
         "why": "Builds swim endurance and feel for the water.",
-        "intensity": "CSS + 10 s/100 m · effort 4/10"
+        "intensity": "CSS + 10 s/100 m · effort 4/10",
+        "chip": "CSS +10 s · 4/10"
       },
       "swim.threshold": {
         "name": "CSS swim",
         "short": "Repeats at threshold pace",
         "description": "Repeats of 100–400 m at your Critical Swim Speed with short rests.",
         "why": "Raises the pace you can hold over longer distances.",
-        "intensity": "CSS pace · effort 7/10"
+        "intensity": "CSS pace · effort 7/10",
+        "chip": "CSS · 7/10"
       },
       "swim.speed": {
         "name": "Speed swim",
         "short": "Short, fast repeats",
         "description": "Sprints of 25–50 m with long rests.",
         "why": "Improves top speed and the power of your stroke.",
-        "intensity": "Faster than CSS · effort 9/10"
+        "intensity": "Faster than CSS · effort 9/10",
+        "chip": "< CSS · 9/10"
       },
       "swim.openwater": {
         "name": "Open-water swim",
         "short": "Practice for lakes and the sea",
         "description": "Continuous swimming with sighting, swimming in a group and changes of pace.",
         "why": "Prepares you for race conditions without lane lines and walls.",
-        "intensity": "Easy to moderate"
+        "intensity": "Easy to moderate",
+        "chip": "Easy–moderate"
       },
       "swim.test": {
         "name": "CSS test",
         "short": "A benchmark for your swim paces",
         "description": "A 400 m and a 200 m time trial; together they give your Critical Swim Speed.",
         "why": "Sets the paces of every swim session.",
-        "intensity": "Maximal effort"
+        "intensity": "Maximal effort",
+        "chip": "Max"
       },
       "brick.brick": {
         "name": "Brick",
         "short": "Ride straight into a run",
         "description": "A ride followed immediately by a run, just like in a triathlon or duathlon.",
         "why": "Teaches your legs to run well after cycling.",
-        "intensity": "Zone 2–4"
+        "intensity": "Zone 2–4",
+        "chip": "Z2–4"
       },
       "strength.strength": {
         "name": "Strength",
         "short": "Strength training that fits your plan",
         "description": "Your strength session – the Peakr programme, your own split or your own routine. The workout lists every exercise with sets, reps and rest.",
         "why": "Makes you more robust, prevents injuries and improves running economy. Heavy leg sessions are never placed right before a key session.",
-        "intensity": "Effort 6–8/10"
+        "intensity": "Effort 6–8/10",
+        "chip": "6–8/10"
       },
       "winter.easy": {
         "name": "Winter endurance",
         "short": "Cross-country skiing, ski touring, snowshoeing",
         "description": "Easy endurance on snow that replaces a run or ride with the same training load.",
         "why": "Real training in winter – full body and low impact.",
-        "intensity": "Zone 1–2"
+        "intensity": "Zone 1–2",
+        "chip": "Z1–2"
       },
       "winter.intervals": {
         "name": "Ski intervals",
         "short": "Hard efforts on skis",
         "description": "Repeats at a hard effort on cross-country skis.",
         "why": "A strong aerobic stimulus that uses the whole body.",
-        "intensity": "Zone 4–5"
+        "intensity": "Zone 4–5",
+        "chip": "Z4–5"
       },
       "commute.commute": {
         "name": "Commute",
         "short": "Getting to work by bike, running or on foot",
         "description": "Your regular trip to work or school, one way or there and back. Ridden, run or walked at an easy effort – no pace to hit.",
         "why": "Easy minutes that build your aerobic base without extra time. They count towards your training load, so the rest of the week is planned around them.",
-        "intensity": "Zone 1–2 · effort 2–4/10"
+        "intensity": "Zone 1–2 · effort 2–4/10",
+        "chip": "Z1–2 · 2–4/10"
       }
     },
     "types": {
@@ -953,31 +1027,27 @@
       "strength": "Strength",
       "cross": "Cross-training",
       "commute": "Commute"
-    }
+    },
+    "showAll": "Show all sports",
+    "filter": "Sports"
   },
   "today": {
     "title": "Today",
-    "session": "Today’s session",
-    "week": "This week",
-    "insights": "Insights",
-    "insight": {
-      "load": {
-        "title": "Training load",
-        "body": "How this week’s load compares with your plan – shown here once you have trained for a week."
-      },
-      "zones": {
-        "title": "Easy vs hard",
-        "body": "Your 80/20 balance of easy and hard minutes appears here as sessions get done."
-      }
-    },
     "startsOn": "Your plan starts on {{date}}.",
     "restTitle": "Rest day",
     "restHint": "Recovery is part of the plan – nothing scheduled today.",
     "markDone": "Mark as done",
     "openSession": "Open session",
-    "seeWeek": "See this week",
     "seeWeekOne": "See week 1",
-    "openInsights": "Insights"
+    "route": "Route: {{name}} · {{distance}} · {{gain}} m up",
+    "freeSession": "Free session – time and heart rate only",
+    "chooseRoute": "Choose a route",
+    "changeRoute": "Change route",
+    "previousWeek": "Previous week",
+    "nextWeek": "Next week",
+    "backToToday": "Back to today",
+    "next": "Next: {{session}}, {{day}}",
+    "weekLine": "This week: {{done}} of {{planned}} sessions · {{time}} of {{total}}"
   },
   "calendar": {
     "add": "Add",
@@ -1070,7 +1140,16 @@
       }
     },
     "bestsHint": "Race times and fastest efforts come with synced activities.",
-    "lifetime": "Lifetime"
+    "lifetime": "Lifetime",
+    "scope": {
+      "plan": "This plan",
+      "all": "All time"
+    },
+    "fromPlan": "Plan: {{goal}}",
+    "bestsAllTime": "Personal bests · all plans",
+    "lifetimeAllPlans": "Lifetime · all plans",
+    "records": "Records",
+    "sessionsTab": "Sessions"
   },
   "comingSoon": {
     "label": "Coming soon",
@@ -1202,7 +1281,17 @@
       "unplanned": "{{sport}} synced from {{source}} – counted towards this week's load",
       "unplannedAdjusted": "{{sport}} synced from {{source}} – counted as extra training, the rest of the week is a little easier",
       "many_one": "{{count}} activity synced from {{source}}",
-      "many_other": "{{count}} activities synced from {{source}}"
+      "many_other": "{{count}} activities synced from {{source}}",
+      "question": "{{sport}} synced from {{source}} – which session was it? See Today.",
+      "undo": "Undo"
+    },
+    "question": {
+      "title": "Which session was this?",
+      "body": "{{sport}} on {{day}} · {{minutes}} min{{distance}} – synced from {{source}}. Peakr was not sure which planned session it was.",
+      "km": " · {{km}} km",
+      "candidate": "{{title}} · {{day}} · {{minutes}} min",
+      "none": "None of these",
+      "noneHint": "It then counts as extra training towards this week's load, and your planned session stays open."
     }
   },
   "watch": {
@@ -1314,7 +1403,7 @@
   },
   "trainingZones": {
     "title": "Training zones",
-    "intro": "Your plan prescribes every session from these zones. Change your values, tap a zone to set it manually, then save – your plan's targets update right away.",
+    "intro": "Your zones as a reference, in the method you pick. Tap a zone (the pencil) to set its range by hand, then save – a range you set is what your sessions use.",
     "noPlan": "Your zones are set up with your plan. Build your plan first, then fine-tune them here.",
     "hr": {
       "title": "Heart rate zones",
@@ -1332,7 +1421,8 @@
       "hrMaxUsed": "Max heart rate used",
       "hrMaxEstimateNote": "Estimated from your age (208 − 0.7 × age). A measured value makes your zones more accurate.",
       "lthrUsed": "Threshold heart rate used",
-      "empty": "Enter your age or max heart rate to see your heart rate zones."
+      "empty": "Enter your age or max heart rate to see your heart rate zones.",
+      "referenceNote": "This table is a reference. Your sessions prescribe an intensity with its own bpm range from your threshold heart rate (or your resting and maximum heart rate), so Easy means the same whichever method you pick here. A zone you set by hand wins."
     },
     "run": {
       "title": "Running pace zones",
@@ -1808,7 +1898,11 @@
     "stats": {
       "distance": "Distance",
       "gain": "Up",
-      "loss": "Down"
+      "loss": "Down",
+      "gainValue": "{{m}} m",
+      "done": "Done",
+      "last": "Last time",
+      "typical": "Typical time"
     },
     "elevation": {
       "summary": "{{gain}} m up, {{loss}} m down, between {{min}} and {{max}} m"
@@ -1843,7 +1937,10 @@
       "defaultName": "{{sport}} {{km}} km",
       "noElevation": "Added without an elevation profile – Strava had no elevation data for it.",
       "times_one": "{{count}} time",
-      "times_other": "{{count}} times"
+      "times_other": "{{count}} times",
+      "gone": "This route is in your library or no longer recognised.",
+      "detailTitle": "Route preview",
+      "openHint": "Shows map, profile and figures before you add it"
     },
     "pace": {
       "km": "km",
@@ -1938,6 +2035,10 @@
       },
       "attribution": "Routes: openrouteservice.org by HeiGIT · Map data © OpenStreetMap contributors · Heights: {{heights}}",
       "attributionShort": "Route generated with openrouteservice.org by HeiGIT · Map data © OpenStreetMap contributors"
+    },
+    "suggestedName": {
+      "home": "Home loop {{km}} km",
+      "place": "{{place}} loop {{km}} km"
     }
   },
   "terrainProfile": {
@@ -2008,7 +2109,7 @@
       "volume": "{{sessions}} sessions and {{minutes}} min a week, longest {{longest}} min",
       "terrain": "Usual terrain: {{terrain}} ({{gain}} m per km)",
       "level": "Starting level",
-      "longSession": "First long session",
+      "longSession": "Typical long session",
       "minutes": "{{value}} min",
       "paces": "Paces",
       "easyPace": "Easy pace (grade-adjusted)",
@@ -2036,7 +2137,18 @@
       "cancel": "Cancel",
       "reset": "Use derived value",
       "done": "Done",
-      "apply": "Apply to my plan"
+      "apply": "Apply to my plan",
+      "longSessionValue": "{{minutes}} min · {{km}} km",
+      "longSessionFrom_one": "From your {{count}} long session of the last six weeks.",
+      "longSessionFrom_other": "From your {{count}} long sessions of the last six weeks.",
+      "longSessionFallback": "No clearly longer sessions – your longest session per week is used.",
+      "weeklyStart": "Weekly volume, last four weeks",
+      "weeklyStartValue": "{{minutes}} min · {{km}} km per week",
+      "startsWith": "Your plan starts here",
+      "startsWithLong": "First long session at least {{minutes}} min (≈ {{km}} km)",
+      "startsWithLongNoKm": "First long session at least {{minutes}} min",
+      "startsWithVolume": "Week 1 at least {{minutes}} min",
+      "startsWithHint": "Peakr never starts you below what you already do. Correct the values above if they are wrong."
     },
     "recalibrate": {
       "title": "Recalibrate from recent activities",
@@ -2290,7 +2402,8 @@
       "lastSynced": "Last fetched {{time}}",
       "syncError": "The last fetch did not work. Peakr tries again on its own.",
       "settings": "Health data settings",
-      "pushHint": "New values arrive by themselves after your watch syncs with Garmin Connect."
+      "pushHint": "New values arrive by themselves after your watch syncs with Garmin Connect.",
+      "vo2maxFrom": "Garmin estimate from {{activity}}"
     },
     "baseline": {
       "within": "Within your usual range",
@@ -2308,9 +2421,23 @@
     },
     "missing": {
       "not_connected": "Connect Garmin or Health Connect to see this.",
+      "not_permitted": "Garmin is not allowed to share this with Peakr yet. Allow health data for Peakr in Garmin Connect under connected apps, then sync again.",
       "not_enabled": "Not switched on. Turn on \"{{group}}\" in Health data settings.",
+      "not_enabled_tile": "Not switched on in Health data settings.",
+      "turnOn": "Turn on",
       "not_provided": "Your connected sources do not provide this.",
-      "no_data": "Nothing recorded in the last 7 days. Your watch records this only while you wear it (sleep and HRV overnight) and after it has synced."
+      "not_provided_garmin": "Garmin does not provide this on Peakr's current Garmin access, and your phone's health store has no value for it either.",
+      "syncFailed": "The last fetch from Garmin did not work, so newer values may be missing. Peakr tries again on its own.",
+      "last": "Last value: {{value}} · {{day}} · {{source}}",
+      "why": {
+        "overnight": "Nothing in the last {{days}} days. Your watch records this overnight – only on nights you sleep with it on – and sends it after it has synced.",
+        "continuous": "Nothing in the last {{days}} days. Your watch records this all day while you wear it; values reach Peakr after the watch has synced with Garmin Connect.",
+        "spo2": "Nothing in the last {{days}} days. Your watch measures this only if it has a Pulse Ox sensor and the Pulse Ox setting is on (all day or during sleep).",
+        "respiration": "Nothing in the last {{days}} days. Only watches that measure breathing rate record this, while you wear them.",
+        "scale": "No weigh-in in the last {{days}} days. Values come from a connected scale or an entry in Garmin Connect or Health Connect.",
+        "vo2max": "No new estimate in the last {{days}} days. Garmin updates VO2max after outdoor runs with heart rate or rides with a power meter.",
+        "fitnessAge": "Nothing in the last {{days}} days."
+      }
     },
     "empty": {
       "title": "Your body data in Peakr",
@@ -2371,7 +2498,14 @@
       "deleteConfirm": "Delete health data",
       "deleteCancel": "Cancel",
       "deleted": "Health data deleted.",
-      "deleteError": "Could not delete. Try again."
+      "deleteError": "Could not delete. Try again.",
+      "notPermitted": "Not allowed at Garmin – allow health data for Peakr in Garmin Connect under connected apps.",
+      "backfillTitle": "Older data",
+      "backfillBody": "Fetches your Garmin history again, up to a year back. Use it if older days look incomplete.",
+      "backfill": "Fetch older data again",
+      "backfillStarted": "Started. Older days fill in over the next hours.",
+      "backfillError": "That did not work. Try again later.",
+      "diagnostics": "Health sync details (developer)"
     },
     "developer": {
       "title": "Developer: Garmin personal API key",
@@ -2402,6 +2536,33 @@
       "garmin": "Garmin",
       "healthConnect": "Health Connect",
       "healthKit": "Apple Health"
+    },
+    "diagnostics": {
+      "title": "Health sync details",
+      "intro": "Developer view: what the last Garmin calls returned. Counts and status codes only, no values.",
+      "connection": "Connection",
+      "mode": "Mode: {{mode}}",
+      "status": "Status: {{status}}",
+      "permissions": "Garmin permissions: {{list}}",
+      "groups": "Switched-on groups: {{list}}",
+      "parser": "Parser version: {{stored}} stored / {{current}} current",
+      "backfill": "Backfill: {{state}} · before {{before}}",
+      "backfillDone": "done",
+      "backfillRunning": "running",
+      "earliest": "Earliest day: {{day}}",
+      "lastPulled": "Last pull: {{time}}",
+      "lastError": "Last error: {{error}}",
+      "none": "–",
+      "endpoints": "Garmin endpoints",
+      "recent": "Recent window",
+      "backfillWindow": "Backfill step",
+      "call": "{{time}} · HTTP {{status}} · {{records}} records · {{calls}} calls",
+      "callError": "Error: {{error}}",
+      "never": "Not called yet",
+      "local": "On this device",
+      "localRow": "{{source}}: {{count}} days, latest {{day}}",
+      "localEmpty": "No health values stored on this device.",
+      "unavailable": "The server details could not be loaded."
     }
   },
   "locked": {
@@ -2442,6 +2603,16 @@
     "activity": {
       "label": "Synced activities",
       "hint": "A notification when an activity from Strava or your watch arrives. Otherwise it only shows in the app."
+    },
+    "congrats": {
+      "label": "Congratulations after a session",
+      "hint": "One notification when a synced activity completes a planned session – once per session. The morning reminder stays the only other one.",
+      "title": "Nice work",
+      "today": "today",
+      "onDay": "on {{day}}",
+      "body": "{{title}} {{day}} is done.",
+      "bodyDistance": "{{title}} {{day}} is done – {{distance}}.",
+      "channel": "Congratulations"
     }
   },
   "settings": {
@@ -2477,6 +2648,10 @@
       "policy": "Privacy policy",
       "delete": "Delete account",
       "deleteHint": "Removes your account and all its data for good."
+    },
+    "title": "Settings",
+    "groups": {
+      "app": "App"
     }
   },
   "bodyAddon": {
@@ -2510,13 +2685,54 @@
       "title": "Energy today",
       "remaining": "{{kcal}} kcal left",
       "over": "{{kcal}} kcal above today’s target",
-      "fromWorkouts": "+{{kcal}} kcal added back from today’s workouts",
+      "fromWorkouts": "+{{kcal}} kcal for today’s planned training",
       "breakdown": "Target {{target}} · eaten {{eaten}} · workouts {{workouts}} kcal",
       "estimate": "Estimate from your profile and today’s planned sessions.",
-      "floor": "Today’s target is held at a safe minimum.",
+      "floor": "Today’s target is at the lowest intake Peakr suggests for you.",
       "setUp": "Add your height, birth date and weight in Body to see this.",
       "open": "Open Body",
-      "intakeFrom": "Intake from {{source}} (nothing logged in Peakr today)."
+      "intakeFrom": "Intake from {{source}} (nothing logged in Peakr today).",
+      "intro": "How your daily target is built. Everything here is an estimate.",
+      "everydayTitle": "How active is your everyday life – without sport?",
+      "everydayHint": "Your training is added separately from your plan. This is only about work and daily life.",
+      "everyday": {
+        "homeOffice": {
+          "label": "Home office",
+          "description": "Mostly sitting, few steps outside workouts."
+        },
+        "desk": {
+          "label": "Desk job",
+          "description": "Sitting at work, with a commute and some walking."
+        },
+        "moderate": {
+          "label": "Moderately active",
+          "description": "Often on the move: walking, standing, light physical work."
+        },
+        "onFeet": {
+          "label": "On your feet all day",
+          "description": "Standing and walking most of the day, or physical work."
+        }
+      },
+      "protein": "Protein: {{value}} g per kg",
+      "proteinHint": "1.8–2.0 g per kg suits most training while losing weight; you can choose between 1.6 and 2.2.",
+      "fat": "Fat: {{value}} g per kg",
+      "fatHint": "Between 0.8 and 1.0 g per kg; never below 0.6. Carbohydrates are whatever remains, so they rise on training days.",
+      "save": "Save",
+      "saved": "Saved.",
+      "breakdownTitle": "How today's target is built",
+      "resting": "Resting energy",
+      "everydayLine": "Everyday activity",
+      "training": "Planned training today",
+      "deficit": "Deficit for your goal",
+      "surplus": "Surplus for your goal",
+      "total": "Today's target",
+      "kcal": "{{kcal}} kcal",
+      "deviationMore": "You have trained clearly more than planned this week ({{kcal}} kcal). Your target stays as planned – eat a little more if you are hungry.",
+      "deviationLess": "You have trained clearly less than planned this week ({{kcal}} kcal). Your target stays as planned.",
+      "belowFloorBanner": "Your goal pace of {{requested}} kg per week is too fast for a safe intake. Peakr uses {{proposed}} kg per week until you change it.",
+      "fixGoal": "Adjust the goal",
+      "everydayUnset": "Tell Peakr how active your everyday life is – until then a desk job is assumed.",
+      "editSettings": "Energy targets"
     },
     "diary": {
       "add": "Add food",
@@ -2732,14 +2948,6 @@
       "title": "Weekly coach",
       "week": "Looking back on the week of {{date}}",
       "progress": "{{pct}} % of the way to your goal",
-      "numbers": {
-        "trend": "Trend: {{kg}} kg",
-        "intake": "Eaten: {{kcal}} kcal per logged day",
-        "balance": "Balance: {{kcal}} kcal per day (≈ {{kg}} kg fat)",
-        "logged": "Logged {{days}} of 7 days · weighed in on {{weighIns}} days",
-        "training": "Training: {{done}} of {{planned}} sessions"
-      },
-      "wentWell": "What went well",
       "well": {
         "logging": "You logged {{days}} of 7 days – that makes every number here more reliable.",
         "onPace": "Your trend moves at {{rate}} kg per week – right where you planned.",
@@ -2748,9 +2956,8 @@
         "training": "You did {{done}} of {{planned}} planned sessions.",
         "strength": "{{sessions}} strength sessions – good for keeping muscle."
       },
-      "toWatch": "What to watch",
       "watchItem": {
-        "fewLogs": "Only {{days}} days were logged, so the energy numbers are rough.",
+        "fewLogs": "The energy numbers are rough this week – a few more logged days make them sharper.",
         "proteinLow": "Protein averaged {{grams}} g against {{target}} g.",
         "fastPace": "Your trend is falling faster than planned ({{rate}} kg per week).",
         "fastPaceNoRate": "Your trend is falling faster than planned.",
@@ -2782,6 +2989,30 @@
         "title": "Your weekly coach",
         "body": "See how your training affects your weight, energy and body – with clear suggestions each week.",
         "action": "Unlock Peakr Body"
+      },
+      "stats": {
+        "trend": "Weight trend",
+        "tone": {
+          "favourable": "Towards your goal",
+          "unfavourable": "Away from your goal",
+          "neutral": "About the same"
+        },
+        "logged": "Logged",
+        "days": "{{days}} of 7 days",
+        "weighIns_one": "{{count}} weigh-in",
+        "weighIns_other": "{{count}} weigh-ins",
+        "intake": "Eaten per day",
+        "balance": "Balance {{kcal}} kcal",
+        "training": "Training",
+        "sessions": "{{done}} of {{planned}}"
+      },
+      "tone": {
+        "good": "Good sign",
+        "watch": "Keep an eye on"
+      },
+      "thin": {
+        "body": "Log what you eat on three days this week and I can show you a trend.",
+        "action": "Log a meal"
       }
     },
     "profile": {
@@ -2908,7 +3139,8 @@
         "current": "Step 1 of 4",
         "target": "Step 2 of 4",
         "rate": "Step 3 of 4",
-        "summary": "Step 4 of 4"
+        "summary": "Step 4 of 4",
+        "everyday": "Before you start"
       },
       "currentTitle": "Your current weight",
       "fromTrend": "From your weight trend – not a single weigh-in.",
@@ -2982,7 +3214,10 @@
       },
       "keyDays_one": "Your deficit is large for this week’s key session – consider eating more on that day.",
       "keyDays_other": "Your deficit is large for this week’s {{count}} key sessions – consider eating more on those days.",
-      "estimate": "All targets are estimates and adapt as your data grows."
+      "estimate": "All targets are estimates and adapt as your data grows.",
+      "belowFloor": "{{requested}} kg per week would put your days without training below {{kcal}} kcal – the lowest intake Peakr suggests for you. A safe pace for you is {{proposed}} kg per week.",
+      "useProposed": "Use {{rate}} kg per week",
+      "trainingIncluded": "Your planned training is part of your target: the week's total is set on Monday and spread over the days – more on training days, less on rest days."
     },
     "fuelling": {
       "today": "Long session today ({{minutes}} min)",
@@ -3005,13 +3240,13 @@
         "recent": "Recent",
         "favourites": "Favourites",
         "custom": "My foods",
-        "recipes": "Recipes"
+        "recipes": "My recipes"
       },
       "empty": {
         "recent": "Foods you log show up here.",
         "favourites": "Mark foods as favourites to find them here.",
         "custom": "Foods you create show up here.",
-        "recipes": "Recipes you create show up here."
+        "recipes": "Recipes you create show up here – cook once, log it on every day you eat it."
       },
       "createFood": "Create food",
       "createRecipe": "Create recipe",
@@ -3049,17 +3284,7 @@
       "portionName": "Portion name (optional)",
       "portionAmount": "Portion size ({{basis}})",
       "saveFood": "Save food",
-      "recipeName": "Recipe name",
-      "ingredients": "Ingredients",
-      "grams": "Amount",
-      "addIngredient": "Add an ingredient (search your foods)",
-      "totalWeight": "Weight of the finished dish (optional)",
-      "totalWeightHint": "Weigh the cooked dish – cooking changes the weight. Without it the raw weight is used.",
-      "servings": "Servings (optional)",
-      "recipeTotal": "Whole recipe: {{kcal}} kcal, {{weight}} g",
-      "perServing": "One serving: {{grams}} g, {{kcal}} kcal",
-      "serving": "1 serving",
-      "saveRecipe": "Save recipe"
+      "ingredients": "Ingredients"
     },
     "dashboard": {
       "pct": "{{pct}} %",
@@ -3068,7 +3293,9 @@
         "sinceStart": "Since start",
         "bodyFat": "Body fat",
         "waist": "Waist",
-        "goal": "Goal progress"
+        "weekChange": "{{arrow}} {{kg}} kg · last 7 days",
+        "sinceDate": "since {{date}}",
+        "cmChange": "{{arrow}} {{cm}} cm since {{date}}"
       },
       "chart": {
         "title": "Weight trend",
@@ -3098,7 +3325,9 @@
       "measurements": {
         "title": "Measurements since start",
         "empty": "Your measurement trends start with the first check-in.",
-        "change": "{{cm}} cm ({{change}} since {{date}})"
+        "name": "Measurement",
+        "now": "Now",
+        "changeCol": "Change"
       },
       "training": {
         "title": "Training this week",
@@ -3119,6 +3348,252 @@
       "checkIn": "Weigh-ins, body measurements and private progress photos",
       "dashboard": "Trend, fat vs. lean mass and “calculation vs. scale”",
       "coach": "A weekly coach that combines your training with your body data"
+    },
+    "recipes": {
+      "title": "Recipe",
+      "newTitle": "New recipe",
+      "name": "Recipe name",
+      "note": "Note (optional)",
+      "noteHint": "How you cook it, what you vary – only for you.",
+      "photo": "Photo (optional)",
+      "takePhoto": "Take photo",
+      "choosePhoto": "Choose photo",
+      "removePhoto": "Remove photo",
+      "photoPermission": "Peakr needs access to the camera or your photos for this. You can allow it in the system settings.",
+      "ingredients": "Ingredients",
+      "noIngredients": "Add what goes into the pot – search, scan a barcode, pick a favourite or enter it by hand.",
+      "addIngredient": "Add ingredient",
+      "addIngredientTo": "Add an ingredient to the recipe",
+      "addToRecipe": "Add to recipe",
+      "amountOf": "Amount of {{name}}",
+      "countOf": "How many ({{unit}})",
+      "removeIngredient": "Remove",
+      "done": "Done",
+      "portionsLabel": "Portions the dish makes",
+      "portionsFewer": "Fewer portions",
+      "portionsMore": "More portions",
+      "cookedWeight": "Weight of the cooked dish (optional)",
+      "cookedWeightHint": "Weigh the finished pot. Then a portion can be logged by weight – more accurate than counting bowls.",
+      "wholeDishTitle": "Whole dish",
+      "rawWeight": "Ingredients: {{grams}} g raw",
+      "cookedWeightLine": "Cooked: {{grams}} g",
+      "perPortion": "Per portion",
+      "perPortionWeight": "Per portion (≈ {{grams}} g)",
+      "wholeDish_one": "Whole dish: {{portions}} portion · {{kcal}} kcal",
+      "wholeDish_other": "Whole dish: {{portions}} portions · {{kcal}} kcal",
+      "save": "Save recipe",
+      "saveAsNew": "Save as a new recipe",
+      "nameMissing": "Give the recipe a name.",
+      "ingredientsMissing": "Add at least one ingredient.",
+      "loggedTitle": "Already logged",
+      "loggedBody_one": "You logged this recipe once. Logged days keep the values they were logged with unless you choose otherwise.",
+      "loggedBody_other": "You logged this recipe {{count}} times. Logged days keep the values they were logged with unless you choose otherwise.",
+      "keepLogged": "Keep logged days as they are",
+      "updateLogged_one": "Also update the logged entry",
+      "updateLogged_other": "Also update the {{count}} logged entries",
+      "updatedLogged_one": "Saved – 1 logged entry was updated.",
+      "updatedLogged_other": "Saved – {{count}} logged entries were updated.",
+      "portion": "portion",
+      "portions_one": "{{value}} portion",
+      "portions_other": "{{value}} portions",
+      "howMuch": "How much",
+      "portionCount": "Portions",
+      "byPortions": "Portions",
+      "byWeight": "Weight",
+      "grams": "Weight eaten",
+      "gramsHint": "The cooked dish weighed {{grams}} g.",
+      "meal": "Meal",
+      "duplicate": "Duplicate",
+      "copyName": "{{name}} (copy)",
+      "scale": "Scale (\"I cooked double today\")",
+      "scaledHint": "Scaled × {{factor}}: every ingredient, the portions and the cooked weight. A portion stays the same.",
+      "delete": "Delete recipe",
+      "deleteTitle": "Delete this recipe?",
+      "deleteBody": "Days you logged it on keep their entries.",
+      "badge": "Recipe",
+      "perPortionShort": "{{kcal}} kcal / portion",
+      "filterAll": "All",
+      "filterRecipes": "My recipes"
+    }
+  },
+  "planHistory": {
+    "title": "Plan history",
+    "hint": "Every plan you finished or replaced. Done sessions stay in your history and count towards \"All time\".",
+    "empty": "No earlier plans yet",
+    "emptyHint": "When you start a new plan or one runs to its end, it appears here.",
+    "dates": "{{from}} – {{to}}",
+    "sessions": "{{done}} of {{planned}} sessions · {{percent}} %",
+    "outcome": {
+      "completed": "Completed",
+      "finished": "Finished",
+      "replaced": "Replaced early"
+    },
+    "outcomeHint": {
+      "completed": "Ran through all its weeks with at least 80 % of the sessions done.",
+      "finished": "Ran through all its weeks.",
+      "replaced": "You started a new plan before this one ended."
+    },
+    "groups": {
+      "long": "Long sessions",
+      "quality": "Quality sessions",
+      "easy": "Easy sessions",
+      "strength": "Strength"
+    },
+    "groupLine": "{{done}} of {{planned}}",
+    "figures": "{{time}} · {{distance}}",
+    "doneSessions": "Done sessions",
+    "readOnly": "Archived plans are read-only.",
+    "export": "Export plan history (JSON)",
+    "exportFailed": "The export could not be shared.",
+    "undo": {
+      "title": "Changed your mind?",
+      "message": "Until the end of today you can bring back your previous plan, with everything it had. The new plan is discarded.",
+      "action": "Bring back my previous plan",
+      "confirmTitle": "Bring back the previous plan?",
+      "confirmMessage": "The new plan is removed and your previous plan is active again.",
+      "confirm": "Bring it back",
+      "done": "Your previous plan is back."
+    },
+    "badges": {
+      "title": "Badges",
+      "plan": "{{goal}} · {{month}}",
+      "firstPlan": "First plan completed",
+      "firstMultisport": "First multisport plan",
+      "allIn": "All in – 95 % done"
+    },
+    "review": "What your review changed in the next plan"
+  },
+  "planNew": {
+    "title": "Create a new plan",
+    "intro": "Answer the quiz again – your earlier answers are filled in – and Peakr builds the next plan from what you actually did in this one, plus your recent Strava activities.",
+    "current": "Current plan: {{goal}}",
+    "archived": "It is archived when the new plan starts. Your done sessions stay in your history.",
+    "start": "Start",
+    "forecast": {
+      "title": "Your next plan",
+      "hint": "Nothing changes yet. On the next screen you see what happens to your current plan.",
+      "continue": "Continue"
+    },
+    "confirm": {
+      "title": "Start the new plan?",
+      "starts": "Starts {{date}}",
+      "archive": "Your current plan ({{goal}}) is archived",
+      "outcome": {
+        "completed": "It ran through all its weeks with at least 80 % done – it counts as completed.",
+        "finished": "It ran through all its weeks.",
+        "replaced": "It has not ended yet, so it is archived as replaced (not completed)."
+      },
+      "staysTitle": "What stays",
+      "stays": {
+        "sessions": "Every done and skipped session, in Insights and Plan history",
+        "activities": "Your synced activities and routes",
+        "gym": "Gym sessions, routines and records",
+        "body": "Body data"
+      },
+      "goesTitle": "What goes",
+      "goes": {
+        "planned": "Planned sessions from today on",
+        "changes": "Moves and other manual changes in the current plan",
+        "weeks": "Irregular weeks and travel set for the current plan"
+      },
+      "undo": "Changed your mind? Until the end of today you can bring the current plan back in Profile → Plan history.",
+      "action": "Start my new plan",
+      "failed": "The new plan could not be saved. Please try again."
+    },
+    "ended": {
+      "title": "Your plan has ended",
+      "message": "It is in your plan history. Create the next one – it starts from what you did."
+    }
+  },
+  "planReview": {
+    "ask": "How was your last plan?",
+    "skip": "Skip the review",
+    "measured": {
+      "skipped": "Skipped most: {{list}}",
+      "missedWeeks_one": "{{count}} week without any session done",
+      "missedWeeks_other": "{{count}} weeks without any session done",
+      "downgraded_one": "{{count}} hard session the plan made easier (spacing or the 80/20 balance)",
+      "downgraded_other": "{{count}} hard sessions the plan made easier (spacing or the 80/20 balance)",
+      "easyPace": "Easy runs: {{first}} at the start, {{last}} lately (linked activities)",
+      "easyPaceNone": "Easy pace: not enough linked runs to compare",
+      "longEasy": "Long runs in the easy heart-rate band: {{percent}} %",
+      "longEasyNone": "Long runs and heart rate: not enough data"
+    },
+    "questions": {
+      "overall": {
+        "label": "Overall",
+        "tooEasy": "Too easy",
+        "right": "About right",
+        "tooHard": "Too hard"
+      },
+      "long": {
+        "label": "Long sessions",
+        "good": "Went well",
+        "tooLong": "Too long",
+        "tooShort": "Too short"
+      },
+      "quality": {
+        "label": "Hard sessions",
+        "tooLittle": "Too few",
+        "right": "About right",
+        "tooMuch": "Too many"
+      },
+      "time": {
+        "label": "Time per week",
+        "tooMuch": "Too much",
+        "right": "About right",
+        "tooLittle": "Could do more"
+      },
+      "complaints": {
+        "label": "Did you need a break because of pain or discomfort?",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "wishes": {
+        "label": "For the next plan I’d like …",
+        "moreIntervals": "More intervals",
+        "moreVolume": "More easy volume",
+        "moreStrength": "More strength",
+        "fewerDays": "Fewer training days"
+      }
+    },
+    "changesTitle": "What this changes in the next plan",
+    "lines": {
+      "levelsUp": "You did {{percent}} % of your sessions and it felt right – sessions start one level higher.",
+      "levelsHold": "You did {{percent}} % of your sessions – sessions start at the level you reached.",
+      "levelsDownDone": "You did {{percent}} % of your sessions – sessions start one level lower so the plan fits your weeks.",
+      "levelsDownHard": "It felt too hard – sessions start one level lower.",
+      "difficulty": "Difficulty {{from}} → {{to}}",
+      "quality": {
+        "more": "More intervals: VO₂ sessions come every second week instead of every third.",
+        "less": "More easy volume: VO₂ sessions come every fourth week; 80/20 stays."
+      },
+      "strengthFirst": "Strength gets priority in the week.",
+      "strengthChoose": "Choose a strength mode in the quiz to add strength.",
+      "long": {
+        "shorter": "Long sessions start at 90 % of your usual one – never below it.",
+        "longer": "Long sessions start about 10 % longer."
+      },
+      "timeHint": "Set the time you have per day in the availability step of the quiz.",
+      "returnAfterBreak": "After a break for pain or discomfort the plan starts lower on purpose ({{percent}} % of your recent load, one level lower) and builds up again."
+    },
+    "difficultyChoice": "Difficulty",
+    "difficultyTake": "Use {{to}}",
+    "difficultyKeep": "Keep mine",
+    "doctor": "If the pain or discomfort persists, talk to a doctor."
+  },
+  "nutrition": {
+    "soon": {
+      "title": "Food diary and energy targets",
+      "body": "Log food, see today’s energy next to your training, and get targets that follow your plan. This arrives with the Body add-on."
+    }
+  },
+  "bodyTab": {
+    "health": "Health",
+    "tracking": "Weight & body",
+    "soon": {
+      "title": "Weight, measurements and progress photos",
+      "body": "Track your weight trend, body measurements and photos next to your training. This arrives with the Body add-on."
     }
   }
 }

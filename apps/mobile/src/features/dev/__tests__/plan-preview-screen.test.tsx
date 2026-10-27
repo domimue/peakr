@@ -2,7 +2,7 @@ import { workoutLibrary } from '@peakr/engine';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { router } from 'expo-router';
 
-import ProfileScreen from '../../../../app/(tabs)/profile';
+import SettingsScreen from '../../../../app/settings';
 
 import * as repo from '@/data/repositories/plan-repository';
 import { enMessages as en } from '@/i18n/messages';
@@ -50,9 +50,9 @@ describe('dev plan preview', () => {
     expect(screen.getAllByText(/swim\./).length).toBeGreaterThan(0);
   });
 
-  it('is linked from the profile in development builds', async () => {
+  it('is linked from the settings in development builds', async () => {
     const push = jest.spyOn(router, 'push').mockImplementation(() => undefined);
-    await renderWithQuery(<ProfileScreen />);
+    await renderWithQuery(<SettingsScreen />);
     await fireEvent.press(await screen.findByText('Plan preview (dev)'));
     expect(push).toHaveBeenCalledWith('/dev/plan');
   });

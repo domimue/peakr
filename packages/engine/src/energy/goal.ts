@@ -41,25 +41,37 @@ export interface GoalTargetsInput {
   ratePerWeekKg: number;
   /** Maintenance: the adaptive TDEE once there is one, else the formula estimate. */
   tdeeKcal: number;
-  /** Maintenance without workouts (resting + everyday movement + adaptive correction). */
+  /** Maintenance without sport: resting energy × everyday-activity factor (+ adaptive correction). */
   nonExerciseTdeeKcal: number;
   bmrKcal: number;
   sex: BodySex;
   weightKg: number;
   reason?: TargetReason;
+  /** Protein g per kg (1.6–2.2, default 1.9). */
+  proteinGPerKg?: number;
 }
 
 export interface GoalTargets {
-  /** The rate actually used (after the max-rate limit). */
+  /**
+   * `belowFloor`: the chosen rate would push a rest day below max(BMR, 1,200 / 1,500 kcal). The
+   * targets are then those of `proposedRatePerWeekKg` – the fastest rate that keeps the floor – and
+   * the UI says so and offers it. Never a silently clamped number.
+   */
+  status: 'ok' | 'belowFloor';
+  /** The rate asked for (after the max-rate limit). */
+  requestedRatePerWeekKg: number;
+  /** With `belowFloor`: the rate the targets use and the UI proposes. */
+  proposedRatePerWeekKg: number | null;
+  /** The rate the targets use. */
   ratePerWeekKg: number;
-  /** Planned deficit per day (negative = surplus), after the floor. */
+  /** Planned deficit per day (negative = surplus). */
   deficitKcal: number;
   /** TDEE − deficit: the target on an average day. */
   dailyKcal: number;
-  /** Non-exercise TDEE − deficit: the target before workouts are eaten back. */
+  /** Non-exercise TDEE − deficit: a day without training. */
   baseKcal: number;
   floorKcal: number;
-  /** The floor raised the target: a warning is shown, never a lower number. */
+  /** Same as `status === 'belowFloor'` (kept for the existing screens). */
   floorApplied: boolean;
   /** The rate the targets really allow. */
   effectiveRatePerWeekKg: number;
@@ -67,34 +79,46 @@ export interface GoalTargets {
   protein: { gPerKg: number; grams: number };
 }
 
-/** Daily target = TDEE − rate × 7,700 / 7 (surplus for gaining), never below the floor. */
+/** Rates move in 0.05 kg steps; the proposal is the fastest step that keeps the floor. */
+function floorRate(nonExerciseKcal: number, floorKcal: number): number {
+  const room = Math.max(0, nonExerciseKcal - floorKcal);
+  return Math.floor(round2(room / KCAL_PER_KG_PER_DAY / G.rateStep)) * G.rateStep;
+}
+
+/**
+ * Daily target = TDEE − rate × 7,700 / 7 (surplus for gaining). The base (a day without sport)
+ * must stay at or above the floor; if the chosen rate would break it, the result says so and
+ * carries the fastest rate that does not (CLAUDE.md "Weight goal rules").
+ */
 export function goalTargets(input: GoalTargetsInput): GoalTargets {
   const max = maxRateFor(input.kind, input.weightKg);
-  const rate = Math.min(Math.max(0, input.ratePerWeekKg), max);
+  const requested = Math.min(Math.max(0, input.ratePerWeekKg), max);
+  const floorKcal = intakeFloorKcal(input.sex, input.bmrKcal);
+  const nonExercise = Math.round(input.nonExerciseTdeeKcal);
+  const losing = input.kind === 'lose';
+  const belowFloor =
+    losing && nonExercise - Math.round(requested * KCAL_PER_KG_PER_DAY) < floorKcal;
+  const rate = belowFloor ? round2(floorRate(nonExercise, floorKcal)) : requested;
   const sign = input.kind === 'gain' ? 1 : -1;
   const perDay = Math.round(rate * KCAL_PER_KG_PER_DAY);
-  const floorKcal = intakeFloorKcal(input.sex, input.bmrKcal);
-  const baseWanted = Math.round(input.nonExerciseTdeeKcal) + sign * perDay;
-  const baseKcal = Math.max(baseWanted, floorKcal);
-  const floorApplied = baseWanted < floorKcal;
-  const deficitKcal = Math.round(input.nonExerciseTdeeKcal) - baseKcal;
+  // At the maintenance base itself below the floor (very small BMR), the floor still decides.
+  const baseKcal = Math.max(nonExercise + sign * perDay, losing ? floorKcal : 0);
+  const deficitKcal = nonExercise - baseKcal;
   const dailyKcal = Math.max(Math.round(input.tdeeKcal) - deficitKcal, floorKcal);
-  const clamped = (input.kind !== 'maintain' && rate < input.ratePerWeekKg) || floorApplied;
+  const clamped = (input.kind !== 'maintain' && requested < input.ratePerWeekKg) || belowFloor;
   return {
+    status: belowFloor ? 'belowFloor' : 'ok',
+    requestedRatePerWeekKg: round2(requested),
+    proposedRatePerWeekKg: belowFloor ? rate : null,
     ratePerWeekKg: round2(rate),
     deficitKcal,
     dailyKcal,
     baseKcal,
     floorKcal,
-    floorApplied,
+    floorApplied: belowFloor,
     effectiveRatePerWeekKg: round2(Math.abs(deficitKcal) / KCAL_PER_KG_PER_DAY),
     reason: clamped ? 'safety_clamp' : (input.reason ?? 'user'),
-    protein: proteinForGoal({
-      weightKg: input.weightKg,
-      deficitKcal,
-      tdeeKcal: input.tdeeKcal,
-      kind: input.kind,
-    }),
+    protein: proteinForGoal({ weightKg: input.weightKg, gPerKg: input.proteinGPerKg }),
   };
 }
 
@@ -117,6 +141,8 @@ export function ratePresets(input: {
   kind: 'lose' | 'gain';
   weightKg: number;
   tdeeKcal: number;
+  /** Maintenance without sport (the floor is checked on it); default: `tdeeKcal`. */
+  nonExerciseTdeeKcal?: number;
   bmrKcal: number;
   sex: BodySex;
 }): RatePreset[] {
@@ -126,7 +152,7 @@ export function ratePresets(input: {
     const t = goalTargets({
       ...input,
       ratePerWeekKg: rate,
-      nonExerciseTdeeKcal: input.tdeeKcal,
+      nonExerciseTdeeKcal: input.nonExerciseTdeeKcal ?? input.tdeeKcal,
     });
     return {
       key: key as PresetKey,
@@ -140,35 +166,23 @@ export function ratePresets(input: {
   });
 }
 
-/** A day's target: the base plus the chosen share of the day's workout energy (default 50 %). */
-export function dayTarget(input: {
-  baseKcal: number;
-  workoutKcal: number;
-  eatBackPct?: number;
-}): number {
-  const pct = Math.min(100, Math.max(0, input.eatBackPct ?? G.eatBackPct));
-  return Math.round(input.baseKcal + (Math.max(0, input.workoutKcal) * pct) / 100);
-}
-
 /**
- * Weekly mode: the same weekly total as eating back day by day, spread by each day's energy need
- * (non-exercise TDEE + planned workout energy) – more on training days, less on rest days, no day
- * below the floor. The days add up exactly to the total.
+ * The week's targets (CLAUDE.md "Energy & body rules"): the total is fixed on Monday –
+ * 7 × (base) + the week's planned training – and spread over the days by each day's energy need
+ * (non-exercise TDEE + that day's planned training): more on training days, less on rest days, no
+ * day below the floor. The days add up exactly to the total. It changes when the plan changes,
+ * not with every synced session.
  */
 export function weeklyPlan(input: {
   baseKcal: number;
   nonExerciseKcal: number;
   /** Planned workout energy per day of the week (7 values). */
   plannedWorkoutKcal: readonly number[];
-  eatBackPct?: number;
   floorKcal: number;
 }): { totalKcal: number; days: number[] } {
-  const totalKcal = input.plannedWorkoutKcal.reduce(
-    (s, w) =>
-      s + dayTarget({ baseKcal: input.baseKcal, workoutKcal: w, eatBackPct: input.eatBackPct }),
-    0,
-  );
-  const need = input.plannedWorkoutKcal.map((w) => input.nonExerciseKcal + Math.max(0, w));
+  const planned = input.plannedWorkoutKcal.map((w) => Math.max(0, w));
+  const totalKcal = Math.round(7 * input.baseKcal + planned.reduce((a, b) => a + b, 0));
+  const need = planned.map((w) => input.nonExerciseKcal + w);
   const floored = new Set<number>();
   let raw: number[] = [];
   // Days that would fall under the floor get the floor; the rest share what is left.
@@ -187,20 +201,56 @@ export function weeklyPlan(input: {
   return { totalKcal, days };
 }
 
-/** Protein: 1.6 g/kg, rising to 2.2 g/kg as the deficit grows (to 25 % of TDEE). */
-export function proteinForGoal(input: {
-  weightKg: number;
-  deficitKcal: number;
-  tdeeKcal: number;
-  kind: WeightGoalKind;
-}): { gPerKg: number; grams: number } {
-  const { min, max } = G.proteinGPerKg;
-  let gPerKg = G.proteinBaseGPerKg;
-  if (input.kind === 'lose' && input.deficitKcal > 0) {
-    const share = Math.min(1, input.deficitKcal / (input.tdeeKcal * G.proteinFullDeficitShare));
-    gPerKg = Math.round((min + (max - min) * share) * 10) / 10;
-  }
+/** Protein per kg body weight, 1.8–2.0 by default (1.9), configurable within 1.6–2.2. */
+export function proteinForGoal(input: { weightKg: number; gPerKg?: number }): {
+  gPerKg: number;
+  grams: number;
+} {
+  const { min, max, default: d } = C.macros.proteinGPerKg;
+  const gPerKg = Math.round(Math.min(max, Math.max(min, input.gPerKg ?? d)) * 10) / 10;
   return { gPerKg, grams: Math.round(gPerKg * input.weightKg) };
+}
+
+/**
+ * Actual training of the week so far against the plan: a hint when it is clearly off (±25 % and
+ * at least 200 kcal). The target itself is not rewritten.
+ */
+export function trainingDeviation(input: { plannedSoFarKcal: number; actualSoFarKcal: number }): {
+  hint: 'more' | 'less' | null;
+  differenceKcal: number;
+} {
+  const t = C.trainingDeviation;
+  const diff = Math.round(input.actualSoFarKcal - input.plannedSoFarKcal);
+  const off = Math.abs(diff) >= t.minKcal && Math.abs(diff) > input.plannedSoFarKcal * t.share;
+  return { hint: off ? (diff > 0 ? 'more' : 'less') : null, differenceKcal: diff };
+}
+
+/** How today's target is built: resting + everyday + today's planned training − deficit. */
+export interface TargetBreakdown {
+  restingKcal: number;
+  everydayKcal: number;
+  trainingKcal: number;
+  /** Today's share of the week's deficit (negative = surplus). */
+  deficitKcal: number;
+  totalKcal: number;
+}
+
+export function targetBreakdown(input: {
+  restingKcal: number;
+  nonExerciseKcal: number;
+  todayPlannedKcal: number;
+  todayKcal: number;
+}): TargetBreakdown {
+  const restingKcal = Math.round(input.restingKcal);
+  const everydayKcal = Math.round(input.nonExerciseKcal) - restingKcal;
+  const trainingKcal = Math.round(Math.max(0, input.todayPlannedKcal));
+  return {
+    restingKcal,
+    everydayKcal,
+    trainingKcal,
+    deficitKcal: restingKcal + everydayKcal + trainingKcal - input.todayKcal,
+    totalKcal: input.todayKcal,
+  };
 }
 
 /** Trend change per week over the last `maxDays` (robust slope), or null below `minDays`. */
@@ -407,17 +457,31 @@ export function weekLoadContext(
 /** Maintenance for the goal: the adaptive TDEE once there is one, else the formula estimate. */
 export interface EnergyBasis {
   tdeeKcal: number;
-  /** Without workouts: resting + everyday movement (+ the adaptive correction). */
+  /** Without sport: resting × everyday-activity factor (+ the adaptive correction). */
   nonExerciseKcal: number;
   bmrKcal: number;
+  /** The everyday-activity factor used. */
+  everydayFactor: number;
   source: 'adaptive' | 'formula';
 }
 
-/** Averages of the last 14 days before today (formula), corrected by the adaptive estimate. */
+/** The everyday-activity factor of a level; unknown levels fall back to the default. */
+export function everydayFactor(level: string | null | undefined): number {
+  const table = C.everydayActivity as Record<string, number>;
+  return (level ? table[level] : undefined) ?? C.everydayActivity[C.defaultEverydayActivity];
+}
+
+/**
+ * The goal's basis from the last 14 days before today: resting energy (by source priority) ×
+ * the everyday-activity factor is the stable base – steps and wearable day totals do not move it
+ * (they stay in the day's energy model and in the adaptive estimate, which corrects it).
+ */
 export function energyBasis(input: {
   days: readonly ModelDayLike[];
   today: string;
   adaptive: AdaptiveResult;
+  /** `C.everydayActivity` key, as the person answered. */
+  everydayActivity?: string | null;
 }): EnergyBasis | null {
   const recent = input.days.filter(
     (d) => d.day < input.today && daysBetween(d.day, input.today) <= 14,
@@ -426,7 +490,8 @@ export function energyBasis(input: {
   if (pool.length === 0) return null;
   const avg = (f: (d: ModelDayLike) => number) => pool.reduce((s, d) => s + f(d), 0) / pool.length;
   const bmr = avg((d) => d.restingKcal);
-  const nonExercise = avg((d) => d.restingKcal + d.active.neatKcal);
+  const factor = everydayFactor(input.everydayActivity);
+  const nonExercise = bmr * factor;
   const formula = avg((d) => d.restingKcal + d.activeKcal);
   if (input.adaptive.status === 'ok') {
     const correction = input.adaptive.estimate.correctionKcal;
@@ -434,36 +499,44 @@ export function energyBasis(input: {
       tdeeKcal: input.adaptive.estimate.tdeeKcal,
       nonExerciseKcal: Math.round(nonExercise + correction),
       bmrKcal: Math.round(bmr),
+      everydayFactor: factor,
       source: 'adaptive',
     };
   }
   return {
-    tdeeKcal: Math.round(formula),
+    tdeeKcal: Math.round(Math.max(formula, nonExercise)),
     nonExerciseKcal: Math.round(nonExercise),
     bmrKcal: Math.round(bmr),
+    everydayFactor: factor,
     source: 'formula',
   };
 }
 
-type ModelDayLike = Pick<ModelDay, 'day' | 'restingKcal' | 'activeKcal' | 'active'>;
+type ModelDayLike = Pick<ModelDay, 'day' | 'restingKcal' | 'activeKcal'>;
 
 export interface GoalSettings {
   kind: WeightGoalKind;
   targetWeightKg: number | null;
   ratePerWeekKg: number;
-  eatBackPct: number;
-  weeklyMode: boolean;
+  /** @deprecated No effect: planned training is always part of the week's target. */
+  eatBackPct?: number;
+  /** @deprecated No effect: the week's total is always spread by the plan. */
+  weeklyMode?: boolean;
   /** Accepted check-in suggestions (kcal/day). */
   adjustmentKcal: number;
 }
 
 export interface GoalSnapshot {
   targets: GoalTargets;
-  /** Today's target: base + eaten-back workouts (daily mode) or today's share (weekly mode). */
+  /** Today's share of the week's total (fixed on Monday, spread by the plan). */
   todayKcal: number;
-  /** What today's workouts add on top of the base ("Your ride today: +420 kcal"). */
+  /** What today's planned training adds on top of the base ("Your ride today: +420 kcal"). */
   addedBackKcal: number;
-  weekly: { totalKcal: number; days: number[] } | null;
+  weekly: { totalKcal: number; days: number[] };
+  /** How today's target is built. */
+  breakdown: TargetBreakdown;
+  /** Actual training this week clearly off the plan: a hint, the target stays. */
+  deviation: ReturnType<typeof trainingDeviation>;
   forecast: GoalForecast;
   checkIn: ReturnType<typeof weeklyCheckIn> | null;
   plateau: ReturnType<typeof detectPlateau>;
@@ -478,14 +551,17 @@ export function goalSnapshot(input: {
   basis: EnergyBasis;
   sex: BodySex;
   trendKg: number;
-  todayWorkoutKcal: number;
   /** Planned workout energy Monday … Sunday of this week. */
   plannedWeekKcal: readonly number[];
+  /** Completed workout energy of this week up to today (for the deviation hint). */
+  actualWeekKcalSoFar?: number;
   /** 0 = Monday. */
   weekdayIndex: number;
   trend: readonly TrendPoint[];
   days: readonly EnergyDay[];
   today: string;
+  /** Protein g per kg (default 1.9). */
+  proteinGPerKg?: number;
   week: {
     weekLoad: number;
     typicalWeekLoad: number;
@@ -503,33 +579,42 @@ export function goalSnapshot(input: {
     bmrKcal: basis.bmrKcal,
     sex: input.sex,
     weightKg: input.trendKg,
+    ...(input.proteinGPerKg !== undefined ? { proteinGPerKg: input.proteinGPerKg } : {}),
   });
   // An accepted suggestion moves the targets; the floor still holds.
   const adjust = (kcal: number) => Math.max(raw.floorKcal, kcal + goal.adjustmentKcal);
   const targets = { ...raw, baseKcal: adjust(raw.baseKcal), dailyKcal: adjust(raw.dailyKcal) };
-  const weekly = goal.weeklyMode
-    ? weeklyPlan({
-        baseKcal: targets.baseKcal,
-        nonExerciseKcal: basis.nonExerciseKcal,
-        plannedWorkoutKcal: input.plannedWeekKcal,
-        eatBackPct: goal.eatBackPct,
-        floorKcal: targets.floorKcal,
-      })
-    : null;
-  const todayKcal = weekly
-    ? (weekly.days[input.weekdayIndex] as number)
-    : dayTarget({
-        baseKcal: targets.baseKcal,
-        workoutKcal: input.todayWorkoutKcal,
-        eatBackPct: goal.eatBackPct,
-      });
+  const weekly = weeklyPlan({
+    baseKcal: targets.baseKcal,
+    nonExerciseKcal: basis.nonExerciseKcal,
+    plannedWorkoutKcal: input.plannedWeekKcal,
+    floorKcal: targets.floorKcal,
+  });
+  const todayKcal = weekly.days[input.weekdayIndex] as number;
+  const todayPlanned = Math.max(0, input.plannedWeekKcal[input.weekdayIndex] as number);
+  const plannedSoFar = input.plannedWeekKcal
+    .slice(0, input.weekdayIndex + 1)
+    .reduce((a, b) => a + Math.max(0, b), 0);
   const target = goal.targetWeightKg ?? input.trendKg;
   const reached = targetReached({ kind: goal.kind, targetKg: target, trendKg: input.trendKg });
   return {
     targets,
     todayKcal,
-    addedBackKcal: Math.max(0, todayKcal - targets.baseKcal),
+    addedBackKcal: todayPlanned,
     weekly,
+    breakdown: targetBreakdown({
+      restingKcal: basis.bmrKcal,
+      nonExerciseKcal: basis.nonExerciseKcal,
+      todayPlannedKcal: todayPlanned,
+      todayKcal,
+    }),
+    deviation:
+      input.actualWeekKcalSoFar === undefined
+        ? { hint: null, differenceKcal: 0 }
+        : trainingDeviation({
+            plannedSoFarKcal: plannedSoFar,
+            actualSoFarKcal: input.actualWeekKcalSoFar,
+          }),
     forecast: goalForecast({
       kind: goal.kind,
       startKg: input.trendKg,

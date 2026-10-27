@@ -1,4 +1,13 @@
-import type { Derived, Experience, HrZoneInput, Sport } from '@peakr/engine';
+import {
+  calibrateProfile,
+  startFloors,
+  type BaselineResult,
+  type BaselineOverrides,
+  type Derived,
+  type Experience,
+  type HrZoneInput,
+  type Sport,
+} from '@peakr/engine';
 import { prepareAnswers, QUESTION_IDS, sportsOf } from '@peakr/quiz';
 import { router } from 'expo-router';
 import { useEffect, useMemo, useState } from 'react';
@@ -129,8 +138,19 @@ export function BaselineSummaryScreen({ flow }: { flow: BaselineFlow }) {
             />
             <EditableValue
               label={t('baseline.summary.longSession')}
+              hint={
+                s.volume.status === 'ok'
+                  ? s.volume.value.longSessions > 0
+                    ? t('baseline.summary.longSessionFrom', { count: s.volume.value.longSessions })
+                    : t('baseline.summary.longSessionFallback')
+                  : undefined
+              }
               derived={s.volume.status === 'ok' && s.volume.value.longMin > 0 ? s.volume : null}
-              derivedText={(v) => t('baseline.summary.minutes', { value: v.longMin })}
+              derivedText={(v) =>
+                v.longKm === null
+                  ? t('baseline.summary.minutes', { value: v.longMin })
+                  : t('baseline.summary.longSessionValue', { minutes: v.longMin, km: v.longKm })
+              }
               own={o.longMin?.[s.sport]}
               ownText={(v) => t('baseline.summary.minutes', { value: v })}
               placeholder="60"
@@ -142,8 +162,30 @@ export function BaselineSummaryScreen({ flow }: { flow: BaselineFlow }) {
                 set('longMin', Object.keys(longMin).length > 0 ? longMin : undefined);
               }}
             />
+            <EditableValue
+              label={t('baseline.summary.weeklyStart')}
+              derived={s.volume.status === 'ok' ? s.volume : null}
+              derivedText={(v) =>
+                t('baseline.summary.weeklyStartValue', {
+                  minutes: v.recentWeeklyMin,
+                  km: v.recentWeeklyKm,
+                })
+              }
+              own={o.weeklyMin?.[s.sport]}
+              ownText={(v) => t('baseline.summary.minutes', { value: v })}
+              placeholder="150"
+              parse={parseWhole}
+              onSave={(v) => {
+                const weeklyMin = { ...o.weeklyMin };
+                if (v === undefined) delete weeklyMin[s.sport];
+                else weeklyMin[s.sport] = v;
+                set('weeklyMin', Object.keys(weeklyMin).length > 0 ? weeklyMin : undefined);
+              }}
+            />
           </Card>
         ))}
+
+      <PlanStart result={result} overrides={o} ctx={ctx} />
 
       <Card>
         <Text variant="heading">{t('baseline.summary.paces')}</Text>
@@ -238,6 +280,73 @@ export function BaselineSummaryScreen({ flow }: { flow: BaselineFlow }) {
         onPress={done}
       />
     </Screen>
+  );
+}
+
+/**
+ * The values the plan actually starts from (CLAUDE.md "Baseline"): the engine's floors computed
+ * from these numbers, so a wrong starting point is visible before the plan is built.
+ */
+function PlanStart({
+  result,
+  overrides,
+  ctx,
+}: {
+  result: BaselineResult;
+  overrides: BaselineOverrides;
+  ctx: Context;
+}) {
+  const { t } = useTranslation();
+  const floors = startFloors(
+    calibrateProfile(
+      {
+        age: ctx.age ?? 40,
+        experience: 'intermediate',
+        sports: [...ctx.sports],
+        terrain: 'rolling',
+        strength: { mode: 'none' },
+      },
+      result,
+      overrides,
+    ),
+  );
+  const sports = ctx.sports.filter(
+    (s) => floors.longMin[s] !== undefined || floors.weeklyMin[s] !== undefined,
+  );
+  if (sports.length === 0) return null;
+  return (
+    <Card testID="baseline-plan-start">
+      <Text variant="heading">{t('baseline.summary.startsWith')}</Text>
+      {sports.map((sport) => {
+        const long = floors.longMin[sport];
+        const volume = result.sports.find((x) => x.sport === sport)?.volume;
+        const derived = volume?.status === 'ok' ? volume.value : null;
+        // Distance of the floor from the typical long session's pace (a typed duration has none).
+        const km =
+          long !== undefined && derived?.longKm && overrides.longMin?.[sport] === undefined
+            ? Math.round(((derived.longKm * long) / derived.longMin) * 10) / 10
+            : null;
+        const weekly = floors.weeklyMin[sport];
+        return (
+          <View key={sport} style={styles.startRow}>
+            <Text style={styles.label}>{t(`activities.sport.${sport}`)}</Text>
+            {long !== undefined ? (
+              <Text>
+                {km === null
+                  ? t('baseline.summary.startsWithLongNoKm', { minutes: long })
+                  : t('baseline.summary.startsWithLong', { minutes: long, km })}
+              </Text>
+            ) : null}
+            {weekly !== undefined ? (
+              <Text>{t('baseline.summary.startsWithVolume', { minutes: weekly })}</Text>
+            ) : null}
+          </View>
+        );
+      })}
+      <Text variant="caption" tone="secondary">
+        {t('baseline.summary.startsWithHint')}
+      </Text>
+    </Card>
   );
 }
 
@@ -359,4 +468,5 @@ const styles = StyleSheet.create({
   value: { gap: spacing.xs },
   edit: { gap: spacing.sm },
   buttons: { flexDirection: 'row', gap: spacing.sm, flexWrap: 'wrap' },
+  startRow: { gap: spacing.xs },
 });

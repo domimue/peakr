@@ -37,8 +37,19 @@ export interface SportVolume {
   weeklyKm: number;
   sessionsPerWeek: number;
   longestMin: number;
-  /** Typical longest session per week: the starting long session. */
+  /**
+   * Typical long session (the plan's starting long session): the median of this person's long
+   * sessions (`classifyBaseline`) of the last six weeks; without any, the median longest session
+   * per week.
+   */
   longMin: number;
+  /** Distance of the typical long session (null without distances, e.g. trainer rides). */
+  longKm: number | null;
+  /** How many long sessions `longMin` comes from (0 = fallback to the longest per week). */
+  longSessions: number;
+  /** Plain mean of the last four full weeks – the week-1 volume floor. */
+  recentWeeklyMin: number;
+  recentWeeklyKm: number;
 }
 
 export interface SportBaseline {

@@ -30,6 +30,7 @@ import {
   useIncompleteDays,
   useSetDayIncomplete,
 } from '../queries';
+import { TargetBreakdown } from './target-breakdown';
 
 const shift = (iso: string, days: number) => {
   const d = new Date(`${iso}T00:00:00Z`);
@@ -145,6 +146,7 @@ export function DiarySection({ guard }: { guard: AddonGuard }) {
                 {t('bodyAddon.energy.floor')}
               </Text>
             ) : null}
+            <TargetBreakdown model={model} />
             {model.today.intakeSource && model.today.intakeSource !== 'manual' ? (
               <Text variant="caption" tone="secondary">
                 {t('bodyAddon.energy.intakeFrom', {

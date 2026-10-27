@@ -11,6 +11,15 @@ export {
   type HrZoneMethod,
   type HrZoneResult,
 } from './hr';
+export {
+  bandAnchor,
+  prescriptionBands,
+  ZONE_INTENSITY,
+  type BandAnchor,
+  type HrAnchors,
+  type Intensity5,
+  type PrescriptionBand,
+} from './intensity';
 export type { Range, Result, ValidationCode, ValidationIssue } from './result';
 export {
   analyzeRaceResult,
@@ -37,6 +46,38 @@ export * from './body';
 export { paceZonesFromBoundaries, ZONE_NUMBERS, type PaceZone, type ZoneNumber } from './zones';
 export { planConfig, type PlanConfig } from './plan/config';
 export { generatePlan, type PlanContinuation, type PlanField } from './plan/generate';
+export {
+  planBadges,
+  planEnded,
+  planOutcome,
+  planSummary,
+  summaryGroup,
+  type Badge,
+  type BadgeKind,
+  type GroupCount,
+  type PlanOutcome,
+  type PlanSummary,
+  type SummaryGroup,
+} from './plan/outcome';
+export { historyBaseline, withHistoryBaseline } from './plan/history-baseline';
+export {
+  applyReview,
+  planReview,
+  reviewAdjustments,
+  type LinkedActivityFacts,
+  type PlanReview,
+  type ReviewAnswers,
+  type ReviewChanges,
+  type ReviewWish,
+} from './plan/review';
+export { checkStartFloors, startFloors, type FloorBreach, type StartFloors } from './plan/floors';
+export { difficultyFactor, difficultyGrowth, difficultyLevel } from './plan/difficulty';
+export {
+  planOutlook,
+  previewDifficulty,
+  type DifficultyChange,
+  type PlanOutlook,
+} from './plan/difficulty-preview';
 export {
   activePause,
   activeTravel,
@@ -192,10 +233,12 @@ export {
   workoutKm,
   type HistoryEntry,
   type HistoryMonth,
+  type HistorySource,
   type Performance,
   type PerformanceWeek,
   type PersonalBests,
   type ProgressSegment,
+  type SportVolume,
   type Totals,
   type WeekProgress,
   type WeekTag,
@@ -211,10 +254,13 @@ export {
   isHardActivity,
   isSameActivity,
   matchActivities,
+  matchScore,
   type Activity,
   type ActivityLink,
   type ActivitySource,
   type ImportedSport,
+  type MatchQuestion,
+  type WorkoutCandidate,
   type MatchResult,
   type SourceActivity,
   type SourceRef,

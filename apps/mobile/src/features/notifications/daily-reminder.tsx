@@ -9,6 +9,7 @@ import { selectAccountUserId, useSessionStore } from '@/features/auth/session-st
 
 import { usePlan } from '../plan/queries';
 import { useForecast, useWeatherSettings } from '../weather/queries';
+import { CONGRATS_TYPE } from './congrats';
 import { askNotificationPermission, ensureReminderChannel } from './permission';
 import { useReminderSettings } from './queries';
 import { reminderDays } from './reminder-days';
@@ -92,7 +93,7 @@ export function DailyReminder() {
       const data = response.notification.request.content.data as
         { type?: string; workoutId?: string } | undefined;
       if (
-        (data?.type === TYPE || data?.type === LEGACY_TYPE) &&
+        (data?.type === TYPE || data?.type === LEGACY_TYPE || data?.type === CONGRATS_TYPE) &&
         typeof data.workoutId === 'string'
       ) {
         router.push(`/training/workout/${encodeURIComponent(data.workoutId)}`);

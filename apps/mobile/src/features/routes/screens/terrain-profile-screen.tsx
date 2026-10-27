@@ -7,7 +7,7 @@ import { StyleSheet, View } from 'react-native';
 import { todayIso } from '@/data/ids';
 import { useActivityRecords } from '@/features/activities/queries';
 import { usePlan, usePlanActions } from '@/features/plan/queries';
-import { Button, Card, ListState, Screen, spacing, StatTile, Text } from '@/ui';
+import { Button, Card, ListState, Screen, spacing, StatTile, TileGrid, Text } from '@/ui';
 
 import { HomeStartCard } from '../components/home-start-card';
 import { useStreams } from '../queries';
@@ -83,7 +83,7 @@ export function TerrainProfileScreen() {
           <Text variant="caption" tone="secondary">
             {t('terrainProfile.basis', { count: learned.activities })}
           </Text>
-          <View style={styles.tiles}>
+          <TileGrid>
             {learned.sports.map((s) => (
               <StatTile
                 key={s.sport}
@@ -91,7 +91,7 @@ export function TerrainProfileScreen() {
                 label={`${t(`routes.sport.${s.sport}`)} · ${t(`routes.terrain.${s.terrain}`)}`}
               />
             ))}
-          </View>
+          </TileGrid>
           {learned.climbs.length > 0 ? (
             <Card>
               <Text variant="label" accessibilityRole="header">
@@ -128,5 +128,4 @@ export function TerrainProfileScreen() {
 
 const styles = StyleSheet.create({
   gap: { gap: spacing.md },
-  tiles: { flexDirection: 'row', gap: spacing.sm },
 });

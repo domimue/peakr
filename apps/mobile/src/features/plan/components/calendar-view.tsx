@@ -20,6 +20,7 @@ import { useUnits } from '@/features/settings/units';
 
 import { addDays, formatDate, initialWeek } from '../calendar';
 import { MoveFeedbackCard } from './move-feedback';
+import { SportVolumeLines, volumeLine } from './sport-volume';
 import { WeekView } from './week-view';
 import { issueText } from '../issue-text';
 import { usePlanUiStore } from '../plan-ui-store';
@@ -199,14 +200,15 @@ function WeekSection({
   children,
 }: WeekSectionProps) {
   const { t, i18n } = useTranslation();
-  const { distance } = useUnits();
+  const { units } = useUnits();
   const { colors } = useTheme();
   const p = weekProgress(state, week, input.profile);
   const tags = weekTags(week, input, targetDate);
   const date = (iso: string) => formatDate(iso, i18n.language, { day: 'numeric', month: 'short' });
+  // Time is the week's total; distances per sport, never added up across sports.
   const totals = [
     t('workoutText.minutesRange', { min: p.minMin, max: p.maxMin }),
-    p.kmPlanned > 0 ? distance(p.kmPlanned, 0) : null,
+    volumeLine(t, units, p) || null,
   ]
     .filter(Boolean)
     .join(' · ');
@@ -226,7 +228,7 @@ function WeekSection({
           accessible
           accessibilityLabel={t('calendar.weekTotal', { value: totals })}
         >
-          <Text variant="label">{totals}</Text>
+          <SportVolumeLines progress={p} testID={`calendar-volume-${week.index}`} />
         </View>
       </View>
       {tags.length > 0 ? (

@@ -17,7 +17,7 @@ const clock = (hour: number) => `${String(hour).padStart(2, '0')}:00`;
 
 /**
  * Profile → Weather check: on/off, which location, the usual training time (the plan has no time
- * of day). Weather hints go into the daily reminder (Profile → Notifications). The location
+ * of day). Weather hints go into the daily reminder (Settings → Notifications). The location
  * permission is asked only when the check is turned on with "current location"; without it the
  * home start point is used.
  */

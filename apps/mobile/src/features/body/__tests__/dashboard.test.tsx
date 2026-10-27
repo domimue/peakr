@@ -19,6 +19,7 @@ import { PaywallScreen } from '@/features/paywall/paywall-screen';
 import { renderWithQuery } from '@/test-utils/render-with-query';
 
 import { BodyScreen } from '../screens/body-screen';
+import { NutritionScreen } from '../screens/nutrition-screen';
 
 jest.mock('expo-router', () => {
   const { Text: RNText } = jest.requireActual('react-native');
@@ -212,13 +213,14 @@ describe('Body dashboard', () => {
     billing('active');
     seed();
     storePlan();
-    await render(<BodyScreen initial="progress" />);
+    await render(<BodyScreen />);
     expect(await screen.findByTestId('body-kpis')).toBeOnTheScreen();
     expect(screen.getByTestId('kpi-trend')).toHaveTextContent(/\d+(\.\d)? kg/);
     expect(screen.getByTestId('kpi-start')).toHaveTextContent(/-\d/);
-    expect(screen.getByTestId('kpi-fat')).toHaveTextContent(/^20\.5 %/);
-    expect(screen.getByTestId('kpi-waist')).toHaveTextContent(/^89\.5 cm/);
-    expect(screen.getByTestId('kpi-goal')).toHaveTextContent(/\d+ %/);
+    expect(screen.getByTestId('kpi-fat')).toHaveTextContent(/^Body fat20\.5 %/);
+    // Label, value, the change with its direction in words and arrow – not in colour alone.
+    expect(screen.getByTestId('kpi-waist')).toHaveTextContent(/^Waist89\.5 cm▼ 2\.5 cm since/);
+    expect(screen.getByTestId('goal-progress')).toHaveTextContent(/% of the way to your goal/);
 
     expect(screen.getByTestId('body-trend-chart')).toBeOnTheScreen();
     expect(screen.getByText('At your chosen rate')).toBeOnTheScreen();
@@ -229,8 +231,9 @@ describe('Body dashboard', () => {
     expect(screen.getByTestId('body-composition')).toHaveTextContent(/estimate/i);
     expect(screen.getByTestId('body-indices')).toHaveTextContent(/BMI/);
     expect(screen.getByTestId('body-indices')).toHaveTextContent(/0\.5/);
-    expect(screen.getByTestId('body-measurements')).toHaveTextContent(
-      /Waist \(narrowest\)89\.5 cm \(-2\.5 since/,
+    expect(screen.getByTestId('measurements-table')).toHaveTextContent(/^MeasurementNowChange/);
+    expect(screen.getByTestId('measurement-waist')).toHaveTextContent(
+      /^Waist \(narrowest\)89\.5 cm-2\.5 cm$/,
     );
     expect(screen.getByTestId('body-training')).toHaveTextContent(/Runs\d of \d/);
   });
@@ -239,12 +242,18 @@ describe('Body dashboard', () => {
     billing('active');
     seed();
     storePlan();
-    await render(<BodyScreen initial="progress" />);
+    await render(<NutritionScreen />);
     const coach = await screen.findByTestId('body-coach');
     expect(coach).toHaveTextContent(/Looking back on the week of Oct 19/);
-    expect(screen.getByTestId('coach-progress')).toHaveTextContent(/% of the way to your goal/);
-    expect(screen.getByTestId('coach-numbers')).toHaveTextContent(/Logged 7 of 7 days/);
-    expect(screen.getByTestId('coach-well')).toHaveTextContent(/You logged 7 of 7 days/);
+    expect(screen.queryByTestId('coach-thin')).toBeNull();
+    expect(screen.getByTestId('coach-numbers')).toHaveTextContent(/Logged7 of 7 days/);
+    expect(screen.getByTestId('coach-numbers')).toHaveTextContent(/Towards your goal/);
+    const takeaways = screen.getByTestId('coach-takeaways');
+    expect(takeaways).toHaveTextContent(/You logged 7 of 7 days/);
+    expect(takeaways.children.length).toBeLessThanOrEqual(3);
+    // The suggestions are folded away until opened.
+    expect(screen.queryByTestId('coach-adjustments')).toBeNull();
+    await fireEvent.press(screen.getByTestId('coach-toggle'));
     // 120 g against the goal's protein target (≥ 1.6 g/kg) → protein is the suggestion.
     expect(screen.getByTestId('coach-adjustments')).toHaveTextContent(/g protein a day/);
     expect(coach).toHaveTextContent(/nothing changes until you accept it/);
@@ -263,8 +272,9 @@ describe('Body dashboard', () => {
       note: null,
       createdAt: '',
     }));
-    await render(<BodyScreen initial="progress" />);
+    await render(<NutritionScreen />);
     await screen.findByTestId('body-coach');
+    await fireEvent.press(screen.getByTestId('coach-toggle'));
     expect(screen.getByTestId('coach-hint-tooFastLoss')).toBeOnTheScreen();
     expect(body.store.goals).toHaveLength(1);
     await fireEvent.press(screen.getByTestId('coach-apply-kcal'));
@@ -277,10 +287,25 @@ describe('Body dashboard', () => {
   it('with little data: says so instead of guessing', async () => {
     billing('active');
     body.store.profile = { sex: 'female', birthDate: '1992-01-01', heightCm: 166, weightKg: 62 };
-    await render(<BodyScreen initial="progress" />);
-    expect(await screen.findByTestId('coach-hint-incompleteData')).toBeOnTheScreen();
-    expect(screen.getByTestId('body-measurements')).toHaveTextContent(/start with the first/);
-    expect(screen.getByTestId('kpi-goal')).toHaveTextContent(/^–/);
+    await render(<BodyScreen />);
+    expect(await screen.findByTestId('body-measurements')).toHaveTextContent(
+      /start with the first/,
+    );
+    expect(screen.queryByTestId('goal-progress')).toBeNull();
+  });
+
+  it('an empty week in the coach: one sentence and one action', async () => {
+    billing('active');
+    body.store.profile = { sex: 'female', birthDate: '1992-01-01', heightCm: 166, weightKg: 62 };
+    // An empty week: one sentence and one way forward – no percentages, no empty bars.
+    await render(<NutritionScreen />);
+    const thin = await screen.findByTestId('coach-thin');
+    expect(thin).toHaveTextContent(/three days this week/);
+    const coach = screen.getByTestId('body-coach');
+    expect(coach).not.toHaveTextContent(/%/);
+    expect(coach).not.toHaveTextContent(/Only|0 days/);
+    expect(screen.queryByTestId('coach-numbers')).toBeNull();
+    expect(screen.getByText('Log a meal')).toBeOnTheScreen();
   });
 });
 
@@ -336,7 +361,7 @@ describe('paywall with the add-on', () => {
 
   it('every entry point leads to the add-on paywall', async () => {
     billing('none');
-    await render(<BodyScreen />);
+    await render(<NutritionScreen />);
     await fireEvent.press(await screen.findByText('Unlock the Body add-on'));
     expect(router.push).toHaveBeenLastCalledWith('/body/addon');
     screen.unmount();

@@ -6,18 +6,20 @@ import {
   type HealthMetric,
   type Workout,
 } from '@peakr/engine';
-import { Stack, useLocalSearchParams } from 'expo-router';
+import { router, Stack, useLocalSearchParams } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
 import { todayIso } from '@/data/ids';
+import type { HealthSyncInfo } from '@/features/health-data/api';
 import { useHealthStatus, useHealthValues } from '@/features/health-data/queries';
 import { useDeviceHealth } from '@/features/health-data/read-device';
 import { formatDate } from '@/features/plan/calendar';
 import { calendarTitle, typeColor } from '@/features/plan/kind';
 import { usePlan } from '@/features/plan/queries';
 import {
+  Button,
   Card,
   ListState,
   numeric,
@@ -30,7 +32,14 @@ import {
   type ThemeColors,
 } from '@/ui';
 
-import { baselineLine, rangeLine, recordedLine, trendLine } from './format';
+import {
+  baselineLine,
+  missingLines,
+  rangeLine,
+  recordedLine,
+  trendLine,
+  vo2maxLine,
+} from './format';
 import { HealthChart, type ChartDay, type ChartMarker } from './health-chart';
 import { formatMetric, formatMinutes, isHealthMetric, metricLabel } from './metrics';
 import {
@@ -131,7 +140,13 @@ function MetricDetail({ metric, language }: { metric: HealthMetric; language: st
 
   return (
     <Screen>
-      <Summary metric={metric} state={state} language={language} />
+      <Summary
+        metric={metric}
+        state={state}
+        sync={status?.sync}
+        today={today}
+        language={language}
+      />
 
       {metric === 'sleep_duration' ? (
         <SleepNight values={values} today={today} language={language} />
@@ -200,20 +215,39 @@ function MetricDetail({ metric, language }: { metric: HealthMetric; language: st
 function Summary({
   metric,
   state,
+  sync,
+  today,
   language,
 }: {
   metric: HealthMetric;
   state: MetricState;
+  sync: HealthSyncInfo | undefined;
+  today: string;
   language: string;
 }) {
   const { t } = useTranslation();
   if (state.kind === 'missing') {
+    const { reason, last } = missingLines(t, state, sync, language, today);
     return (
       <Card testID="health-detail-missing">
-        <Text tone="secondary">{t(`health.missing.${state.reason}`, { group: '' })}</Text>
+        <Text tone="secondary">{reason}</Text>
+        {last ? (
+          <Text variant="caption" tone="secondary" style={numeric}>
+            {last}
+          </Text>
+        ) : null}
+        {state.reason === 'not_enabled' ? (
+          <Button
+            variant="secondary"
+            small
+            label={t('health.missing.turnOn')}
+            onPress={() => router.push('/health/consent')}
+          />
+        ) : null}
       </Card>
     );
   }
+  const from = vo2maxLine(t, state.latest);
   const range = rangeLine(t, metric, state, language);
   const trend = trendLine(t, state);
   return (
@@ -230,6 +264,11 @@ function Summary({
       {trend ? (
         <Text variant="caption" tone="secondary">
           {trend}
+        </Text>
+      ) : null}
+      {from ? (
+        <Text variant="caption" tone="secondary">
+          {from}
         </Text>
       ) : null}
       <Text variant="caption" tone="secondary">

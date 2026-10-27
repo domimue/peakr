@@ -15,15 +15,29 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { todayIso } from '@/data/ids';
 import { useLinkedActivities } from '@/features/activities/queries';
 import { RouteShape } from '@/features/routes/components/route-shape';
-import { Card, ListState, radius, SegmentedControl, spacing, StatTile, Text, useTheme } from '@/ui';
+import {
+  Card,
+  ListState,
+  radius,
+  SegmentedControl,
+  spacing,
+  StatTile,
+  TileGrid,
+  Text,
+  useTheme,
+} from '@/ui';
 import { useUnits } from '@/features/settings/units';
 
 import { formatDate } from '../plan/calendar';
 import { calendarTitle, typeColor, typeName } from '../plan/kind';
-import { usePlan } from '../plan/queries';
+import { BadgeShelf, goalName } from '../plan-history/badges';
+import { useHistorySources } from '../plan-history/sources';
 import { WeeklyChart } from './weekly-chart';
 
 type Period = 4 | 12 | 52;
+/** "This plan" or "All time" (every plan ever, archived ones included). */
+type Scope = 'plan' | 'all';
+type Sources = ReturnType<typeof useHistorySources>;
 
 const PERIODS: readonly Period[] = [4, 12, 52];
 
@@ -37,25 +51,47 @@ function hoursText(t: TFunction, minutes: number): string {
 /**
  * Training and Records of Insights (CLAUDE.md "UI patterns"): Training = completed sessions by
  * month with month totals; Records = period picker, totals, minutes per week with the average,
- * personal bests, lifetime totals. Both need a plan; without one they show the way to the quiz.
+ * badges, personal bests, lifetime totals. With archived plans a labelled switch shows "This plan"
+ * or "All time"; personal bests and lifetime totals are always all time (CLAUDE.md "Plan
+ * history"). Without any plan they show the way to the quiz.
  */
+/** Plan → History: completed sessions and records of this plan or all plans (CLAUDE.md "Plan"). */
+export function PlanHistory() {
+  const { t } = useTranslation();
+  const [section, setSection] = useState<'history' | 'performance'>('history');
+  return (
+    <View style={styles.gap} testID="plan-history">
+      <SegmentedControl
+        options={[
+          { value: 'history', label: t('progress.sessionsTab') },
+          { value: 'performance', label: t('progress.records') },
+        ]}
+        value={section}
+        onChange={setSection}
+      />
+      <PlanInsights section={section} />
+    </View>
+  );
+}
+
 export function PlanInsights({ section }: { section: 'history' | 'performance' }) {
   const { t } = useTranslation();
-  const { data: stored, isPending, isError, refetch } = usePlan();
+  const sources = useHistorySources();
   const [period, setPeriod] = useState<Period>(12);
+  const [chosen, setScope] = useState<Scope>('plan');
 
-  if (isPending) return <ListState kind="loading" label={t('common.loading')} />;
-  if (isError) {
+  if (sources.isPending) return <ListState kind="loading" label={t('common.loading')} />;
+  if (sources.isError) {
     return (
       <ListState
         kind="error"
         title={t('common.loadError')}
         retryLabel={t('common.retry')}
-        onRetry={() => void refetch()}
+        onRetry={sources.refetch}
       />
     );
   }
-  if (!stored) {
+  if (sources.all.length === 0) {
     return (
       <ListState
         kind="empty"
@@ -66,16 +102,36 @@ export function PlanInsights({ section }: { section: 'history' | 'performance' }
       />
     );
   }
-  return section === 'history' ? <History /> : <Performance period={period} onPeriod={setPeriod} />;
+  const hasArchive = sources.archived.length > 0;
+  // Without an active plan there is only "All time".
+  const scope: Scope = sources.current.length === 0 ? 'all' : chosen;
+  return (
+    <View style={styles.gap}>
+      {hasArchive && sources.current.length > 0 ? (
+        <SegmentedControl
+          options={[
+            { value: 'plan', label: t('progress.scope.plan') },
+            { value: 'all', label: t('progress.scope.all') },
+          ]}
+          value={scope}
+          onChange={(v) => setScope(v as Scope)}
+        />
+      ) : null}
+      {section === 'history' ? (
+        <History sources={sources} scope={scope} />
+      ) : (
+        <Performance sources={sources} scope={scope} period={period} onPeriod={setPeriod} />
+      )}
+    </View>
+  );
 }
 
-function History() {
+function History({ sources, scope }: { sources: Sources; scope: Scope }) {
   const { t, i18n } = useTranslation();
   const { distance } = useUnits();
-  const { data: stored } = usePlan();
   const { data: linked } = useLinkedActivities();
-  if (!stored) return null;
-  const months = historyByMonth(stored.state, stored.input.profile);
+  const months = historyByMonth(scope === 'plan' ? sources.current : sources.all);
+  const goals = new Map(sources.archived.map((a) => [a.id, a.goal.kind]));
   if (months.length === 0) {
     return (
       <ListState
@@ -107,11 +163,17 @@ function History() {
               </Text>
             </View>
             {m.entries.map((e) => {
-              const activity = linked?.get(e.workout.id)?.activity;
+              const archivedGoal = goals.get(e.planId);
+              const activity = archivedGoal ? undefined : linked?.get(e.workout.id)?.activity;
               return (
                 <HistoryCard
-                  key={e.workout.id}
+                  key={`${e.planId}:${e.workout.id}`}
                   entry={e}
+                  planLabel={
+                    archivedGoal
+                      ? t('progress.fromPlan', { goal: goalName(t, archivedGoal) })
+                      : null
+                  }
                   polyline={activity && !activity.indoor ? activity.polyline : null}
                 />
               );
@@ -123,7 +185,16 @@ function History() {
   );
 }
 
-function HistoryCard({ entry, polyline }: { entry: HistoryEntry; polyline: string | null }) {
+function HistoryCard({
+  entry,
+  planLabel,
+  polyline,
+}: {
+  entry: HistoryEntry;
+  /** Set for sessions of an archived plan: labelled, and read-only (no workout screen). */
+  planLabel: string | null;
+  polyline: string | null;
+}) {
   const { t, i18n } = useTranslation();
   const { distance } = useUnits();
   const { colors } = useTheme();
@@ -141,16 +212,20 @@ function HistoryCard({ entry, polyline }: { entry: HistoryEntry; polyline: strin
     day: 'numeric',
     month: 'short',
   });
+  const subtitle = [day, typeName(t, w.type), planLabel].filter(Boolean).join(' · ');
   return (
     <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={[title, typeName(t, w.type), day, ...figures].join(', ')}
+      accessibilityRole={planLabel ? undefined : 'button'}
+      accessibilityLabel={[title, typeName(t, w.type), day, planLabel, ...figures]
+        .filter(Boolean)
+        .join(', ')}
+      disabled={planLabel !== null}
       onPress={() => router.push(`/training/workout/${encodeURIComponent(w.id)}`)}
       style={({ pressed }) => [
         styles.history,
         { backgroundColor: pressed ? colors.surface2 : colors.surface },
       ]}
-      testID={`history-${w.id}`}
+      testID={`history-${entry.planId}-${w.id}`}
     >
       <View style={[styles.bar, { backgroundColor: typeColor(colors, w) }]} />
       {polyline ? (
@@ -164,7 +239,7 @@ function HistoryCard({ entry, polyline }: { entry: HistoryEntry; polyline: strin
       <View style={styles.flex}>
         <Text style={styles.strong}>{title}</Text>
         <Text variant="caption" tone="secondary">
-          {`${day} · ${typeName(t, w.type)}`}
+          {subtitle}
         </Text>
       </View>
       <View style={styles.figures}>
@@ -182,7 +257,7 @@ function TotalsTiles({ totals, prefix }: { totals: Totals; prefix: string }) {
   const { t } = useTranslation();
   const { distance } = useUnits();
   return (
-    <View style={styles.tiles}>
+    <TileGrid>
       <StatTile
         testID={`${prefix}-sessions`}
         value={String(totals.sessions)}
@@ -191,16 +266,30 @@ function TotalsTiles({ totals, prefix }: { totals: Totals; prefix: string }) {
       <StatTile value={hoursText(t, totals.minutes)} label={t('progress.tiles.time')} />
       <StatTile value={distance(totals.km, 0)} label={t('progress.tiles.distance')} />
       <StatTile value={String(Math.round(totals.load))} label={t('progress.tiles.load')} />
-    </View>
+    </TileGrid>
   );
 }
 
-function Performance({ period, onPeriod }: { period: Period; onPeriod: (p: Period) => void }) {
+function Performance({
+  sources,
+  scope,
+  period,
+  onPeriod,
+}: {
+  sources: Sources;
+  scope: Scope;
+  period: Period;
+  onPeriod: (p: Period) => void;
+}) {
   const { t, i18n } = useTranslation();
   const { distance } = useUnits();
-  const { data: stored } = usePlan();
-  if (!stored) return null;
-  const perf = performance(stored.state, stored.input.profile, todayIso(), period);
+  const perf = performance(
+    scope === 'plan' ? sources.current : sources.all,
+    todayIso(),
+    period,
+    sources.all,
+  );
+  const allTime = sources.archived.length > 0;
   const label = (iso: string) =>
     formatDate(iso, i18n.language, { day: 'numeric', month: 'numeric' });
   const step = Math.ceil(perf.weeks.length / 8);
@@ -236,7 +325,12 @@ function Performance({ period, onPeriod }: { period: Period; onPeriod: (p: Perio
         )}
       </Card>
 
-      <Text variant="heading">{t('progress.bests')}</Text>
+      {sources.archived.some((a) => a.outcome === 'completed') ? (
+        <Text variant="heading">{t('planHistory.badges.title')}</Text>
+      ) : null}
+      <BadgeShelf archived={sources.archived} />
+
+      <Text variant="heading">{allTime ? t('progress.bestsAllTime') : t('progress.bests')}</Text>
       {longestSession === null ? (
         <ListState kind="empty" icon="trophy" title={t('progress.emptyBests')} />
       ) : (
@@ -264,7 +358,9 @@ function Performance({ period, onPeriod }: { period: Period; onPeriod: (p: Perio
         </Card>
       )}
 
-      <Text variant="heading">{t('progress.lifetime')}</Text>
+      <Text variant="heading">
+        {allTime ? t('progress.lifetimeAllPlans') : t('progress.lifetime')}
+      </Text>
       <TotalsTiles totals={perf.lifetime} prefix="lifetime" />
     </View>
   );
@@ -298,6 +394,5 @@ const styles = StyleSheet.create({
   },
   bar: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4 },
   figures: { alignItems: 'flex-end', gap: 2 },
-  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   best: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, paddingVertical: spacing.xs },
 });

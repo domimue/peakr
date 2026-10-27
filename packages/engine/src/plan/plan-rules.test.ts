@@ -13,11 +13,21 @@ import type { Plan, PlanWeek, Workout } from './types';
  * CLAUDE.md "Training engine rules" that the generator promises is checked on every plan.
  */
 
-const cases = grid().map((c) => {
-  const result = generatePlan(c.profile, { kind: c.goal }, c.availability, c.start, c.target);
-  if (!result.ok) throw new Error(`${c.name}: ${JSON.stringify(result.issues)}`);
-  return { ...c, plan: result.value };
-});
+// Every plan again at the lowest and the highest difficulty: the slider shifts the targets, the
+// rules below hold at every setting (CLAUDE.md "Difficulty").
+const cases = grid()
+  .flatMap((c) =>
+    [5, 1, 10].map((difficulty) => ({
+      ...c,
+      name: difficulty === 5 ? c.name : `${c.name} @difficulty ${difficulty}`,
+      profile: difficulty === 5 ? c.profile : { ...c.profile, difficulty },
+    })),
+  )
+  .map((c) => {
+    const result = generatePlan(c.profile, { kind: c.goal }, c.availability, c.start, c.target);
+    if (!result.ok) throw new Error(`${c.name}: ${JSON.stringify(result.issues)}`);
+    return { ...c, plan: result.value };
+  });
 
 /** Every plan day in order (across weeks) with its workouts. */
 function days(plan: Plan): Workout[][] {
@@ -185,6 +195,61 @@ describe('generatePlan rules over the fixture grid', () => {
     for (const week of taper) {
       expect(week.load).toBeLessThan(previous);
       previous = week.load;
+    }
+  });
+
+  // WORKOUTS.md §9 "Quality rotation": both kinds of quality work show up regularly. Loading
+  // weeks of Build/Peak from week 5 on (VO2 needs four weeks in the plan), benchmark weeks aside.
+  const THRESHOLD = [
+    'run.tempo',
+    'run.hills_long',
+    'run.progression',
+    'run.race_pace_hm',
+    'run.race_pace_m',
+  ];
+  const isVo2 = (w: Workout) => w.templateId.startsWith('run.vo2_intervals');
+  const qualityWeeks = (plan: Plan) => {
+    const weeks = plan.weeks
+      .filter(
+        (w) =>
+          (w.phase === 'build' || w.phase === 'peak') &&
+          !w.isRecovery &&
+          !w.isPartial &&
+          w.index >= 4 &&
+          !w.workouts.some((x) => x.notes.some((n) => n.key === 'notes.benchmark')),
+      )
+      .map((w) => w.workouts.filter((x) => x.sport === 'run'));
+    // Days too short for any VO2 set (45 minutes) get threshold work instead – nothing to check.
+    return weeks.flat().some(isVo2) ? weeks : [];
+  };
+
+  each(
+    '5K/10K/HM: threshold and VO2 in every three loading weeks of Build/Peak',
+    ({ plan, goal }) => {
+      if (!['5k', '10k', 'half'].includes(goal)) return;
+      const weeks = qualityWeeks(plan);
+      for (let i = 0; i + 3 <= weeks.length; i++) {
+        const window = weeks.slice(i, i + 3).flat();
+        expect(
+          window.some((w) => THRESHOLD.includes(w.templateId)),
+          `threshold from ${i}`,
+        ).toBe(true);
+        expect(window.some(isVo2), `VO2 from ${i}`).toBe(true);
+      }
+    },
+  );
+
+  each('marathon: VO2 at least every four loading weeks of Build/Peak', ({ plan, goal }) => {
+    if (goal !== 'marathon') return;
+    const weeks = qualityWeeks(plan);
+    for (let i = 0; i + 4 <= weeks.length; i++) {
+      expect(
+        weeks
+          .slice(i, i + 4)
+          .flat()
+          .some(isVo2),
+        `VO2 from ${i}`,
+      ).toBe(true);
     }
   });
 

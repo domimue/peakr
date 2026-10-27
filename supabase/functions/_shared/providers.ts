@@ -19,6 +19,11 @@ export interface TokenSet {
   expiresAt: number | null;
   /** The user's id at the provider (e.g. Strava athlete id). */
   externalUserId: string | null;
+  /**
+   * Scopes the provider reported after the exchange, where they are not in the callback query
+   * (Garmin: the permissions the user ticked on its consent screen).
+   */
+  grantedScopes?: string[];
 }
 
 export type ProviderId = 'strava' | 'garmin' | 'coros' | 'suunto';
@@ -177,11 +182,21 @@ const garmin: OAuthProvider = {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
     const id = me.ok ? ((await me.json()) as { userId?: string }).userId : undefined;
+    // Garmin has no scope parameter: the user grants HEALTH_EXPORT, ACTIVITY_EXPORT … on its
+    // consent screen, and only this call tells which. NOT VERIFIED beyond public descriptions of
+    // the Health API (an array of permission names).
+    const perms = await fetch('https://apis.garmin.com/wellness-api/rest/user/permissions', {
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    const granted = perms.ok ? ((await perms.json()) as unknown) : null;
     return {
       accessToken,
       refreshToken: typeof t.refresh_token === 'string' ? t.refresh_token : null,
       expiresAt: expiry(t.expires_in),
       externalUserId: id ?? null,
+      grantedScopes: Array.isArray(granted)
+        ? granted.filter((g): g is string => typeof g === 'string')
+        : [],
     };
   },
   async refresh(refreshToken) {

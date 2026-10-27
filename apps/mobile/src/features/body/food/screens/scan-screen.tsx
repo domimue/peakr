@@ -9,6 +9,7 @@ import type { Meal } from '@/features/body/meals';
 import { Button, Card, ListState, Screen, spacing, Text } from '@/ui';
 
 import { useLookupBarcode } from '../queries';
+import { flowParams, type FoodMode } from '../flow';
 import { OffAttribution } from './food-row';
 
 /**
@@ -16,7 +17,15 @@ import { OffAttribution } from './food-row';
  * EAN / UPC codes; the product comes from the own foods, the local cache or Open Food Facts.
  * Unknown products can be created with the barcode, so the next scan finds them.
  */
-export function ScanScreen({ meal, day }: { meal: Meal; day: string }) {
+export function ScanScreen({
+  meal,
+  day,
+  mode = 'log',
+}: {
+  meal: Meal;
+  day: string;
+  mode?: FoodMode;
+}) {
   const { t } = useTranslation();
   const [permission, requestPermission] = useCameraPermissions();
   const lookup = useLookupBarcode();
@@ -31,7 +40,10 @@ export function ScanScreen({ meal, day }: { meal: Meal; day: string }) {
     lookup.mutate(data, {
       onSuccess: (r) => {
         if (r.status === 'found') {
-          router.replace({ pathname: '/body/food/[id]', params: { id: r.food.id, meal, day } });
+          router.replace({
+            pathname: '/body/food/[id]',
+            params: { id: r.food.id, ...flowParams(meal, day, mode) },
+          });
         } else {
           setResult(r.status);
         }
@@ -83,7 +95,7 @@ export function ScanScreen({ meal, day }: { meal: Meal; day: string }) {
             onPress={() =>
               router.replace({
                 pathname: '/body/food/new',
-                params: { barcode: code ?? '', meal, day },
+                params: { barcode: code ?? '', ...flowParams(meal, day, mode) },
               })
             }
           />

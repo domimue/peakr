@@ -1,6 +1,6 @@
 import type { Workout } from '@peakr/engine';
 
-import { remoteWins, resolvePlan, resolveWorkouts } from '../merge';
+import { remoteWins, resolveArchive, resolvePlan, resolveWorkouts } from '../merge';
 import type { SyncPlan, SyncWorkout } from '../types';
 
 function plan(id: string, updatedAt: number, deleted = false): SyncPlan {
@@ -157,5 +157,25 @@ describe('resolvePlan', () => {
     const tombstones = new Map([['p2', 10]]);
     expect(resolvePlan(null, tombstones, [plan('p2', 20)])).toEqual({ kind: 'none' });
     expect(resolvePlan(null, none, [plan('p3', 20, true)])).toEqual({ kind: 'none' });
+  });
+});
+
+describe('resolveArchive (plan history)', () => {
+  it('takes new and newer archived plans, keeps newer local ones, newest duplicate wins', () => {
+    const local = new Map([
+      ['a', 10],
+      ['b', 30],
+    ]);
+    const rows = [
+      { id: 'a', updatedAt: 20, deleted: false },
+      { id: 'a', updatedAt: 25, deleted: true },
+      { id: 'b', updatedAt: 20, deleted: false },
+      { id: 'c', updatedAt: 5, deleted: false },
+    ];
+    // "undo" on another device (a soft delete, newer) reaches this one; b stays local.
+    expect(resolveArchive(local, rows)).toEqual([
+      { id: 'a', updatedAt: 25, deleted: true },
+      { id: 'c', updatedAt: 5, deleted: false },
+    ]);
   });
 });

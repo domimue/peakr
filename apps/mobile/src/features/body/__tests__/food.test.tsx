@@ -17,9 +17,8 @@ import { renderWithQuery } from '@/test-utils/render-with-query';
 import { lookupBarcode } from '../food/off-client';
 import { AddFoodScreen } from '../food/screens/add-food-screen';
 import { FoodDetailScreen } from '../food/screens/food-detail-screen';
-import { RecipeScreen } from '../food/screens/recipe-screen';
 import { ScanScreen } from '../food/screens/scan-screen';
-import { BodyScreen } from '../screens/body-screen';
+import { NutritionScreen } from '../screens/nutrition-screen';
 
 jest.mock('@/data/repositories/plan-repository');
 jest.mock('@/data/repositories/billing-repository');
@@ -248,41 +247,6 @@ describe('adding food', () => {
   });
 });
 
-describe('recipes', () => {
-  it('spreads the ingredients over the finished weight and saves per 100 g with a serving', async () => {
-    body.store.foods = [
-      item({ id: 'pasta', name: 'Pasta dry', kcal: 350, proteinG: 12, carbsG: 72, fatG: 1.5 }),
-      item({ id: 'sauce', name: 'Tomato sauce', kcal: 30, proteinG: 1.5, carbsG: 5, fatG: 0.2 }),
-    ];
-    await renderWithQuery(<RecipeScreen meal="dinner" day={TODAY} />);
-    await fireEvent.changeText(screen.getByLabelText('Recipe name'), 'Pasta');
-    for (const name of ['Pasta dry', 'Tomato sauce']) {
-      await fireEvent.changeText(
-        screen.getByLabelText('Add an ingredient (search your foods)'),
-        name,
-      );
-      await fireEvent.press(await screen.findByText(name));
-    }
-    const amounts = screen.getAllByLabelText('Amount');
-    await fireEvent.changeText(amounts[0] as never, '200');
-    await fireEvent.changeText(amounts[1] as never, '400');
-    await fireEvent.changeText(
-      screen.getByLabelText('Weight of the finished dish (optional)'),
-      '1000',
-    );
-    await fireEvent.changeText(screen.getByLabelText('Servings (optional)'), '4');
-    expect(screen.getByTestId('recipe-preview')).toHaveTextContent(/One serving: 250 g, 205 kcal/);
-    await fireEvent.press(screen.getByText('Save recipe'));
-    await waitFor(() =>
-      expect(body.store.foods.find((f) => f.kind === 'recipe')).toMatchObject({
-        name: 'Pasta',
-        kcal: 82,
-        portions: [{ label: '1 serving', amount: 250 }],
-      }),
-    );
-  });
-});
-
 describe('diary', () => {
   const input: StoredPlanInput = {
     profile: {
@@ -330,7 +294,7 @@ describe('diary', () => {
         createdAt: 'x',
       },
     ];
-    await renderWithQuery(<BodyScreen />);
+    await renderWithQuery(<NutritionScreen />);
     const breakfast = await screen.findByTestId('meal-breakfast');
     expect(breakfast).toBeOnTheScreen();
     await fireEvent.press(screen.getAllByText('Copy from yesterday')[0] as never);
@@ -371,7 +335,7 @@ describe('diary', () => {
       input,
       state: { plan: r.value, status: {}, pauses: [], revision: 0 },
     };
-    await renderWithQuery(<BodyScreen />);
+    await renderWithQuery(<NutritionScreen />);
     expect(await screen.findByTestId('body-added-back')).toHaveTextContent(
       /Your ride today: \+\d+ kcal/,
     );

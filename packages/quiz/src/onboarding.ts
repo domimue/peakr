@@ -2,6 +2,7 @@ import {
   analyzeRaceResult,
   calculateCss,
   calculateHrZones,
+  prescriptionBands,
   COMMUTE_SPORTS,
   formatDuration,
   isRaceGoal,
@@ -89,6 +90,9 @@ export const QUESTION_IDS = {
   runRaceTime: 'run.raceTime',
   runEasyPace: 'run.easyPace',
   bikeHours: 'bike.hoursPerWeek',
+  runLongest: 'run.longest',
+  bikeLongest: 'bike.longest',
+  swimLongest: 'swim.longest',
   bikePowerMeter: 'bike.powerMeter',
   swimAbility: 'swim.ability',
   swimTime400: 'swim.time400',
@@ -122,6 +126,12 @@ const swimLimits = zoneConfig.swim.limits;
 /** Easy pace entry: 3:30–12:00 per km. */
 const EASY_PACE_RANGE = { min: 210, max: 720 };
 const BIKE_HOURS_RANGE = { min: 0, max: 25 };
+/** Longest session of the last weeks: km for run and bike, metres for swims. */
+const LONGEST_RANGE = {
+  run: { min: 1, max: 60 },
+  bike: { min: 5, max: 400 },
+  swim: { min: 100, max: 10_000 },
+} as const;
 const HEIGHT_RANGE = { min: 120, max: 230 };
 const WEIGHT_RANGE = { min: 30, max: 250 };
 const NOTE_MAX_LENGTH = 500;
@@ -255,6 +265,16 @@ export const onboardingQuestions: readonly QuizQuestion[] = [
     defaultValue: () => 2,
     visibleIf: has('bike'),
   },
+  ...(['run', 'bike', 'swim'] as const).map((sport): QuizQuestion => ({
+    id: { run: Q.runLongest, bike: Q.bikeLongest, swim: Q.swimLongest }[sport],
+    kind: 'number',
+    titleKey: `quiz.${sport}.longest.title`,
+    hintKey: `quiz.${sport}.longest.hint`,
+    unitKey: `quiz.${sport}.longest.unit`,
+    optional: true,
+    range: () => LONGEST_RANGE[sport],
+    visibleIf: has(sport),
+  })),
   {
     id: Q.bikePowerMeter,
     kind: 'single',
@@ -520,10 +540,20 @@ export function zone2Range(
     restingHr: num(answers, Q.restingHr),
     hrMax: num(answers, Q.hrMax),
   };
+  // Validated like the zone table, but the numbers are the easy band the sessions prescribe.
   const r = calculateHrZones(input);
-  const z2 = r.ok ? r.value.zones.find((z) => z.zone === 2) : undefined;
-  if (!r.ok || z2?.minBpm == null || z2.maxBpm == null) return null;
-  return { min: z2.minBpm, max: z2.maxBpm, estimate: r.value.hrMaxIsEstimate };
+  if (!r.ok) return null;
+  const easy = prescriptionBands({
+    ...(input.age !== undefined ? { age: input.age } : {}),
+    ...(input.restingHr !== undefined ? { restingHr: input.restingHr } : {}),
+    ...(input.hrMax !== undefined ? { hrMax: input.hrMax } : {}),
+  }).find((z) => z.zone === 2);
+  if (!easy) return null;
+  return {
+    min: easy.minBpm as number,
+    max: easy.maxBpm as number,
+    estimate: r.value.hrMaxIsEstimate,
+  };
 }
 
 function zone2Insight(answers: QuizAnswers): QuizInsight | null {
@@ -643,11 +673,15 @@ export const ONBOARDING_STEPS: readonly QuizStep[] = [
   { id: 'strengthDetails', questionIds: [S.split, S.equipment, S.daysPerWeek, S.priority] },
   { id: 'experience', questionIds: [Q.experience] },
   { id: 'baseline', kind: 'baseline', questionIds: [] },
-  { id: 'run', questionIds: [Q.runReference, Q.runRaceTime, Q.runEasyPace], insight: runInsight },
-  { id: 'bike', questionIds: [Q.bikeHours, Q.bikePowerMeter] },
+  {
+    id: 'run',
+    questionIds: [Q.runReference, Q.runRaceTime, Q.runEasyPace, Q.runLongest],
+    insight: runInsight,
+  },
+  { id: 'bike', questionIds: [Q.bikeHours, Q.bikeLongest, Q.bikePowerMeter] },
   {
     id: 'swim',
-    questionIds: [Q.swimAbility, Q.swimTime400, Q.swimTime200, Q.swimWater],
+    questionIds: [Q.swimAbility, Q.swimTime400, Q.swimTime200, Q.swimLongest, Q.swimWater],
     insight: swimInsight,
   },
   { id: 'heartRate', questionIds: [Q.restingHr, Q.hrMax], insight: zone2Insight },
@@ -855,6 +889,17 @@ export function toPlanInput(
   if (commute) profile.commutes = [commute];
   const winterSports = winterSportsOf(a);
   if (winterSports.length > 0) profile.winterSports = winterSports;
+  // Longest recent session per sport: the long-session floor of the new plan (swims in metres).
+  const longest: NonNullable<UserProfile['recentLongest']> = {};
+  for (const [sport, id, perKm] of [
+    ['run', Q.runLongest, 1],
+    ['bike', Q.bikeLongest, 1],
+    ['swim', Q.swimLongest, 1000],
+  ] as const) {
+    const value = num(a, id);
+    if (sports.includes(sport) && value !== undefined) longest[sport] = { km: value / perKm };
+  }
+  if (Object.keys(longest).length > 0) profile.recentLongest = longest;
 
   const minutes = a[Q.availability] as readonly number[];
   const note = str(a, Q.note)?.trim();

@@ -13,10 +13,10 @@ import { renderWithQuery } from '@/test-utils/render-with-query';
 
 import { usePlanUiStore } from '../plan-ui-store';
 import { AvailabilityScreen } from '../screens/availability-screen';
+import { DifficultyScreen } from '../screens/difficulty-screen';
 import { PauseScreen } from '../screens/pause-screen';
 import { PlanScreen } from '../screens/plan-screen';
 import { WorkoutScreen } from '../screens/workout-screen';
-import { InsightsScreen } from '@/features/insights/insights-screen';
 import { TodayScreen } from '../../today/today-screen';
 
 /** The Plan tab with its calendar view selected. */
@@ -90,7 +90,11 @@ describe('Plan tab', () => {
     expect(screen.getByText('Week 1 of 17 · Base')).toBeOnTheScreen();
     expect(screen.getByText('This week')).toBeOnTheScreen();
     expect(screen.getAllByText(/^Sessions 0\/\d+$/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/^Distance 0\/\d+ km$/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^Distance 0 \/ [\d.]+ km$/).length).toBeGreaterThan(0);
+    // Time is the total across sports.
+    expect(
+      within(screen.getByTestId('week-volume-0')).getByText(/^0 min \/ \d h \d+ min$/),
+    ).toBeOnTheScreen();
     expect(screen.getAllByText('Recovery week').length).toBeGreaterThan(0);
     expect(screen.getByTestId('week-progress-0')).toBeOnTheScreen();
     // The bar's colours are named: week 2 = 2 easy runs, a long run, intervals, 2 strength.
@@ -163,7 +167,7 @@ describe('Plan → Calendar', () => {
     expect(screen.getByText('Week 1 of 17 · Base')).toBeOnTheScreen();
     expect(screen.getByTestId('calendar-week-0')).toBeOnTheScreen();
     expect(screen.getByTestId('calendar-week-3')).toBeOnTheScreen();
-    expect(screen.getAllByLabelText(/^Week total: \d+–\d+ min · \d+ km$/)).toHaveLength(4);
+    expect(screen.getAllByLabelText(/^Week total: \d+–\d+ min · 0 \/ [\d.]+ km$/)).toHaveLength(4);
     expect(screen.getByLabelText(/^Monday, October 19, Today$/)).toBeOnTheScreen();
     expect(screen.getByTestId('plan-card-0-0')).toBeOnTheScreen();
     // Type and duration range are written out, never only colour-coded.
@@ -216,33 +220,51 @@ describe('Plan → Calendar', () => {
 });
 
 describe('Today tab', () => {
-  it("week strip, today's session, the week's progress; marks it done with haptics", async () => {
+  it("shows one day: today's session in full, marked done with haptics", async () => {
     storePlan();
     setToday('2026-10-26');
     await renderWithQuery(<TodayScreen />);
     expect(await screen.findByTestId('week-strip')).toBeOnTheScreen();
-    expect(screen.getByLabelText('Monday, October 26, Today, Easy')).toBeOnTheScreen();
-    expect(screen.getByLabelText('Tuesday, October 27, Strength')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Monday, October 26, Today, Easy')).toBeSelected();
     expect(screen.getByLabelText('Friday, October 30, Rest day')).toBeOnTheScreen();
-    expect(screen.getByLabelText(/^Easy run, Easy, /)).toBeOnTheScreen();
-    expect(screen.getByTestId('weather-chip')).toBeOnTheScreen();
-    expect(screen.getByTestId('insights')).toBeOnTheScreen();
-    expect(screen.getByText('Sessions 0/6')).toBeOnTheScreen();
+    // The session block: type, duration range, bpm band, steps and why – no need to open it.
+    const block = within(screen.getByTestId('day-session-2026-10-26-1'));
+    expect(block.getByText('Easy run')).toBeOnTheScreen();
+    expect(block.getByText(/^\d+–\d+ min$/)).toBeOnTheScreen();
+    expect(block.getByTestId('day-target')).toHaveTextContent(/bpm/);
+    expect(block.getByTestId('step-1')).toBeOnTheScreen();
+    expect(block.getByText('Why this session')).toBeOnTheScreen();
+    expect(await screen.findByTestId('weather-chip')).toBeOnTheScreen();
+    // The week is one small line, not the main content.
+    expect(screen.getByTestId('today-week-line')).toHaveTextContent(/^This week: 0 of 6 sessions/);
+    expect(screen.queryByTestId('week-progress-0')).toBeNull();
 
     await fireEvent.press(screen.getByText('Mark as done'));
     await waitFor(() => expect(state().status['2026-10-26-1']).toBe('done'));
     expect(Haptics.notificationAsync).toHaveBeenCalledWith('success');
-    expect(await screen.findByText('Sessions 1/6')).toBeOnTheScreen();
+    expect(await screen.findByText(/^This week: 1 of 6 sessions/)).toBeOnTheScreen();
   });
 
-  it('a rest day says so and offers the week', async () => {
+  it('the week strip switches the day without leaving Today; back to today', async () => {
     storePlan();
-    setToday('2026-10-30');
+    setToday('2026-10-26');
     await renderWithQuery(<TodayScreen />);
-    expect(await screen.findByText('Rest day')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByText('See this week'));
-    expect(router.push).toHaveBeenCalledWith('/plan');
-    expect(usePlanUiStore.getState().view).toBe('calendar');
+    await fireEvent.press(await screen.findByLabelText('Tuesday, October 27, Strength'));
+    expect(router.push).not.toHaveBeenCalled();
+    expect(screen.getByLabelText('Tuesday, October 27, Strength')).toBeSelected();
+    expect(screen.getByTestId('day-legend')).toHaveTextContent(/Tuesday, October 27 · Strength/);
+    // A future session cannot be marked done yet.
+    expect(screen.queryByText('Mark as done')).toBeNull();
+    // Rest day: says so and names the next session.
+    await fireEvent.press(screen.getByLabelText('Friday, October 30, Rest day'));
+    expect(screen.getByText('Rest day')).toBeOnTheScreen();
+    expect(screen.getByTestId('rest-next')).toHaveTextContent(/^Next: .+, Saturday$/);
+    // Next week via the arrow, then back to today.
+    await fireEvent.press(screen.getByLabelText('Next week'));
+    expect(screen.getByTestId('strip-2026-11-06')).toBeSelected();
+    await fireEvent.press(screen.getByText('Back to today'));
+    expect(screen.getByLabelText('Monday, October 26, Today, Easy')).toBeSelected();
+    expect(screen.queryByText('Back to today')).toBeNull();
   });
 
   it('before the plan starts it names the start date', async () => {
@@ -264,7 +286,8 @@ describe('Progress tab', () => {
         status: { '2026-10-19-1': 'done', '2026-10-26-1': 'done', '2026-10-27-1': 'done' },
       },
     };
-    await renderWithQuery(<InsightsScreen />);
+    usePlanUiStore.setState({ view: 'history' });
+    await renderWithQuery(<PlanScreen />);
     expect(await screen.findByText('October 2026')).toBeOnTheScreen();
     expect(screen.getByText(/^3 sessions · /)).toBeOnTheScreen();
     expect(screen.getAllByText(/^\d+:\d\d \/km$/).length).toBeGreaterThan(0);
@@ -285,7 +308,8 @@ describe('Progress tab', () => {
 
   it('clear empty states without completed sessions', async () => {
     storePlan();
-    await renderWithQuery(<InsightsScreen />);
+    usePlanUiStore.setState({ view: 'history' });
+    await renderWithQuery(<PlanScreen />);
     expect(await screen.findByText('No completed sessions yet')).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('Records'));
     expect(screen.getByText('No completed sessions in this period.')).toBeOnTheScreen();
@@ -410,7 +434,7 @@ describe('workout detail', () => {
       ),
     ).toBeOnTheScreen();
     expect(
-      screen.getAllByText(/^Zone 2 · \d+–\d+ bpm · no faster than \d+:\d\d \/km$/).length,
+      screen.getAllByText(/^Easy · \d+–\d+ bpm \(Zone 2\) · no faster than \d+:\d\d \/km$/).length,
     ).toBeGreaterThan(0);
     expect(screen.getByTestId('step-1')).toBeOnTheScreen();
     expect(screen.getByText('Why this session')).toBeOnTheScreen();
@@ -499,6 +523,34 @@ describe('workout detail', () => {
     ).toBeOnTheScreen();
     expect(screen.queryByText('Steps')).toBeNull();
     expect(screen.queryByText('Why this session')).toBeNull();
+  });
+});
+
+describe('difficulty', () => {
+  it('previews the coming weeks and applies the new setting; completed weeks stay', async () => {
+    storePlan();
+    setToday('2026-11-02');
+    await renderWithQuery(<DifficultyScreen />);
+    const slider = await screen.findByTestId('difficulty-slider');
+    expect(screen.getByRole('button', { name: 'Apply' })).toBeDisabled();
+    fireEvent(slider, 'accessibilityAction', { nativeEvent: { actionName: 'increment' } });
+    expect(await screen.findByTestId('difficulty-preview')).toHaveTextContent(
+      /What changes in the next 4 weeks/,
+    );
+    expect(screen.getByTestId('difficulty-run-min')).toHaveTextContent(/\d+ min → \d+ min/);
+    fireEvent.press(screen.getByRole('button', { name: 'Apply' }));
+    await waitFor(() => expect(mock.savePlanState).toHaveBeenCalled());
+    const [, state, saved] = jest.mocked(mock.savePlanState).mock.calls.at(-1) as unknown as [
+      string,
+      { plan: Plan },
+      StoredPlanInput,
+    ];
+    expect(saved.profile.difficulty).toBe(6);
+    const before = mock.store.plan?.state.plan.weeks[0];
+    expect(state.plan.weeks[0]?.workouts.map((w) => w.id)).toEqual(
+      before?.workouts.map((w) => w.id),
+    );
+    expect(screen.getByText(/not a way to repair a wrong starting point/)).toBeOnTheScreen();
   });
 });
 

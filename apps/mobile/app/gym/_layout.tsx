@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 
 import { useHasGym } from '@/features/billing/billing-store';
 
+import { stackScreenOptions } from '@/features/profile/stack-options';
+
 /** Without the add-on only these routes open: the paywall and "mark done with duration and effort". */
 const FREE_ROUTES = ['addon', 'quick-log'];
 
@@ -19,7 +21,7 @@ export default function GymLayout() {
     return <Redirect href="/gym/addon" />;
   }
   return (
-    <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
+    <Stack screenOptions={stackScreenOptions}>
       <Stack.Screen name="addon" options={{ title: t('gymAddon.paywall.title') }} />
       <Stack.Screen name="library" options={{ title: t('gym.library.title') }} />
       <Stack.Screen name="exercise/[id]" options={{ title: t('gym.exercise.title') }} />
