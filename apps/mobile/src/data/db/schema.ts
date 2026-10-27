@@ -19,6 +19,9 @@ import type {
   Phase,
   PlanInput,
   PlanNote,
+  PlanOutcome,
+  PlanState,
+  PlanSummary,
   RoutineExercise,
   RouteSport,
   Sport,
@@ -231,6 +234,33 @@ export const planPauses = sqliteTable('plan_pauses', {
   reason: text('reason').$type<PauseReason>().notNull(),
   startDate: text('start_date').notNull(),
   endDate: text('end_date'),
+});
+
+/**
+ * Archived plans (CLAUDE.md "Plan history"): a read-only snapshot of a plan that was replaced by a
+ * new one or ran to its end. The full state stays – done and skipped sessions are the user's
+ * history (Insights "All time", badges, the review), the planned ones let a same-day "undo"
+ * bring the plan back. Synced as one row per plan (table `plan_archive`), last write wins.
+ */
+export const planArchive = sqliteTable('plan_archive', {
+  /** Id the plan had while it was active. */
+  id: text('id').primaryKey(),
+  input: text('input', { mode: 'json' }).$type<StoredPlanInput>().notNull(),
+  goal: text('goal', { mode: 'json' }).$type<Goal>().notNull(),
+  startDate: text('start_date').notNull(),
+  /** Last plan day (`PlanSummary.endDate`). */
+  endDate: text('end_date').notNull(),
+  /** Epoch ms; the local date of it decides the same-day undo. */
+  archivedAt: integer('archived_at').notNull(),
+  outcome: text('outcome').$type<PlanOutcome>().notNull(),
+  summary: text('summary', { mode: 'json' }).$type<PlanSummary>().notNull(),
+  /** "How was your last plan?" answers and what they changed (JSON, see plan review). */
+  review: text('review', { mode: 'json' }).$type<Record<string, unknown>>(),
+  state: text('state', { mode: 'json' }).$type<PlanState>().notNull(),
+  /** Removed again by "undo" – kept as a soft delete so other devices learn about it. */
+  deleted: integer('deleted', { mode: 'boolean' }).notNull().default(false),
+  updatedAt: integer('updated_at').notNull(),
+  dirty: integer('dirty', { mode: 'boolean' }).notNull().default(true),
 });
 
 // ---------------------------------------------------------------------------------------------

@@ -12,6 +12,7 @@ import {
   gymRoutines,
   gymSessions,
   gymSets,
+  planArchive,
   planPauses,
   plans,
   planWeeks,
@@ -50,6 +51,7 @@ export type SyncKey =
   | 'sync.routesCursor'
   | 'sync.streamsCursor'
   | 'sync.stravaRoutesCursor'
+  | 'sync.archiveCursor'
   | 'sync.userId';
 const SYNC_KEYS: SyncKey[] = [
   'sync.cursor',
@@ -57,6 +59,7 @@ const SYNC_KEYS: SyncKey[] = [
   'sync.routesCursor',
   'sync.streamsCursor',
   'sync.stravaRoutesCursor',
+  'sync.archiveCursor',
   'sync.userId',
 ];
 
@@ -338,6 +341,7 @@ export function applyWorkoutsFromServer(
 export function clearSyncedData(): void {
   db.transaction((tx) => {
     clearPlans(tx);
+    tx.delete(planArchive).run();
     tx.delete(syncTombstones).run();
     // Imported activities and the route library belong to the account too.
     tx.delete(activities).run();
@@ -358,6 +362,7 @@ export function clearSyncedData(): void {
 export function clearAllLocalData(): void {
   db.transaction((tx) => {
     clearPlans(tx);
+    tx.delete(planArchive).run();
     tx.delete(syncTombstones).run();
     tx.delete(activities).run();
     tx.delete(activityLinks).run();

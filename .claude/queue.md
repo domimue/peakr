@@ -10,7 +10,7 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 - New plan without a new account, plan history, badges, review, weekly session mix
   (2026-10-27; plan in `.claude/plans/plan-history.md`). Steps:
   - [x] A – weekly session mix (rotation, audit, property tests)
-  - [ ] B – plan archive & outcome (SQLite + Supabase, sync, `planOutcome`)
+  - [x] B – plan archive & outcome (SQLite + Supabase, sync, `planOutcome`)
   - [ ] E+F – scopes "This plan / All time", badges
   - [ ] C – "Create a new plan" flow
   - [ ] D – review "How was your last plan?"

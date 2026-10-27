@@ -353,6 +353,13 @@ export const planConfig = {
     weeks: 4,
   },
   /** Imported activities (CLAUDE.md "Automatic activity sync"). */
+  /**
+   * A plan that ran through all its weeks counts as completed with at least this share of its
+   * sessions done (CLAUDE.md "Plan history"). Commutes are no session of their own (as on Today);
+   * sessions inside a pause are not counted as planned. A plan replaced before its end is never
+   * completed.
+   */
+  completion: { minShare: 0.8, badgeShare: 0.95 },
   activities: {
     /**
      * Matching a synced activity to a planned workout (CLAUDE.md "After import"): a confidence

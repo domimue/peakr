@@ -92,3 +92,19 @@ export function resolveWorkouts(
   }
   return { upserts, deletes };
 }
+
+/**
+ * Archived plans: each row is its own unit, the newer `updatedAt` wins (a soft delete by "undo"
+ * included). `local` maps archive id → local version. Returns the remote rows to write.
+ */
+export function resolveArchive<T extends { id: string; updatedAt: number }>(
+  local: ReadonlyMap<string, number>,
+  remote: readonly T[],
+): T[] {
+  const newest = new Map<string, T>();
+  for (const row of remote) {
+    const seen = newest.get(row.id);
+    if (!seen || row.updatedAt > seen.updatedAt) newest.set(row.id, row);
+  }
+  return [...newest.values()].filter((row) => remoteWins(local.get(row.id), row.updatedAt));
+}

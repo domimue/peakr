@@ -1,5 +1,7 @@
 import {
   normalizePlan,
+  planEnded,
+  planOutcome,
   type Plan,
   type PlanState,
   type Workout,
@@ -9,6 +11,9 @@ import { and, asc, eq, inArray } from 'drizzle-orm';
 
 import { db } from '../db/client';
 import {
+  activities,
+  activityLinks,
+  planArchive,
   planPauses,
   plans,
   planWeeks,
@@ -16,8 +21,16 @@ import {
   syncTombstones,
   type StoredPlanInput,
 } from '../db/schema';
-import { newId } from '../ids';
+import { newId, todayIso } from '../ids';
 import { notifyLocalChange } from '../sync/changes';
+
+// Plan history reads, here so that screens and their mocks have one plan repository.
+export {
+  getArchivedPlan,
+  listArchivedPlans,
+  saveArchiveReview,
+  type ArchivedPlan,
+} from './plan-archive-repository';
 
 /**
  * The local training plan: one active plan with its weeks, workouts (incl. done / skipped) and
@@ -27,6 +40,9 @@ import { notifyLocalChange } from '../sync/changes';
  * Sync bookkeeping (Phase 6): every save marks the plan and each changed workout as dirty with a
  * new `updated_at`; removed workouts and replaced plans leave a tombstone. `data/sync` pushes
  * them and applies server changes ("last write wins" per workout).
+ *
+ * Plan history: a replaced or ended plan is archived first (`plan-archive-repository`) – its done
+ * and skipped sessions stay the user's history – and only then removed from the active tables.
  */
 
 export interface StoredPlan {
@@ -109,28 +125,102 @@ export async function getPlan(): Promise<StoredPlan | null> {
   };
 }
 
-/** Replaces any existing plan (a new quiz result starts a new plan). */
-export async function createPlan(input: StoredPlanInput, plan: Plan): Promise<string> {
+/**
+ * Starts a new plan. An existing plan is archived first (outcome `replaced` before its end,
+ * `completed` / `finished` after it) – nothing the user did is lost.
+ */
+export async function createPlan(
+  input: StoredPlanInput,
+  plan: Plan,
+  today = todayIso(),
+): Promise<string> {
+  const current = await getPlan();
   const id = newId();
   const now = Date.now();
   db.transaction((tx) => {
+    if (current) archive(tx, current, today, now);
     removeAllPlans(tx, now);
-    tx.insert(plans)
-      .values({
-        id,
-        input,
-        goal: plan.goal,
-        startDate: plan.startDate,
-        targetDate: plan.targetDate,
-        notes: plan.notes,
-        revision: 0,
-        createdAt: now,
-        updatedAt: now,
-        dirty: true,
-      })
-      .run();
+    insertPlanRow(tx, id, input, plan, 0, now);
   });
   await savePlanState(id, { plan, status: {}, pauses: [], revision: 0 });
+  return id;
+}
+
+/**
+ * A plan whose last day has passed is archived on its own (outcome `completed` or `finished`);
+ * the app then offers to create the next one. Returns the archived plan's id, or null.
+ */
+export async function archiveEndedPlan(today = todayIso()): Promise<string | null> {
+  const current = await getPlan();
+  if (!current || !planEnded(current.state, today)) return null;
+  const now = Date.now();
+  db.transaction((tx) => {
+    archive(tx, current, today, now);
+    removeAllPlans(tx, now);
+  });
+  notifyLocalChange();
+  return current.id;
+}
+
+/**
+ * The plan that "undo" would bring back: archived today, and the active plan (if any) is the one
+ * that replaced it.
+ */
+export async function undoablePlan(today = todayIso()): Promise<{ id: string } | null> {
+  const archived = await db.query.planArchive.findFirst({
+    where: eq(planArchive.deleted, false),
+    orderBy: (a, { desc }) => [desc(a.archivedAt)],
+  });
+  if (!archived || todayIso(new Date(archived.archivedAt)) !== today) return null;
+  const current = await db.query.plans.findFirst();
+  if (current && current.createdAt < archived.archivedAt) return null;
+  return { id: archived.id };
+}
+
+/**
+ * Same-day undo of "Create a new plan": the new plan is removed and the archived one is active
+ * again with everything it had (a new id – the old one is deleted on the server for good).
+ * Activities matched to the discarded plan are matched again against the restored one.
+ */
+export async function undoNewPlan(today = todayIso()): Promise<string | null> {
+  const target = await undoablePlan(today);
+  if (!target) return null;
+  const row = await db.query.planArchive.findFirst({ where: eq(planArchive.id, target.id) });
+  if (!row) return null;
+  const discarded = await db.query.plans.findFirst();
+  const id = newId();
+  const now = Date.now();
+  const { state } = row;
+  db.transaction((tx) => {
+    if (discarded) {
+      const links = tx
+        .select({ key: activityLinks.activityKey })
+        .from(activityLinks)
+        .where(eq(activityLinks.planId, discarded.id))
+        .all();
+      for (const { key } of links) {
+        const split = key.indexOf(':');
+        tx.update(activities)
+          .set({ handled: false })
+          .where(
+            and(
+              eq(activities.source, key.slice(0, split) as typeof activities.$inferSelect.source),
+              eq(activities.externalId, key.slice(split + 1)),
+            ),
+          )
+          .run();
+      }
+      tx.delete(activityLinks).where(eq(activityLinks.planId, discarded.id)).run();
+    }
+    removeAllPlans(tx, now);
+    insertPlanRow(tx, id, row.input, state.plan, state.revision, now);
+    tx.update(activityLinks).set({ planId: id }).where(eq(activityLinks.planId, row.id)).run();
+    tx.update(planArchive)
+      .set({ deleted: true, updatedAt: now, dirty: true })
+      .where(eq(planArchive.id, row.id))
+      .run();
+  });
+  await savePlanState(id, state);
   return id;
 }
 
@@ -238,6 +328,54 @@ export async function deletePlan(): Promise<void> {
 }
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
+
+function insertPlanRow(
+  tx: Tx,
+  id: string,
+  input: StoredPlanInput,
+  plan: Plan,
+  revision: number,
+  now: number,
+): void {
+  tx.insert(plans)
+    .values({
+      id,
+      input,
+      goal: plan.goal,
+      startDate: plan.startDate,
+      targetDate: plan.targetDate,
+      notes: plan.notes,
+      revision,
+      createdAt: now,
+      updatedAt: now,
+      dirty: true,
+    })
+    .run();
+}
+
+/** Snapshot of the plan with its outcome on `today` (the archive day). */
+function archive(tx: Tx, current: StoredPlan, today: string, now: number): void {
+  const { outcome, summary } = planOutcome(current.state, current.input.profile, today);
+  const values = {
+    id: current.id,
+    input: current.input,
+    goal: current.state.plan.goal,
+    startDate: current.state.plan.startDate,
+    endDate: summary.endDate,
+    archivedAt: now,
+    outcome,
+    summary,
+    review: null,
+    state: current.state,
+    deleted: false,
+    updatedAt: now,
+    dirty: true,
+  };
+  tx.insert(planArchive)
+    .values(values)
+    .onConflictDoUpdate({ target: planArchive.id, set: values })
+    .run();
+}
 
 /** Deletes the local plan(s) and leaves a tombstone so the deletion reaches the server. */
 function removeAllPlans(tx: Tx, now: number): void {
