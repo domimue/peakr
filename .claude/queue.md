@@ -11,7 +11,13 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
   ingredients from search / barcode / recents / favourites / by hand, portions and optional cooked
   weight, live totals and per portion; log by portion or grams; edit, duplicate, scale; edits never
   rewrite logged days (ask, default keep); delete keeps entries; offline, OFF rules, Health write.
-  Plan: `.claude/plans/recipes.md` (waiting for approval).
+  Plan approved: `.claude/plans/recipes.md`. Steps:
+  - [x] 1 engine
+  - [ ] 2 repository, JSON format, photo sync, search
+  - [ ] 3 draft store + ingredient mode in add / scan / form / detail
+  - [ ] 4 recipe editor
+  - [ ] 5 recipe detail: log, duplicate, scale, delete, ask on edit
+  - [ ] 6 tests, docs, report
 
 ## Done
 
