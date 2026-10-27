@@ -9,7 +9,9 @@ import {
   connectPersonalKey,
   deleteServerHealthData,
   disconnectPersonalKey,
+  fetchHealthDiagnostics,
   fetchHealthStatus,
+  requestHealthBackfill,
   requestHealthSync,
   saveConsents,
 } from './api';
@@ -22,6 +24,7 @@ export const healthKeys = {
   all: ['health'] as const,
   status: (userId: string | null) => ['health', 'status', userId] as const,
   values: ['health', 'values'] as const,
+  diagnostics: ['health', 'diagnostics'] as const,
 };
 
 export function useHealthStatus() {
@@ -54,6 +57,26 @@ export function useHealthSync() {
       return status;
     },
     onSettled: () => client.invalidateQueries({ queryKey: healthKeys.all }),
+  });
+}
+
+/** "Fetch older data again": the server walks the history back from today once more. */
+export function useHealthBackfill() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: requestHealthBackfill,
+    onSettled: () => client.invalidateQueries({ queryKey: healthKeys.all }),
+  });
+}
+
+/** Developer diagnostics: Garmin endpoints on the server, values per source on this device. */
+export function useHealthDiagnostics() {
+  return useQuery({
+    queryKey: healthKeys.diagnostics,
+    queryFn: async () => ({
+      server: await fetchHealthDiagnostics().catch(() => null),
+      local: await repo.getSourceCounts(),
+    }),
   });
 }
 

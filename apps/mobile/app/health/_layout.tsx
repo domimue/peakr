@@ -6,6 +6,7 @@ export default function HealthLayout() {
   return (
     <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
       <Stack.Screen name="consent" options={{ title: t('health.consent.title') }} />
+      <Stack.Screen name="diagnostics" options={{ title: t('health.diagnostics.title') }} />
       <Stack.Screen name="[metric]" options={{ title: '' }} />
     </Stack>
   );

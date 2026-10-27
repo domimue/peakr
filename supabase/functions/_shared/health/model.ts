@@ -108,7 +108,10 @@ export const GARMIN_PERMISSION: Record<HealthGroup, string> = {
  * Groups the connection may deliver. A personal key reads all of the person's own data, so every
  * group is permitted; on OAuth only those whose Garmin permission was granted.
  */
-export function permittedGroups(mode: CredentialMode, permissions: readonly string[]): HealthGroup[] {
+export function permittedGroups(
+  mode: CredentialMode,
+  permissions: readonly string[],
+): HealthGroup[] {
   if (mode === 'personal_key') return [...HEALTH_GROUPS];
   return HEALTH_GROUPS.filter((g) => permissions.includes(GARMIN_PERMISSION[g]));
 }

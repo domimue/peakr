@@ -9,6 +9,7 @@ import {
 import { and, eq, gte, inArray } from 'drizzle-orm';
 
 import { db } from '../db/client';
+import { countBySource, type SourceCount } from './health-counts';
 import { appSettings, healthDaily } from '../db/schema';
 
 /**
@@ -60,6 +61,16 @@ export async function getDailyValues(
     .from(healthDaily)
     .where(conditions.length ? and(...conditions) : undefined);
   return resolveDaily(rows.flatMap(toRecords));
+}
+
+export type { SourceCount } from './health-counts';
+
+/** Stored values per metric and source with the latest day (developer diagnostics). */
+export async function getSourceCounts(): Promise<SourceCount[]> {
+  const rows = await db
+    .select({ metric: healthDaily.metric, source: healthDaily.source, day: healthDaily.day })
+    .from(healthDaily);
+  return countBySource(rows);
 }
 
 /** Deletes health rows: of one source, of some metrics, or everything. */

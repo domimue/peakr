@@ -30,6 +30,11 @@ export const featureFlags = {
    */
   garminPersonalKey: true,
   /**
+   * Developer only: Insights → Health → settings links to a diagnostics screen with the last call
+   * per Garmin endpoint (status, record count, error) and the values per source on the device.
+   */
+  healthDiagnostics: false,
+  /**
    * Generated round trips (Phase 8b): the route picker's third option, served by the `round-trips`
    * Edge Function (secret `ORS_API_KEY`, docs/generated-routes.md).
    */
@@ -39,7 +44,10 @@ export const featureFlags = {
 export type FeatureFlag = keyof typeof featureFlags;
 
 /** Developer-only flags that the personal build (owner's own APK, docs/personal-build.md) turns on. */
-export const personalBuildFlags: readonly FeatureFlag[] = ['garminPersonalKey'];
+export const personalBuildFlags: readonly FeatureFlag[] = [
+  'garminPersonalKey',
+  'healthDiagnostics',
+];
 
 export function isEnabled(flag: FeatureFlag, personal: boolean = personalBuild): boolean {
   return featureFlags[flag] || (personal && personalBuildFlags.includes(flag));

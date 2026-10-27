@@ -1,4 +1,5 @@
 import { HEALTH_GROUPS, type HealthGroup } from '@peakr/engine';
+import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
@@ -9,11 +10,22 @@ import {
   useConnectPersonalKey,
   useDeleteHealthData,
   useDisconnectPersonalKey,
+  useHealthBackfill,
   useHealthStatus,
   useSaveConsents,
 } from '@/features/health-data/queries';
 import { connect } from '@/features/integrations/api';
-import { Button, Card, CheckList, ListState, Screen, spacing, Text, TextField } from '@/ui';
+import {
+  Button,
+  Card,
+  CheckList,
+  LinkRow,
+  ListState,
+  Screen,
+  spacing,
+  Text,
+  TextField,
+} from '@/ui';
 
 import { DeviceHealthCard } from './device-health-card';
 
@@ -52,13 +64,20 @@ export function HealthConsentScreen() {
   }
 
   const chosen = selected ?? status.groups;
-  const toggle = (g: HealthGroup) =>
+  // Garmin OAuth: a group whose permission was not granted at Garmin cannot be switched on here.
+  const forbidden = (g: HealthGroup) =>
+    !!status.connection && !!status.permitted && !status.permitted.includes(g);
+  const toggle = (g: HealthGroup) => {
+    if (forbidden(g) && !chosen.includes(g)) return;
     setSelected(chosen.includes(g) ? chosen.filter((x) => x !== g) : [...chosen, g]);
+  };
   const choices = (groups: readonly HealthGroup[]) =>
     groups.map((g) => ({
       value: g,
       label: t(`health.groups.${g}.title`),
-      description: t(`health.groups.${g}.reads`),
+      description: forbidden(g)
+        ? `${t(`health.groups.${g}.reads`)}\n${t('health.consent.notPermitted')}`
+        : t(`health.groups.${g}.reads`),
     }));
   const onSave = () => {
     setMessage(null);
@@ -104,7 +123,15 @@ export function HealthConsentScreen() {
       <Text variant="caption" tone="secondary">
         {t('health.consent.privacy')}
       </Text>
+      {status.connection?.delivery === 'pull' ? <BackfillCard /> : null}
       <DeleteCard />
+      {isEnabled('healthDiagnostics') ? (
+        <LinkRow
+          title={t('health.consent.diagnostics')}
+          icon="info"
+          onPress={() => router.push('/health/diagnostics')}
+        />
+      ) : null}
     </Screen>
   );
 }
@@ -188,6 +215,39 @@ function DeveloperKey({ connected }: { connected: boolean }) {
         </>
       )}
     </View>
+  );
+}
+
+/** "Fetch older data again": the server walks the Garmin history back from today once more. */
+function BackfillCard() {
+  const { t } = useTranslation();
+  const backfill = useHealthBackfill();
+  const [message, setMessage] = useState<string | null>(null);
+  return (
+    <Card testID="health-backfill">
+      <Text variant="label">{t('health.consent.backfillTitle')}</Text>
+      <Text variant="caption" tone="secondary">
+        {t('health.consent.backfillBody')}
+      </Text>
+      <Button
+        variant="secondary"
+        icon="reset"
+        label={t('health.consent.backfill')}
+        disabled={backfill.isPending}
+        onPress={() =>
+          backfill.mutate(undefined, {
+            onSuccess: () => setMessage(t('health.consent.backfillStarted')),
+            onError: () => setMessage(t('health.consent.backfillError')),
+          })
+        }
+        testID="health-backfill-button"
+      />
+      {message ? (
+        <Text variant="caption" tone="secondary" accessibilityLiveRegion="polite">
+          {message}
+        </Text>
+      ) : null}
+    </Card>
   );
 }
 

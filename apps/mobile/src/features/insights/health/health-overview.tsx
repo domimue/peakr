@@ -9,7 +9,9 @@ import { useHealthStatus, useHealthSync, useHealthValues } from '@/features/heal
 import { useDeviceHealth } from '@/features/health-data/read-device';
 import { Button, Card, LinkRow, ListState, numeric, radius, spacing, Text, useTheme } from '@/ui';
 
-import { baselineLine, recordedLine, timeOf, trendLine } from './format';
+import type { HealthSyncInfo } from '@/features/health-data/api';
+
+import { baselineLine, missingLines, recordedLine, timeOf, trendLine, vo2maxLine } from './format';
 import { formatMetric, metricLabel, OVERVIEW_METRICS } from './metrics';
 import { isConnected, metricState, periodStart, type MetricState, type Sources } from './model';
 
@@ -107,7 +109,13 @@ export function HealthOverview() {
 
       <View style={styles.grid}>
         {shown.map((s) => (
-          <MetricTile key={s.metric} state={s} language={i18n.language} />
+          <MetricTile
+            key={s.metric}
+            state={s}
+            sync={sync0}
+            today={today}
+            language={i18n.language}
+          />
         ))}
       </View>
 
@@ -118,6 +126,13 @@ export function HealthOverview() {
               .map((g) => t('health.missing.not_enabled', { group: t(`health.groups.${g}.title`) }))
               .join('\n')}
           </Text>
+          <Button
+            variant="secondary"
+            small
+            label={t('health.missing.turnOn')}
+            onPress={() => router.push('/health/consent')}
+            testID="health-turn-on"
+          />
         </Card>
       ) : null}
 
@@ -151,18 +166,28 @@ export function HealthOverview() {
   );
 }
 
-function MetricTile({ state, language }: { state: MetricState; language: string }) {
+function MetricTile({
+  state,
+  sync,
+  today,
+  language,
+}: {
+  state: MetricState;
+  sync: HealthSyncInfo | undefined;
+  today: string;
+  language: string;
+}) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const label = metricLabel(t, state.metric);
 
   if (state.kind === 'missing') {
-    const reason = t(`health.missing.${state.reason}`, { group: '' });
+    const { reason, last } = missingLines(t, state, sync, language, today);
     return (
       <View
         style={[styles.tile, { backgroundColor: colors.surface }]}
         accessible
-        accessibilityLabel={`${label}: ${reason}`}
+        accessibilityLabel={[`${label}: ${reason}`, last].filter(Boolean).join('. ')}
         testID={`health-tile-${state.metric}`}
       >
         <Text variant="caption" tone="secondary">
@@ -171,6 +196,11 @@ function MetricTile({ state, language }: { state: MetricState; language: string 
         <Text variant="caption" tone="secondary">
           {reason}
         </Text>
+        {last ? (
+          <Text variant="micro" tone="secondary" style={numeric}>
+            {last}
+          </Text>
+        ) : null}
       </View>
     );
   }
@@ -179,11 +209,14 @@ function MetricTile({ state, language }: { state: MetricState; language: string 
   const baseline = baselineLine(t, state);
   const trend = trendLine(t, state);
   const recorded = recordedLine(t, state.latest, state.ageDays, language);
+  const from = vo2maxLine(t, state.latest);
   return (
     <Pressable
       onPress={() => router.push(healthHref(state.metric))}
       accessibilityRole="button"
-      accessibilityLabel={[label, value, baseline, trend, recorded].filter(Boolean).join('. ')}
+      accessibilityLabel={[label, value, baseline, trend, from, recorded]
+        .filter(Boolean)
+        .join('. ')}
       testID={`health-tile-${state.metric}`}
       style={({ pressed }) => [
         styles.tile,
@@ -200,6 +233,11 @@ function MetricTile({ state, language }: { state: MetricState; language: string 
       {trend ? (
         <Text variant="caption" tone="secondary">
           {trend}
+        </Text>
+      ) : null}
+      {from ? (
+        <Text variant="micro" tone="secondary">
+          {from}
         </Text>
       ) : null}
       <Text variant="micro" tone="secondary">

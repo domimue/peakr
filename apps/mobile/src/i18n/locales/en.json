@@ -2290,7 +2290,8 @@
       "lastSynced": "Last fetched {{time}}",
       "syncError": "The last fetch did not work. Peakr tries again on its own.",
       "settings": "Health data settings",
-      "pushHint": "New values arrive by themselves after your watch syncs with Garmin Connect."
+      "pushHint": "New values arrive by themselves after your watch syncs with Garmin Connect.",
+      "vo2maxFrom": "Garmin estimate from {{activity}}"
     },
     "baseline": {
       "within": "Within your usual range",
@@ -2308,9 +2309,23 @@
     },
     "missing": {
       "not_connected": "Connect Garmin or Health Connect to see this.",
+      "not_permitted": "Garmin is not allowed to share this with Peakr yet. Allow health data for Peakr in Garmin Connect under connected apps, then sync again.",
       "not_enabled": "Not switched on. Turn on \"{{group}}\" in Health data settings.",
+      "not_enabled_tile": "Not switched on in Health data settings.",
+      "turnOn": "Turn on",
       "not_provided": "Your connected sources do not provide this.",
-      "no_data": "Nothing recorded in the last 7 days. Your watch records this only while you wear it (sleep and HRV overnight) and after it has synced."
+      "not_provided_garmin": "Garmin does not provide this on Peakr's current Garmin access, and your phone's health store has no value for it either.",
+      "syncFailed": "The last fetch from Garmin did not work, so newer values may be missing. Peakr tries again on its own.",
+      "last": "Last value: {{value}} · {{day}} · {{source}}",
+      "why": {
+        "overnight": "Nothing in the last {{days}} days. Your watch records this overnight – only on nights you sleep with it on – and sends it after it has synced.",
+        "continuous": "Nothing in the last {{days}} days. Your watch records this all day while you wear it; values reach Peakr after the watch has synced with Garmin Connect.",
+        "spo2": "Nothing in the last {{days}} days. Your watch measures this only if it has a Pulse Ox sensor and the Pulse Ox setting is on (all day or during sleep).",
+        "respiration": "Nothing in the last {{days}} days. Only watches that measure breathing rate record this, while you wear them.",
+        "scale": "No weigh-in in the last {{days}} days. Values come from a connected scale or an entry in Garmin Connect or Health Connect.",
+        "vo2max": "No new estimate in the last {{days}} days. Garmin updates VO2max after outdoor runs with heart rate or rides with a power meter.",
+        "fitnessAge": "Nothing in the last {{days}} days."
+      }
     },
     "empty": {
       "title": "Your body data in Peakr",
@@ -2371,7 +2386,14 @@
       "deleteConfirm": "Delete health data",
       "deleteCancel": "Cancel",
       "deleted": "Health data deleted.",
-      "deleteError": "Could not delete. Try again."
+      "deleteError": "Could not delete. Try again.",
+      "notPermitted": "Not allowed at Garmin – allow health data for Peakr in Garmin Connect under connected apps.",
+      "backfillTitle": "Older data",
+      "backfillBody": "Fetches your Garmin history again, up to a year back. Use it if older days look incomplete.",
+      "backfill": "Fetch older data again",
+      "backfillStarted": "Started. Older days fill in over the next hours.",
+      "backfillError": "That did not work. Try again later.",
+      "diagnostics": "Health sync details (developer)"
     },
     "developer": {
       "title": "Developer: Garmin personal API key",
@@ -2402,6 +2424,33 @@
       "garmin": "Garmin",
       "healthConnect": "Health Connect",
       "healthKit": "Apple Health"
+    },
+    "diagnostics": {
+      "title": "Health sync details",
+      "intro": "Developer view: what the last Garmin calls returned. Counts and status codes only, no values.",
+      "connection": "Connection",
+      "mode": "Mode: {{mode}}",
+      "status": "Status: {{status}}",
+      "permissions": "Garmin permissions: {{list}}",
+      "groups": "Switched-on groups: {{list}}",
+      "parser": "Parser version: {{stored}} stored / {{current}} current",
+      "backfill": "Backfill: {{state}} · before {{before}}",
+      "backfillDone": "done",
+      "backfillRunning": "running",
+      "earliest": "Earliest day: {{day}}",
+      "lastPulled": "Last pull: {{time}}",
+      "lastError": "Last error: {{error}}",
+      "none": "–",
+      "endpoints": "Garmin endpoints",
+      "recent": "Recent window",
+      "backfillWindow": "Backfill step",
+      "call": "{{time}} · HTTP {{status}} · {{records}} records · {{calls}} calls",
+      "callError": "Error: {{error}}",
+      "never": "Not called yet",
+      "local": "On this device",
+      "localRow": "{{source}}: {{count}} days, latest {{day}}",
+      "localEmpty": "No health values stored on this device.",
+      "unavailable": "The server details could not be loaded."
     }
   },
   "locked": {

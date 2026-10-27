@@ -328,7 +328,11 @@ async function diagnostics(req: Request): Promise<Response> {
         backfill: state?.endpoints?.backfill?.[endpoint] ?? null,
       })),
       parserVersion: { stored: state?.parser_version ?? 0, current: PARSER_VERSION },
-      sync: { ...syncView(state), backfillRequestedAt: state?.backfill_requested_at ?? null },
+      sync: {
+        ...syncView(state),
+        backfillBefore: state?.backfill_before ?? null,
+        backfillRequestedAt: state?.backfill_requested_at ?? null,
+      },
     });
   });
 }

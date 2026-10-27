@@ -15,6 +15,7 @@ import { renderWithQuery } from '@/test-utils/render-with-query';
 import { TodayScreen } from '@/features/today/today-screen';
 
 import { HealthConsentScreen } from '../health/consent-screen';
+import { HealthDiagnosticsScreen } from '../health/diagnostics-screen';
 import { MetricDetailScreen } from '../health/metric-detail-screen';
 import { InsightsScreen } from '../insights-screen';
 
@@ -33,9 +34,11 @@ jest.mock('@/features/health-data/api', () => ({
   deleteServerHealthData: jest.fn(async () => true),
   connectPersonalKey: jest.fn(async () => null),
   disconnectPersonalKey: jest.fn(async () => true),
+  requestHealthBackfill: jest.fn(async () => undefined),
+  fetchHealthDiagnostics: jest.fn(),
 }));
 jest.mock('@/config/feature-flags', () => ({
-  isEnabled: (flag: string) => flag === 'garminPersonalKey',
+  isEnabled: (flag: string) => flag === 'garminPersonalKey' || flag === 'healthDiagnostics',
 }));
 jest.mock('expo-router', () => ({
   ...jest.requireActual('expo-router'),
@@ -143,21 +146,92 @@ describe('Insights → Health overview', () => {
     expect(router.push).toHaveBeenCalledWith('/health/resting_hr');
   });
 
-  it('says why a metric is missing', async () => {
+  it('says why a metric is missing – the reason of that metric', async () => {
     await renderWithQuery(<InsightsScreen />);
     expect(await screen.findByTestId('health-overview')).toBeOnTheScreen();
-    // Enabled and provided, but nothing recorded.
+    // Enabled and provided, but nothing in the window: the reason for SpO2, not the overnight one.
     expect(
-      screen.getByLabelText(/^Blood oxygen \(SpO2\): Nothing recorded in the last 7 days/),
+      screen.getByLabelText(/^Blood oxygen \(SpO2\): Nothing in the last 7 days\. .*Pulse Ox/),
     ).toBeOnTheScreen();
-    // Enabled, but this connection does not deliver it.
+    // Recorded continuously: never "only while you sleep".
     expect(
-      screen.getByLabelText('Respiration: Your connected sources do not provide this.'),
+      screen.getByLabelText(/^Resting heart rate: Nothing in the last 7 days\. .*all day/),
     ).toBeOnTheScreen();
-    // Groups that are off are listed once each.
+    // Enabled, but Garmin does not deliver it on this access – said plainly.
+    expect(
+      screen.getByLabelText(/^Respiration: Garmin does not provide this on Peakr's current/),
+    ).toBeOnTheScreen();
+    // Groups that are off are listed once each, with a way to switch them on.
     const off = screen.getByTestId('health-not-enabled');
     expect(off).toHaveTextContent(/Turn on "Daily activity"/);
     expect(off).toHaveTextContent(/Turn on "Body composition"/);
+    await fireEvent.press(screen.getByTestId('health-turn-on'));
+    expect(router.push).toHaveBeenCalledWith('/health/consent');
+  });
+
+  it('shows the latest value of another source or an older day instead of "nothing"', async () => {
+    health.store.rows.push({
+      metric: 'spo2_avg',
+      day: addDays(TODAY, -12),
+      source: 'healthConnect',
+      value: 96,
+      detail: null,
+      recordedAt: `${addDays(TODAY, -12)}T06:00:00.000Z`,
+      sourceIds: ['hc-1'],
+    });
+    await renderWithQuery(<InsightsScreen />);
+    expect(await screen.findByTestId('health-overview')).toBeOnTheScreen();
+    expect(
+      screen.getByLabelText(
+        /^Blood oxygen \(SpO2\): .*Last value: 96 % · Oct 11 · Health Connect$/,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('keeps a weigh-in current for 30 days', async () => {
+    jest.mocked(api.fetchHealthStatus).mockResolvedValue(
+      status({
+        groups: ['sleep', 'hrv_rhr', 'spo2_resp', 'body_comp'],
+        connection: { ...status().connection!, provides: ['weight', 'resting_hr'] },
+      }),
+    );
+    health.store.rows.push({
+      metric: 'weight',
+      day: addDays(TODAY, -20),
+      source: 'garmin',
+      value: 72.4,
+      detail: null,
+      recordedAt: `${addDays(TODAY, -20)}T06:00:00.000Z`,
+      sourceIds: ['w1'],
+    });
+    await renderWithQuery(<InsightsScreen />);
+    expect(await screen.findByTestId('health-overview')).toBeOnTheScreen();
+    expect(screen.getByText('72.4 kg')).toBeOnTheScreen();
+  });
+
+  it('names a failed fetch instead of guessing when the sync failed', async () => {
+    jest.mocked(api.fetchHealthStatus).mockResolvedValue(
+      status({
+        sync: {
+          earliestDay: '2026-03-01',
+          backfillDone: true,
+          lastPulledAt: null,
+          lastError: 'unavailable',
+        },
+      }),
+    );
+    await renderWithQuery(<InsightsScreen />);
+    expect(
+      await screen.findByLabelText(/^Resting heart rate: The last fetch from Garmin did not work/),
+    ).toBeOnTheScreen();
+  });
+
+  it('says when Garmin was not allowed to share a group (OAuth)', async () => {
+    jest.mocked(api.fetchHealthStatus).mockResolvedValue(status({ permitted: [] }));
+    await renderWithQuery(<InsightsScreen />);
+    expect(
+      await screen.findByLabelText(/^Resting heart rate: Garmin is not allowed to share this/),
+    ).toBeOnTheScreen();
   });
 
   it('invites to set up health data without any source and stays on Training', async () => {
@@ -207,6 +281,28 @@ const planInput: StoredPlanInput = {
 };
 
 describe('Health detail', () => {
+  it("VO2max: Garmin's estimate with the activity it came from", async () => {
+    jest.mocked(useLocalSearchParams).mockReturnValue({ metric: 'vo2max' });
+    jest.mocked(api.fetchHealthStatus).mockResolvedValue(
+      status({
+        groups: ['activity'],
+        connection: { ...status().connection!, provides: ['vo2max'] },
+      }),
+    );
+    health.store.rows.push({
+      metric: 'vo2max',
+      day: addDays(TODAY, -10),
+      source: 'garmin',
+      value: 53,
+      detail: { activityId: 2, activityName: 'Evening run', activityType: 'running' },
+      recordedAt: `${addDays(TODAY, -10)}T16:00:00.000Z`,
+      sourceIds: ['vo2:2'],
+    });
+    await renderWithQuery(<MetricDetailScreen />);
+    expect(await screen.findByText('Garmin estimate from Evening run')).toBeOnTheScreen();
+    jest.mocked(useLocalSearchParams).mockReturnValue({ metric: 'resting_hr' });
+  });
+
   it('resting HR: chart, baseline, consult line when clearly off, hard sessions behind it', async () => {
     const r = generatePlan(
       planInput.profile,
@@ -366,6 +462,28 @@ describe('Health data settings', () => {
     expect(await screen.findByText('Saved')).toBeOnTheScreen();
   });
 
+  it('restarts the history walk on the pull tier and links the developer sync details', async () => {
+    await renderWithQuery(<HealthConsentScreen />);
+    await fireEvent.press(await screen.findByTestId('health-backfill-button'));
+    expect(
+      await screen.findByText('Started. Older days fill in over the next hours.'),
+    ).toBeOnTheScreen();
+    expect(api.requestHealthBackfill).toHaveBeenCalled();
+    await fireEvent.press(screen.getByText('Health sync details (developer)'));
+    expect(router.push).toHaveBeenCalledWith('/health/diagnostics');
+  });
+
+  it('marks groups Garmin did not permit and does not switch them on', async () => {
+    jest.mocked(api.fetchHealthStatus).mockResolvedValue(status({ permitted: ['sleep'] }));
+    await renderWithQuery(<HealthConsentScreen />);
+    expect((await screen.findAllByText(/Not allowed at Garmin/)).length).toBeGreaterThan(0);
+    await fireEvent.press(screen.getByText('Daily activity'));
+    await fireEvent.press(screen.getByTestId('health-consent-save'));
+    await waitFor(() =>
+      expect(api.saveConsents).toHaveBeenCalledWith(expect.objectContaining({ activity: false })),
+    );
+  });
+
   it('deletes all health data after a confirmation, keeping the account', async () => {
     history('resting_hr', 50, 3);
     await renderWithQuery(<HealthConsentScreen />);
@@ -388,6 +506,60 @@ describe('Health data settings', () => {
     await fireEvent.changeText(screen.getByLabelText('Personal API key'), 'abc-123-def-456-ghi');
     await fireEvent.press(screen.getByText('Connect key'));
     expect(await screen.findByText('Garmin did not accept this key.')).toBeOnTheScreen();
+  });
+});
+
+describe('Health sync details (developer)', () => {
+  it('shows per endpoint status, records and errors, and the values per source here', async () => {
+    jest.mocked(api.fetchHealthDiagnostics).mockResolvedValue({
+      mode: 'personal_key',
+      status: 'active',
+      permissions: [],
+      groups: ['hrv_rhr'],
+      endpoints: [
+        {
+          endpoint: 'dailySummaries',
+          recent: {
+            at: `${TODAY}T08:00:00.000Z`,
+            status: 200,
+            records: 11,
+            calls: 1,
+            error: null,
+          },
+          backfill: null,
+        },
+        {
+          endpoint: 'weight',
+          recent: {
+            at: `${TODAY}T08:00:00.000Z`,
+            status: 500,
+            records: 0,
+            calls: 1,
+            error: 'rejected',
+          },
+          backfill: null,
+        },
+      ],
+      parserVersion: { stored: 2, current: 2 },
+      sync: {
+        earliestDay: '2026-03-01',
+        backfillDone: false,
+        lastPulledAt: null,
+        lastError: 'unavailable',
+        backfillBefore: '2026-09-01',
+        backfillRequestedAt: null,
+      },
+    });
+    history('steps', 9000, 2);
+    await renderWithQuery(<HealthDiagnosticsScreen />);
+    expect(await screen.findByTestId('health-diagnostics-dailySummaries')).toHaveTextContent(
+      /HTTP 200 · 11 records · 1 calls/,
+    );
+    expect(screen.getByTestId('health-diagnostics-weight')).toHaveTextContent(/Error: rejected/);
+    expect(screen.getByText('Parser version: 2 stored / 2 current')).toBeOnTheScreen();
+    expect(screen.getByTestId('health-diagnostics-local')).toHaveTextContent(
+      /Steps · Garmin: 2 days, latest 2026-10-22/,
+    );
   });
 });
 

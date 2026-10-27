@@ -21,17 +21,16 @@ import { METRIC_META } from './metrics';
  * screens stay thin and this is tested on its own.
  */
 
-/** A value older than this is "no recent data", not today's value. */
-export const RECENT_DAYS = 7;
-
 export type MissingReason =
   /** No Garmin connection and no phone health store. */
   | 'not_connected'
+  /** Garmin OAuth: the permission for this group was not granted on Garmin's consent screen. */
+  | 'not_permitted'
   /** The user has not switched this data group on. */
   | 'not_enabled'
-  /** The connected sources do not deliver this metric. */
+  /** The connected sources do not deliver this metric (API tier, no record type). */
   | 'not_provided'
-  /** Nothing recorded recently (watch not worn, not synced yet). */
+  /** Permitted and delivered, but nothing in the metric's window (see `MetricMeta.why`). */
   | 'no_data';
 
 export type MetricState =
@@ -45,7 +44,18 @@ export type MetricState =
       deviation: Deviation | null;
       trend: Trend;
     }
-  | { kind: 'missing'; metric: HealthMetric; reason: MissingReason };
+  | {
+      kind: 'missing';
+      metric: HealthMetric;
+      reason: MissingReason;
+      /**
+       * The latest value outside the window, from whichever source has one – shown with its
+       * source and day instead of claiming nothing was ever recorded.
+       */
+      last: DailyValue | null;
+      /** Garmin is connected but does not deliver this metric on this kind of access. */
+      garminLacks: boolean;
+    };
 
 export interface Sources {
   status: HealthStatus | null | undefined;
@@ -67,6 +77,19 @@ export function isConnected(sources: Sources): boolean {
   return !!sources.status?.connection || sources.deviceProvides.length > 0;
 }
 
+/** Why there is no current value: the first of the four cases that applies. */
+function missingReason(metric: HealthMetric, sources: Sources): MissingReason {
+  const { group } = METRIC_META[metric];
+  const connection = sources.status?.connection;
+  const garmin = connection?.provides.includes(metric) ?? false;
+  const device = sources.deviceProvides.includes(metric);
+  // Garmin would deliver it, but the user did not grant that permission at Garmin.
+  const permitted = sources.status?.permitted;
+  if (garmin && !device && permitted && !permitted.includes(group)) return 'not_permitted';
+  if (!sources.groups.includes(group)) return 'not_enabled';
+  return garmin || device ? 'no_data' : 'not_provided';
+}
+
 export function metricState(
   metric: HealthMetric,
   values: readonly DailyValue[],
@@ -75,16 +98,21 @@ export function metricState(
 ): MetricState {
   const own = values.filter((v) => v.metric === metric && v.day <= today);
   const latest = own.at(-1);
-  const recent = latest && daysBetween(latest.day, today) < RECENT_DAYS ? latest : null;
+  const recent =
+    latest && daysBetween(latest.day, today) < METRIC_META[metric].recentDays ? latest : null;
   if (!recent) {
-    if (!isConnected(sources)) return { kind: 'missing', metric, reason: 'not_connected' };
-    if (!sources.groups.includes(METRIC_META[metric].group)) {
-      return { kind: 'missing', metric, reason: 'not_enabled' };
+    const connection = sources.status?.connection;
+    const garminLacks = !!connection && !connection.provides.includes(metric);
+    if (!isConnected(sources)) {
+      return { kind: 'missing', metric, reason: 'not_connected', last: null, garminLacks };
     }
-    const provided =
-      (sources.status?.connection?.provides ?? []).includes(metric) ||
-      sources.deviceProvides.includes(metric);
-    return { kind: 'missing', metric, reason: provided ? 'no_data' : 'not_provided' };
+    return {
+      kind: 'missing',
+      metric,
+      reason: missingReason(metric, sources),
+      last: latest ?? null,
+      garminLacks,
+    };
   }
   const series = seriesOf(own, metric);
   const baseline = computeBaseline(metric, series, recent.day, 30);

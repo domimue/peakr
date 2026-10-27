@@ -14,13 +14,63 @@ export interface MetricMeta {
   decimals: number;
   /** Metric of a daily total (steps) rather than a level (resting HR). */
   total?: boolean;
+  /**
+   * How old the latest value may be to count as the current one. Most metrics are recorded every
+   * day the watch is worn; weight only on the days someone steps on the scale, and Garmin's VO2max
+   * only after a run or ride that updates it.
+   */
+  recentDays: number;
+  /**
+   * Why a value can be missing although everything is set up – the real reason for this metric
+   * (`health.missing.why.<why>`).
+   */
+  why: MissingWhy;
 }
+
+export type MissingWhy =
+  'overnight' | 'continuous' | 'spo2' | 'respiration' | 'scale' | 'vo2max' | 'fitnessAge';
+
+/** Days a value counts as current, unless the metric says otherwise. */
+export const DEFAULT_RECENT_DAYS = 7;
+
+const WHY: Record<HealthMetric, MissingWhy> = {
+  sleep_duration: 'overnight',
+  sleep_score: 'overnight',
+  hrv_night: 'overnight',
+  resting_hr: 'continuous',
+  stress_avg: 'continuous',
+  body_battery_high: 'continuous',
+  body_battery_low: 'continuous',
+  steps: 'continuous',
+  floors: 'continuous',
+  intensity_min: 'continuous',
+  active_kcal: 'continuous',
+  resting_kcal: 'continuous',
+  spo2_avg: 'spo2',
+  respiration_avg: 'respiration',
+  weight: 'scale',
+  body_fat: 'scale',
+  muscle_mass: 'scale',
+  bmi: 'scale',
+  vo2max: 'vo2max',
+  fitness_age: 'fitnessAge',
+};
+
+const RECENT_DAYS: Partial<Record<HealthMetric, number>> = {
+  weight: 30,
+  body_fat: 30,
+  muscle_mass: 30,
+  bmi: 30,
+  vo2max: 30,
+};
 
 const meta = (metric: HealthMetric, decimals = 0, total = false): MetricMeta => ({
   metric,
   group: METRIC_GROUP[metric],
   decimals,
   total,
+  recentDays: RECENT_DAYS[metric] ?? DEFAULT_RECENT_DAYS,
+  why: WHY[metric],
 });
 
 /** Overview tiles, in this order. */

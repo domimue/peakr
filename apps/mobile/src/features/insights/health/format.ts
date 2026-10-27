@@ -1,8 +1,10 @@
 import type { DailyValue, HealthMetric } from '@peakr/engine';
 import type { TFunction } from 'i18next';
 
-import type { MetricState } from './model';
-import { formatMetric } from './metrics';
+import type { HealthSyncInfo } from '@/features/health-data/api';
+
+import { daysBetween, type MetricState } from './model';
+import { formatMetric, METRIC_META } from './metrics';
 
 /** Texts shared by the overview tiles and the detail screens. */
 
@@ -80,4 +82,56 @@ export function rangeLine(
     low: formatMetric(t, metric, Math.max(0, state.baseline.low), language),
     high: formatMetric(t, metric, state.baseline.high, language),
   });
+}
+
+type Missing = Extract<MetricState, { kind: 'missing' }>;
+
+/**
+ * Why a metric has no current value – the case that applies to this metric, not one sentence for
+ * all of them – and its latest older value with day and source, if any source has one.
+ */
+export function missingLines(
+  t: TFunction,
+  state: Missing,
+  sync: HealthSyncInfo | null | undefined,
+  language: string,
+  today: string,
+): { reason: string; last: string | null } {
+  const { recentDays, why } = METRIC_META[state.metric];
+  let reason: string;
+  switch (state.reason) {
+    case 'not_enabled':
+      reason = t('health.missing.not_enabled_tile');
+      break;
+    case 'not_provided':
+      reason = state.garminLacks
+        ? t('health.missing.not_provided_garmin')
+        : t('health.missing.not_provided');
+      break;
+    case 'no_data':
+      reason =
+        sync?.lastError && !state.garminLacks
+          ? t('health.missing.syncFailed')
+          : t(`health.missing.why.${why}`, { days: recentDays });
+      break;
+    default:
+      reason = t(`health.missing.${state.reason}`);
+  }
+  const last = state.last
+    ? t('health.missing.last', {
+        value: formatMetric(t, state.metric, state.last.value, language),
+        day: dayLabel(t, state.last.day, daysBetween(state.last.day, today), language),
+        source: t(`health.sources.${state.last.source}`),
+      })
+    : null;
+  return { reason, last };
+}
+
+/** "Garmin estimate from Morning run" for Garmin's per-activity VO2max. */
+export function vo2maxLine(t: TFunction, value: DailyValue): string | null {
+  if (value.metric !== 'vo2max' || value.source !== 'garmin') return null;
+  const name = value.detail?.activityName;
+  return typeof name === 'string' && name.length > 0
+    ? t('health.overview.vo2maxFrom', { activity: name })
+    : null;
 }
