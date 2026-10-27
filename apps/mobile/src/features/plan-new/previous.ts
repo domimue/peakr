@@ -7,7 +7,8 @@ export function usePreviousPlan(): { previous: PreviousPlan | null; isPending: b
   const archive = useArchivedPlans();
   const latest = archive.data?.[0];
   return {
-    previous: plan.data ?? (latest ? { state: latest.state, input: latest.input } : null),
+    previous:
+      plan.data ?? (latest ? { id: latest.id, state: latest.state, input: latest.input } : null),
     isPending: plan.isPending || archive.isPending,
   };
 }

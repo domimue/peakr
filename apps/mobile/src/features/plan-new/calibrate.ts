@@ -1,4 +1,10 @@
-import { historyBaseline, withHistoryBaseline, type PlanState } from '@peakr/engine';
+import {
+  applyReview,
+  historyBaseline,
+  withHistoryBaseline,
+  type PlanState,
+  type ReviewChanges,
+} from '@peakr/engine';
 import { toPlanInput, type QuizAnswers } from '@peakr/quiz';
 
 import type { StoredPlanInput } from '@/data/db/schema';
@@ -10,6 +16,7 @@ import type { BaselineMeta, StoredBaselineActivity } from '@/data/repositories/b
  * recent archived one.
  */
 export interface PreviousPlan {
+  id: string;
   state: PlanState;
   input: StoredPlanInput;
 }
@@ -24,6 +31,8 @@ export function newPlanInput(
   baseline: { activities: readonly StoredBaselineActivity[]; meta: BaselineMeta | null },
   current: PreviousPlan | null,
   today: string,
+  /** What the review changes, and whether the suggested difficulty is taken. */
+  review?: { changes: ReviewChanges; acceptDifficulty: boolean },
 ) {
   const input = toPlanInput(answers, today);
   if (!input.ok) return null;
@@ -42,5 +51,8 @@ export function newPlanInput(
     },
     history,
   );
-  return { ...calibrated, profile };
+  return {
+    ...calibrated,
+    profile: review ? applyReview(profile, review.changes, review.acceptDifficulty) : profile,
+  };
 }

@@ -137,12 +137,16 @@ describe('Plan history and badges', () => {
     setToday('2026-12-21');
     const done = storeFirstPlan('2026-12-19', 0.9);
     await mock.archiveEndedPlan('2026-12-21');
+    await mock.saveArchiveReview('plan-old', { lines: [{ key: 'levelsDownHard' }] });
     jest.mocked(useLocalSearchParams).mockReturnValue({ id: 'plan-old' });
     await renderWithQuery(<ArchivedPlanScreen />);
     expect(await screen.findByTestId('archived-summary')).toBeOnTheScreen();
     expect(screen.getByText('Long sessions')).toBeOnTheScreen();
     expect(screen.getByTestId(`archived-${done[0]?.id}`)).toBeOnTheScreen();
     expect(screen.getByText('Archived plans are read-only.')).toBeOnTheScreen();
+    expect(
+      screen.getByText('•  It felt too hard – sessions start one level lower.'),
+    ).toBeOnTheScreen();
   });
 
   it('same-day undo brings the previous plan back', async () => {

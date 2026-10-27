@@ -3312,7 +3312,8 @@
       "firstPlan": "First plan completed",
       "firstMultisport": "First multisport plan",
       "allIn": "All in – 95 % done"
-    }
+    },
+    "review": "What your review changed in the next plan"
   },
   "planNew": {
     "title": "Create a new plan",
@@ -3355,5 +3356,82 @@
       "title": "Your plan has ended",
       "message": "It is in your plan history. Create the next one – it starts from what you did."
     }
+  },
+  "planReview": {
+    "ask": "How was your last plan?",
+    "skip": "Skip the review",
+    "measured": {
+      "skipped": "Skipped most: {{list}}",
+      "missedWeeks_one": "{{count}} week without any session done",
+      "missedWeeks_other": "{{count}} weeks without any session done",
+      "downgraded_one": "{{count}} hard session the plan made easier (spacing or the 80/20 balance)",
+      "downgraded_other": "{{count}} hard sessions the plan made easier (spacing or the 80/20 balance)",
+      "easyPace": "Easy runs: {{first}} at the start, {{last}} lately (linked activities)",
+      "easyPaceNone": "Easy pace: not enough linked runs to compare",
+      "longEasy": "Long runs in the easy heart-rate band: {{percent}} %",
+      "longEasyNone": "Long runs and heart rate: not enough data"
+    },
+    "questions": {
+      "overall": {
+        "label": "Overall",
+        "tooEasy": "Too easy",
+        "right": "About right",
+        "tooHard": "Too hard"
+      },
+      "long": {
+        "label": "Long sessions",
+        "good": "Went well",
+        "tooLong": "Too long",
+        "tooShort": "Too short"
+      },
+      "quality": {
+        "label": "Hard sessions",
+        "tooLittle": "Too few",
+        "right": "About right",
+        "tooMuch": "Too many"
+      },
+      "time": {
+        "label": "Time per week",
+        "tooMuch": "Too much",
+        "right": "About right",
+        "tooLittle": "Could do more"
+      },
+      "complaints": {
+        "label": "Did you need a break because of pain or discomfort?",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "wishes": {
+        "label": "For the next plan I’d like …",
+        "moreIntervals": "More intervals",
+        "moreVolume": "More easy volume",
+        "moreStrength": "More strength",
+        "fewerDays": "Fewer training days"
+      }
+    },
+    "changesTitle": "What this changes in the next plan",
+    "lines": {
+      "levelsUp": "You did {{percent}} % of your sessions and it felt right – sessions start one level higher.",
+      "levelsHold": "You did {{percent}} % of your sessions – sessions start at the level you reached.",
+      "levelsDownDone": "You did {{percent}} % of your sessions – sessions start one level lower so the plan fits your weeks.",
+      "levelsDownHard": "It felt too hard – sessions start one level lower.",
+      "difficulty": "Difficulty {{from}} → {{to}}",
+      "quality": {
+        "more": "More intervals: VO₂ sessions come every second week instead of every third.",
+        "less": "More easy volume: VO₂ sessions come every fourth week; 80/20 stays."
+      },
+      "strengthFirst": "Strength gets priority in the week.",
+      "strengthChoose": "Choose a strength mode in the quiz to add strength.",
+      "long": {
+        "shorter": "Long sessions start at 90 % of your usual one – never below it.",
+        "longer": "Long sessions start about 10 % longer."
+      },
+      "timeHint": "Set the time you have per day in the availability step of the quiz.",
+      "returnAfterBreak": "After a break for pain or discomfort the plan starts lower on purpose ({{percent}} % of your recent load, one level lower) and builds up again."
+    },
+    "difficultyChoice": "Difficulty",
+    "difficultyTake": "Use {{to}}",
+    "difficultyKeep": "Keep mine",
+    "doctor": "If the pain or discomfort persists, talk to a doctor."
   }
 }

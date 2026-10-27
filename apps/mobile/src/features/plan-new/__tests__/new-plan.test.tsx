@@ -94,7 +94,7 @@ beforeEach(() => {
   mock.resetStore();
   progress.resetStore();
   baseline.resetStore();
-  useNewPlanFlow.setState({ active: false });
+  useNewPlanFlow.setState({ active: false, review: {}, acceptDifficulty: true });
   useQuizStore.setState({
     answers: {},
     stepId: null,
@@ -198,5 +198,69 @@ describe('"Create a new plan" in the same account', () => {
     expect(mock.store.archive[0]).toMatchObject({ id: 'plan-ended', outcome: 'finished' });
     await fireEvent.press(screen.getByText('Create a new plan'));
     expect(router.push).toHaveBeenCalledWith('/plan-new');
+  });
+
+  it('"How was your last plan?": measured figures, quick taps, every change with its reason', async () => {
+    storeCurrent();
+    progress.store.progress = { answers, stepId: 'disclaimer', insight: false, finished: true };
+    await renderWithQuery(<NewPlanStartScreen />);
+    expect(await screen.findByTestId('review-measured')).toBeOnTheScreen();
+    expect(screen.getByText(/^\d+ of \d+ sessions · \d+ %$/)).toBeOnTheScreen();
+    expect(screen.getByText('Easy pace: not enough linked runs to compare')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('Too hard'));
+    expect(
+      screen.getByText('•  It felt too hard – sessions start one level lower.'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('•  Difficulty 7 → 6')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('Keep mine'));
+    expect(useNewPlanFlow.getState().acceptDifficulty).toBe(false);
+    await fireEvent.press(screen.getByText('More intervals'));
+    expect(
+      screen.getByText(
+        '•  More intervals: VO₂ sessions come every second week instead of every third.',
+      ),
+    ).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('Yes'));
+    expect(
+      screen.getByText('If the pain or discomfort persists, talk to a doctor.'),
+    ).toBeOnTheScreen();
+    expect(useNewPlanFlow.getState().review).toMatchObject({
+      overall: 'tooHard',
+      wishes: ['moreIntervals'],
+      breakForComplaints: true,
+    });
+    // Tapping the chosen answer again takes it back.
+    await fireEvent.press(screen.getByText('Too hard'));
+    expect(useNewPlanFlow.getState().review.overall).toBeUndefined();
+    await fireEvent.press(screen.getByText('More intervals'));
+    expect(useNewPlanFlow.getState().review.wishes).toEqual([]);
+  });
+
+  it('the answers shape the new plan and are kept with the archived one; skipping clears them', async () => {
+    storeCurrent();
+    progress.store.progress = { answers, stepId: 'disclaimer', insight: false, finished: true };
+    useQuizStore.setState({ answers, hydrated: true });
+    useNewPlanFlow.setState({
+      active: true,
+      review: { overall: 'tooEasy', wishes: ['moreIntervals'] },
+      acceptDifficulty: true,
+    });
+    await renderWithQuery(<NewPlanConfirmScreen />);
+    await fireEvent.press(await screen.findByTestId('new-plan-confirm'));
+    await waitFor(() => expect(router.replace).toHaveBeenCalledWith('/today'));
+    expect(mock.store.plan?.input.profile).toMatchObject({
+      difficulty: 8,
+      qualityEmphasis: 'more',
+    });
+    expect(mock.store.archive[0]?.review).toMatchObject({
+      answers: { overall: 'tooEasy', wishes: ['moreIntervals'] },
+      acceptDifficulty: true,
+    });
+
+    useNewPlanFlow.setState({ active: false, review: { overall: 'right' } });
+    await renderWithQuery(<NewPlanStartScreen />);
+    await fireEvent.press(await screen.findByTestId('new-plan-skip-review'));
+    await waitFor(() => expect(router.push).toHaveBeenCalledWith('/onboarding/quiz'));
+    expect(useNewPlanFlow.getState().review).toEqual({});
   });
 });

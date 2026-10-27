@@ -11,6 +11,7 @@ import {
   type StrengthPriority,
   type UserProfile,
   type Workout,
+  type WorkoutType,
 } from './types';
 
 /**
@@ -33,8 +34,8 @@ export interface PlanReview {
   summary: PlanSummary;
   /** Done load / planned load of the sessions so far (0–1+); null without planned load. */
   loadShare: number | null;
-  /** Session types skipped at least `skippedMin` times, most skipped first (max. 3). */
-  mostSkipped: { templateType: string; count: number }[];
+  /** Workout types skipped at least `skippedMin` times, most skipped first (max. 3). */
+  mostSkipped: { type: WorkoutType; count: number }[];
   /** Quality sessions the plan itself made easy (no hard days in a row, 80/20). */
   qualityDowngraded: number;
   /** Past full weeks with sessions planned and none done. */
@@ -64,14 +65,14 @@ export function planReview(
   const planned = sessions.reduce((s, w) => s + w.load, 0);
   const done = sessions.filter((w) => status(w) === 'done').reduce((s, w) => s + w.load, 0);
 
-  const skips = new Map<string, number>();
+  const skips = new Map<WorkoutType, number>();
   for (const w of sessions)
-    if (status(w) === 'skipped') skips.set(w.templateType, (skips.get(w.templateType) ?? 0) + 1);
+    if (status(w) === 'skipped') skips.set(w.type, (skips.get(w.type) ?? 0) + 1);
   const mostSkipped = [...skips]
     .filter(([, n]) => n >= cfg.skippedMin)
     .sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0]))
     .slice(0, 3)
-    .map(([templateType, count]) => ({ templateType, count }));
+    .map(([type, count]) => ({ type, count }));
 
   const qualityDowngraded = sessions.filter((w) =>
     w.notes.some((n) => DOWNGRADE_NOTES.has(n.key)),

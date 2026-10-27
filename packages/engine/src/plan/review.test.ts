@@ -57,6 +57,25 @@ describe('plan review: what the plan measured', () => {
     expect(planReview(s, profile, '2026-10-01').loadShare).toBeNull();
   });
 
+  it('equally often skipped types are listed alphabetically', () => {
+    const s = state();
+    const past = sessions(s).filter((w) => w.date < TODAY);
+    const pick = (type: string) => past.filter((w) => w.type === type).slice(0, 2);
+    const skipped = [...pick('long'), ...pick('easy')];
+    const r = planReview(
+      {
+        ...s,
+        status: { ...s.status, ...Object.fromEntries(skipped.map((w) => [w.id, 'skipped'])) },
+      },
+      profile,
+      TODAY,
+    );
+    expect(r.mostSkipped).toEqual([
+      { type: 'easy', count: 2 },
+      { type: 'long', count: 2 },
+    ]);
+  });
+
   it('downgraded quality sessions are counted', () => {
     const s = state();
     const first = sessions(s).find((w) => w.date < TODAY) as Workout;

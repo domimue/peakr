@@ -10,6 +10,7 @@ import { calibrateOnboarding } from '@/features/baseline/calibration';
 import { newPlanInput } from '@/features/plan-new/calibrate';
 import { useNewPlanFlow } from '@/features/plan-new/flow-store';
 import { usePreviousPlan } from '@/features/plan-new/previous';
+import { usePlanReview } from '@/features/plan-new/review';
 import { useSaveStrengthSetup } from '@/features/strength/queries';
 import { planTargetBands } from '@/features/training-zones/resolve';
 import { setupFromAnswers } from '@/features/strength/setup-form';
@@ -59,6 +60,8 @@ export function ForecastScreen() {
   // "Create a new plan": the current plan's sessions set the start, and the next step confirms.
   const newPlan = useNewPlanFlow((s) => s.active);
   const { previous: current } = usePreviousPlan();
+  const review = usePlanReview();
+  const acceptDifficulty = useNewPlanFlow((s) => s.acceptDifficulty);
 
   useEffect(() => {
     void hydrate();
@@ -72,8 +75,13 @@ export function ForecastScreen() {
     // The Strava baseline (if the user gave one) calibrates levels, week 1, paces and zones.
     const v =
       newPlan && current
-        ? (newPlanInput(given, { activities, meta }, current, today) ??
-          calibrateOnboarding(input.value, { activities, meta }, today))
+        ? (newPlanInput(
+            given,
+            { activities, meta },
+            current,
+            today,
+            review ? { changes: review.changes, acceptDifficulty } : undefined,
+          ) ?? calibrateOnboarding(input.value, { activities, meta }, today))
         : calibrateOnboarding(input.value, { activities, meta }, today);
     const plan = generatePlan(v.profile, v.goal, v.availability, v.startDate, v.targetDate);
     // Below what the athlete already does: say why instead of a generic error.
@@ -84,7 +92,7 @@ export function ForecastScreen() {
       forecast: buildForecast(plan.value, v, prepareAnswers(given, today)),
       hrZones: planTargetBands({ ...v, ...(v.targetDate ? { targetDate: v.targetDate } : {}) }),
     };
-  }, [given, today, activities, meta, newPlan, current]);
+  }, [given, today, activities, meta, newPlan, current, review, acceptDifficulty]);
 
   // The strength answers become the saved setup (Profile → Strength edits it).
   useEffect(() => {

@@ -1,4 +1,10 @@
-import { formatDuration, historyByMonth, type PlanSummary, type SummaryGroup } from '@peakr/engine';
+import {
+  formatDuration,
+  historyByMonth,
+  type PlanNote,
+  type PlanSummary,
+  type SummaryGroup,
+} from '@peakr/engine';
 import { router, useLocalSearchParams } from 'expo-router';
 import type { TFunction } from 'i18next';
 import { useState } from 'react';
@@ -110,6 +116,12 @@ export function PlanHistoryScreen() {
   );
 }
 
+/** What the review of this plan changed in the next one (stored with the archived plan). */
+function reviewLines(plan: ArchivedPlan): PlanNote[] {
+  const lines = plan.review?.lines;
+  return Array.isArray(lines) ? (lines as PlanNote[]) : [];
+}
+
 /** One archived plan, read-only: outcome, sessions per group, and the sessions that were done. */
 export function ArchivedPlanScreen() {
   const { t, i18n } = useTranslation();
@@ -150,6 +162,16 @@ export function ArchivedPlanScreen() {
           </View>
         ))}
       </Card>
+      {reviewLines(plan).length > 0 ? (
+        <Card testID="archived-review">
+          <Text variant="label">{t('planHistory.review')}</Text>
+          {reviewLines(plan).map((l) => (
+            <Text key={l.key}>
+              {`•  ${t(`planReview.lines.${l.key}` as never, { ...l.params }) as string}`}
+            </Text>
+          ))}
+        </Card>
+      ) : null}
       <Text variant="heading">{t('planHistory.doneSessions')}</Text>
       {months.flatMap((m) =>
         m.entries.map((e) => (
