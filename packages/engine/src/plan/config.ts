@@ -109,6 +109,11 @@ export const planConfig = {
   sessions: {
     /** Endurance sessions per week by experience (limited by available days). */
     perWeek: { beginner: 3, intermediate: 4, advanced: 5 } satisfies Record<Experience, number>,
+    /**
+     * Sessions the user chose (`profile.sessionsPerWeek`) start with at least this much easy time
+     * each: week 1 carries their load (within the availability) instead of shortening them.
+     */
+    ownMinMin: { run: 35, bike: 45, swim: 30 } satisfies Record<Sport, number>,
     /** Fitness goals: first week with a light quality session. */
     fitnessQualityFromWeek: 4,
     fitnessQualityMaxLevel: 3,

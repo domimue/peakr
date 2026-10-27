@@ -210,3 +210,20 @@ describe('difficulty slider', () => {
     expect(r.ok).toBe(false);
   });
 });
+
+describe('a plan that has not started yet', () => {
+  it('created on a Tuesday, starting Monday: the difficulty can be changed right away', () => {
+    const fresh = plan(runner); // starts Monday 2026-10-26
+    const input = {
+      profile: runner,
+      goal: { kind: 'half' as const },
+      availability,
+      targetDate: '2027-03-28',
+    };
+    const r = previewDifficulty(newPlanState(fresh), input, '2026-10-20', 7);
+    if (!r.ok) throw new Error(JSON.stringify(r.issues));
+    // Rebuilt from its first day, which keeps its date; harder than before.
+    expect(r.value.state.plan.weeks[0]?.startDate).toBe('2026-10-26');
+    expect(r.value.state.plan.weeks[1]?.load ?? 0).toBeGreaterThan(loadOf(fresh, 1));
+  });
+});
