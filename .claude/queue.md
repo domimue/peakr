@@ -3,11 +3,15 @@
 Prompts the user has given that are not finished yet. Newest at the bottom;
 work top to bottom. See "Working mode (Claude sessions)" in CLAUDE.md.
 
-Hourly check-in (scheduled task): `trig_01CLCwz6RBurU45vsaGJYsmn` (this branch, claude/focused-bell-520msa)
+Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude/bold-pascal-ozm0yd)
 
 ## Open
 
-(empty)
+- Garmin health data not arriving (user prompt 2026-10-27): v2 daily-summary mapper, per-endpoint pull,
+  SpO2 day + VO2max from activities, backfill trigger, four empty-state cases, OAuth permissions,
+  diagnostics screen. Approved plan: `.claude/plans/garmin-health-fix.md`. Progress:
+  - [ ] A mapper/pull  - [ ] B backfill  - [ ] C empty states  - [ ] D OAuth permissions
+  - [ ] E diagnostics  - [ ] F tests/docs
 
 ## Done
 
