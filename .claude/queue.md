@@ -11,6 +11,10 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 ## Done
 
+- Sessions per discipline (2026-10-27): quiz step before the availability (Let Peakr suggest / I
+  choose, starting at the suggestion), engine plans the asked numbers, check against days, Profile →
+  Availability edits it; also: plan start floors fixed for short days; nothing to set up
+
 - Prompt 4 – Recipes and portions (2026-10-27): engine recipe maths (totals, per portion, cooked
   weight, units, scaling, relog), recipe editor with photo / note / ingredients through the same
   search, scanner, favourites and manual entry, log by portion or grams, "My recipes" filter,

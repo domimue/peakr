@@ -144,6 +144,8 @@ export const planConfig = {
     volumeShare: 0.95,
     /** Rebuilds of the checked start week with a higher target before the floor counts as missed. */
     retries: 4,
+    /** Smallest raise of the target per rebuild (a smaller one rounds back to the same week). */
+    minStep: 1.05,
     /** Speeds used to turn a distance from the quiz into minutes when no pace is known. */
     defaultSpeedKmh: { run: 10, bike: 25, swim: 2.5 } satisfies Record<Sport, number>,
   },

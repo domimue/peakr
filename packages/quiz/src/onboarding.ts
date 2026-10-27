@@ -10,6 +10,7 @@ import {
   realisticRaceTimeRange,
   requiredSports,
   SPORTS,
+  suggestedSessions,
   thresholdFromEasyPace,
   zoneConfig,
   type Availability,
@@ -100,6 +101,10 @@ export const QUESTION_IDS = {
   swimWater: 'swim.water',
   restingHr: 'hr.resting',
   hrMax: 'hr.max',
+  sessionsMode: 'sessions.mode',
+  runSessions: 'run.sessions',
+  bikeSessions: 'bike.sessions',
+  swimSessions: 'swim.sessions',
   availability: 'availability.minutes',
   doubles: 'availability.doubles',
   commuteSport: 'commute.sport',
@@ -122,6 +127,10 @@ export const QUESTION_IDS = {
 const Q = QUESTION_IDS;
 const hrLimits = zoneConfig.hr.limits;
 const swimLimits = zoneConfig.swim.limits;
+
+/** Sessions per week and discipline the user can ask for. */
+const SESSIONS_RANGE = { min: 1, max: 7 };
+const SESSIONS_ID = { run: Q.runSessions, bike: Q.bikeSessions, swim: Q.swimSessions } as const;
 
 /** Easy pace entry: 3:30–12:00 per km. */
 const EASY_PACE_RANGE = { min: 210, max: 720 };
@@ -176,6 +185,31 @@ export function sportsOf(a: QuizAnswers): Sport[] {
 }
 
 const has = (sport: Sport) => (a: QuizAnswers) => sportsOf(a).includes(sport);
+const ownSessions = (a: QuizAnswers) => str(a, Q.sessionsMode) === 'own';
+
+/** What Peakr plans per discipline for these answers when the user leaves it open. */
+export function sessionSuggestion(a: QuizAnswers): Record<Sport, number> {
+  const goal = goalOf(a) ?? 'fitness';
+  const experience = (str(a, Q.experience) as Experience | undefined) ?? 'beginner';
+  return suggestedSessions(goal, {
+    age: 35,
+    experience,
+    sports: sportsOf(a).length > 0 ? sportsOf(a) : ['run'],
+    terrain: 'flat',
+    strength: { mode: 'none' },
+  });
+}
+
+/** The sessions per week the user chose (own numbers only; Peakr's suggestion is not stored). */
+export function sessionsOf(a: QuizAnswers): Partial<Record<Sport, number>> | undefined {
+  if (!ownSessions(a)) return undefined;
+  const out: Partial<Record<Sport, number>> = {};
+  for (const sport of sportsOf(a)) {
+    const n = num(a, SESSIONS_ID[sport]);
+    if (n !== undefined) out[sport] = n;
+  }
+  return Object.keys(out).length > 0 ? out : undefined;
+}
 const raceReference = (a: QuizAnswers): ReferenceRaceId | undefined => {
   const r = str(a, Q.runReference);
   return r === '5k' || r === '10k' || r === 'half' ? r : undefined;
@@ -350,6 +384,25 @@ export const onboardingQuestions: readonly QuizQuestion[] = [
     },
   },
   {
+    id: Q.sessionsMode,
+    kind: 'single',
+    titleKey: 'quiz.sessions.mode.title',
+    hintKey: 'quiz.sessions.mode.hint',
+    options: options('sessions.mode', ['suggest', 'own'], true),
+    defaultValue: () => 'suggest',
+    visibleIf: (a) => sportsOf(a).length > 0,
+  },
+  ...SPORTS.map((sport): QuizQuestion => ({
+    id: SESSIONS_ID[sport],
+    kind: 'number',
+    titleKey: `quiz.sessions.${sport}.title`,
+    unitKey: 'quiz.sessions.unit',
+    range: () => SESSIONS_RANGE,
+    // Starts at Peakr's suggestion, so "own" means changing it, not entering it from scratch.
+    defaultValue: (a) => Math.max(SESSIONS_RANGE.min, sessionSuggestion(a)[sport]),
+    visibleIf: (a) => has(sport)(a) && ownSessions(a),
+  })),
+  {
     id: Q.availability,
     kind: 'weekMinutes',
     titleKey: 'quiz.availability.title',
@@ -359,12 +412,24 @@ export const onboardingQuestions: readonly QuizQuestion[] = [
     check: (a) => {
       const minutes = a[Q.availability] as readonly number[];
       const { minSessionMin, minTrainingDays } = planConfig.plan;
-      return minutes.filter((m) => m >= minSessionMin).length < minTrainingDays
+      const days = minutes.filter((m) => m >= minSessionMin).length;
+      if (days < minTrainingDays) {
+        return [
+          {
+            questionId: Q.availability,
+            code: 'notEnoughAvailability',
+            params: { days: minTrainingDays, minutes: minSessionMin },
+          },
+        ];
+      }
+      // The sessions the user asked for need a day each (unless two a day are allowed).
+      const sessions = Object.values(sessionsOf(a) ?? {}).reduce((s, n) => s + n, 0);
+      return sessions > days && str(a, Q.doubles) !== 'yes'
         ? [
             {
               questionId: Q.availability,
-              code: 'notEnoughAvailability',
-              params: { days: minTrainingDays, minutes: minSessionMin },
+              code: 'notEnoughDaysForSessions',
+              params: { days, sessions },
             },
           ]
         : [];
@@ -608,6 +673,16 @@ function swimInsight(a: QuizAnswers): QuizInsight | null {
     : { key: 'quiz.insights.swim.technique' };
 }
 
+/** "Peakr plans 4 runs and 2 rides a week" – the suggestion or the user's own numbers. */
+function sessionsInsight(a: QuizAnswers): QuizInsight | null {
+  const sports = sportsOf(a);
+  if (sports.length === 0) return null;
+  const counts = { ...sessionSuggestion(a), ...(sessionsOf(a) ?? {}) };
+  const params: Record<string, number> = {};
+  for (const sport of sports) params[sport] = counts[sport];
+  return { key: `quiz.insights.sessions.${sports.join('_')}`, params };
+}
+
 function availabilityInsight(a: QuizAnswers): QuizInsight | null {
   const minutes = (a[Q.availability] as readonly number[] | undefined) ?? [];
   const days = minutes.filter((m) => m >= planConfig.plan.minSessionMin).length;
@@ -685,6 +760,11 @@ export const ONBOARDING_STEPS: readonly QuizStep[] = [
     insight: swimInsight,
   },
   { id: 'heartRate', questionIds: [Q.restingHr, Q.hrMax], insight: zone2Insight },
+  {
+    id: 'sessions',
+    questionIds: [Q.sessionsMode, Q.runSessions, Q.bikeSessions, Q.swimSessions],
+    insight: sessionsInsight,
+  },
   { id: 'availability', questionIds: [Q.availability, Q.doubles], insight: availabilityInsight },
   {
     id: 'commute',
@@ -887,6 +967,8 @@ export function toPlanInput(
   if (sports.includes('bike')) profile.hasPowerMeter = str(a, Q.bikePowerMeter) === 'yes';
   const commute = commuteOf(a);
   if (commute) profile.commutes = [commute];
+  const sessions = sessionsOf(a);
+  if (sessions) profile.sessionsPerWeek = sessions;
   const winterSports = winterSportsOf(a);
   if (winterSports.length > 0) profile.winterSports = winterSports;
   // Longest recent session per sport: the long-session floor of the new plan (swims in metres).

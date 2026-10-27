@@ -60,6 +60,8 @@ export {
   WEEKDAY_VALUES,
   WINTER_SPORTS,
   winterSportsOf,
+  sessionSuggestion,
+  sessionsOf,
   sportsOf,
   stepInsight,
   stepIssues,

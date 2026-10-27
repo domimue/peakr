@@ -178,10 +178,25 @@ export function usePlanActions() {
       return commit(resumePlan(stored.state, today, stored.input, today));
     },
     /** New availability: the remaining weeks are generated again (overrides and travel stay). */
-    updateAvailability(availability: Availability): Edit {
+    /**
+     * The week's time and – when given – the sessions per discipline (null: Peakr suggests them
+     * again, undefined: unchanged). The remaining weeks are generated again.
+     */
+    updateAvailability(
+      availability: Availability,
+      sessions?: UserProfile['sessionsPerWeek'] | null,
+    ): Edit {
       if (!stored) return missing;
+      const { sessionsPerWeek: _old, ...rest } = stored.input.profile;
+      const profile =
+        sessions === undefined
+          ? stored.input.profile
+          : sessions === null
+            ? rest
+            : { ...rest, sessionsPerWeek: sessions };
       const input = {
         ...stored.input,
+        profile,
         availability: { ...stored.input.availability, ...availability },
       };
       return commit(regeneratePlan(stored.state, input, today), input);

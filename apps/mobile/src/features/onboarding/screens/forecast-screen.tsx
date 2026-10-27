@@ -105,7 +105,7 @@ export function ForecastScreen() {
   if (!result || 'issues' in result) {
     const issue = result?.issues?.[0];
     return (
-      <Screen title={t('quiz.forecast.title')}>
+      <Screen title={t('quiz.forecast.errorTitle')}>
         <Text testID="forecast-error">
           {issue ? t(`validation.${issue.code}`, issue.params ?? {}) : t('quiz.forecast.error')}
         </Text>

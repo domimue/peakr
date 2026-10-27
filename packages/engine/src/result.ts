@@ -23,7 +23,8 @@ export type ValidationCode =
   | 'gpxNoPoints'
   | 'gpxTooLarge'
   | 'belowBaselineLong'
-  | 'belowBaselineVolume';
+  | 'belowBaselineVolume'
+  | 'notEnoughDaysForSessions';
 
 export interface ValidationIssue<F extends string> {
   field: F;

@@ -214,6 +214,7 @@ describe('onboarding branching', () => {
       'experience',
       'run',
       'heartRate',
+      'sessions',
       'availability',
       'commute',
       'terrain',
@@ -558,5 +559,67 @@ describe('forecast', () => {
       'quiz.forecast.outcome.weightloss',
       'quiz.forecast.outcome.routinesPending',
     ]);
+  });
+});
+
+describe('sessions per discipline', () => {
+  const sessionsStep = ONBOARDING_STEPS.find(
+    (s) => s.id === 'sessions',
+  ) as (typeof ONBOARDING_STEPS)[number];
+
+  it('comes before the availability and is left to Peakr by default', () => {
+    const ids = ONBOARDING_STEPS.map((s) => s.id);
+    expect(ids.indexOf('sessions')).toBe(ids.indexOf('availability') - 1);
+    const a = prepareAnswers(halfMarathon, TODAY);
+    expect(a[Q.sessionsMode]).toBe('suggest');
+    expect(stepQuestions(sessionsStep, a).map((q) => q.id)).toEqual([Q.sessionsMode]);
+    // Peakr's suggestion is shown, but nothing is stored: the engine decides.
+    expect(stepInsight(sessionsStep, a, TODAY)).toEqual({
+      key: 'quiz.insights.sessions.run',
+      params: { run: 4 },
+    });
+    const mapped = toPlanInput(halfMarathon, TODAY);
+    if (!mapped.ok) throw new Error(JSON.stringify(mapped.issues));
+    expect(mapped.value.profile.sessionsPerWeek).toBeUndefined();
+  });
+
+  it('own numbers start at the suggestion, go into the plan and are planned', () => {
+    const own = setAnswer(prepareAnswers(halfMarathon, TODAY), Q.sessionsMode, 'own');
+    const a = prepareAnswers(own, TODAY);
+    expect(stepQuestions(sessionsStep, a).map((q) => q.id)).toEqual([
+      Q.sessionsMode,
+      Q.runSessions,
+    ]);
+    expect(a[Q.runSessions]).toBe(4);
+    const three = { ...a, [Q.runSessions]: 3 };
+    expect(stepInsight(sessionsStep, three, TODAY)?.params).toEqual({ run: 3 });
+    const mapped = toPlanInput(three, TODAY);
+    if (!mapped.ok) throw new Error(JSON.stringify(mapped.issues));
+    expect(mapped.value.profile.sessionsPerWeek).toEqual({ run: 3 });
+  });
+
+  it('asks for a day per session unless two a day are allowed', () => {
+    const a = prepareAnswers(
+      {
+        ...triathlon,
+        [Q.sessionsMode]: 'own',
+        [Q.runSessions]: 3,
+        [Q.bikeSessions]: 3,
+        [Q.swimSessions]: 2,
+        [Q.availability]: [60, 60, 0, 60, 0, 120, 90],
+        [Q.doubles]: 'no',
+      },
+      TODAY,
+    );
+    expect(validateOnboarding(a, TODAY)).toContainEqual({
+      questionId: Q.availability,
+      code: 'notEnoughDaysForSessions',
+      params: { days: 5, sessions: 8 },
+    });
+    expect(
+      validateOnboarding({ ...a, [Q.doubles]: 'yes' }, TODAY).some(
+        (i) => i.code === 'notEnoughDaysForSessions',
+      ),
+    ).toBe(false);
   });
 });

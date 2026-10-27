@@ -1,6 +1,14 @@
 import { assertDefined } from '../result';
 import { planConfig } from './config';
-import type { GoalKind, Phase, PlanNote, SlotRole, Sport, UserProfile } from './types';
+import {
+  SPORTS,
+  type GoalKind,
+  type Phase,
+  type PlanNote,
+  type SlotRole,
+  type Sport,
+  type UserProfile,
+} from './types';
 
 const sessions = planConfig.sessions;
 
@@ -16,6 +24,8 @@ export interface Slot {
   note?: PlanNote;
   /** Placed instead when this slot does not fit (benchmark → the normal key session). */
   fallback?: Slot;
+  /** Needed to hold the start floor of its sport: placed before strength. */
+  floor?: boolean;
 }
 
 export type GoalFamily = 'run' | 'bike' | 'swim' | 'multisport' | 'fitness';
@@ -89,6 +99,11 @@ export interface CompositionContext {
   raceWeek: boolean;
   /** Days with at least the minimum session length. */
   trainingDays: number;
+  /**
+   * Sessions per sport a new plan needs to hold what the athlete already does with the minutes of
+   * their days (start floors): three 45-minute days cannot hold 150 minutes, four can.
+   */
+  floorSessions?: Partial<Record<Sport, number>>;
   /** CSS sets allowed (400 m continuous, technique-first for beginners done). */
   cssAllowed: boolean;
   /** Replace key sessions with benchmark tests this week. */
@@ -422,5 +437,98 @@ export function composeWeek(ctx: CompositionContext, raceGoal: boolean): Slot[] 
         slots.push(slot('easy', sport, sport === 'swim' ? 'swim.technique' : EASY_TEMPLATE[sport]));
     }
   }
+  if (!ctx.raceWeek) slots = withFloorSessions(withWantedSessions(slots, ctx), ctx);
   return ctx.benchmark ? withBenchmarks(slots, ctx, raceGoal) : slots;
+}
+
+/**
+ * The sessions per discipline the user asked for: the lowest-priority ones of a sport go when
+ * there are too many (long and key sessions stay longest, bricks always), easy ones are added when
+ * there are too few. The start floors still apply on top.
+ */
+function withWantedSessions(slots: Slot[], ctx: CompositionContext): Slot[] {
+  const want = ctx.profile.sessionsPerWeek;
+  if (!want) return slots;
+  const out = [...slots];
+  for (const sport of ctx.profile.sports) {
+    const wanted = want[sport];
+    if (wanted === undefined) continue;
+    const count = () => out.filter((s) => s.sport === sport).length;
+    while (count() > wanted) {
+      out.splice(out.map((s) => s.sport === sport).lastIndexOf(true), 1);
+    }
+    while (count() < wanted) {
+      out.push(slot('easy', sport, sport === 'swim' ? 'swim.aerobic' : EASY_TEMPLATE[sport]));
+    }
+  }
+  return out;
+}
+
+/**
+ * Sessions per discipline in a normal week of a new plan – what Peakr suggests when the user
+ * leaves the number open (the quiz shows it as the starting value).
+ */
+export function suggestedSessions(goal: GoalKind, profile: UserProfile): Record<Sport, number> {
+  const slots = composeWeek(
+    {
+      goal,
+      profile: { ...profile, sessionsPerWeek: undefined },
+      phase: 'base',
+      weekIndex: 0,
+      isRecovery: false,
+      raceWeek: false,
+      trainingDays: 7,
+      cssAllowed: true,
+      benchmark: false,
+      buildWeekIndex: 0,
+      qualityIndex: 0,
+    },
+    false,
+  );
+  // A base week has no bricks (they start in Build).
+  const counts = { run: 0, bike: 0, swim: 0 };
+  for (const s of slots.filter((x): x is Slot & { sport: Sport } => x.sport !== 'brick')) {
+    counts[s.sport]++;
+  }
+  return counts;
+}
+
+/**
+ * Never fewer sessions of a sport than it takes to hold what the athlete already does (start
+ * floors): easy sessions are added, as many as there are days. The load fill sizes them.
+ */
+function withFloorSessions(slots: Slot[], ctx: CompositionContext): Slot[] {
+  const want = ctx.floorSessions;
+  if (!want) return slots;
+  let out = [...slots];
+  for (const sport of SPORTS) {
+    const need = want[sport] ?? 0;
+    if (need === 0) continue;
+    const ofSport = (s: Slot) => s.sport === sport || (s.sport === 'brick' && sport !== 'swim');
+    for (let i = out.filter(ofSport).length; i < need; i++) {
+      const add = slot('easy', sport, sport === 'swim' ? 'swim.aerobic' : EASY_TEMPLATE[sport]);
+      if (out.length < ctx.trainingDays) {
+        out.push(add);
+        continue;
+      }
+      // No day left: an easy session of a sport with more than its own floor needs makes room.
+      const isSpare = (s: Slot) =>
+        s.role === 'easy' &&
+        !s.floor &&
+        s.sport !== sport &&
+        s.sport !== 'brick' &&
+        out.filter((x) => x.sport === s.sport).length > (want[s.sport] ?? 0);
+      const spare = out.map(isSpare).lastIndexOf(true);
+      if (spare < 0) break;
+      out[spare] = add;
+    }
+    // The sessions that hold the floor go before strength (the others keep their place).
+    let counted = 0;
+    out = out.map((s) => {
+      if (!ofSport(s) || counted >= need) return s;
+      counted++;
+      return s.role === 'easy' || s.role === 'technique' ? { ...s, floor: true } : s;
+    });
+  }
+  return out;
 }

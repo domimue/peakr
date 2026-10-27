@@ -14,7 +14,8 @@
     "mobile": "pnpm --filter @peakr/mobile start",
     "web": "pnpm --filter @peakr/web dev",
     "brand:assets": "pnpm --filter @peakr/brand-assets generate",
-    "lint:colors": "node scripts/check-hex-colors.mjs"
+    "lint:colors": "node scripts/check-hex-colors.mjs",
+    "apk": "pnpm --filter @peakr/mobile apk"
   },
   "devDependencies": {
     "prettier": "^3.6.2",

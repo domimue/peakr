@@ -317,11 +317,7 @@ function closeness(actual: number, planned: number): number {
  * variants and bricks included), the day counts fully (the next or previous day half), then
  * duration and – when the plan has one – distance. A commute and a training session fit less.
  */
-export function matchScore(
-  w: Workout,
-  a: Activity,
-  plannedKm: number | null = null,
-): number {
+export function matchScore(w: Workout, a: Activity, plannedKm: number | null = null): number {
   const m = cfg.match;
   if (!fits(w, a)) return 0;
   const days = Math.abs(dayNumber(w.date) - dayNumber(a.date));

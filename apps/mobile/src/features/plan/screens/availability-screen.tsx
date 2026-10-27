@@ -1,7 +1,9 @@
-import type { Availability } from '@peakr/engine';
+import type { Availability, GoalKind, Sport, UserProfile } from '@peakr/engine';
 import {
   onboardingQuestions,
+  prepareAnswers,
   QUESTION_IDS,
+  sessionsOf,
   setAnswer,
   validateAnswers,
   visibleQuestions,
@@ -11,6 +13,7 @@ import { router } from 'expo-router';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { todayIso } from '@/data/ids';
 import { Button, Card, Screen, Text, useTheme } from '@/ui';
 
 import { QuestionInput } from '../../onboarding/question-input';
@@ -18,11 +21,25 @@ import { usePlan, usePlanActions } from '../queries';
 import { issueText } from '../issue-text';
 
 const Q = QUESTION_IDS;
-const QUESTIONS = onboardingQuestions.filter((q) => q.id === Q.availability || q.id === Q.doubles);
+const IDS: readonly string[] = [
+  Q.sessionsMode,
+  Q.runSessions,
+  Q.bikeSessions,
+  Q.swimSessions,
+  Q.availability,
+  Q.doubles,
+];
+const QUESTIONS = onboardingQuestions.filter((q) => IDS.includes(q.id));
+const SESSION_IDS: Record<Sport, string> = {
+  run: Q.runSessions,
+  bike: Q.bikeSessions,
+  swim: Q.swimSessions,
+};
 
 /**
- * Profile of the week as in the quiz (same shared questions). Saving rebuilds the remaining weeks
- * from today; everything before today and every completed workout stays.
+ * Profile of the week as in the quiz (same shared questions): sessions per discipline (Peakr's
+ * suggestion or the user's own numbers), then the minutes per day. Saving rebuilds the remaining
+ * weeks from today; everything before today and every completed workout stays.
  */
 export function AvailabilityScreen() {
   const { data: stored } = usePlan();
@@ -30,25 +47,40 @@ export function AvailabilityScreen() {
   return (
     <AvailabilityForm
       availability={stored.input.availability}
-      sports={stored.input.profile.sports}
+      profile={stored.input.profile}
+      goal={stored.input.goal.kind}
     />
   );
 }
 
 function AvailabilityForm({
   availability,
-  sports,
+  profile,
+  goal,
 }: {
   availability: Availability;
-  sports: readonly string[];
+  profile: UserProfile;
+  goal: GoalKind;
 }) {
   const { t } = useTranslation();
   const { colors } = useTheme();
   const actions = usePlanActions();
-  const [answers, setAnswers] = useState<QuizAnswers>({
-    [Q.sports]: [...sports],
-    [Q.availability]: [...availability.minutesPerDay],
-    [Q.doubles]: availability.doublesAllowed ? 'yes' : 'no',
+  const [answers, setAnswers] = useState<QuizAnswers>(() => {
+    const own = profile.sessionsPerWeek;
+    return prepareAnswers(
+      {
+        [Q.goal]: goal,
+        [Q.sports]: [...profile.sports],
+        [Q.experience]: profile.experience,
+        [Q.sessionsMode]: own ? 'own' : 'suggest',
+        ...Object.fromEntries(
+          profile.sports.flatMap((s) => (own?.[s] ? [[SESSION_IDS[s], own[s]]] : [])),
+        ),
+        [Q.availability]: [...availability.minutesPerDay],
+        [Q.doubles]: availability.doublesAllowed ? 'yes' : 'no',
+      },
+      todayIso(),
+    );
   });
   const [error, setError] = useState<string | null>(null);
   const questions = visibleQuestions(QUESTIONS, answers);
@@ -57,10 +89,13 @@ function AvailabilityForm({
   const save = () => {
     if (issues.length > 0) return;
     const minutes = answers[Q.availability] as readonly number[];
-    const result = actions.updateAvailability({
-      minutesPerDay: minutes.slice(0, 7) as unknown as Availability['minutesPerDay'],
-      doublesAllowed: answers[Q.doubles] === 'yes',
-    });
+    const result = actions.updateAvailability(
+      {
+        minutesPerDay: minutes.slice(0, 7) as unknown as Availability['minutesPerDay'],
+        doublesAllowed: answers[Q.doubles] === 'yes',
+      },
+      sessionsOf(answers) ?? null,
+    );
     if (!result.ok) {
       setError(issueText(t, result.issues));
       return;
@@ -77,7 +112,9 @@ function AvailabilityForm({
           question={q}
           answers={answers}
           issues={issues.filter((i) => i.questionId === q.id)}
-          onAnswer={(value) => setAnswers((a) => setAnswer(a, q.id, value))}
+          onAnswer={(value) =>
+            setAnswers((a) => prepareAnswers(setAnswer(a, q.id, value), todayIso()))
+          }
           onClear={() => undefined}
         />
       ))}

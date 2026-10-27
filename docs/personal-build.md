@@ -44,6 +44,37 @@ refuses it for the `production` profile even if the variable leaks into that bui
    then runs Gradle with at most two workers, without parallel modules, and a 3 GB heap, so the
    native steps do not stall on the free worker. Slower per step, but it finishes.
 
+## Alternative: build locally with Android Studio
+
+No EAS account and no cloud queue; the build runs on your computer.
+
+1. Install **Android Studio** (it brings the Android SDK), **Node 22+** and pnpm
+   (`corepack enable`). In Android Studio: Settings → Build, Execution, Deployment → Build
+   Tools → Gradle → **Gradle JDK = 17**.
+2. In the repository root: `pnpm install`.
+3. `apps/mobile/.env.local` (from `.env.example`) with the public keys from the table below plus
+   `PEAKR_PERSONAL_BUILD=1`. Expo reads this file both when generating the native project and
+   when Gradle bundles the app, so the unlock and the keys end up in the APK.
+4. Generate the native project (folder `apps/mobile/android`, not committed):
+   ```sh
+   cd apps/mobile
+   npx expo prebuild -p android --clean
+   ```
+   Run this again whenever `app.json`, `app.config.ts`, a config plugin or a native dependency
+   changes – never edit `android/` by hand.
+5. Android Studio → **Open** → `apps/mobile/android`, wait for the Gradle sync.
+6. A standalone APK (no Metro needed): Build Variants → `app` → **release**, then Build →
+   Generate App Bundles or APKs → **Generate APKs**. The APK is in
+   `android/app/build/outputs/apk/release/app-release.apk`; or, with the phone on USB and USB
+   debugging on, just press Run. Shorter from the terminal: `npx expo run:android --variant release`.
+   The `debug` variant is the development client: it needs `pnpm start` (Metro) running.
+7. The release variant is signed with the debug key of the generated project. Android refuses to
+   install it over an APK from EAS (different signature): uninstall that one first – data that
+   was not synced to your account is lost. App links (`ANDROID_CERT_SHA256`) need this key's
+   fingerprint instead (`cd android && ./gradlew signingReport`).
+8. Faster builds for your phone only: add `reactNativeArchitectures=arm64-v8a` to
+   `android/gradle.properties` (after each prebuild).
+
 ## Optional: account, sync and maps
 
 Without these variables the app works fully **offline on the phone**: quiz, plan, calendar,
