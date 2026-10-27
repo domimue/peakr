@@ -1898,7 +1898,11 @@
     "stats": {
       "distance": "Distance",
       "gain": "Up",
-      "loss": "Down"
+      "loss": "Down",
+      "gainValue": "{{m}} m",
+      "done": "Done",
+      "last": "Last time",
+      "typical": "Typical time"
     },
     "elevation": {
       "summary": "{{gain}} m up, {{loss}} m down, between {{min}} and {{max}} m"
@@ -1933,7 +1937,10 @@
       "defaultName": "{{sport}} {{km}} km",
       "noElevation": "Added without an elevation profile – Strava had no elevation data for it.",
       "times_one": "{{count}} time",
-      "times_other": "{{count}} times"
+      "times_other": "{{count}} times",
+      "gone": "This route is in your library or no longer recognised.",
+      "detailTitle": "Route preview",
+      "openHint": "Shows map, profile and figures before you add it"
     },
     "pace": {
       "km": "km",
@@ -2028,6 +2035,10 @@
       },
       "attribution": "Routes: openrouteservice.org by HeiGIT · Map data © OpenStreetMap contributors · Heights: {{heights}}",
       "attributionShort": "Route generated with openrouteservice.org by HeiGIT · Map data © OpenStreetMap contributors"
+    },
+    "suggestedName": {
+      "home": "Home loop {{km}} km",
+      "place": "{{place}} loop {{km}} km"
     }
   },
   "terrainProfile": {

@@ -16,7 +16,7 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
   - [x] 3 Today shows one day
   - [x] 4 weekly volume per sport
   - [x] 5 workout types screen
-  - [ ] 6 Strava route preview
+  - [x] 6 Strava route preview
   - [ ] 7 congratulation push
   - [ ] 8 Body design + coach
   - [ ] 9 CLAUDE.md + report

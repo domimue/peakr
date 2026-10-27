@@ -11,6 +11,10 @@ export default function RoutesLayout() {
       <Stack.Screen name="[id]" options={{ title: t('routes.detailTitle') }} />
       <Stack.Screen name="import" options={{ title: t('routes.import.title') }} />
       <Stack.Screen name="recognise" options={{ title: t('routes.recognise.title') }} />
+      <Stack.Screen
+        name="suggestion/[key]"
+        options={{ title: t('routes.recognise.detailTitle') }}
+      />
     </Stack>
   );
 }

@@ -1,4 +1,10 @@
-import { allWorkouts, encodePolyline, generatePlan, type GpxPoint } from '@peakr/engine';
+import {
+  allWorkouts,
+  decodePolyline,
+  encodePolyline,
+  generatePlan,
+  type GpxPoint,
+} from '@peakr/engine';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';
 import { File } from 'expo-file-system';
 import * as Location from 'expo-location';
@@ -35,6 +41,7 @@ import { RouteImportScreen } from '../screens/route-import-screen';
 import { RouteLibraryScreen } from '../screens/route-library-screen';
 import { RoutePickerScreen } from '../screens/route-picker-screen';
 import { RouteRecogniseScreen } from '../screens/route-recognise-screen';
+import { RouteSuggestionScreen } from '../screens/route-suggestion-screen';
 import { TerrainProfileScreen } from '../screens/terrain-profile-screen';
 
 jest.mock('@/data/repositories/plan-repository');
@@ -447,18 +454,40 @@ describe('routes from Strava', () => {
     handled: true,
   });
 
-  it('suggests routes done at least twice and adds them to the library', async () => {
+  it('suggests routes done at least twice; the whole row opens the preview', async () => {
     activities.store.activities = [run('1', 10), run('2', 12), run('3', 14, 900)];
     await renderWithQuery(<RouteRecogniseScreen />);
     expect(await screen.findByText('Run · 4 km · 2 times')).toBeOnTheScreen();
-    await fireEvent.press(screen.getByLabelText('Add, Run · 4 km · 2 times'));
+    await fireEvent.press(screen.getByLabelText(/^Run · 4 km · 2 times/));
+    expect(router.push).toHaveBeenCalledWith('/routes/suggestion/strava%3A2');
+  });
+
+  it('the preview: map, figures, a name from the start point, then "Add"', async () => {
+    activities.store.activities = [run('1', 10), run('2', 12)];
+    // The home start point is where the loop starts: a "home loop".
+    const [start] = decodePolyline(encodePolyline(loop(2000)));
+    routes.store.homeStart = start ?? null;
+    await renderWithQuery(<RouteSuggestionScreen routeKey="strava:2" />);
+    expect(await screen.findByTestId('suggestion-map')).toBeOnTheScreen();
+    expect(await screen.findByDisplayValue('Home loop 4 km')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Typical time: 25:00')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Up: 20 m')).toBeOnTheScreen();
+    expect(screen.getByLabelText('Done: 2 times')).toBeOnTheScreen();
+    await fireEvent.changeText(screen.getByTestId('suggestion-name'), 'Lake loop');
+    await fireEvent.press(screen.getByTestId('suggestion-add'));
     await waitFor(() => expect(routes.store.routes).toHaveLength(1));
     expect(routes.store.routes[0]).toMatchObject({
+      name: 'Lake loop',
       source: 'strava',
       sourceKeys: ['strava:2', 'strava:1'],
     });
-    expect(await screen.findByText(/^Added without an elevation profile/)).toBeOnTheScreen();
-    expect(screen.queryByText('Run · 4 km · 2 times')).toBeNull();
+  });
+
+  it('a route already in the library has no preview any more', async () => {
+    await renderWithQuery(<RouteSuggestionScreen routeKey="strava:404" />);
+    expect(
+      await screen.findByText('This route is in your library or no longer recognised.'),
+    ).toBeOnTheScreen();
   });
 
   it('asks to sign in before searching Strava', async () => {
