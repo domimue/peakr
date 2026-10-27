@@ -47,10 +47,13 @@ export { paceZonesFromBoundaries, ZONE_NUMBERS, type PaceZone, type ZoneNumber }
 export { planConfig, type PlanConfig } from './plan/config';
 export { generatePlan, type PlanContinuation, type PlanField } from './plan/generate';
 export {
+  planBadges,
   planEnded,
   planOutcome,
   planSummary,
   summaryGroup,
+  type Badge,
+  type BadgeKind,
   type GroupCount,
   type PlanOutcome,
   type PlanSummary,
@@ -219,6 +222,7 @@ export {
   workoutKm,
   type HistoryEntry,
   type HistoryMonth,
+  type HistorySource,
   type Performance,
   type PerformanceWeek,
   type PersonalBests,

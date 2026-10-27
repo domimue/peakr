@@ -2,7 +2,14 @@ import { describe, expect, it } from 'vitest';
 
 import type { PlanState } from './edit';
 import { generatePlan } from './generate';
-import { planEnded, planOutcome, planSummary, summaryGroup } from './outcome';
+import {
+  planBadges,
+  planEnded,
+  planOutcome,
+  planSummary,
+  summaryGroup,
+  type PlanSummary,
+} from './outcome';
 import type { Availability, UserProfile, Workout } from './types';
 
 const profile: UserProfile = {
@@ -98,5 +105,41 @@ describe('plan outcome (CLAUDE.md "Plan history")', () => {
     const winter = { ...(week.workouts[0] as Workout), sport: 'xcski' as const, id: 'x' };
     const one = { ...s, plan: { ...s.plan, weeks: [{ ...week, workouts: [brick, winter] }] } };
     expect(planSummary(one, profile, '2027-02-01').sports).toEqual(['bike', 'run']);
+  });
+});
+
+describe('badges for completed plans', () => {
+  const plan = (
+    id: string,
+    outcome: 'completed' | 'finished' | 'replaced',
+    goal: PlanSummary['goal'],
+    endDate: string,
+    completion: number,
+  ) => ({ id, outcome, summary: { goal, endDate, completion } as PlanSummary });
+
+  it('only completed plans earn badges; milestones come once, with the plan that earned them', () => {
+    const badges = planBadges([
+      plan('a', 'completed', '10k', '2026-06-30', 0.85),
+      plan('b', 'replaced', 'tri_olympic', '2026-08-31', 1),
+      plan('c', 'finished', 'half', '2026-09-30', 0.6),
+      plan('d', 'completed', 'tri_sprint', '2026-12-31', 0.97),
+      plan('e', 'completed', 'duathlon', '2027-03-31', 0.99),
+    ]);
+    expect(badges.map((b) => `${b.planId}:${b.kind}`)).toEqual([
+      'e:plan',
+      'd:allIn',
+      'd:firstMultisport',
+      'd:plan',
+      'a:firstPlan',
+      'a:plan',
+    ]);
+    expect(badges.at(-1)).toEqual({
+      kind: 'plan',
+      planId: 'a',
+      goal: '10k',
+      month: '2026-06',
+      completion: 0.85,
+    });
+    expect(planBadges([])).toEqual([]);
   });
 });

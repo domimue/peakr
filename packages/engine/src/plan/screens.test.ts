@@ -395,14 +395,15 @@ describe('week figures (PlanWeek number, distance, kind)', () => {
 
 describe('history and performance', () => {
   const ids = ['2026-10-19-1', '2026-10-26-1', '2026-10-27-1', '2026-10-31-1', '2026-11-03-1'];
+  const src = (st: PlanState, planId = 'p1') => [{ planId, state: st, profile: input.profile }];
   let done = state;
   for (const id of ids) {
     if (findWorkout(plan, id)) done = ok(setWorkoutStatus(done, id, 'done'));
   }
 
   it('groups completed sessions by month, newest first, with totals', () => {
-    expect(historyByMonth(state, input.profile)).toEqual([]);
-    const months = historyByMonth(done, input.profile);
+    expect(historyByMonth(src(state))).toEqual([]);
+    const months = historyByMonth(src(done));
     expect(months.map((m) => m.month)).toEqual(['2026-11', '2026-10']);
     const oct = months[1];
     expect((oct?.entries[0]?.workout.date ?? '') >= (oct?.entries[1]?.workout.date ?? '')).toBe(
@@ -431,14 +432,14 @@ describe('history and performance', () => {
       weeks: [{ ...weekAt(plan, WEEK2), workouts: [empty] }],
     };
     const s = ok(setWorkoutStatus(newPlanState(p), 'e', 'done'));
-    const [month] = historyByMonth(s, input.profile);
+    const [month] = historyByMonth(src(s));
     expect(month?.entries[0]?.paceSecPerKm).toBeNull();
     expect(month?.sessions).toBe(0);
     expect(workoutKm(empty, input.profile)).toBe(0);
   });
 
   it('weekly bars with average, totals and personal bests', () => {
-    const perf = performance(done, input.profile, '2026-11-04', 4);
+    const perf = performance(src(done), '2026-11-04', 4);
     expect(perf.weeks.map((w) => w.weekStart)).toEqual([
       '2026-10-12',
       '2026-10-19',
@@ -455,14 +456,30 @@ describe('history and performance', () => {
     expect(perf.bests.longestKm.run).toBeGreaterThan(10);
 
     // A shorter period leaves older sessions out of the period but not of the lifetime.
-    const short = performance(done, input.profile, '2026-11-04', 1);
+    const short = performance(src(done), '2026-11-04', 1);
     expect(short.period.sessions).toBeLessThan(short.lifetime.sessions);
     // Sessions after today are not in the period.
-    const early = performance(done, input.profile, '2026-10-20', 1);
+    const early = performance(src(done), '2026-10-20', 1);
     expect(early.period.sessions).toBe(1);
 
-    const none = performance(state, input.profile, '2026-11-04', 4);
+    const none = performance(src(state), '2026-11-04', 4);
     expect(none.bests).toEqual({ longestSession: null, biggestWeek: null, longestKm: {} });
     expect(none.averageMinutes).toBe(0);
+  });
+
+  it('"This plan" vs "All time": bests and lifetime always over every plan', () => {
+    // An archived plan whose sessions all happened before the current one.
+    const archived = src(done, 'old');
+    const current = src(state, 'new');
+    const all = [...current, ...archived];
+    const months = historyByMonth(all);
+    expect(months.flatMap((m) => m.entries).every((e) => e.planId === 'old')).toBe(true);
+    const thisPlan = performance(current, '2026-11-04', 4, all);
+    expect(thisPlan.period.sessions).toBe(0);
+    expect(thisPlan.lifetime.sessions).toBe(
+      performance(archived, '2026-11-04', 4).lifetime.sessions,
+    );
+    expect(thisPlan.bests.longestSession?.planId).toBe('old');
+    expect(performance(all, '2026-11-04', 4).period.sessions).toBeGreaterThan(0);
   });
 });

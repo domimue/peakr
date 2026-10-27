@@ -1,3 +1,4 @@
+import { goalFamily } from './composition';
 import { planConfig } from './config';
 import { parseIsoDate, toIsoDate } from './dates';
 import { isPaused, planRange, statusOf, type PlanState } from './edit';
@@ -124,4 +125,56 @@ export function planOutcome(
   if (!planEnded(state, today)) return { outcome: 'replaced', summary };
   const completed = summary.completion >= planConfig.completion.minShare;
   return { outcome: completed ? 'completed' : 'finished', summary };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Badges: derived from archived plans, never stored on their own (they sync with the plans).
+
+/**
+ * `plan` – one per completed plan; milestones once each: `firstPlan` (first completed plan),
+ * `firstMultisport` (first completed triathlon / duathlon plan), `allIn` (first plan with at least
+ * `completion.badgeShare` of its sessions done). No streaks, nothing about weight or food.
+ */
+export type BadgeKind = 'plan' | 'firstPlan' | 'firstMultisport' | 'allIn';
+
+export interface Badge {
+  kind: BadgeKind;
+  /** The plan that earned it. */
+  planId: string;
+  goal: GoalKind;
+  /** `YYYY-MM` of the plan's last day ("Half marathon plan · Mar 2027"). */
+  month: string;
+  completion: number;
+}
+
+/** Badges of the archived plans, newest first (milestones before the plan badge they came with). */
+export function planBadges(
+  archived: readonly { id: string; outcome: PlanOutcome; summary: PlanSummary }[],
+): Badge[] {
+  const completed = archived
+    .filter((a) => a.outcome === 'completed')
+    .sort((a, b) => a.summary.endDate.localeCompare(b.summary.endDate));
+  const badges: Badge[] = [];
+  const earned = new Set<BadgeKind>();
+  for (const a of completed) {
+    const badge = (kind: BadgeKind): Badge => ({
+      kind,
+      planId: a.id,
+      goal: a.summary.goal,
+      month: a.summary.endDate.slice(0, 7),
+      completion: a.summary.completion,
+    });
+    badges.push(badge('plan'));
+    const milestones: [BadgeKind, boolean][] = [
+      ['firstPlan', true],
+      ['firstMultisport', goalFamily(a.summary.goal) === 'multisport'],
+      ['allIn', a.summary.completion >= planConfig.completion.badgeShare],
+    ];
+    for (const [kind, ok] of milestones) {
+      if (!ok || earned.has(kind)) continue;
+      earned.add(kind);
+      badges.push(badge(kind));
+    }
+  }
+  return badges.reverse();
 }

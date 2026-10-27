@@ -163,8 +163,8 @@ export async function archiveEndedPlan(today = todayIso()): Promise<string | nul
 }
 
 /**
- * The plan that "undo" would bring back: archived today, and the active plan (if any) is the one
- * that replaced it.
+ * The plan that "undo" would bring back: archived today, and the active plan is the one that
+ * replaced it.
  */
 export async function undoablePlan(today = todayIso()): Promise<{ id: string } | null> {
   const archived = await db.query.planArchive.findFirst({
@@ -172,8 +172,9 @@ export async function undoablePlan(today = todayIso()): Promise<{ id: string } |
     orderBy: (a, { desc }) => [desc(a.archivedAt)],
   });
   if (!archived || todayIso(new Date(archived.archivedAt)) !== today) return null;
+  // Only a replacement can be undone – a plan that ended on its own stays archived.
   const current = await db.query.plans.findFirst();
-  if (current && current.createdAt < archived.archivedAt) return null;
+  if (!current || current.createdAt < archived.archivedAt) return null;
   return { id: archived.id };
 }
 

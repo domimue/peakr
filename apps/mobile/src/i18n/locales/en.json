@@ -1094,7 +1094,14 @@
       }
     },
     "bestsHint": "Race times and fastest efforts come with synced activities.",
-    "lifetime": "Lifetime"
+    "lifetime": "Lifetime",
+    "scope": {
+      "plan": "This plan",
+      "all": "All time"
+    },
+    "fromPlan": "Plan: {{goal}}",
+    "bestsAllTime": "Personal bests · all plans",
+    "lifetimeAllPlans": "Lifetime · all plans"
   },
   "comingSoon": {
     "label": "Coming soon",
@@ -3259,6 +3266,52 @@
       "checkIn": "Weigh-ins, body measurements and private progress photos",
       "dashboard": "Trend, fat vs. lean mass and “calculation vs. scale”",
       "coach": "A weekly coach that combines your training with your body data"
+    }
+  },
+  "planHistory": {
+    "title": "Plan history",
+    "hint": "Every plan you finished or replaced. Done sessions stay in your history and count towards \"All time\".",
+    "empty": "No earlier plans yet",
+    "emptyHint": "When you start a new plan or one runs to its end, it appears here.",
+    "dates": "{{from}} – {{to}}",
+    "sessions": "{{done}} of {{planned}} sessions · {{percent}} %",
+    "outcome": {
+      "completed": "Completed",
+      "finished": "Finished",
+      "replaced": "Replaced early"
+    },
+    "outcomeHint": {
+      "completed": "Ran through all its weeks with at least 80 % of the sessions done.",
+      "finished": "Ran through all its weeks.",
+      "replaced": "You started a new plan before this one ended."
+    },
+    "groups": {
+      "long": "Long sessions",
+      "quality": "Quality sessions",
+      "easy": "Easy sessions",
+      "strength": "Strength"
+    },
+    "groupLine": "{{done}} of {{planned}}",
+    "figures": "{{time}} · {{distance}}",
+    "doneSessions": "Done sessions",
+    "readOnly": "Archived plans are read-only.",
+    "export": "Export plan history (JSON)",
+    "exportFailed": "The export could not be shared.",
+    "undo": {
+      "title": "Changed your mind?",
+      "message": "Until the end of today you can bring back your previous plan, with everything it had. The new plan is discarded.",
+      "action": "Bring back my previous plan",
+      "confirmTitle": "Bring back the previous plan?",
+      "confirmMessage": "The new plan is removed and your previous plan is active again.",
+      "confirm": "Bring it back",
+      "done": "Your previous plan is back."
+    },
+    "badges": {
+      "title": "Badges",
+      "plan": "{{goal}} · {{month}}",
+      "firstPlan": "First plan completed",
+      "firstMultisport": "First multisport plan",
+      "allIn": "All in – 95 % done"
     }
   }
 }

@@ -194,8 +194,9 @@ describe('reference only: the baseline never becomes training history', () => {
     if (!state) throw new Error('no plan');
 
     expect(state.status).toEqual({});
-    expect(historyByMonth(state, calibrated.profile)).toEqual([]);
-    const perf = performance(state, calibrated.profile, '2026-11-30', 8);
+    const sources = [{ planId: 'plan-1', state, profile: calibrated.profile }];
+    expect(historyByMonth(sources)).toEqual([]);
+    const perf = performance(sources, '2026-11-30', 8);
     expect(perf.lifetime).toEqual({ sessions: 0, minutes: 0, km: 0, load: 0 });
     expect(perf.bests).toEqual({ longestSession: null, biggestWeek: null, longestKm: {} });
   });

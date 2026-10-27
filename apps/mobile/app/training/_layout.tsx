@@ -21,6 +21,8 @@ export default function TrainingLayout() {
       <Stack.Screen name="baseline-summary" options={{ title: t('baseline.recalibrate.title') }} />
       <Stack.Screen name="route/[workoutId]" options={{ title: t('routes.choose.title') }} />
       <Stack.Screen name="insights" options={{ title: t('insights.title') }} />
+      <Stack.Screen name="plan-history/index" options={{ title: t('planHistory.title') }} />
+      <Stack.Screen name="plan-history/[id]" options={{ title: t('planHistory.title') }} />
     </Stack>
   );
 }

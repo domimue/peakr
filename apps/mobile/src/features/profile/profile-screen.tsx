@@ -47,6 +47,7 @@ export function ProfileScreen() {
           },
         ]
       : []),
+    { icon: 'calendar', title: t('planHistory.title'), href: '/training/plan-history' },
     { icon: 'tune', title: t('plan.availability.title'), href: '/training/availability' },
     { icon: 'bolt', title: t('plan.difficulty.title'), href: '/training/difficulty' },
     {

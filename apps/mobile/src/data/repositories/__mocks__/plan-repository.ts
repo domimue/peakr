@@ -64,13 +64,13 @@ export const archiveEndedPlan = jest.fn(async (today = '2026-10-27') => {
   store.plan = null;
   return current.id;
 });
-/** In the mock every archive happened "today". */
+/** In the mock every archive happened "today"; only a replacement can be undone. */
 export const undoablePlan = jest.fn(async () =>
-  store.archive[0] ? { id: store.archive[0].id } : null,
+  store.archive[0] && store.plan ? { id: store.archive[0].id } : null,
 );
 export const undoNewPlan = jest.fn(async () => {
   const [restored, ...rest] = store.archive;
-  if (!restored) return null;
+  if (!restored || !store.plan) return null;
   store.archive = rest;
   const id = `plan-${store.next++}`;
   store.plan = { id, input: restored.input, state: restored.state };

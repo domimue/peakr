@@ -88,10 +88,20 @@ export function weekTags(week: PlanWeek, input: PlanInput, targetDate: string | 
 }
 
 // ---------------------------------------------------------------------------------------------
-// History & performance (completed sessions; imported activities join in a later phase)
+// History & performance: completed sessions of the current plan and, for "All time", of every
+// archived plan (CLAUDE.md "Plan history"). Baseline activities are reference data and never here.
+
+/** One plan's sessions with the profile its distances are computed with. */
+export interface HistorySource {
+  planId: string;
+  state: PlanState;
+  profile: UserProfile;
+}
 
 export interface HistoryEntry {
   workout: Workout;
+  /** Plan the session belongs to (archived plans are labelled in the list). */
+  planId: string;
   km: number;
   minutes: number;
   /** Average pace in s/km for runs and walks with a distance; null otherwise. */
@@ -107,17 +117,26 @@ export interface HistoryMonth {
   km: number;
 }
 
-function doneWorkouts(state: PlanState): Workout[] {
-  return state.plan.weeks
-    .flatMap((w) => w.workouts)
-    .filter((w) => statusOf(state, w.id) === 'done');
+interface DoneWorkout {
+  workout: Workout;
+  source: HistorySource;
 }
 
-function entryOf(w: Workout, profile: UserProfile): HistoryEntry {
-  const km = workoutKm(w, profile);
+function doneWorkouts(sources: readonly HistorySource[]): DoneWorkout[] {
+  return sources.flatMap((source) =>
+    source.state.plan.weeks
+      .flatMap((w) => w.workouts)
+      .filter((w) => statusOf(source.state, w.id) === 'done')
+      .map((workout) => ({ workout, source })),
+  );
+}
+
+function entryOf({ workout: w, source }: DoneWorkout): HistoryEntry {
+  const km = workoutKm(w, source.profile);
   const paced = w.sport === 'run' || w.sport === 'walk';
   return {
     workout: w,
+    planId: source.planId,
     km,
     minutes: w.durationMin,
     paceSecPerKm: paced && km > 0 ? Math.round((w.durationMin * 60) / km) : null,
@@ -125,12 +144,12 @@ function entryOf(w: Workout, profile: UserProfile): HistoryEntry {
 }
 
 /** Completed sessions grouped by month, newest first, with month totals. */
-export function historyByMonth(state: PlanState, profile: UserProfile): HistoryMonth[] {
+export function historyByMonth(sources: readonly HistorySource[]): HistoryMonth[] {
   const byMonth = new Map<string, HistoryEntry[]>();
-  const sorted = doneWorkouts(state).sort((a, b) => b.date.localeCompare(a.date));
-  for (const w of sorted) {
-    const month = w.date.slice(0, 7);
-    byMonth.set(month, [...(byMonth.get(month) ?? []), entryOf(w, profile)]);
+  const sorted = doneWorkouts(sources).sort((a, b) => b.workout.date.localeCompare(a.workout.date));
+  for (const d of sorted) {
+    const month = d.workout.date.slice(0, 7);
+    byMonth.set(month, [...(byMonth.get(month) ?? []), entryOf(d)]);
   }
   return [...byMonth].map(([month, entries]) => ({
     month,
@@ -171,12 +190,12 @@ export interface Performance {
   bests: PersonalBests;
 }
 
-function totalsOf(workouts: readonly Workout[], profile: UserProfile): Totals {
+function totalsOf(done: readonly DoneWorkout[]): Totals {
   return {
-    sessions: workouts.filter((w) => w.role !== 'commute').length,
-    minutes: workouts.reduce((sum, w) => sum + w.durationMin, 0),
-    km: round1(workouts.reduce((sum, w) => sum + workoutKm(w, profile), 0)),
-    load: round1(workouts.reduce((sum, w) => sum + w.load, 0)),
+    sessions: done.filter((d) => d.workout.role !== 'commute').length,
+    minutes: done.reduce((sum, d) => sum + d.workout.durationMin, 0),
+    km: round1(done.reduce((sum, d) => sum + workoutKm(d.workout, d.source.profile), 0)),
+    load: round1(done.reduce((sum, d) => sum + d.workout.load, 0)),
   };
 }
 
@@ -186,41 +205,45 @@ const mondayOf = (iso: string) => {
 };
 
 /**
- * Completed training over the `weeks` weeks up to and including the week of `today`: weekly bars
- * with the average, period and lifetime totals and personal bests.
+ * Completed training of `scope` over the `weeks` weeks up to and including the week of `today`:
+ * weekly bars with the average and the period totals. Personal bests and lifetime totals are
+ * always over `all` (every plan ever – a best is a best whichever plan it came from).
  */
 export function performance(
-  state: PlanState,
-  profile: UserProfile,
+  scope: readonly HistorySource[],
   today: string,
   weeks: number,
+  all: readonly HistorySource[] = scope,
 ): Performance {
-  const done = doneWorkouts(state);
+  const done = doneWorkouts(scope);
   const last = mondayOf(today);
   const bars: PerformanceWeek[] = Array.from({ length: weeks }, (_, i) => {
     const monday = last - (weeks - 1 - i) * 7;
-    const list = done.filter((w) => mondayOf(w.date) === monday);
-    return { weekStart: toIsoDate(monday), ...totalsOf(list, profile) };
+    const list = done.filter((d) => mondayOf(d.workout.date) === monday);
+    return { weekStart: toIsoDate(monday), ...totalsOf(list) };
   });
-  const inPeriod = done.filter((w) => {
-    const monday = mondayOf(w.date);
+  const inPeriod = done.filter((d) => {
+    const monday = mondayOf(d.workout.date);
     return monday >= last - (weeks - 1) * 7 && monday <= last;
   });
 
-  const allWeeks = new Map<number, Workout[]>();
-  for (const w of done)
-    allWeeks.set(mondayOf(w.date), [...(allWeeks.get(mondayOf(w.date)) ?? []), w]);
+  const ever = doneWorkouts(all);
+  const allWeeks = new Map<number, DoneWorkout[]>();
+  for (const d of ever) {
+    const monday = mondayOf(d.workout.date);
+    allWeeks.set(monday, [...(allWeeks.get(monday) ?? []), d]);
+  }
   let biggestWeek: PerformanceWeek | null = null;
   for (const [monday, list] of allWeeks) {
-    const week = { weekStart: toIsoDate(monday), ...totalsOf(list, profile) };
+    const week = { weekStart: toIsoDate(monday), ...totalsOf(list) };
     if (!biggestWeek || week.minutes > biggestWeek.minutes) biggestWeek = week;
   }
   let longestSession: HistoryEntry | null = null;
   const longestKm: Partial<Record<Sport, number>> = {};
-  for (const w of done) {
-    const entry = entryOf(w, profile);
+  for (const d of ever) {
+    const entry = entryOf(d);
     if (!longestSession || entry.minutes > longestSession.minutes) longestSession = entry;
-    for (const [sport, km] of Object.entries(workoutDistances(w, profile))) {
+    for (const [sport, km] of Object.entries(workoutDistances(d.workout, d.source.profile))) {
       const s = sport as Sport;
       longestKm[s] = Math.max(longestKm[s] ?? 0, km);
     }
@@ -229,8 +252,8 @@ export function performance(
   return {
     weeks: bars,
     averageMinutes: Math.round(bars.reduce((sum, b) => sum + b.minutes, 0) / weeks),
-    period: totalsOf(inPeriod, profile),
-    lifetime: totalsOf(done, profile),
+    period: totalsOf(inPeriod),
+    lifetime: totalsOf(ever),
     bests: { longestSession, biggestWeek, longestKm },
   };
 }
