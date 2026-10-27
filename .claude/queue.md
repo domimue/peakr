@@ -7,13 +7,13 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 ## Open
 
-- Engine phase (user prompt 2026-10-27): plan start floors, intensity bands, difficulty slider,
-  energy & macros, activity matching. Approved plan: `.claude/plans/engine-phase.md`. Progress:
-  - [x] 1 plan start  - [x] 2 bands  - [x] 3 slider  - [x] 4 energy  - [x] 5 matching
-  - [ ] CLAUDE.md updated
+(empty)
 
 ## Done
 
+- Engine phase (2026-10-27): plan start floors, intensity bands, difficulty slider, energy &
+  macros, activity matching, CLAUDE.md updated; nothing to set up (no migrations; new settings
+  stay on the device)
 - Garmin health data not arriving (2026-10-27): v2 daily-summary mapper, per-endpoint pull, SpO2
   day + VO2max from activities, backfill button, empty-state cases, OAuth permissions,
   diagnostics; waits on the user for the Supabase migration `20261108000000_health_diagnostics.sql`,
