@@ -2,7 +2,8 @@ import { zoneConfig } from '../config';
 import { assertDefined, checkRange, type Result, type ValidationIssue } from '../result';
 import { classifyDays } from './classify';
 import { commuteMinutes, commutesOn, commutesValid } from './commute';
-import { requiredSports, sportShares } from './composition';
+import { EASY_TEMPLATE, requiredSports, sportShares } from './composition';
+import { getTemplate } from './library';
 import { planConfig } from './config';
 import { difficultyFactor, difficultyGrowth } from './difficulty';
 import { checkStartFloors, sportMinutes, startFloors } from './floors';
@@ -307,12 +308,13 @@ export function generatePlan(
     const planDays = days.filter((d) => d.day !== null).length;
     const isPartial = planDays < 7;
     // Sessions per sport the floors need: the fewest of this week's days (longest first) whose
-    // minutes hold that sport's floor. Three 45-minute days cannot hold 150 minutes – four can.
+    // minutes hold that sport's floor – each day only as far as an easy session of the sport can
+    // go. Three 45-minute days cannot hold 150 minutes, and a 120-minute day holds a 75-minute run.
     const weekMinutes = days.filter((d) => d.day !== null).map(trainingMinutes);
     const floorSessions = Object.fromEntries(
-      Object.entries(floors.weeklyMin).map(([sport, min]) => [
+      (Object.entries(floors.weeklyMin) as [Sport, number][]).map(([sport, min]) => [
         sport,
-        sessionsToHold((min * planDays) / 7, weekMinutes),
+        sessionsToHold((min * planDays) / 7, weekMinutes, easyMaxMin(sport)),
       ]),
     ) as Partial<Record<Sport, number>>;
     const loading = !week.isRecovery && week.taperIndex === null;
@@ -556,14 +558,26 @@ function sessionShortfall(
 }
 
 /** The fewest days (longest first) whose minutes add up to `minutes`; all of them if never. */
-function sessionsToHold(minutes: number, minutesPerDay: readonly number[]): number {
-  const usable = minutesPerDay.filter((m) => m >= cfg.plan.minSessionMin).sort((a, b) => b - a);
+function sessionsToHold(
+  minutes: number,
+  minutesPerDay: readonly number[],
+  perSession: number,
+): number {
+  const usable = minutesPerDay
+    .filter((m) => m >= cfg.plan.minSessionMin)
+    .map((m) => Math.min(m, perSession))
+    .sort((a, b) => b - a);
   let sum = 0;
   for (let n = 0; n < usable.length; n++) {
     sum += usable[n] as number;
     if (sum >= minutes) return n + 1;
   }
   return usable.length;
+}
+
+/** The longest an easy session of a sport can be (its template's upper limit). */
+function easyMaxMin(sport: Sport): number {
+  return assertDefined(getTemplate(EASY_TEMPLATE[sport]).durationScaled, 'easy duration').maxMin;
 }
 
 /**
