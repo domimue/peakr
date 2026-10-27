@@ -437,8 +437,60 @@ export function composeWeek(ctx: CompositionContext, raceGoal: boolean): Slot[] 
         slots.push(slot('easy', sport, sport === 'swim' ? 'swim.technique' : EASY_TEMPLATE[sport]));
     }
   }
-  if (!ctx.raceWeek) slots = withFloorSessions(slots, ctx);
+  if (!ctx.raceWeek) slots = withFloorSessions(withWantedSessions(slots, ctx), ctx);
   return ctx.benchmark ? withBenchmarks(slots, ctx, raceGoal) : slots;
+}
+
+/**
+ * The sessions per discipline the user asked for: the lowest-priority ones of a sport go when
+ * there are too many (long and key sessions stay longest, bricks always), easy ones are added when
+ * there are too few. The start floors still apply on top.
+ */
+function withWantedSessions(slots: Slot[], ctx: CompositionContext): Slot[] {
+  const want = ctx.profile.sessionsPerWeek;
+  if (!want) return slots;
+  const out = [...slots];
+  for (const sport of ctx.profile.sports) {
+    const wanted = want[sport];
+    if (wanted === undefined) continue;
+    const count = () => out.filter((s) => s.sport === sport).length;
+    while (count() > wanted) {
+      out.splice(out.map((s) => s.sport === sport).lastIndexOf(true), 1);
+    }
+    while (count() < wanted) {
+      out.push(slot('easy', sport, sport === 'swim' ? 'swim.aerobic' : EASY_TEMPLATE[sport]));
+    }
+  }
+  return out;
+}
+
+/**
+ * Sessions per discipline in a normal week of a new plan – what Peakr suggests when the user
+ * leaves the number open (the quiz shows it as the starting value).
+ */
+export function suggestedSessions(goal: GoalKind, profile: UserProfile): Record<Sport, number> {
+  const slots = composeWeek(
+    {
+      goal,
+      profile: { ...profile, sessionsPerWeek: undefined },
+      phase: 'base',
+      weekIndex: 0,
+      isRecovery: false,
+      raceWeek: false,
+      trainingDays: 7,
+      cssAllowed: true,
+      benchmark: false,
+      buildWeekIndex: 0,
+      qualityIndex: 0,
+    },
+    false,
+  );
+  // A base week has no bricks (they start in Build).
+  const counts = { run: 0, bike: 0, swim: 0 };
+  for (const s of slots.filter((x): x is Slot & { sport: Sport } => x.sport !== 'brick')) {
+    counts[s.sport]++;
+  }
+  return counts;
 }
 
 /**

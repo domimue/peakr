@@ -117,6 +117,11 @@ export interface UserProfile {
   /** Regular commutes, placed before everything else as easy sessions. */
   commutes?: Commute[];
   /**
+   * Sessions per week the user wants per discipline (quiz, Profile → Availability). A sport left
+   * out gets what Peakr suggests (`suggestedSessions`). Commutes and strength are not counted.
+   */
+  sessionsPerWeek?: Partial<Record<Sport, number>>;
+  /**
    * Calibration from recent activities (reference data, CLAUDE.md "Baseline from past
    * activities"). The user's own entries above always win over these values.
    */
