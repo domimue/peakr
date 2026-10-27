@@ -10,7 +10,16 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 - Prompt 3 – Navigation and screens (2026-10-27): tabs Today/Plan/Gym/Nutrition/Body with profile
   icon top right (Profile + Settings), Today shows one day, weekly volume per sport, workout types
   screen, Strava route preview, congratulation push, Body screen design + change colour scale;
-  CLAUDE.md updates. Plan mode first (waiting for approval).
+  CLAUDE.md updates. Plan approved, in `.claude/plans/navigation-screens.md`. Steps:
+  - [ ] 1 theme + engine building blocks
+  - [ ] 2 navigation (tabs, profile icon, profile/settings, Plan → History, Body/Nutrition)
+  - [ ] 3 Today shows one day
+  - [ ] 4 weekly volume per sport
+  - [ ] 5 workout types screen
+  - [ ] 6 Strava route preview
+  - [ ] 7 congratulation push
+  - [ ] 8 Body design + coach
+  - [ ] 9 CLAUDE.md + report
 
 ## Done
 
