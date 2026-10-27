@@ -2,7 +2,11 @@ import {
   adaptiveTdee,
   allWorkouts,
   completedWorkoutKcal,
+  balanceSince,
+  dailyEnergyBalances,
   energyBasis,
+  type BalanceSince,
+  type DayEnergyBalance,
   energyConfig,
   estimateWorkoutKcal,
   goalSnapshot,
@@ -114,6 +118,13 @@ export interface BodyModel {
   proteinByDay: { day: string; proteinG: number }[];
   /** Body fat values with their day (all sources), oldest first. */
   bodyFatPoints: { day: string; bodyFatPct: number }[];
+  /** The measured energy balance: since the goal started, the last 14 days, the goal's plan. */
+  balance: {
+    sinceGoal: BalanceSince | null;
+    days: DayEnergyBalance[];
+    /** The goal's start and planned deficit per day (for the planned figure per week). */
+    goal: { from: string; deficitKcal: number } | null;
+  };
 }
 
 interface RawInputs {
@@ -128,12 +139,38 @@ interface RawInputs {
   goals: repo.StoredGoal[];
   dayKcal: repo.DayKcal[];
   measurements: repo.Measurement[];
+  /** First day loaded (the window, or the goal's start when that is earlier). */
+  from: string;
 }
 
 /** Body fat of a check-in as a sourced value: a Navy result is an estimate, a scale is a device. */
 const FAT_SOURCE = { manual: 'manual', navy: 'estimate', scale: 'healthConnect' } as const;
 
-async function loadInputs(from: string): Promise<RawInputs> {
+/** How far back "since your goal started" reaches at most. */
+const GOAL_HISTORY_DAYS = 365;
+
+/**
+ * The start of the current goal: the first of the saved versions in a row with the same kind and
+ * start weight (a changed rate or target saves a new version of the same goal).
+ */
+export function goalStartDay(goals: readonly repo.StoredGoal[]): string | null {
+  const last = goals.at(-1);
+  if (!last || last.paused) return null;
+  let start = last;
+  for (let i = goals.length - 2; i >= 0; i--) {
+    const g = goals[i] as repo.StoredGoal;
+    if (g.kind !== last.kind || g.startWeightKg !== last.startWeightKg) break;
+    start = g;
+  }
+  return start.createdAt.slice(0, 10);
+}
+
+async function loadInputs(window: string): Promise<RawInputs> {
+  // The window, reaching back to the goal's start for the balance since then.
+  const goalStart = goalStartDay(await repo.listGoals());
+  const today = todayIso();
+  const floor = shift(today, -GOAL_HISTORY_DAYS);
+  const from = goalStart && goalStart < window ? (goalStart < floor ? floor : goalStart) : window;
   const [
     food,
     checkIns,
@@ -174,6 +211,7 @@ async function loadInputs(from: string): Promise<RawInputs> {
     goals,
     dayKcal: dayKcal.filter((d) => d.day >= from),
     measurements,
+    from,
   };
 }
 
@@ -229,7 +267,7 @@ export function useBodyModel(): BodyModel | null {
     const stored = plan.data;
     const planned = stored
       ? allWorkouts(stored.state.plan)
-          .filter((w) => w.date >= from && w.date <= today)
+          .filter((w) => w.date >= raw.from && w.date <= today)
           .map((w) => ({
             day: w.date,
             workout: {
@@ -240,9 +278,9 @@ export function useBodyModel(): BodyModel | null {
             },
           }))
       : [];
-    const { days, trend } = energyDays({
+    const inputsFrom = (start: string) => ({
       profile: p,
-      from,
+      from: start,
       to: today,
       today,
       intake: [
@@ -274,6 +312,7 @@ export function useBodyModel(): BodyModel | null {
       planned,
       incompleteDays: raw.incompleteDays,
     });
+    const { days, trend } = energyDays(inputsFrom(from));
     const previous = raw.estimates.filter((e) => e.date < today).at(-1) ?? null;
     const adaptive = adaptiveTdee({ days, trend, today, previous });
     const correctionKcal =
@@ -418,6 +457,19 @@ export function useBodyModel(): BodyModel | null {
       }),
       tooFastLoss: rapidLossWarning(trend, today).warning,
       basis,
+      balance: (() => {
+        const start = goalStartDay(raw.goals);
+        const goalPlan =
+          start && snapshot ? { from: start, deficitKcal: snapshot.targets.deficitKcal } : null;
+        // Days before the window are only built for the sum since the goal started.
+        const since =
+          goalPlan && goalPlan.from < from ? energyDays(inputsFrom(goalPlan.from)).days : days;
+        return {
+          sinceGoal: goalPlan ? balanceSince({ days: since, ...goalPlan }) : null,
+          days: dailyEnergyBalances(days, today, 14),
+          goal: goalPlan,
+        };
+      })(),
       // Counted at the target's activity share, like in the goal snapshot.
       goalPlannedDailyKcal: Math.round(
         Math.min(plannedWeekKcal.reduce((a, b) => a + b, 0) / 7, ratePlannedDailyKcal ?? Infinity) *

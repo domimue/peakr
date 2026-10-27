@@ -10,6 +10,9 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 ## Done
 
+- Energy balance card (2026-10-27): sum since the goal started against the plan, planned figure
+  per week, day view of the last 14 days; CLAUDE.md updated; nothing to set up
+
 - Fixed daily calorie target (2026-10-27): same target every day, base from the watch on days
   without sport, planned training at 50 % (buffer), floor from the formula BMR checked with the
   planned training; CLAUDE.md updated; nothing to set up

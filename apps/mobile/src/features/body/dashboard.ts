@@ -138,7 +138,7 @@ export function useBodyDashboard(): BodyDashboard | null {
       planned: lines.planned,
       real: lines.real,
     },
-    bars: weeklyEnergyBars(model.days, today, 8),
+    bars: weeklyEnergyBars(model.days, today, 8, model.balance.goal),
     scaleReasons: scaleReasons(model.scale),
     indices:
       p?.sex && p.heightCm

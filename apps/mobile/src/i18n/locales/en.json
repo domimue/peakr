@@ -3069,7 +3069,22 @@
       "lastWeek": "Last week",
       "line": "{{kcal}} kcal ≈ {{kg}} kg fat · {{days}} days",
       "noDays": "No complete days yet",
-      "hint": "Intake minus resting and active energy, on complete days only; 7,700 kcal ≈ 1 kg of fat."
+      "hint": "Intake minus resting and active energy (all your training and everyday movement), on complete days only; 7,700 kcal ≈ 1 kg of fat.",
+      "sinceGoal": "Since your goal started ({{date}})",
+      "sinceGoalEmpty": "No complete days yet – log what you eat and the sum starts here.",
+      "kcal": "{{kcal}} kcal",
+      "sinceGoalLine_one": "≈ {{kg}} kg fat · {{count}} complete day",
+      "sinceGoalLine_other": "≈ {{kg}} kg fat · {{count}} complete days",
+      "ahead": "Planned {{planned}} kcal – you are {{kcal}} kcal ahead of your plan.",
+      "behind": "Planned {{planned}} kcal – {{kcal}} kcal less than planned so far.",
+      "onPlan": "Planned {{planned}} kcal – exactly on plan.",
+      "weekPlanned": "Planned {{kcal}} kcal",
+      "days": "Day by day (last 14 days)",
+      "dayLine": "Eaten {{eaten}} · burnt {{burnt}} kcal",
+      "dayBurnt": "Burnt {{burnt}} kcal · nothing logged",
+      "notCounted": "not counted",
+      "notLogged": "no log",
+      "daysHint": "Burnt is resting plus active energy, with your training. Today and days marked incomplete are not counted."
     },
     "tdee": {
       "title": "Your maintenance (adaptive)",
