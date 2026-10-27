@@ -281,6 +281,7 @@ export function generatePlan(
     continuation || Object.keys(floors.weeklyMin).length === 0
       ? undefined
       : generated[7 - weekdayOf(start) >= 4 ? 0 : 1];
+  let ownSessionsOpen = !continuation && profile.sessionsPerWeek !== undefined;
   for (const week of generated) {
     const weekStart = toIsoDate(monday + week.index * 7);
     const override = availability.weekOverrides?.find((o) => o.weekStart === weekStart);
@@ -377,6 +378,20 @@ export function generatePlan(
     // The week the start floors are checked on holds what the athlete already does per sport: a
     // week that reaches its load with fewer minutes (a benchmark or quality session packs more
     // load per minute) is rebuilt with a higher target – as far as the availability allows.
+    // Sessions the user chose themselves get a useful length from the start: more sessions mean
+    // more training, not shorter sessions. The first week of a new plan is rebuilt with a higher
+    // target until each of them has it – as far as its day holds it. A partial first week does
+    // not set the level of the weeks after it, so the first full week is checked as well.
+    if (ownSessionsOpen) {
+      for (let tries = 0, load = targetLoad; tries < cfg.floors.retries; tries++) {
+        const short = sessionShortfall(out.workouts, profile, minutesPerDay);
+        if (short <= 1) break;
+        load = Math.max(load, out.load) * Math.max(short, cfg.floors.minStep);
+        // A higher target only lengthens sessions, so the rebuilt week replaces the last one.
+        out = scheduleAt(load);
+      }
+    }
+    if (!isPartial) ownSessionsOpen = false;
     if (week === floorWeek) {
       for (let tries = 0, load = targetLoad; tries < cfg.floors.retries; tries++) {
         const short = volumeShortfall(out.workouts, floors.weeklyMin, planDays);
@@ -518,6 +533,26 @@ export function classifyPlan(weeks: PlanWeek[], experience: Experience): PlanWee
       .map(describeWorkout);
     return { ...w, workouts, hardShare: Math.round(hardShare(workouts) * 1000) / 1000 };
   });
+}
+
+/**
+ * How far the user's own easy sessions fall short of their useful length (`ownMinMin`): the
+ * largest needed / planned ratio, only over days whose minutes can hold it (≤ 1: none short).
+ */
+function sessionShortfall(
+  workouts: readonly Workout[],
+  profile: UserProfile,
+  minutesPerDay: readonly number[],
+): number {
+  let ratio = 1;
+  for (const w of workouts) {
+    const sport = SPORTS.find((s) => s === w.sport);
+    if (w.role !== 'easy' || !sport || profile.sessionsPerWeek?.[sport] === undefined) continue;
+    const min = cfg.sessions.ownMinMin[sport];
+    const room = minutesPerDay[weekdayOf(parseIsoDate(w.date) as number)] as number;
+    if (w.durationMin < min && room >= min) ratio = Math.max(ratio, min / w.durationMin);
+  }
+  return ratio;
 }
 
 /** The fewest days (longest first) whose minutes add up to `minutes`; all of them if never. */
