@@ -420,6 +420,7 @@ Slots are filled in this priority: long → key quality → second quality → s
   Threshold = Tempo, every other loading week in Build Hills long (not on flat terrain).
 - **Quality rotation** (`planConfig.sessions.qualityRotation`): every 3rd Build/Peak loading week the distance's other kind of quality moves into slot A – 5K threshold (Build: Quality B fartlek), 10K VO2 (Build: Quality B fartlek, Peak: threshold), half marathon VO2 (Peak: every 2nd week, one level shorter), marathon VO2 one level shorter. So with only one quality session a week (3–4 runs) 10K and HM alternate threshold : VO2 = 2 : 1 and the 5K the other way round; with two, threshold and VO2 both appear in every three loading weeks for 5K/10K/HM and VO2 at least every four for the marathon (property tests over the fixture grid, at difficulty 1, 5 and 10).
 - The rotation counts **loading weeks only**: recovery weeks and benchmark weeks (the test replaces slot A) do not use up a turn.
+- **Quality emphasis** (`profile.qualityEmphasis`, from the plan review): `more` intervals → the VO2 turn every 2nd loading week, `less` (more easy volume) → every 4th; for the 5K, whose turn brings threshold work, the other way round. Never below every 2nd week; 80/20 and the hard-day rules still decide what fits.
 - HM/M Peak with 3 runs: the long run is at race pace, except in a VO2 week (an easy long run leaves room in the 20 % for the intervals).
 - A VO2 set that does not fit the day (it is the longest quality run with warm-up and cool-down – on 45-minute days not even L1 fits) becomes threshold work, never an easy run.
 - Taper: the short sharp session is VO2 for 5K/10K, Tempo for the marathon; the half marathon keeps Tempo until race week and opens with a short VO2 set.
@@ -464,6 +465,8 @@ Session mix over the fixture grid (all running-goal plans at difficulty 5, Build
 | Intermediate (regular for 6+ months) | 3 |
 | Advanced (race history, ≥ 4 sessions/week) | 5 |
 Race time / CSS / FTP adjust zones, not levels.
+
+**Start level from the previous plan** (the next plan in the same account, CLAUDE.md "Plan history"): each workout template starts at the level its last done session reached (`profile.baseline.levels`), shifted by the plan review (+1 / −1, never below 1); templates the previous plan did not have start from the class below.
 
 **Start level from recent activities** (optional Strava baseline, CLAUDE.md "Baseline from past activities"): the class is derived **per sport** from the last 60 days – sessions/week, weekly minutes and longest session must all reach the thresholds (`planConfig.baseline.levels`), e.g. run intermediate ≥ 2/week, ≥ 90 min, ≥ 30 min; advanced ≥ 4/week, ≥ 240 min, ≥ 75 min. Below the minimum number of activities the quiz answer stays. The user can change every class on the summary screen. The same baseline sets week 1 to the current weekly load (within the capacity of the availability, never below the beginner share) and the first long session to the typical weekly longest session.
 

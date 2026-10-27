@@ -7,17 +7,15 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
 
 ## Open
 
-- New plan without a new account, plan history, badges, review, weekly session mix
-  (2026-10-27; plan in `.claude/plans/plan-history.md`). Steps:
-  - [x] A – weekly session mix (rotation, audit, property tests)
-  - [x] B – plan archive & outcome (SQLite + Supabase, sync, `planOutcome`)
-  - [x] E+F – scopes "This plan / All time", badges, plan history screen, JSON export
-  - [x] C – "Create a new plan" flow (Profile row, prefilled quiz, Strava recalibration, confirmation, start from the previous plan, auto-archive at the end)
-  - [x] D – review "How was your last plan?" (measured, quick taps, changes with reasons, saved with the archive)
-  - [ ] G – CLAUDE.md / WORKOUTS.md, final report
+(empty)
 
 ## Done
 
+- New plan without a new account (2026-10-27): weekly session mix (threshold/VO2 rotation), plan
+  archive with outcome and same-day undo, Insights "This plan / All time", badges, Plan history
+  with JSON export, "Create a new plan" flow starting from the previous plan, review "How was
+  your last plan?"; CLAUDE.md + WORKOUTS.md updated; waits on the user for the Supabase migration
+  `20261109000000_plan_archive.sql` and `supabase functions deploy delete-account`
 - Engine phase (2026-10-27): plan start floors, intensity bands, difficulty slider, energy &
   macros, activity matching, CLAUDE.md updated; nothing to set up (no migrations; new settings
   stay on the device)
