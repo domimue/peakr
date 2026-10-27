@@ -108,8 +108,18 @@ describe('onboarding quiz', () => {
     expect(screen.getByText('Enter a value between 25 and 120.')).toBeOnTheScreen();
     expect(screen.getByRole('button', { name: 'Next' })).toBeDisabled();
     await fireEvent.changeText(screen.getByLabelText('Resting heart rate (optional)'), '52');
-    // Without age or max HR there is no Zone 2 yet: straight to availability.
+    // Without age or max HR there is no Zone 2 yet: on to the sessions per sport.
     await next();
+
+    // Sessions per sport, before the days: Peakr suggests by default; "I choose" starts at it.
+    expect(screen.getByText('How many sessions a week per sport?')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('I choose'));
+    expect(screen.getByLabelText('Runs per week: 3 sessions')).toBeOnTheScreen();
+    await fireEvent.press(screen.getByLabelText('Runs per week, Increase'));
+    expect(screen.getByLabelText('Runs per week: 4 sessions')).toBeOnTheScreen();
+    await next();
+    expect(screen.getByText('Peakr plans 4 runs a week.')).toBeOnTheScreen();
+    await proceed();
 
     expect(screen.getByText('How much time do you have each day?')).toBeOnTheScreen();
     await fireEvent.press(screen.getByLabelText('Monday, Increase'));

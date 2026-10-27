@@ -628,5 +628,28 @@ describe('availability', () => {
       (w) => w.date >= '2026-11-04' && w.weekday === 0,
     );
     expect(mondays).toEqual([]);
+    // Left to Peakr: no own numbers stored.
+    expect(stored?.input.profile.sessionsPerWeek).toBeUndefined();
+  });
+
+  it('sets the sessions per discipline and back to Peakr’s suggestion', async () => {
+    storePlan();
+    setToday('2026-11-04');
+    await renderWithQuery(<AvailabilityScreen />);
+    await fireEvent.press(await screen.findByText('I choose'));
+    await fireEvent.press(screen.getByLabelText('Runs per week, Decrease'));
+    await fireEvent.press(screen.getByText('Save and rebuild plan'));
+    await waitFor(() => expect(router.back).toHaveBeenCalled());
+    const own = mock.store.plan?.input.profile.sessionsPerWeek?.run;
+    expect(own).toBeGreaterThanOrEqual(1);
+    const runs = (mock.store.plan?.state.plan.weeks ?? [])
+      .find((w) => w.startDate === '2026-11-09')
+      ?.workouts.filter((w) => w.sport === 'run').length;
+    expect(runs).toBe(own);
+
+    await renderWithQuery(<AvailabilityScreen />);
+    await fireEvent.press(await screen.findByText('Let Peakr suggest'));
+    await fireEvent.press(screen.getByText('Save and rebuild plan'));
+    await waitFor(() => expect(mock.store.plan?.input.profile.sessionsPerWeek).toBeUndefined());
   });
 });

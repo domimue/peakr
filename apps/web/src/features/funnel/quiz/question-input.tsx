@@ -169,7 +169,7 @@ function Input(props: InputProps) {
           min={range.min}
           max={range.max}
           step={1}
-          format={(n) => (q.unitKey ? `${n} ${unit(n)}` : String(n))}
+          format={(n) => (q.unitKey ? unit(n) : String(n))}
           onChange={onAnswer}
         />
       ) : (

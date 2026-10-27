@@ -496,7 +496,16 @@
       },
       "weightloss": "A safe pace is at most {{kg}} kg per week (1 % of your body weight). Your training plan supports it; nutrition tracking comes with the Training + Nutrition plan.",
       "commute": "Your commute adds about {{hours}} h of easy training on {{days}} days a week. It counts towards your plan, so the other sessions fit around it.",
-      "winter": "From December to March your plan offers winter variants of your easy and long sessions – with the same training load. You can change the winter period anytime."
+      "winter": "From December to March your plan offers winter variants of your easy and long sessions – with the same training load. You can change the winter period anytime.",
+      "sessions": {
+        "run": "Peakr plans {{run}} runs a week.",
+        "bike": "Peakr plans {{bike}} rides a week.",
+        "swim": "Peakr plans {{swim}} swims a week.",
+        "run_bike": "Peakr plans {{run}} runs and {{bike}} rides a week.",
+        "run_swim": "Peakr plans {{run}} runs and {{swim}} swims a week.",
+        "bike_swim": "Peakr plans {{bike}} rides and {{swim}} swims a week.",
+        "run_bike_swim": "Peakr plans {{swim}} swims, {{bike}} rides and {{run}} runs a week."
+      }
     },
     "forecast": {
       "title": "Your plan is ready",
@@ -587,6 +596,33 @@
           }
         }
       }
+    },
+    "sessions": {
+      "mode": {
+        "title": "How many sessions a week per sport?",
+        "hint": "Before you set your days. You can change it anytime in Profile → Availability.",
+        "options": {
+          "suggest": {
+            "label": "Let Peakr suggest",
+            "description": "What fits your goal and level – shown on the next screen."
+          },
+          "own": {
+            "label": "I choose",
+            "description": "Set a number per sport, starting from Peakr’s suggestion."
+          }
+        }
+      },
+      "run": {
+        "title": "Runs per week"
+      },
+      "bike": {
+        "title": "Rides per week"
+      },
+      "swim": {
+        "title": "Swims per week"
+      },
+      "unit_one": "{{count}} session",
+      "unit_other": "{{count}} sessions"
     }
   },
   "notes": {
