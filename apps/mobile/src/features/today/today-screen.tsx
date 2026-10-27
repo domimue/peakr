@@ -21,6 +21,8 @@ import { CoachTeaser } from '../body/components/coach-teaser';
 import { EnergyTodayCard } from '../body/components/energy-today-card';
 import { RecoveryLine } from '../insights/health/recovery-line';
 import { useRemoteFlag } from '@/config/remote-flags';
+import { useArchiveEndedPlan } from '@/features/plan-new/ended';
+import { NoPlanState } from '@/features/plan-new/no-plan-state';
 import { WeatherChip } from '../weather/components/weather-chip';
 import { WeatherHintCard } from '../weather/components/weather-hint-card';
 import { useWorkoutWeather } from '../weather/queries';
@@ -35,6 +37,7 @@ export function TodayScreen() {
   const { t, i18n } = useTranslation();
   const { colors } = useTheme();
   const { data: stored, isPending, isError, refetch } = usePlan();
+  useArchiveEndedPlan();
   const actions = usePlanActions();
   const showWeek = usePlanUiStore((s) => s.showWeek);
   const access = useAccess();
@@ -66,13 +69,7 @@ export function TodayScreen() {
             onRetry={() => void refetch()}
           />
         ) : (
-          <ListState
-            kind="empty"
-            icon="calendar"
-            title={t('plan.empty')}
-            actionLabel={t('plan.startQuiz')}
-            onAction={() => router.push('/onboarding')}
-          />
+          <NoPlanState />
         )}
       </Shell>
     );

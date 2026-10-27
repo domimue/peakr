@@ -3313,5 +3313,47 @@
       "firstMultisport": "First multisport plan",
       "allIn": "All in – 95 % done"
     }
+  },
+  "planNew": {
+    "title": "Create a new plan",
+    "intro": "Answer the quiz again – your earlier answers are filled in – and Peakr builds the next plan from what you actually did in this one, plus your recent Strava activities.",
+    "current": "Current plan: {{goal}}",
+    "archived": "It is archived when the new plan starts. Your done sessions stay in your history.",
+    "start": "Start",
+    "forecast": {
+      "title": "Your next plan",
+      "hint": "Nothing changes yet. On the next screen you see what happens to your current plan.",
+      "continue": "Continue"
+    },
+    "confirm": {
+      "title": "Start the new plan?",
+      "starts": "Starts {{date}}",
+      "archive": "Your current plan ({{goal}}) is archived",
+      "outcome": {
+        "completed": "It ran through all its weeks with at least 80 % done – it counts as completed.",
+        "finished": "It ran through all its weeks.",
+        "replaced": "It has not ended yet, so it is archived as replaced (not completed)."
+      },
+      "staysTitle": "What stays",
+      "stays": {
+        "sessions": "Every done and skipped session, in Insights and Plan history",
+        "activities": "Your synced activities and routes",
+        "gym": "Gym sessions, routines and records",
+        "body": "Body data"
+      },
+      "goesTitle": "What goes",
+      "goes": {
+        "planned": "Planned sessions from today on",
+        "changes": "Moves and other manual changes in the current plan",
+        "weeks": "Irregular weeks and travel set for the current plan"
+      },
+      "undo": "Changed your mind? Until the end of today you can bring the current plan back in Profile → Plan history.",
+      "action": "Start my new plan",
+      "failed": "The new plan could not be saved. Please try again."
+    },
+    "ended": {
+      "title": "Your plan has ended",
+      "message": "It is in your plan history. Create the next one – it starts from what you did."
+    }
   }
 }

@@ -16,6 +16,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { authAvailable } from '@/features/auth/session-store';
 import { useBaselineStore } from '@/features/baseline/baseline-store';
 import { BaselineStep } from '@/features/baseline/screens/baseline-step';
+import { useNewPlanFlow } from '@/features/plan-new/flow-store';
 import { Button, Card, fontSizes, ProgressBar, radius, spacing, Text, useTheme } from '@/ui';
 
 import { QuestionInput } from '../question-input';
@@ -88,8 +89,9 @@ export function QuizScreen() {
     const following = steps[index + 1];
     if (following) return goTo(following.id, false, 1);
     finish();
-    // Which watch the user wears (skippable) comes before the forecast.
-    router.push('/onboarding/watch');
+    // Which watch the user wears (skippable) comes before the forecast – a new plan in the same
+    // account already knows it.
+    router.push(useNewPlanFlow.getState().active ? '/onboarding/forecast' : '/onboarding/watch');
   };
 
   const progress = (index + (onInsight ? 1 : 0.35)) / steps.length;

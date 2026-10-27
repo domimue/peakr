@@ -10,6 +10,7 @@ import type { StoredPlan } from '@/data/repositories/plan-repository';
 import { useAccess } from '@/features/billing/billing-store';
 import { LockedCard } from '@/features/billing/locked';
 import { Badge, ListState, SegmentedControl, spacing, Text, useTheme } from '@/ui';
+import { NoPlanState } from '@/features/plan-new/no-plan-state';
 
 import { formatDate, initialWeek } from '../calendar';
 import { CalendarView } from '../components/calendar-view';
@@ -59,13 +60,7 @@ export function PlanScreen() {
             onRetry={() => void refetch()}
           />
         ) : (
-          <ListState
-            kind="empty"
-            icon="calendar"
-            title={t('plan.empty')}
-            actionLabel={t('plan.startQuiz')}
-            onAction={() => router.push('/onboarding')}
-          />
+          <NoPlanState />
         )}
       </View>
     );

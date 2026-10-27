@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 
 import { useRemoteFlag } from '@/config/remote-flags';
 import { useSessionStore } from '@/features/auth/session-store';
+import { useCanEditPlan } from '@/features/billing/billing-store';
 import { usePlan } from '@/features/plan/queries';
 import { useReminderSettings } from '@/features/notifications/queries';
 import { clockText } from '@/features/notifications/reminder-settings';
@@ -28,6 +29,7 @@ export function ProfileScreen() {
   const { data: weather } = useWeatherSettings();
   const session = useSessionStore((s) => (s.isAnonymous ? null : s.session));
   const paused = stored ? activePause(stored.state) !== null : false;
+  const canEdit = useCanEditPlan();
   // While Body holds the fourth tab, Insights opens from here.
   const insightsRow = useRemoteFlag('addon_body_nutrition');
 
@@ -38,6 +40,15 @@ export function ProfileScreen() {
   }[themePreference];
 
   const training: Row[] = [
+    // A new plan in the same account; without a subscription or trial the paywall comes first.
+    {
+      icon: 'plus',
+      title: t('planNew.title'),
+      ...(stored
+        ? { value: t(`quiz.goal.options.${stored.state.plan.goal.kind}.label` as never) as string }
+        : {}),
+      href: canEdit ? '/plan-new' : '/paywall',
+    },
     ...(insightsRow
       ? [
           {

@@ -12,7 +12,7 @@ Hourly check-in (scheduled task): `trig_01DmNLehfxTzPBLXaDznAdvU` (branch claude
   - [x] A – weekly session mix (rotation, audit, property tests)
   - [x] B – plan archive & outcome (SQLite + Supabase, sync, `planOutcome`)
   - [x] E+F – scopes "This plan / All time", badges, plan history screen, JSON export
-  - [ ] C – "Create a new plan" flow
+  - [x] C – "Create a new plan" flow (Profile row, prefilled quiz, Strava recalibration, confirmation, start from the previous plan, auto-archive at the end)
   - [ ] D – review "How was your last plan?"
   - [ ] G – CLAUDE.md / WORKOUTS.md, final report
 
