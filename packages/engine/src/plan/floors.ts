@@ -1,6 +1,13 @@
 import { zoneConfig } from '../config';
 import { planConfig } from './config';
-import { SPORTS, type Plan, type PlanWeek, type Sport, type UserProfile } from './types';
+import {
+  SPORTS,
+  type Plan,
+  type PlanWeek,
+  type Sport,
+  type UserProfile,
+  type Workout,
+} from './types';
 
 const cfg = planConfig.floors;
 
@@ -55,10 +62,12 @@ export interface FloorBreach {
   floorMin: number;
 }
 
-const minutesOf = (w: PlanWeek, sport: Sport) =>
-  w.workouts
+/** Minutes of a sport in a set of sessions (a brick is half ride, half run). */
+export const sportMinutes = (workouts: readonly Workout[], sport: Sport) =>
+  workouts
     .filter((x) => x.sport === sport || (x.sport === 'brick' && sport !== 'swim'))
     .reduce((s, x) => s + (x.sport === 'brick' ? x.durationMin / 2 : x.durationMin), 0);
+const minutesOf = (w: PlanWeek, sport: Sport) => sportMinutes(w.workouts, sport);
 
 /**
  * Checks the start of a generated plan against the floors: the first long session of each sport

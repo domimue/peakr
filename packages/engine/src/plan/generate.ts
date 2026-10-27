@@ -5,7 +5,7 @@ import { commuteMinutes, commutesOn, commutesValid } from './commute';
 import { requiredSports, sportShares } from './composition';
 import { planConfig } from './config';
 import { difficultyFactor, difficultyGrowth } from './difficulty';
-import { checkStartFloors, startFloors } from './floors';
+import { checkStartFloors, sportMinutes, startFloors } from './floors';
 import { parseIsoDate, toIsoDate, weekdayOf } from './dates';
 import { hardShare } from './load';
 import { athleteFor } from './materialize';
@@ -274,6 +274,13 @@ export function generatePlan(
     firstIndex,
     continuation?.weeks === undefined ? undefined : firstIndex + continuation.weeks,
   );
+  // Week of the volume floor check (`checkStartFloors`): the first one, or the second when the
+  // plan starts with fewer than four days. Only a new plan has floors.
+  const floors = startFloors(profile);
+  const floorWeek =
+    continuation || Object.keys(floors.weeklyMin).length === 0
+      ? undefined
+      : generated[7 - weekdayOf(start) >= 4 ? 0 : 1];
   for (const week of generated) {
     const weekStart = toIsoDate(monday + week.index * 7);
     const override = availability.weekOverrides?.find((o) => o.weekStart === weekStart);
@@ -323,38 +330,53 @@ export function generatePlan(
           ? cap
           : Math.min(cap, targetLoad);
     const lastIsRaceEve = raceGoal && target !== null && lastDay - (monday + week.index * 7) < 7;
-    const out = scheduleWeek({
-      athlete,
-      raceGoal,
-      skeleton: week,
-      composition: {
-        goal: goal.kind,
-        profile,
-        phase: week.phase,
-        weekIndex: week.index,
-        isRecovery: week.isRecovery,
-        raceWeek: week.index === weekCount - 1 && week.taperIndex !== null,
-        trainingDays: days.filter((d) => trainingMinutes(d) >= cfg.plan.minSessionMin).length,
-        cssAllowed: cssAllowed(profile, levels),
-        benchmark,
-        buildWeekIndex,
-        qualityIndex,
-      },
-      shares,
-      days,
-      doubles: availability.doublesAllowed,
-      targetLoad,
-      capLoad,
-      raceDayIndex: lastIsRaceEve ? lastDay - (monday + week.index * 7) + 1 : null,
-      ...(continuation?.next && week === generated[generated.length - 1]
-        ? { next: continuation.next }
-        : {}),
-      prev,
-      levels,
-      longMin,
-      strengthRotation: rotation,
-      ...(continuation?.idPrefix ? { idPrefix: continuation.idPrefix } : {}),
-    });
+    const scheduleAt = (load: number) =>
+      scheduleWeek({
+        athlete,
+        raceGoal,
+        skeleton: week,
+        composition: {
+          goal: goal.kind,
+          profile,
+          phase: week.phase,
+          weekIndex: week.index,
+          isRecovery: week.isRecovery,
+          raceWeek: week.index === weekCount - 1 && week.taperIndex !== null,
+          trainingDays: days.filter((d) => trainingMinutes(d) >= cfg.plan.minSessionMin).length,
+          cssAllowed: cssAllowed(profile, levels),
+          benchmark,
+          buildWeekIndex,
+          qualityIndex,
+        },
+        shares,
+        days,
+        doubles: availability.doublesAllowed,
+        targetLoad: load,
+        capLoad,
+        raceDayIndex: lastIsRaceEve ? lastDay - (monday + week.index * 7) + 1 : null,
+        ...(continuation?.next && week === generated[generated.length - 1]
+          ? { next: continuation.next }
+          : {}),
+        prev,
+        levels,
+        longMin,
+        strengthRotation: rotation,
+        ...(continuation?.idPrefix ? { idPrefix: continuation.idPrefix } : {}),
+      });
+    let out = scheduleAt(targetLoad);
+    // The week the start floors are checked on holds what the athlete already does per sport: a
+    // week that reaches its load with fewer minutes (a benchmark or quality session packs more
+    // load per minute) is rebuilt with a higher target – as far as the availability allows.
+    if (week === floorWeek) {
+      for (let tries = 0, load = targetLoad; tries < cfg.floors.retries; tries++) {
+        const short = volumeShortfall(out.workouts, floors.weeklyMin, planDays);
+        if (short <= 1) break;
+        load *= short;
+        const next = scheduleAt(load);
+        if (next.load <= out.load) break;
+        out = next;
+      }
+    }
 
     levels = out.levels;
     longMin = out.longMin;
@@ -417,7 +439,7 @@ export function generatePlan(
   // availability cannot hold it, that is an error to show – not a beginner plan to ship. A plan
   // continued after a pause starts lower on purpose (resume rules) and is not checked.
   if (!continuation) {
-    const breaches = checkStartFloors(plan, startFloors(profile));
+    const breaches = checkStartFloors(plan, floors);
     if (breaches.length > 0) {
       return {
         ok: false,
@@ -484,4 +506,22 @@ export function classifyPlan(weeks: PlanWeek[], experience: Experience): PlanWee
       .map(describeWorkout);
     return { ...w, workouts, hardShare: Math.round(hardShare(workouts) * 1000) / 1000 };
   });
+}
+
+/**
+ * How far the week's minutes fall short of the volume floors: the largest needed / planned ratio
+ * over the sports (≤ 1: nothing missing). A sport without any session cannot be scaled up.
+ */
+function volumeShortfall(
+  workouts: readonly Workout[],
+  weeklyMin: Partial<Record<Sport, number>>,
+  planDays: number,
+): number {
+  let ratio = 1;
+  for (const [sport, floor] of Object.entries(weeklyMin) as [Sport, number][]) {
+    const planned = sportMinutes(workouts, sport);
+    const needed = (floor * planDays) / 7;
+    if (planned > 0 && planned < needed) ratio = Math.max(ratio, needed / planned);
+  }
+  return ratio;
 }

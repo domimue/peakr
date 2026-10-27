@@ -142,6 +142,8 @@ export const planConfig = {
     longShare: 0.9,
     /** Week-1 minutes per sport ≥ this share of the last four weeks (5-minute rounding of sessions). */
     volumeShare: 0.95,
+    /** Rebuilds of the checked start week with a higher target before the floor counts as missed. */
+    retries: 4,
     /** Speeds used to turn a distance from the quiz into minutes when no pace is known. */
     defaultSpeedKmh: { run: 10, bike: 25, swim: 2.5 } satisfies Record<Sport, number>,
   },
@@ -360,6 +362,8 @@ export const planConfig = {
    * completed.
    */
   completion: { minShare: 0.8, badgeShare: 0.95 },
+  /** Start values from the previous plan: long sessions of the last 6 weeks, volume of the last 4. */
+  history: { longWeeks: 6, volumeWeeks: 4 },
   activities: {
     /**
      * Matching a synced activity to a planned workout (CLAUDE.md "After import"): a confidence

@@ -307,6 +307,7 @@ class WeekScheduler {
     const { input } = this;
     const current =
       input.levels.get(template.id) ??
+      input.athlete.profile.baseline?.levels?.[template.id] ??
       startLevel(sportExperience(input.athlete.profile, template.sport), template);
     let level = current;
     if (input.skeleton.isRecovery) level = recoveryWeekLevel(level);

@@ -153,6 +153,11 @@ export interface PlanBaseline {
   /** Observed HRmax (only when above the age estimate) and LTHR estimate for the HR zones. */
   hrMax?: number;
   lthr?: number;
+  /**
+   * Start level per workout template (template id → level), from the previous plan's sessions
+   * (CLAUDE.md "Plan history"); templates without one start from the class (§10).
+   */
+  levels?: Record<string, number>;
 }
 
 /** A regular commute (CLAUDE.md "Commuting"). */

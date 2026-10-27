@@ -59,6 +59,7 @@ export {
   type PlanSummary,
   type SummaryGroup,
 } from './plan/outcome';
+export { historyBaseline, withHistoryBaseline } from './plan/history-baseline';
 export { checkStartFloors, startFloors, type FloorBreach, type StartFloors } from './plan/floors';
 export { difficultyFactor, difficultyGrowth, difficultyLevel } from './plan/difficulty';
 export {
