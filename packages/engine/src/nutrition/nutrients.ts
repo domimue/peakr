@@ -1,3 +1,5 @@
+import { energyConfig } from '../energy/config';
+
 /**
  * Food maths of the Body add-on's diary (CLAUDE.md "Energy & body rules": all of it here, never
  * in the UI): nutrients per 100 g / ml, portions, recipes, day and meal totals, macro targets.
@@ -142,19 +144,29 @@ export interface MacroTargets {
 }
 
 /**
- * Macro targets for the day: protein from the goal (1.6–2.2 g/kg), fat 30 % of the energy but at
- * least 0.6 g/kg, carbohydrates the rest. Targets to aim at, not limits.
+ * Macro targets for the day, derived, never fixed (CLAUDE.md "Energy & body rules"): protein
+ * 1.6–2.2 g/kg (default 1.9), fat 0.8–1.0 g/kg (default 0.9, never below 0.6 g/kg), carbohydrates
+ * whatever energy remains – so they rise with the day's planned training. Targets to aim at, not
+ * limits. Body weight is the trend weight.
  */
 export function macroTargets(input: {
   kcal: number;
-  proteinG: number;
   weightKg: number;
+  proteinGPerKg?: number;
+  fatGPerKg?: number;
 }): MacroTargets {
-  const fat = Math.max((input.kcal * 0.3) / 9, input.weightKg * 0.6);
-  const carbs = Math.max(0, (input.kcal - input.proteinG * 4 - fat * 9) / 4);
+  const m = energyConfig.macros;
+  const clamp = (v: number | undefined, r: { default: number; min: number; max: number }) =>
+    Math.min(r.max, Math.max(r.min, v ?? r.default));
+  const protein = clamp(input.proteinGPerKg, m.proteinGPerKg) * input.weightKg;
+  const fat = Math.max(
+    clamp(input.fatGPerKg, m.fatGPerKg) * input.weightKg,
+    m.fatFloorGPerKg * input.weightKg,
+  );
+  const carbs = Math.max(0, (input.kcal - protein * 4 - fat * 9) / 4);
   return {
     kcal: Math.round(input.kcal),
-    proteinG: Math.round(input.proteinG),
+    proteinG: Math.round(protein),
     fatG: Math.round(fat),
     carbsG: Math.round(carbs),
   };

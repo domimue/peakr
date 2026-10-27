@@ -9,6 +9,7 @@ import { entitlementsOf, subscriptionsOf, type CustomerInfoLike } from '@/featur
 import { renderWithQuery } from '@/test-utils/render-with-query';
 
 import { BodyScreen } from '../screens/body-screen';
+import { EnergySettingsScreen } from '../screens/energy-settings-screen';
 import { GoalSetupScreen } from '../screens/goal-setup-screen';
 
 jest.mock('@/data/repositories/plan-repository');
@@ -62,6 +63,7 @@ beforeEach(() => {
   body.resetStore();
   active();
   body.store.profile = { sex: 'female', birthDate: '1991-03-14', heightCm: 168, weightKg: 70 };
+  body.store.energySettings = { ...body.store.energySettings, everydayActivity: 'desk' };
   jest.spyOn(ids, 'todayIso').mockReturnValue(TODAY);
   jest.spyOn(router, 'push').mockImplementation(() => undefined);
   jest.spyOn(router, 'back').mockImplementation(() => undefined);
@@ -70,9 +72,16 @@ beforeEach(() => {
 afterEach(() => jest.restoreAllMocks());
 
 describe('goal setup', () => {
-  it('current → target → rate → summary, with presets above the safe rate disabled', async () => {
+  it('everyday activity → current → target → rate → summary; the floor is never silent', async () => {
     weighIns(1, 0);
+    body.store.energySettings = { ...body.store.energySettings, everydayActivity: null };
     await renderWithQuery(<GoalSetupScreen />);
+    // Asked once, before the first goal.
+    expect(
+      await screen.findByText('How active is your everyday life – without sport?'),
+    ).toBeOnTheScreen();
+    await fireEvent.press(screen.getByText('Desk job'));
+    await waitFor(() => expect(body.store.energySettings.everydayActivity).toBe('desk'));
     expect(
       await screen.findByText('From your weight trend – not a single weigh-in.'),
     ).toBeOnTheScreen();
@@ -94,21 +103,28 @@ describe('goal setup', () => {
       nativeEvent: { actionName: 'increment' },
     });
     expect(screen.getByText('0.3 kg/week')).toBeOnTheScreen();
-    // No workouts, no steps: maintenance ≈ BMR × 1.2, so the floor (BMR) decides.
-    expect(screen.getByTestId('goal-floor')).toHaveTextContent(/Held at your minimum of 1414 kcal/);
-    expect(screen.getByTestId('goal-preview')).toHaveTextContent(/Protein: \d+ g/);
+    // BMR 1414 × 1.3 (desk) = 1838 without sport: 0.3 kg/week keeps the floor.
+    expect(screen.queryByTestId('goal-floor')).toBeNull();
+    expect(screen.getByTestId('goal-preview')).toHaveTextContent(/Protein: 133 g/);
+    // 0.5 kg/week would put rest days at 1288 – below the floor of 1414: said, and a pace proposed.
+    await fireEvent.press(screen.getByTestId('goal-preset-recommended'));
+    expect(screen.getByTestId('goal-floor')).toHaveTextContent(
+      /0.5 kg per week would put your days without training below 1414 kcal.*0.35 kg per week/,
+    );
+    expect(screen.getByText('Next')).toBeDisabled();
+    await fireEvent.press(screen.getByTestId('goal-use-proposed'));
+    expect(screen.queryByTestId('goal-floor')).toBeNull();
+    expect(screen.getByText('0.35 kg/week')).toBeOnTheScreen();
     await fireEvent.press(screen.getByText('Next'));
 
-    await fireEvent.press(screen.getByText('Weekly'));
+    expect(screen.queryByText('Weekly')).toBeNull();
     await fireEvent.press(screen.getByText('Save goal'));
     await waitFor(() => expect(body.store.goals).toHaveLength(1));
     expect(body.store.goals[0]).toMatchObject({
       kind: 'lose',
       targetWeightKg: 65,
-      ratePerWeekKg: 0.3,
-      eatBackPct: 50,
-      weeklyMode: true,
-      reason: 'safety_clamp',
+      ratePerWeekKg: 0.35,
+      reason: 'user',
     });
   });
 
@@ -194,5 +210,53 @@ describe('goal card', () => {
     await renderWithQuery(<BodyScreen />);
     await fireEvent.press(await screen.findByTestId('body-set-goal'));
     expect(router.push).toHaveBeenCalledWith('/body/goal');
+  });
+});
+
+describe('energy targets', () => {
+  it('a stored goal that is too fast for the floor is named on the Body tab, with the pace used', async () => {
+    weighIns(21, 0);
+    body.store.goals = [
+      {
+        id: 'g2',
+        createdAt: '2026-10-01T08:00:00Z',
+        kind: 'lose',
+        startWeightKg: 70,
+        targetWeightKg: 64,
+        // Saved before the floor check: 0.7 kg/week is too fast for 1838 kcal without sport.
+        ratePerWeekKg: 0.7,
+        eatBackPct: 50,
+        weeklyMode: false,
+        adjustmentKcal: 0,
+        paused: false,
+        reason: 'user',
+      },
+    ];
+    await renderWithQuery(<BodyScreen />);
+    expect(await screen.findByTestId('target-below-floor')).toHaveTextContent(
+      /pace of 0.7 kg per week is too fast.*uses 0.35 kg per week/,
+    );
+    expect(screen.getByTestId('target-breakdown')).toHaveTextContent(
+      /Everyday activity\+ 424 kcal/,
+    );
+    await fireEvent.press(screen.getByText('Adjust the goal'));
+    expect(router.push).toHaveBeenCalledWith('/body/goal');
+  });
+
+  it('everyday activity, protein and fat are saved; the macros follow', async () => {
+    await renderWithQuery(<EnergySettingsScreen />);
+    await fireEvent.press(await screen.findByText('On your feet all day'));
+    await fireEvent(screen.getByTestId('energy-protein'), 'accessibilityAction', {
+      nativeEvent: { actionName: 'decrement' },
+    });
+    await fireEvent.press(screen.getByTestId('energy-save'));
+    await waitFor(() =>
+      expect(body.store.energySettings).toEqual({
+        everydayActivity: 'onFeet',
+        proteinGPerKg: 1.8,
+        fatGPerKg: 0.9,
+      }),
+    );
+    expect(await screen.findByText('Saved.')).toBeOnTheScreen();
   });
 });

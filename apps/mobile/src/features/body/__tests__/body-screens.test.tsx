@@ -151,13 +151,15 @@ describe('Body tab', () => {
     billing('active');
     fullProfile();
     await renderWithQuery(<BodyScreen />);
-    // Resting 1324 + everyday movement 265 (no steps, no wearable) plus today's planned sessions (none without a plan).
-    expect(await screen.findByText('1589 kcal left')).toBeOnTheScreen();
+    // Resting 1324 × 1.3 everyday activity (desk job until answered) = 1721; no plan, no training.
+    expect(await screen.findByText('1721 kcal left')).toBeOnTheScreen();
+    expect(screen.getByTestId('target-breakdown')).toHaveTextContent(/Resting energy1324 kcal/);
+    expect(screen.getByTestId('target-everyday-unset')).toBeOnTheScreen();
     // Quick add: kcal only.
     await fireEvent.changeText(screen.getByLabelText('Energy'), '400');
     await fireEvent.press(screen.getByText('Add'));
     await waitFor(() => expect(body.addFood).toHaveBeenCalled());
-    expect(await screen.findByText('1189 kcal left')).toBeOnTheScreen();
+    expect(await screen.findByText('1321 kcal left')).toBeOnTheScreen();
     expect(body.store.food).toEqual([
       expect.objectContaining({ meal: 'snack', kcal: 400, proteinG: null, name: 'Quick add' }),
     ]);
@@ -263,8 +265,9 @@ describe('Phase 12: energy model in the app', () => {
       { metric: 'steps', day: TODAY, source: 'healthConnect', value: 10000, recordedAt: 'x' },
     ];
     await renderWithQuery(<BodyScreen />);
-    // 1400 + 10,000 × 0.00057 × 61 (348) − 900 eaten
-    expect(await screen.findByText('848 kcal left')).toBeOnTheScreen();
+    // The target is stable: resting energy of the last 14 days (formula 1324) × 1.3 = 1721;
+    // today's steps stay in the energy model, they do not move the target. − 900 eaten.
+    expect(await screen.findByText('821 kcal left')).toBeOnTheScreen();
     expect(screen.getByText(/Intake from Health Connect/)).toBeOnTheScreen();
     await fireEvent.press(screen.getByTestId('body-day-incomplete'));
     await waitFor(() => expect(body.store.incompleteDays).toEqual([TODAY]));
@@ -383,7 +386,7 @@ describe('Teil A without the add-on', () => {
     fullProfile();
     await renderWithQuery(<TodayScreen />);
     expect(await screen.findByTestId('energy-today')).toBeOnTheScreen();
-    expect(await screen.findByText(/added back from today’s workouts/)).toBeOnTheScreen();
+    expect(await screen.findByText(/kcal for today’s planned training/)).toBeOnTheScreen();
     expect(screen.queryByTestId('coach-teaser')).toBeNull();
   });
 

@@ -48,16 +48,16 @@ describe('resting energy', () => {
 describe('active energy', () => {
   const base = { profile: woman, day: TODAY, today: TODAY, restingKcal: 1324 };
 
-  it('a wearable day total wins and is counted at the correction factor (0.8)', () => {
-    expect(energyConfig.deviceActiveShare).toBe(0.8);
+  it('a wearable day total wins and is counted at the correction factor (0.75)', () => {
+    expect(energyConfig.deviceActiveShare).toBe(0.75);
     const a = activeEnergyDay({ ...base, wearableActiveKcal: 700, steps: 12000 });
-    expect(a).toMatchObject({ kcal: 560, workoutSource: 'wearable', neatSource: 'wearable' });
+    expect(a).toMatchObject({ kcal: 525, workoutSource: 'wearable', neatSource: 'wearable' });
     expect(activeEnergyDay({ ...base, wearableActiveKcal: 700, correction: 0.5 }).kcal).toBe(350);
   });
 
   it('completed workouts: device energy at the factor, else estimated (HR when known)', () => {
     const device = activeEnergyDay({ ...base, deviceWorkoutKcal: 500, steps: 0 });
-    expect(device).toMatchObject({ workoutKcal: 400, workoutSource: 'device' });
+    expect(device).toMatchObject({ workoutKcal: 375, workoutSource: 'device' });
     const hr = activeEnergyDay({
       ...base,
       completed: [{ sport: 'run', durationMin: 60, avgHr: 150 }],

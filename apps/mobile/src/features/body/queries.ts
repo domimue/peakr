@@ -121,6 +121,20 @@ export function useDayKcal() {
 
 export const useSetDayKcal = () => useWrite(repo.setDayKcal);
 
+const energySettingsKey = ['body', 'energySettings'] as const;
+
+export function useEnergySettings() {
+  return useQuery({ queryKey: energySettingsKey, queryFn: repo.getEnergySettings });
+}
+
+export function useSaveEnergySettings() {
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: repo.saveEnergySettings,
+    onSuccess: () => client.invalidateQueries({ queryKey: ['body'] }),
+  });
+}
+
 const checkInSettingsKey = ['body', 'checkInSettings'] as const;
 
 /** The check-in rhythm (a device setting, so it is readable without the add-on). */

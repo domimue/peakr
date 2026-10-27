@@ -8,15 +8,44 @@ export const energyConfig = {
   /** Katch-McArdle: 370 + 21.6 × lean mass (kg), used when body fat % is known. */
   katch: { intercept: 370, perLeanKg: 21.6 },
   /**
-   * Everyday movement outside workouts on top of the resting energy (a sedentary multiplier):
-   * workouts are counted separately, so this stays at the lowest activity level.
+   * Everyday movement in the energy *model* of a day (what was burnt) when no steps or wearable
+   * total exist: a sedentary multiplier on the resting energy. The *target* uses the person's own
+   * everyday-activity factor instead (`everydayActivity`).
    */
   dailyLivingFactor: 1.2,
+  /**
+   * Everyday activity outside sport (CLAUDE.md "Energy & body rules"), asked once and editable:
+   * the target's base is resting energy × this factor. Sport is never part of it – planned
+   * training is added on top. Without it the target is several hundred kcal too low.
+   */
+  everydayActivity: {
+    homeOffice: 1.2,
+    desk: 1.3,
+    moderate: 1.45,
+    onFeet: 1.6,
+  },
+  /** Until the person answered: a desk job. */
+  defaultEverydayActivity: 'desk',
   /**
    * Correction factor for device-reported active energy (wearables overestimate): this share is
    * counted. Configurable per call; the default applies when the user has not changed it.
    */
-  deviceActiveShare: 0.8,
+  deviceActiveShare: 0.75,
+  /**
+   * Macro targets are derived, never fixed: protein and fat per kg of (trend) body weight, the
+   * carbohydrates are whatever energy remains – so they rise on training days.
+   */
+  macros: {
+    proteinGPerKg: { default: 1.9, min: 1.6, max: 2.2 },
+    fatGPerKg: { default: 0.9, min: 0.8, max: 1.0 },
+    /** Fat never below this, whatever else the day holds. */
+    fatFloorGPerKg: 0.6,
+  },
+  /**
+   * The day's target does not follow every synced session; when the week's actual training so far
+   * is this far from plan (share and at least this much energy), a hint is shown instead.
+   */
+  trainingDeviation: { share: 0.25, minKcal: 200 },
   /** Intake target never below max(BMR, this floor) – a safety rule, not a setting. */
   intakeFloorKcal: { female: 1200, male: 1500 },
   /**
@@ -98,12 +127,7 @@ export const energyConfig = {
     },
     /** Custom rates in steps of this size. */
     rateStep: 0.05,
-    /** Share of completed workout energy eaten back by default (0–100). */
-    eatBackPct: 50,
-    /** Protein rises from min to max g/kg as the deficit grows to this share of TDEE. */
-    proteinFullDeficitShare: 0.25,
-    /** Protein outside weight loss (g/kg). */
-    proteinBaseGPerKg: 1.6,
+
     forecast: {
       /** Real pace from the trend of the last 2–4 weeks. */
       minDays: 14,

@@ -28,6 +28,7 @@ import type { BodyPhoto } from '../db/schema';
 import { newId } from '../ids';
 import { supabase } from '../supabase';
 import { parseCheckInSettings, type CheckInSettings } from '../../features/body/check-in-settings';
+import { parseEnergySettings, type EnergySettings } from '../../features/body/energy-settings';
 import type { Meal } from '../../features/body/meals';
 
 /**
@@ -184,6 +185,27 @@ export async function saveCheckInSettings(settings: CheckInSettings): Promise<vo
   await db
     .insert(appSettings)
     .values({ key: CHECKIN_SETTINGS_KEY, value })
+    .onConflictDoUpdate({ target: appSettings.key, set: { value } });
+}
+
+const ENERGY_SETTINGS_KEY = 'body.energy';
+
+export async function getEnergySettings(): Promise<EnergySettings> {
+  const row = await db.query.appSettings.findFirst({
+    where: eq(appSettings.key, ENERGY_SETTINGS_KEY),
+  });
+  try {
+    return parseEnergySettings(row ? JSON.parse(row.value) : null);
+  } catch {
+    return parseEnergySettings(null);
+  }
+}
+
+export async function saveEnergySettings(settings: EnergySettings): Promise<void> {
+  const value = JSON.stringify(settings);
+  await db
+    .insert(appSettings)
+    .values({ key: ENERGY_SETTINGS_KEY, value })
     .onConflictDoUpdate({ target: appSettings.key, set: { value } });
 }
 

@@ -28,6 +28,7 @@ export default function BodyLayout() {
     <Stack screenOptions={{ headerBackButtonDisplayMode: 'minimal' }}>
       <Stack.Screen name="addon" options={{ title: t('bodyAddon.paywall.title') }} />
       <Stack.Screen name="today" options={{ title: t('bodyAddon.sections.today') }} />
+      <Stack.Screen name="energy" options={{ title: t('bodyAddon.energy.title') }} />
       <Stack.Screen name="check-in/index" options={{ title: t('bodyAddon.sections.checkIn') }} />
       <Stack.Screen name="check-in/new" options={{ title: t('bodyAddon.checkIn.new') }} />
       <Stack.Screen

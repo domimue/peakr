@@ -178,7 +178,11 @@ describe('difficulty slider', () => {
     const p = plan(runner);
     const old: Plan = {
       ...p,
-      weeks: p.weeks.map(({ difficultyFactor: _f, ...w }) => w),
+      weeks: p.weeks.map((w) => {
+        const copy = { ...w };
+        delete copy.difficultyFactor;
+        return copy;
+      }),
     };
     const input = {
       profile: runner,

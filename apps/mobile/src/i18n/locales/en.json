@@ -2595,13 +2595,54 @@
       "title": "Energy today",
       "remaining": "{{kcal}} kcal left",
       "over": "{{kcal}} kcal above today’s target",
-      "fromWorkouts": "+{{kcal}} kcal added back from today’s workouts",
+      "fromWorkouts": "+{{kcal}} kcal for today’s planned training",
       "breakdown": "Target {{target}} · eaten {{eaten}} · workouts {{workouts}} kcal",
       "estimate": "Estimate from your profile and today’s planned sessions.",
-      "floor": "Today’s target is held at a safe minimum.",
+      "floor": "Today’s target is at the lowest intake Peakr suggests for you.",
       "setUp": "Add your height, birth date and weight in Body to see this.",
       "open": "Open Body",
-      "intakeFrom": "Intake from {{source}} (nothing logged in Peakr today)."
+      "intakeFrom": "Intake from {{source}} (nothing logged in Peakr today).",
+      "intro": "How your daily target is built. Everything here is an estimate.",
+      "everydayTitle": "How active is your everyday life – without sport?",
+      "everydayHint": "Your training is added separately from your plan. This is only about work and daily life.",
+      "everyday": {
+        "homeOffice": {
+          "label": "Home office",
+          "description": "Mostly sitting, few steps outside workouts."
+        },
+        "desk": {
+          "label": "Desk job",
+          "description": "Sitting at work, with a commute and some walking."
+        },
+        "moderate": {
+          "label": "Moderately active",
+          "description": "Often on the move: walking, standing, light physical work."
+        },
+        "onFeet": {
+          "label": "On your feet all day",
+          "description": "Standing and walking most of the day, or physical work."
+        }
+      },
+      "protein": "Protein: {{value}} g per kg",
+      "proteinHint": "1.8–2.0 g per kg suits most training while losing weight; you can choose between 1.6 and 2.2.",
+      "fat": "Fat: {{value}} g per kg",
+      "fatHint": "Between 0.8 and 1.0 g per kg; never below 0.6. Carbohydrates are whatever remains, so they rise on training days.",
+      "save": "Save",
+      "saved": "Saved.",
+      "breakdownTitle": "How today's target is built",
+      "resting": "Resting energy",
+      "everydayLine": "Everyday activity",
+      "training": "Planned training today",
+      "deficit": "Deficit for your goal",
+      "surplus": "Surplus for your goal",
+      "total": "Today's target",
+      "kcal": "{{kcal}} kcal",
+      "deviationMore": "You have trained clearly more than planned this week ({{kcal}} kcal). Your target stays as planned – eat a little more if you are hungry.",
+      "deviationLess": "You have trained clearly less than planned this week ({{kcal}} kcal). Your target stays as planned.",
+      "belowFloorBanner": "Your goal pace of {{requested}} kg per week is too fast for a safe intake. Peakr uses {{proposed}} kg per week until you change it.",
+      "fixGoal": "Adjust the goal",
+      "everydayUnset": "Tell Peakr how active your everyday life is – until then a desk job is assumed.",
+      "editSettings": "Energy targets"
     },
     "diary": {
       "add": "Add food",
@@ -2993,7 +3034,8 @@
         "current": "Step 1 of 4",
         "target": "Step 2 of 4",
         "rate": "Step 3 of 4",
-        "summary": "Step 4 of 4"
+        "summary": "Step 4 of 4",
+        "everyday": "Before you start"
       },
       "currentTitle": "Your current weight",
       "fromTrend": "From your weight trend – not a single weigh-in.",
@@ -3067,7 +3109,10 @@
       },
       "keyDays_one": "Your deficit is large for this week’s key session – consider eating more on that day.",
       "keyDays_other": "Your deficit is large for this week’s {{count}} key sessions – consider eating more on those days.",
-      "estimate": "All targets are estimates and adapt as your data grows."
+      "estimate": "All targets are estimates and adapt as your data grows.",
+      "belowFloor": "{{requested}} kg per week would put your days without training below {{kcal}} kcal – the lowest intake Peakr suggests for you. A safe pace for you is {{proposed}} kg per week.",
+      "useProposed": "Use {{rate}} kg per week",
+      "trainingIncluded": "Your planned training is part of your target: the week's total is set on Monday and spread over the days – more on training days, less on rest days."
     },
     "fuelling": {
       "today": "Long session today ({{minutes}} min)",

@@ -36,8 +36,8 @@ describe('active energy edges', () => {
         { sport: 'bike', durationMin: 60, deviceKcal: 500 },
       ],
     });
-    // strength 5 MET × 80 + walk 4.3 MET × 80 × 0.5 + 500 × 0.8
-    expect(a.workoutKcal).toBe(400 + 172 + 400);
+    // strength 5 MET × 80 + walk 4.3 MET × 80 × 0.5 + 500 × 0.75
+    expect(a.workoutKcal).toBe(400 + 172 + 375);
     // 9,000 − 30 × 110 walking steps
     expect(a.neatKcal).toBe(Math.round(5700 * 0.00057 * 80));
     expect(

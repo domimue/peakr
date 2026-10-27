@@ -66,7 +66,7 @@ describe('rate presets', () => {
 });
 
 describe('goal targets', () => {
-  it('clamps the deficit at the intake floor and reports the resulting rate', () => {
+  it('below the intake floor: says so and uses the fastest rate that keeps it', () => {
     const t = goalTargets({
       kind: 'lose',
       ratePerWeekKg: 0.5,
@@ -76,8 +76,12 @@ describe('goal targets', () => {
       sex: 'female',
       weightKg: 62,
     });
+    // (1,800 − 1,300) / 1,100 = 0.45 kg/week: 495 kcal/day, base 1,305 ≥ floor 1,300.
     expect(t).toMatchObject({
-      baseKcal: 1300,
+      status: 'belowFloor',
+      requestedRatePerWeekKg: 0.5,
+      proposedRatePerWeekKg: 0.45,
+      baseKcal: 1305,
       floorApplied: true,
       effectiveRatePerWeekKg: 0.45,
       reason: 'safety_clamp',

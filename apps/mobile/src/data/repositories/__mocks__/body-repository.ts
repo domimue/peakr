@@ -19,6 +19,7 @@ import type {
   MeasurementDraft,
 } from '@/data/repositories/body-repository';
 import { DEFAULT_CHECKIN_SETTINGS, type CheckInSettings } from '@/features/body/check-in-settings';
+import { DEFAULT_ENERGY_SETTINGS, type EnergySettings } from '@/features/body/energy-settings';
 
 /** In-memory Body data for Jest (`jest.mock('@/data/repositories/body-repository')`). */
 
@@ -36,6 +37,7 @@ export const store = {
   measurements: [] as Measurement[],
   dayKcal: [] as DayKcal[],
   checkInSettings: DEFAULT_CHECKIN_SETTINGS as CheckInSettings,
+  energySettings: DEFAULT_ENERGY_SETTINGS as EnergySettings,
 };
 
 let seq = 0;
@@ -54,6 +56,7 @@ export function resetStore() {
   store.measurements = [];
   store.dayKcal = [];
   store.checkInSettings = DEFAULT_CHECKIN_SETTINGS;
+  store.energySettings = DEFAULT_ENERGY_SETTINGS;
   seq = 0;
 }
 
@@ -239,6 +242,10 @@ export const saveGoal = jest.fn(async (draft: GoalDraft) => {
   return goal;
 });
 
+export const getEnergySettings = jest.fn(async () => ({ ...store.energySettings }));
+export const saveEnergySettings = jest.fn(async (settings: EnergySettings) => {
+  store.energySettings = { ...settings };
+});
 export const getCheckInSettings = jest.fn(async () => ({ ...store.checkInSettings }));
 export const saveCheckInSettings = jest.fn(async (settings: CheckInSettings) => {
   store.checkInSettings = { ...settings };

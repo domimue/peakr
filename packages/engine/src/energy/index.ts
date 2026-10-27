@@ -67,9 +67,9 @@ export {
 } from './days';
 export {
   customRate,
-  dayTarget,
   detectPlateau,
   energyBasis,
+  everydayFactor,
   goalSnapshot,
   goalForecast,
   goalTargets,
@@ -77,7 +77,9 @@ export {
   proteinForGoal,
   ratePresets,
   reverseDiet,
+  targetBreakdown,
   targetReached,
+  trainingDeviation,
   trainingInteraction,
   weeklyCheckIn,
   weeklyPlan,
@@ -91,4 +93,5 @@ export {
   type GoalTargetsInput,
   type PresetKey,
   type RatePreset,
+  type TargetBreakdown,
 } from './goal';

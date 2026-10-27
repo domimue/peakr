@@ -93,8 +93,8 @@ describe('workout energy', () => {
     ).toBe(400);
   });
 
-  it('counts device-reported energy at the correction factor (0.8)', () => {
-    expect(countedWorkoutKcal({ kcal: 600, source: 'device' })).toBe(480);
+  it('counts device-reported energy at the correction factor (0.75)', () => {
+    expect(countedWorkoutKcal({ kcal: 600, source: 'device' })).toBe(450);
     expect(countedWorkoutKcal({ kcal: 600, source: 'estimate' })).toBe(600);
   });
 });
@@ -107,14 +107,14 @@ describe('energyToday', () => {
       workouts: [{ kcal: 400, source: 'estimate' }],
       intakeKcal: 1200,
     });
-    // base 1324 × 1.2 = 1589, + 400
+    // base 1324 × 1.3 (desk job, the default everyday activity) = 1721, + 400
     expect(e).toEqual({
       restingKcal: 1324,
-      baseKcal: 1589,
+      baseKcal: 1721,
       workoutKcal: 400,
-      targetKcal: 1989,
+      targetKcal: 2121,
       intakeKcal: 1200,
-      remainingKcal: 789,
+      remainingKcal: 921,
       floorApplied: false,
     });
   });
