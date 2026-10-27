@@ -100,8 +100,8 @@ export function GoalSetupScreen() {
   const targets = goalTargets({
     kind,
     ratePerWeekKg: usedRate,
-    tdeeKcal: basis.tdeeKcal,
     nonExerciseTdeeKcal: basis.nonExerciseKcal,
+    plannedDailyKcal: model.goalPlannedDailyKcal,
     bmrKcal: basis.bmrKcal,
     sex: p.sex,
     weightKg: currentKg,
@@ -123,8 +123,8 @@ export function GoalSetupScreen() {
       : ratePresets({
           kind,
           weightKg: currentKg,
-          tdeeKcal: basis.tdeeKcal,
           nonExerciseTdeeKcal: basis.nonExerciseKcal,
+          plannedDailyKcal: model.goalPlannedDailyKcal,
           bmrKcal: basis.bmrKcal,
           sex: p.sex,
         });

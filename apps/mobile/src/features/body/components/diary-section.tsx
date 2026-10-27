@@ -112,14 +112,7 @@ export function DiarySection({ guard }: { guard: AddonGuard }) {
             </Text>
             {model.addedBack.kcal > 0 ? (
               <Text testID="body-added-back" style={numeric}>
-                {model.addedBack.sport
-                  ? t('bodyAddon.diary.addedBackSport', {
-                      sport: t(`bodyAddon.diary.sport.${model.addedBack.sport}`, {
-                        defaultValue: t('bodyAddon.diary.sport.other'),
-                      }),
-                      kcal: model.addedBack.kcal,
-                    })
-                  : t('bodyAddon.diary.addedBack', { kcal: model.addedBack.kcal })}
+                {t('bodyAddon.diary.addedBack', { kcal: model.addedBack.kcal })}
               </Text>
             ) : null}
             <View style={styles.rings} testID="body-rings">

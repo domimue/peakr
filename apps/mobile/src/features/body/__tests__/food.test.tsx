@@ -337,7 +337,7 @@ describe('diary', () => {
     };
     await renderWithQuery(<NutritionScreen />);
     expect(await screen.findByTestId('body-added-back')).toHaveTextContent(
-      /Your ride today: \+\d+ kcal/,
+      /Includes \d+ kcal a day for this week’s training/,
     );
     expect(screen.getByTestId('body-fuelling')).toHaveTextContent(/Long session today/);
   });
