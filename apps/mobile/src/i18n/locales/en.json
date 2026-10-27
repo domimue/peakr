@@ -2948,14 +2948,6 @@
       "title": "Weekly coach",
       "week": "Looking back on the week of {{date}}",
       "progress": "{{pct}} % of the way to your goal",
-      "numbers": {
-        "trend": "Trend: {{kg}} kg",
-        "intake": "Eaten: {{kcal}} kcal per logged day",
-        "balance": "Balance: {{kcal}} kcal per day (≈ {{kg}} kg fat)",
-        "logged": "Logged {{days}} of 7 days · weighed in on {{weighIns}} days",
-        "training": "Training: {{done}} of {{planned}} sessions"
-      },
-      "wentWell": "What went well",
       "well": {
         "logging": "You logged {{days}} of 7 days – that makes every number here more reliable.",
         "onPace": "Your trend moves at {{rate}} kg per week – right where you planned.",
@@ -2964,9 +2956,8 @@
         "training": "You did {{done}} of {{planned}} planned sessions.",
         "strength": "{{sessions}} strength sessions – good for keeping muscle."
       },
-      "toWatch": "What to watch",
       "watchItem": {
-        "fewLogs": "Only {{days}} days were logged, so the energy numbers are rough.",
+        "fewLogs": "The energy numbers are rough this week – a few more logged days make them sharper.",
         "proteinLow": "Protein averaged {{grams}} g against {{target}} g.",
         "fastPace": "Your trend is falling faster than planned ({{rate}} kg per week).",
         "fastPaceNoRate": "Your trend is falling faster than planned.",
@@ -2998,6 +2989,30 @@
         "title": "Your weekly coach",
         "body": "See how your training affects your weight, energy and body – with clear suggestions each week.",
         "action": "Unlock Peakr Body"
+      },
+      "stats": {
+        "trend": "Weight trend",
+        "tone": {
+          "favourable": "Towards your goal",
+          "unfavourable": "Away from your goal",
+          "neutral": "About the same"
+        },
+        "logged": "Logged",
+        "days": "{{days}} of 7 days",
+        "weighIns_one": "{{count}} weigh-in",
+        "weighIns_other": "{{count}} weigh-ins",
+        "intake": "Eaten per day",
+        "balance": "Balance {{kcal}} kcal",
+        "training": "Training",
+        "sessions": "{{done}} of {{planned}}"
+      },
+      "tone": {
+        "good": "Good sign",
+        "watch": "Keep an eye on"
+      },
+      "thin": {
+        "body": "Log what you eat on three days this week and I can show you a trend.",
+        "action": "Log a meal"
       }
     },
     "profile": {
@@ -3288,7 +3303,9 @@
         "sinceStart": "Since start",
         "bodyFat": "Body fat",
         "waist": "Waist",
-        "goal": "Goal progress"
+        "weekChange": "{{arrow}} {{kg}} kg · last 7 days",
+        "sinceDate": "since {{date}}",
+        "cmChange": "{{arrow}} {{cm}} cm since {{date}}"
       },
       "chart": {
         "title": "Weight trend",
@@ -3318,7 +3335,9 @@
       "measurements": {
         "title": "Measurements since start",
         "empty": "Your measurement trends start with the first check-in.",
-        "change": "{{cm}} cm ({{change}} since {{date}})"
+        "name": "Measurement",
+        "now": "Now",
+        "changeCol": "Change"
       },
       "training": {
         "title": "Training this week",

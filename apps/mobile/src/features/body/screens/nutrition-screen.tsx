@@ -13,14 +13,15 @@ import { HealthLinkCard } from '../components/health-link-card';
 import { BodyLockedPreview } from '../components/locked-preview';
 import { ProfileSetupCard } from '../components/profile-setup-card';
 import { SampleDiary } from '../components/sample';
+import { NutritionCoach } from '../components/weekly-sections';
 import { exportBodyData } from '../export';
 import { useBodyProfile } from '../profile';
 
 /**
- * The Nutrition tab (CLAUDE.md "UI patterns → Navigation"): the food diary with "Energy today"
- * and the energy targets, part of the Body add-on. While the add-on is switched off the tab is
- * there with its "coming soon" state; locked it shows a sample and the way to the paywall;
- * expired the diary stays readable and exportable.
+ * The Nutrition tab (CLAUDE.md "UI patterns → Navigation"): the food diary with "Energy today",
+ * the energy targets and the weekly coach – part of the Body add-on. While the add-on is
+ * switched off the tab is there with its "coming soon" state; locked it shows a sample and the
+ * way to the paywall; expired the diary stays readable and exportable.
  */
 export function NutritionScreen({ title = true }: { title?: boolean }) {
   const { t } = useTranslation();
@@ -79,6 +80,7 @@ export function NutritionScreen({ title = true }: { title?: boolean }) {
       {guard.canWrite ? <HealthLinkCard /> : null}
 
       <DiarySection guard={guard} />
+      <NutritionCoach guard={guard} />
 
       <Button
         variant="secondary"

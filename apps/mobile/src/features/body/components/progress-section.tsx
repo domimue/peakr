@@ -1,16 +1,13 @@
+import { changeTone } from '@peakr/engine';
 import type { TFunction } from 'i18next';
 import { useTranslation } from 'react-i18next';
 import { StyleSheet, View } from 'react-native';
 
-import { Card, ListState, numeric, spacing, StatTile, Text } from '@/ui';
-
-import type { AddonGuard } from '@/features/billing/model';
+import { Card, ListState, numeric, spacing, StatTile, Text, TileGrid, useTheme } from '@/ui';
 
 import { useBodyDashboard } from '../dashboard';
 import { EnergyBarsChart } from './charts/energy-bars-chart';
 import { TrendChart } from './charts/trend-chart';
-import { CoachCard } from './coach-card';
-import { GoalCard } from './goal-card';
 
 const signed = (n: number, decimals = 1) => {
   const f = 10 ** decimals;
@@ -21,21 +18,38 @@ const signed = (n: number, decimals = 1) => {
 const short = (iso: string, language: string) =>
   new Date(`${iso}T12:00:00`).toLocaleDateString(language, { day: 'numeric', month: 'short' });
 
+const round1 = (n: number) => Math.round(n * 10) / 10;
+
+/** The direction is in the text, never in the colour alone. */
+const arrow = (n: number) => (round1(n) > 0 ? '▲' : round1(n) < 0 ? '▼' : '●');
+
+const TONE = {
+  favourable: 'changeFavourable',
+  unfavourable: 'changeUnfavourable',
+  neutral: 'changeNeutral',
+} as const;
+
 const kgOrDash = (t: TFunction, kg: number | null, withSign = false) =>
   kg === null ? '–' : t('bodyAddon.progress.kg', { kg: withSign ? signed(kg) : kg });
 
 /**
- * Body → Progress: the dashboard and the weekly coach. KPIs, the trend chart with goal and
- * forecast, weekly energy and fat balance, the adaptive maintenance, "calculation vs. scale",
- * fat vs. lean mass, body indices, measurement trends and this week's training from Teil A.
+ * Body → weight & body: KPI tiles with their change (in the change colours, the direction always
+ * in the text too), the trend chart with goal and forecast, weekly energy and fat balance, the
+ * adaptive maintenance, "calculation vs. scale", fat vs. lean mass, body indices, the
+ * measurements as a table and this week's training from Teil A.
  * Every figure here is an estimate and says so; the wording never praises a fast loss and never
  * shames a gain.
  */
-export function ProgressSection({ guard }: { guard: AddonGuard }) {
+export function ProgressSection() {
   const { t, i18n } = useTranslation();
+  const { colors } = useTheme();
   const dash = useBodyDashboard();
   if (!dash) return <ListState kind="loading" label={t('common.loading')} />;
-  const { model, kpis, chart, bars, indices, measurements, training, coach } = dash;
+  const { model, kpis, chart, bars, indices, measurements, training } = dash;
+  const goalKind = model.goal && !model.goal.paused ? model.goal.kind : null;
+  const first = model.trend[0]?.date;
+  const waist =
+    measurements.find((m) => m.key === 'waist') ?? measurements.find((m) => m.key === 'belly');
   const { adaptive, scale, composition } = model;
   const recentBars = bars.slice(-4).reverse();
 
@@ -43,24 +57,32 @@ export function ProgressSection({ guard }: { guard: AddonGuard }) {
     <View style={styles.stack} testID="body-progress">
       <Text variant="heading">{t('bodyAddon.progress.title')}</Text>
 
-      <View style={styles.tiles} testID="body-kpis">
+      <TileGrid testID="body-kpis">
         <StatTile
           testID="kpi-trend"
           value={kgOrDash(t, kpis.trendKg)}
           label={t('bodyAddon.progress.trend')}
+          context={
+            kpis.lastWeekKg === null
+              ? undefined
+              : t('bodyAddon.dashboard.kpi.weekChange', {
+                  arrow: arrow(kpis.lastWeekKg),
+                  kg: Math.abs(round1(kpis.lastWeekKg)),
+                })
+          }
+          tone={changeTone('weight', goalKind, kpis.lastWeekKg)}
         />
         <StatTile
           testID="kpi-start"
           value={kgOrDash(t, kpis.sinceStartKg, true)}
           label={t('bodyAddon.dashboard.kpi.sinceStart')}
+          context={
+            first
+              ? t('bodyAddon.dashboard.kpi.sinceDate', { date: short(first, i18n.language) })
+              : undefined
+          }
+          tone={changeTone('weight', goalKind, kpis.sinceStartKg)}
         />
-        <StatTile
-          testID="kpi-week"
-          value={kgOrDash(t, kpis.lastWeekKg, true)}
-          label={t('bodyAddon.progress.week')}
-        />
-      </View>
-      <View style={styles.tiles}>
         <StatTile
           testID="kpi-fat"
           value={
@@ -72,16 +94,19 @@ export function ProgressSection({ guard }: { guard: AddonGuard }) {
           testID="kpi-waist"
           value={kpis.waistCm === null ? '–' : t('bodyAddon.dashboard.cm', { cm: kpis.waistCm })}
           label={t('bodyAddon.dashboard.kpi.waist')}
+          context={
+            waist?.changeCm == null
+              ? undefined
+              : t('bodyAddon.dashboard.kpi.cmChange', {
+                  arrow: arrow(waist.changeCm),
+                  cm: Math.abs(round1(waist.changeCm)),
+                  date: short(waist.startDay, i18n.language),
+                })
+          }
+          tone={waist ? changeTone(waist.key, goalKind, waist.changeCm) : undefined}
         />
-        <StatTile
-          testID="kpi-goal"
-          value={kpis.goalPct === null ? '–' : t('bodyAddon.dashboard.pct', { pct: kpis.goalPct })}
-          label={t('bodyAddon.dashboard.kpi.goal')}
-        />
-      </View>
+      </TileGrid>
 
-      <CoachCard coach={coach} model={model} guard={guard} />
-      <GoalCard guard={guard} />
       {model.tooFastLoss ? (
         <Card testID="body-too-fast">
           <Text>{t('bodyAddon.progress.tooFast')}</Text>
@@ -244,26 +269,53 @@ export function ProgressSection({ guard }: { guard: AddonGuard }) {
       ) : null}
 
       <Card style={styles.stack} testID="body-measurements">
-        <Text variant="label">{t('bodyAddon.dashboard.measurements.title')}</Text>
+        <Text variant="label" accessibilityRole="header">
+          {t('bodyAddon.dashboard.measurements.title')}
+        </Text>
         {measurements.length === 0 ? (
           <Text tone="secondary">{t('bodyAddon.dashboard.measurements.empty')}</Text>
         ) : (
-          measurements.map((m) => (
-            <View key={m.key} style={styles.row}>
-              <Text tone="secondary" style={styles.flex}>
-                {t(`bodyAddon.checkIn.fields.${m.key}.label`)}
+          <View testID="measurements-table">
+            <View style={[styles.tableRow, { borderBottomColor: colors.border }]}>
+              <Text variant="micro" tone="secondary" style={[styles.caps, styles.flex]}>
+                {t('bodyAddon.dashboard.measurements.name')}
               </Text>
-              <Text style={numeric}>
-                {m.changeCm === null
-                  ? t('bodyAddon.dashboard.cm', { cm: m.currentCm })
-                  : t('bodyAddon.dashboard.measurements.change', {
-                      cm: m.currentCm,
-                      change: signed(m.changeCm),
-                      date: short(m.startDay, i18n.language),
-                    })}
+              <Text variant="micro" tone="secondary" style={[styles.caps, styles.cell]}>
+                {t('bodyAddon.dashboard.measurements.now')}
+              </Text>
+              <Text variant="micro" tone="secondary" style={[styles.caps, styles.cell]}>
+                {t('bodyAddon.dashboard.measurements.changeCol')}
               </Text>
             </View>
-          ))
+            {measurements.map((m) => {
+              const label = t(`bodyAddon.checkIn.fields.${m.key}.label`);
+              const now = t('bodyAddon.dashboard.cm', { cm: m.currentCm });
+              const change =
+                m.changeCm === null ? '–' : t('bodyAddon.dashboard.cm', { cm: signed(m.changeCm) });
+              const tone = changeTone(m.key, goalKind, m.changeCm);
+              return (
+                <View
+                  key={m.key}
+                  style={[styles.tableRow, { borderBottomColor: colors.border }]}
+                  accessible
+                  accessibilityLabel={`${label}: ${now}, ${change}`}
+                  testID={`measurement-${m.key}`}
+                >
+                  <Text style={styles.flex}>{label}</Text>
+                  <Text style={[numeric, styles.cell]}>{now}</Text>
+                  <Text
+                    style={[
+                      numeric,
+                      styles.cell,
+                      { color: m.changeCm === null ? colors.textMuted : colors[TONE[tone]] },
+                    ]}
+                  >
+                    {change}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
         )}
       </Card>
 
@@ -301,7 +353,15 @@ export function ProgressSection({ guard }: { guard: AddonGuard }) {
 const styles = StyleSheet.create({
   stack: { gap: spacing.sm },
   tight: { gap: spacing.xs },
-  tiles: { flexDirection: 'row', gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   flex: { flex: 1 },
+  tableRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    paddingVertical: spacing.xs + 2,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+  },
+  cell: { minWidth: 72, textAlign: 'right' },
+  caps: { textTransform: 'uppercase', letterSpacing: 0.6, fontWeight: '600' },
 });

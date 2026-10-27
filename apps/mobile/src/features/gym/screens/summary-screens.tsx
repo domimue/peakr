@@ -27,6 +27,7 @@ import {
   Screen,
   spacing,
   StatTile,
+  TileGrid,
   Text,
   useTheme,
 } from '@/ui';
@@ -176,7 +177,7 @@ function SummaryView({
 
   return (
     <>
-      <View style={styles.tiles}>
+      <TileGrid>
         <StatTile
           value={t('strength.minutes', { count: summary.durationMin })}
           label={t('gym.summary.duration')}
@@ -192,7 +193,7 @@ function SummaryView({
           label={t('gym.summary.sets')}
           testID="summary-sets"
         />
-      </View>
+      </TileGrid>
 
       {summary.records.length > 0 ? (
         <Card testID="summary-records">
@@ -256,6 +257,5 @@ export function recordText(t: TFunction, r: PersonalRecord, kg: string): string 
 }
 
 const styles = StyleSheet.create({
-  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
 });

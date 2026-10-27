@@ -14,10 +14,9 @@ import {
 import { router } from 'expo-router';
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
 
 import { targetText, zoneNumber } from '@/features/onboarding/workout-text';
-import { Card, spacing, StatTile, Text } from '@/ui';
+import { Card, StatTile, TileGrid, Text } from '@/ui';
 
 import { useRoute, useStreams } from '../queries';
 import { ElevationChart } from './elevation-chart';
@@ -57,7 +56,7 @@ export function WorkoutRoute({ workout: w, profile, hrZones, color }: WorkoutRou
         {route.name}
       </Text>
       <RouteMap polyline={route.polyline} color={color} height={200} />
-      <View style={styles.tiles}>
+      <TileGrid>
         <StatTile
           value={t('routes.choose.durationRange', expected)}
           label={t('routes.choose.expectedLabel')}
@@ -70,7 +69,7 @@ export function WorkoutRoute({ workout: w, profile, hrZones, color }: WorkoutRou
           value={t('routes.meters', { value: route.gainM })}
           label={t('routes.stats.gain')}
         />
-      </View>
+      </TileGrid>
       <ElevationChart
         profile={route.profile}
         color={color}
@@ -145,7 +144,3 @@ export function WorkoutEvaluation({
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  tiles: { flexDirection: 'row', gap: spacing.sm },
-});

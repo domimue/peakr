@@ -13,6 +13,7 @@ import { renderWithQuery } from '@/test-utils/render-with-query';
 
 import { BodyAddonScreen } from '../screens/body-addon-screen';
 import { BodyScreen } from '../screens/body-screen';
+import { NutritionScreen } from '../screens/nutrition-screen';
 
 jest.mock('expo-router', () => {
   const { Text: RNText } = jest.requireActual('react-native');
@@ -232,7 +233,7 @@ describe('restore and cancelling, end to end', () => {
   it('ended: everything readable and exportable, the coach without actions', async () => {
     answer = info('expired');
     await useBillingStore.getState().refresh();
-    await render(<BodyScreen />);
+    await render(<NutritionScreen />);
     expect(await screen.findByTestId('body-read-only')).toBeOnTheScreen();
     expect(await screen.findByTestId('body-coach')).toBeOnTheScreen();
     expect(screen.queryByTestId('coach-apply-kcal')).toBeNull();

@@ -15,7 +15,17 @@ import { Pressable, StyleSheet, View } from 'react-native';
 import { todayIso } from '@/data/ids';
 import { useLinkedActivities } from '@/features/activities/queries';
 import { RouteShape } from '@/features/routes/components/route-shape';
-import { Card, ListState, radius, SegmentedControl, spacing, StatTile, Text, useTheme } from '@/ui';
+import {
+  Card,
+  ListState,
+  radius,
+  SegmentedControl,
+  spacing,
+  StatTile,
+  TileGrid,
+  Text,
+  useTheme,
+} from '@/ui';
 import { useUnits } from '@/features/settings/units';
 
 import { formatDate } from '../plan/calendar';
@@ -247,7 +257,7 @@ function TotalsTiles({ totals, prefix }: { totals: Totals; prefix: string }) {
   const { t } = useTranslation();
   const { distance } = useUnits();
   return (
-    <View style={styles.tiles}>
+    <TileGrid>
       <StatTile
         testID={`${prefix}-sessions`}
         value={String(totals.sessions)}
@@ -256,7 +266,7 @@ function TotalsTiles({ totals, prefix }: { totals: Totals; prefix: string }) {
       <StatTile value={hoursText(t, totals.minutes)} label={t('progress.tiles.time')} />
       <StatTile value={distance(totals.km, 0)} label={t('progress.tiles.distance')} />
       <StatTile value={String(Math.round(totals.load))} label={t('progress.tiles.load')} />
-    </View>
+    </TileGrid>
   );
 }
 
@@ -384,6 +394,5 @@ const styles = StyleSheet.create({
   },
   bar: { position: 'absolute', left: 0, top: 0, bottom: 0, width: 4 },
   figures: { alignItems: 'flex-end', gap: 2 },
-  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   best: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, paddingVertical: spacing.xs },
 });

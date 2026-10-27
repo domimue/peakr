@@ -13,6 +13,7 @@ import { Badge, Button, Card, Screen, spacing, Text } from '@/ui';
 import { CheckInSection } from '../components/check-in-section';
 import { BodyLockedPreview } from '../components/locked-preview';
 import { ProgressSection } from '../components/progress-section';
+import { BodyGoal } from '../components/weekly-sections';
 import { SampleDiary } from '../components/sample';
 import { exportBodyData } from '../export';
 
@@ -20,7 +21,7 @@ export type BodySection = 'progress' | 'checkIn';
 
 /**
  * The Body tab (CLAUDE.md "UI patterns → Navigation"): one place for "what my body is doing" –
- * the watch's health data (sleep, HRV, resting heart rate, stress …; part of Training) and, with
+ * the goal and how far along it is, the watch's health data (sleep, HRV, resting heart rate, stress …; part of Training) and, with
  * the Body add-on, weight, body composition, measurements and progress photos. Each part has its
  * own state: health needs the subscription, body tracking the add-on (locked: sample and
  * paywall; switched off: "coming soon").
@@ -65,7 +66,7 @@ export function BodyScreen({
         </Card>
       ) : null}
       {focus === 'checkIn' ? <CheckInSection guard={guard} /> : null}
-      <ProgressSection guard={guard} />
+      <ProgressSection />
       {focus === 'checkIn' ? null : <CheckInSection guard={guard} />}
       {/* The user's own data is always exportable, also after the add-on ended. */}
       <Button
@@ -86,6 +87,7 @@ export function BodyScreen({
 
   return (
     <Screen header={header}>
+      {guard.visible && guard.canRead ? <BodyGoal guard={guard} /> : null}
       <Text variant="heading">{t('bodyTab.health')}</Text>
       {healthLocked ? <LockedCard access={access} /> : <HealthOverview />}
       <Text variant="heading">{t('bodyTab.tracking')}</Text>

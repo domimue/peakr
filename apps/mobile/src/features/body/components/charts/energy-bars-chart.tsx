@@ -10,7 +10,8 @@ const HEIGHT = 180;
 
 /**
  * Energy per week (average per logged day): resting and active stacked, intake as a line with
- * points. The balance and the fat estimate of each week are listed in text below.
+ * points – each series in its theme chart colour and named in the legend. The balance and the
+ * fat estimate of each week are listed in text below.
  */
 export function EnergyBarsChart({
   bars,
@@ -50,12 +51,12 @@ export function EnergyBarsChart({
               <StackedBar
                 points={[points.resting, points.active]}
                 chartBounds={chartBounds}
-                colors={[colors.surface2, colors.textMuted]}
+                colors={[colors.chartResting, colors.chartActive]}
                 innerPadding={0.35}
                 {...(reduceMotion ? {} : { animate: { type: 'timing', duration: 300 } })}
               />
-              <Line points={points.intake} color={colors.text} strokeWidth={2} />
-              <Scatter points={points.intake} radius={3} color={colors.text} />
+              <Line points={points.intake} color={colors.chartIntake} strokeWidth={2} />
+              <Scatter points={points.intake} radius={3} color={colors.chartIntake} />
             </>
           )}
         </CartesianChart>
@@ -69,7 +70,10 @@ export function EnergyBarsChart({
       </View>
       <View style={styles.legend}>
         <View
-          style={[styles.swatch, { backgroundColor: colors.surface2, borderColor: colors.border }]}
+          style={[
+            styles.swatch,
+            { backgroundColor: colors.chartResting, borderColor: colors.chartResting },
+          ]}
         />
         <Text variant="caption" tone="secondary">
           {t('bodyAddon.dashboard.energy.resting')}
@@ -77,13 +81,13 @@ export function EnergyBarsChart({
         <View
           style={[
             styles.swatch,
-            { backgroundColor: colors.textMuted, borderColor: colors.textMuted },
+            { backgroundColor: colors.chartActive, borderColor: colors.chartActive },
           ]}
         />
         <Text variant="caption" tone="secondary">
           {t('bodyAddon.dashboard.energy.active')}
         </Text>
-        <View style={[styles.line, { backgroundColor: colors.text }]} />
+        <View style={[styles.line, { backgroundColor: colors.chartIntake }]} />
         <Text variant="caption" tone="secondary">
           {t('bodyAddon.dashboard.energy.intake')}
         </Text>

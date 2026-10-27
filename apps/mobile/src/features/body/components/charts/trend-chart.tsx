@@ -73,14 +73,19 @@ export function TrendChart({
                 <SkiaLine
                   p1={vec(chartBounds.left, yScale(targetKg))}
                   p2={vec(chartBounds.right, yScale(targetKg))}
-                  color={colors.textMuted}
-                  strokeWidth={1}
+                  color={colors.chartTarget}
+                  strokeWidth={1.5}
                 >
                   <DashPathEffect intervals={[4, 4]} />
                 </SkiaLine>
               ) : null}
               <Scatter points={points.weight} radius={2.5} color={colors.textMuted} />
-              <Line points={points.trend} color={colors.text} strokeWidth={2} connectMissingData />
+              <Line
+                points={points.trend}
+                color={colors.chartTrend}
+                strokeWidth={2}
+                connectMissingData
+              />
               <Line
                 points={points.planned}
                 color={colors.accentLine}
@@ -97,13 +102,13 @@ export function TrendChart({
         <Text variant="caption" tone="secondary">
           {t('bodyAddon.dashboard.chart.weighIns')}
         </Text>
-        <View style={[styles.line, { backgroundColor: colors.text }]} />
+        <View style={[styles.line, { backgroundColor: colors.chartTrend }]} />
         <Text variant="caption" tone="secondary">
           {t('bodyAddon.dashboard.chart.trend')}
         </Text>
         {targetKg !== null ? (
           <>
-            <View style={[styles.dash, { borderColor: colors.textMuted }]} />
+            <View style={[styles.dash, { borderColor: colors.chartTarget }]} />
             <Text variant="caption" tone="secondary">
               {t('bodyAddon.dashboard.chart.goal')}
             </Text>

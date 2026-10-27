@@ -225,7 +225,7 @@ describe('Body tab', () => {
     expect(router.push).toHaveBeenCalledWith('/body/addon');
   });
 
-  it('progress shows the smoothed trend and the coach', async () => {
+  it('progress shows the smoothed trend', async () => {
     billing('active');
     fullProfile();
     body.store.checkIns = [
@@ -254,7 +254,8 @@ describe('Body tab', () => {
     expect(screen.getByTestId('body-tdee')).toHaveTextContent(/Needs 14 days/);
     expect(screen.getByTestId('body-composition')).toHaveTextContent(/Not enough data/);
     expect(screen.getByTestId('body-scale')).toHaveTextContent(/at least one complete week/);
-    expect(screen.getByTestId('body-coach')).toBeOnTheScreen();
+    // The coach lives in Nutrition now.
+    expect(screen.queryByTestId('body-coach')).toBeNull();
   });
 });
 

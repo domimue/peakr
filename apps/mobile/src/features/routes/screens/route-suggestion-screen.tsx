@@ -2,12 +2,11 @@ import { formatDuration } from '@peakr/engine';
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { StyleSheet, View } from 'react-native';
 
 import type { RouteDraft } from '@/data/routes/build';
 import { selectAccountUserId, useSessionStore } from '@/features/auth/session-store';
 import { useUnits } from '@/features/settings/units';
-import { Button, ListState, Screen, spacing, StatTile, Text, TextField, useTheme } from '@/ui';
+import { Button, ListState, Screen, StatTile, TileGrid, Text, TextField, useTheme } from '@/ui';
 
 import { ElevationChart } from '../components/elevation-chart';
 import { RouteMap } from '../components/route-map';
@@ -80,7 +79,7 @@ export function RouteSuggestionScreen({ routeKey }: { routeKey: string }) {
           {draft ? t('routes.recognise.noElevation') : t('common.loading')}
         </Text>
       )}
-      <View style={styles.tiles}>
+      <TileGrid>
         <StatTile value={distance(route.distanceM / 1000)} label={t('routes.stats.distance')} />
         <StatTile
           value={gain === null ? '–' : t('routes.stats.gainValue', { m: Math.round(gain) })}
@@ -95,7 +94,7 @@ export function RouteSuggestionScreen({ routeKey }: { routeKey: string }) {
           value={route.typicalDurationSec === null ? '–' : formatDuration(route.typicalDurationSec)}
           label={t('routes.stats.typical')}
         />
-      </View>
+      </TileGrid>
       <TextField
         label={t('routes.name')}
         value={name ?? ''}
@@ -114,7 +113,3 @@ export function RouteSuggestionScreen({ routeKey }: { routeKey: string }) {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  tiles: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
-});

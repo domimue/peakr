@@ -3,7 +3,17 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Alert, StyleSheet, View } from 'react-native';
 
-import { Button, ListState, Screen, spacing, StatTile, Text, TextField, useTheme } from '@/ui';
+import {
+  Button,
+  ListState,
+  Screen,
+  spacing,
+  StatTile,
+  TileGrid,
+  Text,
+  TextField,
+  useTheme,
+} from '@/ui';
 
 import { ElevationChart } from '../components/elevation-chart';
 import { RouteMap } from '../components/route-map';
@@ -78,7 +88,7 @@ export function RouteDetailScreen() {
           {t('routes.generated.attributionShort')}
         </Text>
       ) : null}
-      <View style={styles.tiles}>
+      <TileGrid>
         <StatTile
           value={t('plan.km', { value: Math.round(route.distanceM / 100) / 10 })}
           label={t('routes.stats.distance')}
@@ -91,7 +101,7 @@ export function RouteDetailScreen() {
           value={t('routes.meters', { value: route.lossM })}
           label={t('routes.stats.loss')}
         />
-      </View>
+      </TileGrid>
       <ElevationChart
         profile={route.profile}
         color={color}
@@ -148,6 +158,5 @@ export function RouteDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  tiles: { flexDirection: 'row', gap: spacing.sm },
   gap: { gap: spacing.xs },
 });
