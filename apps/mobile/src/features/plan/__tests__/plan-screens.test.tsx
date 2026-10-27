@@ -90,7 +90,11 @@ describe('Plan tab', () => {
     expect(screen.getByText('Week 1 of 17 · Base')).toBeOnTheScreen();
     expect(screen.getByText('This week')).toBeOnTheScreen();
     expect(screen.getAllByText(/^Sessions 0\/\d+$/).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/^Distance 0\/\d+ km$/).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^Distance 0 \/ [\d.]+ km$/).length).toBeGreaterThan(0);
+    // Time is the total across sports.
+    expect(
+      within(screen.getByTestId('week-volume-0')).getByText(/^0 min \/ \d h \d+ min$/),
+    ).toBeOnTheScreen();
     expect(screen.getAllByText('Recovery week').length).toBeGreaterThan(0);
     expect(screen.getByTestId('week-progress-0')).toBeOnTheScreen();
     // The bar's colours are named: week 2 = 2 easy runs, a long run, intervals, 2 strength.
@@ -163,7 +167,7 @@ describe('Plan → Calendar', () => {
     expect(screen.getByText('Week 1 of 17 · Base')).toBeOnTheScreen();
     expect(screen.getByTestId('calendar-week-0')).toBeOnTheScreen();
     expect(screen.getByTestId('calendar-week-3')).toBeOnTheScreen();
-    expect(screen.getAllByLabelText(/^Week total: \d+–\d+ min · \d+ km$/)).toHaveLength(4);
+    expect(screen.getAllByLabelText(/^Week total: \d+–\d+ min · 0 \/ [\d.]+ km$/)).toHaveLength(4);
     expect(screen.getByLabelText(/^Monday, October 19, Today$/)).toBeOnTheScreen();
     expect(screen.getByTestId('plan-card-0-0')).toBeOnTheScreen();
     // Type and duration range are written out, never only colour-coded.

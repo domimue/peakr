@@ -8,7 +8,6 @@ import {
   type UserProfile,
   type Workout,
 } from '@peakr/engine';
-import type { TFunction } from 'i18next';
 import { useMemo, useState } from 'react';
 import { router } from 'expo-router';
 import { useTranslation } from 'react-i18next';
@@ -24,6 +23,8 @@ import { MatchQuestionCards } from '../activities/match-question-card';
 import { useAccess } from '../billing/billing-store';
 import { LockedCard } from '../billing/locked';
 import { addDays, formatDate, mondayOf, weekOfPlan } from '../plan/calendar';
+import { minutesText, volumeLine } from '../plan/components/sport-volume';
+import { useUnits } from '../settings/units';
 import { WeekStrip } from '../plan/components/week-strip';
 import { calendarTitle, typeName } from '../plan/kind';
 import { usePlanUiStore } from '../plan/plan-ui-store';
@@ -266,23 +267,24 @@ function WeekLine({
   profile: UserProfile;
 }) {
   const { t } = useTranslation();
+  const { units } = useUnits();
   const p = weekProgress(state, week, profile);
+  const sports = volumeLine(t, units, p);
   return (
     <Text variant="caption" tone="secondary" testID="today-week-line">
-      {t('today.weekLine', {
-        done: p.sessionsDone,
-        planned: p.sessionsPlanned,
-        time: formatMinutes(t, p.minutesDone),
-        total: formatMinutes(t, p.minutesPlanned),
-      })}
+      {[
+        t('today.weekLine', {
+          done: p.sessionsDone,
+          planned: p.sessionsPlanned,
+          time: minutesText(t, p.minutesDone),
+          total: minutesText(t, p.minutesPlanned),
+        }),
+        sports || null,
+      ]
+        .filter(Boolean)
+        .join(' · ')}
     </Text>
   );
-}
-
-function formatMinutes(t: TFunction, minutes: number): string {
-  const h = Math.floor(minutes / 60);
-  const m = minutes % 60;
-  return h > 0 ? t('progress.hoursMinutes', { h, m }) : t('workoutText.minutes', { count: m });
 }
 
 function Shell({ children }: { children: React.ReactNode }) {

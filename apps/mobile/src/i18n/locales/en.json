@@ -252,6 +252,21 @@
       "notARepair": "This is not a way to repair a wrong starting point. If your plan starts too low or too high, correct the starting values instead.",
       "fixStart": "Correct the starting values",
       "minutes": "{{value}} min"
+    },
+    "volume": {
+      "time": "{{done}} / {{planned}}",
+      "distance": "Distance {{value}}",
+      "km": "{{done}} / {{planned}} km",
+      "mi": "{{done}} / {{planned}} mi",
+      "m": "{{done}} / {{planned}} m",
+      "yd": "{{done}} / {{planned}} yd",
+      "sessions": "{{done}} / {{planned}} sessions",
+      "sport": {
+        "run": "Running",
+        "bike": "Riding",
+        "swim": "Swimming",
+        "strength": "Strength"
+      }
     }
   },
   "fields": {
