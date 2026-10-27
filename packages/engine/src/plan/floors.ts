@@ -25,7 +25,7 @@ export interface StartFloors {
 }
 
 /** Easy pace (s/km) from the threshold pace, else the default speed. */
-function minutesFor(sport: Sport, km: number, profile: UserProfile): number {
+export function minutesFor(sport: Sport, km: number, profile: UserProfile): number {
   if (sport === 'run' && profile.thresholdPaceSecPerKm !== undefined) {
     // Easy pace sits in the middle of the Z2 pace band (as in `thresholdFromEasyPace`).
     const [slow, fast] = zoneConfig.run.paceZoneBoundaries;

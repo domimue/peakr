@@ -142,6 +142,17 @@ export const planConfig = {
    * Hard floors of a new plan (CLAUDE.md "Baseline"): it never starts below what the athlete
    * demonstrably does. Statistics-free; the only exception is a return after a pause or injury.
    */
+  /**
+   * Current training from the quiz (CLAUDE.md "Current training"): Peakr's estimate of a typical
+   * week per level, shown as the starting value when the user enters their own.
+   */
+  current: {
+    estimate: {
+      beginner: { runKm: 10, bikeHours: 1.5, swimM: 1500 },
+      intermediate: { runKm: 20, bikeHours: 3, swimM: 3000 },
+      advanced: { runKm: 35, bikeHours: 5, swimM: 5000 },
+    } satisfies Record<Experience, { runKm: number; bikeHours: number; swimM: number }>,
+  },
   floors: {
     /** First long session ≥ this share of the recent typical long session. */
     longShare: 0.9,

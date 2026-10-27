@@ -71,6 +71,12 @@ export {
   type ReviewWish,
 } from './plan/review';
 export { checkStartFloors, startFloors, type FloorBreach, type StartFloors } from './plan/floors';
+export {
+  applyCurrentTraining,
+  currentTrainingEstimate,
+  currentWeeklyMinutes,
+  type CurrentTraining,
+} from './plan/current';
 export { difficultyFactor, difficultyGrowth, difficultyLevel } from './plan/difficulty';
 export {
   planOutlook,
