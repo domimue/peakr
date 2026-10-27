@@ -171,6 +171,7 @@ describe('processNewActivities', () => {
         sport: 'run',
         source: 'strava',
         date: '2026-10-26',
+        distanceM: 10000,
         workoutId: '2026-10-26-1',
         activityKey: 'strava:1',
         wasDone: false,

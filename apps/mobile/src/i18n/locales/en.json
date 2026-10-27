@@ -2603,6 +2603,16 @@
     "activity": {
       "label": "Synced activities",
       "hint": "A notification when an activity from Strava or your watch arrives. Otherwise it only shows in the app."
+    },
+    "congrats": {
+      "label": "Congratulations after a session",
+      "hint": "One notification when a synced activity completes a planned session – once per session. The morning reminder stays the only other one.",
+      "title": "Nice work",
+      "today": "today",
+      "onDay": "on {{day}}",
+      "body": "{{title}} {{day}} is done.",
+      "bodyDistance": "{{title}} {{day}} is done – {{distance}}.",
+      "channel": "Congratulations"
     }
   },
   "settings": {

@@ -9,11 +9,13 @@ import { DEFAULT_APP_SETTINGS, type AppSettings } from '../../../features/settin
 export const store = {
   app: DEFAULT_APP_SETTINGS as AppSettings,
   reminder: DEFAULT_REMINDER_SETTINGS as ReminderSettings,
+  congratsSent: [] as string[],
 };
 
 export function resetStore(): void {
   store.app = DEFAULT_APP_SETTINGS;
   store.reminder = DEFAULT_REMINDER_SETTINGS;
+  store.congratsSent = [];
 }
 
 export const getAppSettings = jest.fn(async () => store.app);
@@ -23,4 +25,8 @@ export const saveAppSettings = jest.fn(async (settings: AppSettings) => {
 export const getReminderSettings = jest.fn(async () => store.reminder);
 export const saveReminderSettings = jest.fn(async (settings: ReminderSettings) => {
   store.reminder = settings;
+});
+export const getCongratsSent = jest.fn(async () => store.congratsSent);
+export const saveCongratsSent = jest.fn(async (ids: readonly string[]) => {
+  store.congratsSent = [...ids];
 });

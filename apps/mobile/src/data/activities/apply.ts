@@ -43,6 +43,8 @@ export interface ActivityNotice {
   activityKey?: string;
   /** Matched: the workout was already marked done by hand (undo leaves it done). */
   wasDone?: boolean;
+  /** Matched: the recorded distance, for the congratulation. */
+  distanceM?: number | null;
   /** Unplanned: sessions made shorter / easier. */
   adjusted: number;
 }
@@ -149,6 +151,7 @@ export function applyImportedActivities(
       workoutId: link.workoutId,
       activityKey: a.key,
       wasDone,
+      distanceM: a.distanceM,
       adjusted: 0,
     });
   }

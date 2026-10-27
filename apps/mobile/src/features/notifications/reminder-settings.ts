@@ -10,12 +10,18 @@ export interface ReminderSettings {
   minute: number;
   /** Add the weather hint (rain, snow, ice, storm) to the reminder. */
   weather: boolean;
+  /**
+   * Congratulation after a synced activity was linked to a planned session – its own category,
+   * at most one per session, never in place of the daily reminder.
+   */
+  congrats: boolean;
 }
 
 export const DEFAULT_REMINDER_SETTINGS: ReminderSettings = {
   enabled: true,
   minute: 7 * 60,
   weather: true,
+  congrats: true,
 };
 
 /** The reminder time can be set in these steps. */
@@ -33,6 +39,7 @@ export function parseReminderSettings(raw: unknown): ReminderSettings {
     enabled: typeof r.enabled === 'boolean' ? r.enabled : d.enabled,
     minute,
     weather: typeof r.weather === 'boolean' ? r.weather : d.weather,
+    congrats: typeof r.congrats === 'boolean' ? r.congrats : d.congrats,
   };
 }
 
